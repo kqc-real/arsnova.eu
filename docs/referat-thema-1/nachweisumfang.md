@@ -6,13 +6,13 @@ Befunde stehen in den Hauptdokumenten der Aufträge.
 
 Stand 17.11.2026, Branch `feature-praesentation-jonas`, Commit `e3986902`.
 Alle Werte der Tabellen rechnet
-[`abgabe/jonas/nachweisumfang.mjs`](abgabe/jonas/nachweisumfang.mjs) auf dem
+[`abgabe/bau/nachweisumfang.mjs`](abgabe/bau/nachweisumfang.mjs) auf dem
 aktuellen Checkout neu aus; `nachweisumfang.test.mjs` daneben schlägt fehl,
 sobald diese Datei und der Checkout auseinanderlaufen:
 
 ```sh
-node docs/referat-thema-1/abgabe/jonas/nachweisumfang.mjs   # Werte als JSON
-cd docs/referat-thema-1/abgabe/jonas && node --test nachweisumfang.test.mjs
+node docs/referat-thema-1/abgabe/bau/nachweisumfang.mjs   # Werte als JSON
+cd docs/referat-thema-1/abgabe/bau && node --test nachweisumfang.test.mjs
 ```
 
 ## Kopfzahlen
@@ -62,7 +62,7 @@ Tests und Dokumentation ohne laufendes Labor fehlen.
 | zusätzlich 1C Laborläufe          | 1 h 11 min (10 Zeitfenster)                      | Uhrzeiten in `evidenz/1C/2026-11-05-labor-pc.md`, `2026-10-24-teil2.md`, `-teil3.md`; Probe- und Trockenläufe aus `environment.startedAt` bis `endedAt`                                                                                                                 |
 
 Jedes Zeitfenster steht mit Datei und wörtlichem Beleg in `FENSTER` in
-[`abgabe/jonas/nachweisumfang.mjs`](abgabe/jonas/nachweisumfang.mjs); der Test prüft, dass jeder Beleg in seiner
+[`abgabe/bau/nachweisumfang.mjs`](abgabe/bau/nachweisumfang.mjs); der Test prüft, dass jeder Beleg in seiner
 Datei steht. Nur Fenster mit Anfang und Ende (oder einer Dauer) zählen. Nicht gezählt: Windows-Versuche 4 und 5
 ohne Uhrzeit (im VM-Journal enthalten), Entwicklungsläufe 1B 3–4 mit nur einer Startzeit, der doppelte Vorlauf `reihe-2026-11-12/vorlauf/` (gleiche Zeitstempel wie `vorlauf/`). Für Niklas'
 Windows-Rechner gibt es kein Journal im Repo; seine PR nennt für Entwicklungs- und Diagnoseproben rund 1 h 20 min.
@@ -113,7 +113,7 @@ Nicht gezählt: die beschreibende S1-Prüfung aus den Nachträgen der Planung un
 
 Auf Folien und im Handout nur Zahl und Pfad, ohne Wertung wie „umfangreich“. _Ergänzt 2026-11-17:_ GD zeigt die
 vier Kopfzahlen, den Zeitraum und die Laborzeit je Auftrag als Balken; Reservefolie R17 zeigt alle Zeilen dieser
-Datei. Beide lesen die Werte aus dieser Datei (`ladeNachweis` in `abgabe/jonas/folien.mjs`). _Aktualisiert
+Datei. Beide lesen die Werte aus dieser Datei (`ladeNachweis` in `abgabe/bau/folien.mjs`). _Aktualisiert
 2026-11-18:_ Kopfzahlen, Balken und gerafft Tests und Hypothesen je Auftrag stehen auf GN vor dem Dank; R17
 entfällt, GD zeigt keine Zahlen mehr.
 Verworfene und gestörte Läufe stehen mit Grund in den Protokollen unter

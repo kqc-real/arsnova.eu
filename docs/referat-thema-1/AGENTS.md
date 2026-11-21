@@ -13,6 +13,7 @@ Dateien in diesem Ordner, zusätzlich zur `AGENTS.md` im Wurzelverzeichnis.
 - Entscheidungen: [`adr/`](adr/README.md), ein Nummernkreis je Auftrag
 - Protokolle und Rohdaten: `evidenz/<Auftrag>/` · Designs und Pläne: `specs/`
 - Diagramme: `diagrams/`, Regeln in [`diagrams/README.md`](diagrams/README.md)
+- Abgabe (Folien HTML/PDF): direkt in [`abgabe/`](abgabe/README.md); Bauskripte und Tests in `abgabe/bau/`
 
 ## Ein Fakt, ein Ort
 

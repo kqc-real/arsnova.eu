@@ -1,0 +1,724 @@
+{
+  "schemaVersion": 1,
+  "bauskript": "docs/referat-thema-1/abgabe/bau/bau.mjs",
+  "niklas": {
+    "teil1": {
+      "quelle": "nativ: abgabe/bau/ (folien-1a.mjs, folien-1b34.mjs)",
+      "stand": null,
+      "sha256": null
+    },
+    "teil2": {
+      "quelle": "nativ: abgabe/bau/ (folien-1a.mjs, folien-1b34.mjs)",
+      "stand": null,
+      "sha256": null
+    }
+  },
+  "folien": { "gemeinsamesDeck": 53, "jonasUndReserve": 33, "niklasUndReserve": 20 },
+  "eingaben": [
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf.json",
+      "sha256": "d5e40ba5c1489769b924e3943193c7c362e98234aa75dbf6ecde2e718452e7a5"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf-kalt.json",
+      "sha256": "0fe51166dcab2fa16dc31b3abd865ce96e412983c1720fe260a4f548fadeb477"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf-kalt-2.json",
+      "sha256": "ebd3386596a343dc37dac685ec8a4993eac4f1aa9d65295f83f943a513bfa505"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf-kalt-3.json",
+      "sha256": "c409ec199cd5bb69a26e23d6b977bbdd43f23f9f11bf934ad8328642ef3f19a9"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf-kalt-4.json",
+      "sha256": "75801b55e5b89a5a64e95d9e7594691e1a1648d568c21e5ad81307e4f1e337a0"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf-kalt-5.json",
+      "sha256": "12a5ada85a9881e56cb2b01d1703bb6fdc5b56e0dfb5f57aa4dd107131d6578b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-kontrolle-c0.json",
+      "sha256": "e0c569fb1d96f29c50dedad7dff3b651621ee6f11019bd980d159ab9cd030671"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf-b0.json",
+      "sha256": "f8ee65e03994784f43398083f6bfec5fd8b4f36bf53eb89556a0dbee0e1b4e92"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-15-abgelehnte-antwort.json",
+      "sha256": "e41165a5e2c6954cdeb358940dc0c21e755a8b4dd10135efeb17af49b57f4f1e"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-aufbau-von-null.txt",
+      "sha256": "004c4597ea8a6d3f0752a87980a0351caa052e32858c638b1497aa285836d94b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1C/messung/2026-11-09-labor-nachlauf.json.gz",
+      "sha256": "3eaa4349d78e3b9c7fb969bd31ffde8992c6138ba8647ee590d15ab263e2071b"
+    },
+    {
+      "pfad": "apps/backend/src/lib/qaSummaryExtractive.ts",
+      "sha256": "bf87b5c0e2b71ba46601ccb49195801b15a0c487132ca2a73a6313fbff1444b6"
+    },
+    {
+      "pfad": "apps/frontend/src/app/features/session/session-host/moderation-compass-dialog.component.html",
+      "sha256": "3bb6534b7ee515234f62d7e556eb101cbfeb65ba1e1a8015b6502e2744100ffd"
+    },
+    {
+      "pfad": "docs/referat-thema-1/diagrams/1c-context-path-overview.light.svg",
+      "sha256": "51d754181e8eb08c2cc72f36e8ab89648419973d16fe31625a3bcba8a9edc4f5"
+    },
+    {
+      "pfad": "docs/referat-thema-1/diagrams/1c-legende.light.svg",
+      "sha256": "3174b19fca2e0f702bed0b59c3f077f9c466b7dba36cfbbaefff55fd905899fe"
+    },
+    {
+      "pfad": "docs/referat-thema-1/diagrams/1c-context-path-overview-sequence.light.svg",
+      "sha256": "88f49eaa71308679e23b32eaac724f7084f11b89a1f24bf8cf6d5ab665e49db3"
+    },
+    {
+      "pfad": "docs/referat-thema-1/nachweisumfang.md",
+      "sha256": "d486c04cbadb37a14516845998aa830f7e92350d74ad51d11f1281043ae1e2b7"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1C-023-release-timeout-90-s-zu-kurz.md",
+      "sha256": "dd31b4b41fdd281fe0f307f70ac3dc3c804980628a6b96fba184ce347f2ccdea"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1C-020-timeout-300-s-und-kalibrierungsregel.md",
+      "sha256": "11cec951e5c67d89b3f04f291b48e4ba08932abb6029b36437695765db399050"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1B-008-kernaussagen-und-schwellen.md",
+      "sha256": "112b7f87a9f7f9e14998f45fb9b4eb86aaac26d323f58dbb171d51db0c619caf"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1C-010-nachpruefung-nach-inferenz-beibehalten.md",
+      "sha256": "36a403873a76685d169f87f3250480e228b103ac4c16e6c4a8517223a7e92bf3"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/2026-11-13-lauf.md",
+      "sha256": "c268f4b6552272531e4349c0e2fd5a314b4cca7f77bbf90a8482d8d47d6a813b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1B-005-abweichungen-vom-release.md",
+      "sha256": "f35d4b02746839c9be2eac45a91b2fb697b507f3419e8c6116c7e3468ca06315"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1C/2026-11-09-labor-nachlauf.md",
+      "sha256": "f0b92369384810a744fcb3ea5eb9aa35afb53dfdb055c0782d835768bace3e28"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1C-021-zusatzlauf-produktionslimits-zweiter-rechner.md",
+      "sha256": "0a13b646d24487bec9d7514f2a9ee27bab922b6ece7afd662f4c23949188a332"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1C-024-prompt-cache-ram-begrenzen.md",
+      "sha256": "870bc1ef9e369ecafaff5164988e24cc3b9fcdce6067d5aad229e972ed92f477"
+    },
+    {
+      "pfad": "docs/referat-thema-1/adr/1B-011-zeitbegriffe-und-leitfrage.md",
+      "sha256": "af454b783d9703105eab1401d7a6166f17d50cb3260468d538af6c89c317bcfa"
+    },
+    {
+      "pfad": "apps/backend/src/lib/qaSummaryConfig.ts",
+      "sha256": "3a5f316f90b8dd708ff05e6452d51689f0d601fabb6299ea1d7420b20124a79f"
+    },
+    {
+      "pfad": "docs/referat-thema-1/1B/1B-ergebnis.md",
+      "sha256": "4d7635b520a09b18d6412ddd8e2318e41d4f0bf3d10295407912f1dbea1d6b65"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/abgabe-lokal.mjs",
+      "sha256": "026f57477efea9215ed132eabea1f30b7fa7eae3a8e0b0bf72670aa019a1ff46"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/bau-entwurf.mjs",
+      "sha256": "f2d89a5c1a6568a9ed83c23d28d46e8c386c3dfb41b53ba1f3d59f1fe935c5eb"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/bau.mjs",
+      "sha256": "81f64ad2fcf0c6395277bb1417b22257c67a25a8be24168857761376bcf8920b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/daten-1a.mjs",
+      "sha256": "26b545571f4bcb650678b6ec3131509c503fe354225bd2d64e92575e82ebdff7"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/daten-1b34.mjs",
+      "sha256": "7e010bd1254af347a24960383c6b910e2c836a01dc79f3b28a14b0bb91922977"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/deck-vorlage.html",
+      "sha256": "1195a9c307769bb7cd21e9ae6d1ce3faffeb6ad1345997c76556b1f5ad2f3e10"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/deck.js",
+      "sha256": "ecb7a6cafb34eff283075c277f90190966bd770b22f63a2ac41b044fe83e23b9"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/deck.mjs",
+      "sha256": "63992e7e36fd2fd786fdd56764b53648f587e7842d5388efbf08e32c759a4470"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/folien-1a.mjs",
+      "sha256": "e13461c27b43ba0587022e03d768192e60d7f1e2c38a607e94b1dda8464a2e43"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/folien-1b34.mjs",
+      "sha256": "07ba5059ef98bf85aeea65a4a4b81dd349f7fd1ff1e034784dc41559b0fa35bc"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/folien.mjs",
+      "sha256": "da0593741f0fd529b55b6ad11f55489946749e76a25b3db61546325aaacd73e6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/grafik-1a.mjs",
+      "sha256": "921d3c57e33da61bea3a85aa8c0e2f5c0df14e8dc6a66032bcdf3466737a7646"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/grafik.mjs",
+      "sha256": "d96bafd8b9c9bce7341e22d9f6f1438758955043ffb63e529a4e0fc31dd06ca8"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout-latex-1a.mjs",
+      "sha256": "488e7a29a1b39215125101bb621f9b5b977278e12a74dad8a7ecbdd1d296012d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout-latex.mjs",
+      "sha256": "2c4db1ff197cd741d61720a170fd999222a32643917b21167a8405592e84a6bf"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout-vorlage.html",
+      "sha256": "be245fe937edf383436932a5419f816c9d86a4d7e804a7bb7cd0c24838814e2c"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout.mjs",
+      "sha256": "59b1d444b674160f04e230e71565f4e00c7d92481945f56485eb9f8341045afa"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/layout-pruefung.mjs",
+      "sha256": "e8ba1c22095500d85ee54d9771edd72b4d60b9680c21e64ea9a6c8949cee5ae9"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/literatur-1a.mjs",
+      "sha256": "40efba42f67c37060fa4b0c801ab99e10bd47a9b0c334362bb6fe5e57d94f286"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/literatur.mjs",
+      "sha256": "1b50c295e44343b25da9f5bda93c753d037b90c7c5a4cac87bf2d19a425d1d41"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/nachweisumfang.mjs",
+      "sha256": "e44b84e9554eb6a117eb88e03fbd54dc731d24dfa53ed8c23f8a7e30919ee6ac"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/niklas-seiten.mjs",
+      "sha256": "5f729a5a510688921d68f1551da30ca9d2bd88ea85eb0a7188c8e86ff168e3be"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/notizen.mjs",
+      "sha256": "d91e0f403c928fe4b19ff428bdb13ddf169b5867ed41d497655c89b7b116b270"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/sprechheft.mjs",
+      "sha256": "19e3e85b1e4dd7e3fc38594f01053e32257c56c4de24a01f840661892246477c"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/stil.css",
+      "sha256": "58f0f8e4c11dad94b7885771ddfad69a334fac8c8f416a8e27c4b7b7254b2dd7"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/teile.mjs",
+      "sha256": "2d424a0dfea189eb979b45b73c97d4061b2f870d864bcf625250cdc2bdcd0b3c"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/wegkarte.mjs",
+      "sha256": "452b292605d9acd22c4f9ec7cfb0e489902cd49bd635067d3ceb2338dad0ffe4"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/zahlen.mjs",
+      "sha256": "b300f129045b6e2743cfc67c38effcb5580a261d46b2266829294589df01841e"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/OFL-IBMPlexMono.txt",
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/OFL-Inter.txt",
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/ibm-plex-mono-latin-400-normal.woff2",
+      "sha256": "3c5a451f9ec27a354b0c2bcca636c6ec17a651281aabf29f8427e210a1d31e85"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/ibm-plex-mono-latin-600-normal.woff2",
+      "sha256": "c4d3deb734a27e6d0dc7a6b464779f70ba1c272e26287860a14e35e85acb5b76"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/inter-latin-400-normal.woff2",
+      "sha256": "dd05e326cf8eac3b55acecf29c842ed73e6e6dd06491cf47f7e8800680ab3e33"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/inter-latin-600-normal.woff2",
+      "sha256": "62553d159189834af73c9a6264704be5b2bee9a08da66a14768d8e5c6ffd2cdb"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/inter-latin-700-normal.woff2",
+      "sha256": "aac638f7503cebb084ec494cf00f75f7d8260d50c2f4e7820bccabba09626a3a"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/schriften/inter-latin-800-normal.woff2",
+      "sha256": "e4a6db93190ce6c09e9871496bc63a2b7a59838435e8ec23996afd9619bc3883"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/medien/clip.webm",
+      "sha256": "376c93fba06832bf5605a5b1603646d1ee36fb0214ec2844949354889b2d03bc"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/medien/clip.json",
+      "sha256": "d2ab6d4ab9b4a60cbffb90cb7417763b236c0aab338ec5dea3ade78f7ff59dc1"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/medien/clip-standbild.png",
+      "sha256": "473611cff3da188962549e4e88f7c26cd747cb49a2f949ae1865cfe7f3feed27"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json",
+      "sha256": "a3bebdf236cfb3b6ae993049ebd96dbd72e2bde908e63fd5f6a6e99a9df8b82a"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/plan.json",
+      "sha256": "f303cc0389a16d1d073b9f8190d00c45385fb8d9ca23e01f422725928dca09c9"
+    },
+    {
+      "pfad": "docs/referat-thema-1/1A/1A-experiment-contract.md",
+      "sha256": "f7d3eba4b82a3f3a47c914665ac8a7be4988b9061deff6b857a79d2fcf766ab7"
+    },
+    {
+      "pfad": "apps/backend/src/lib/spacyClient.ts",
+      "sha256": "ce6f2dd675fbcc4c97671dfd27e8060d3dcd7537ca062467c29fee355d9758a4"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-01/lauf.json",
+      "sha256": "630c473d5507830ca809e1ef68afbc5711a3b6acb7be6f824e0236074a222304"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-01/ressourcen.json.gz",
+      "sha256": "0aba5c4736f0496b98681548c1e152baa382b0292a234f3d426a8dd7e17a3a65"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-01/lauf.json",
+      "sha256": "4703dfa59e63fc90a9d14eddbefec22400ce2dd598fc9654b97d577511f191d1"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-01/ressourcen.json.gz",
+      "sha256": "640659c2ddb16168c8039fdd892684a650e660363458b3191ef8185c7ddb913d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-01/lauf.json",
+      "sha256": "24f731078bddd4e0a9c7405f3761b7b078ad8bd6a6e83eb538d6e06a948b3c4f"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-01/ressourcen.json.gz",
+      "sha256": "0db58501698be44287fe008fee5ed81c39b5632fc0cf6a6a56618dfa8e87ff97"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-01/lauf.json",
+      "sha256": "cd8f999bd08d23a3b772332ed7f628be99b478e522edd1db11a6f7a8dd967e89"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-01/ressourcen.json.gz",
+      "sha256": "26c27fcdd08f72fea59e3eba17473af27a348b264b263b250357da75355a7805"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-01/lauf.json",
+      "sha256": "51fa926e323f9251374726fa83070072edc82ebfd7f0e5020cc0b62fff7b154d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-01/ressourcen.json.gz",
+      "sha256": "496dde3c440e5d63135a2285946a1327703ba58b5bcad46d26704a1dd70de627"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-02/lauf.json",
+      "sha256": "478194e1d502695de4aedaa1eb785961767c43699aa3872e5580ca9004f80499"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-02/ressourcen.json.gz",
+      "sha256": "809e370501110fe38bbd53fa27df579b84997424b27829b04e2af496ad410288"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-02/lauf.json",
+      "sha256": "86e7972e9363a98cdbfa5a47d6a83b94b8597087d0e91afbf9eb732c4dbeaa4e"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-02/ressourcen.json.gz",
+      "sha256": "7eb0afa1d68cc31139f0b3a4b1a0eeaa301605191510a6c197b98dd87abd69c7"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-02/lauf.json",
+      "sha256": "b5387ab5a1a2d2e57b16e5aac1476d99e9df9adef324fc3055658427d3cb6ed6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-02/ressourcen.json.gz",
+      "sha256": "fe9f09d98d7e2b08fd79ef55f4d86bf1d4ee6ad13db89cede13688b35d26d230"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-02/lauf.json",
+      "sha256": "8cd82822f2a6f8a0125c71834393d2f4c2059958b00e27b7e704cb9254bb91e3"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-02/ressourcen.json.gz",
+      "sha256": "37c87f33ad6157e757bae1aae23224e00fc7ffe6b01c7032edde87caaa752bd9"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-02/lauf.json",
+      "sha256": "69e0a76b7f37c3aa13cf78eff288e4402fc4c3800e4434a9cc1796f115605f99"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-02/ressourcen.json.gz",
+      "sha256": "e660bca4f913336caee0845248a4ccebd5d3e14aae02696457b6ba9d7ff71227"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-03/lauf.json",
+      "sha256": "e7c3c580a1bb3abc8bc94d262c8756ed8260177b34539901c82a47df12cc5404"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-03/ressourcen.json.gz",
+      "sha256": "c35d75e3e36cb506f155c3259e2cd753a09506c881e2c6590d1cd8b4e62173a5"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-03/lauf.json",
+      "sha256": "99e61554392f08305efacb47fd00dda90ad1a592a5d5bb13a9922e0491a854e0"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-03/ressourcen.json.gz",
+      "sha256": "fa6c770a0f8ae1bddb28d2f9e0052cf6cfb7c4fa5c99ca516f7b5948ad8af6c8"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-03/lauf.json",
+      "sha256": "9d9e7d47db079546b7e59616f47d2c2b001e8dc74b75a7d265c4bd7ec92dc852"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-03/ressourcen.json.gz",
+      "sha256": "d9dbeaecfa87f1dfb7a9412cc2c17846954c85ecd9409be414e26860723dee92"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-03/lauf.json",
+      "sha256": "b50831c6f47d010be4cc8d62c398e23c4fd2209d6af0248dcebaca90e2febe72"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-03/ressourcen.json.gz",
+      "sha256": "af08db140e5987ba70b4b77201297613340713634e7a5b180e7525b1bfaffb8b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-03/lauf.json",
+      "sha256": "83f89e2c1ca9bcdca376a66af2da6e546aee5b7e85fb6dbb39df476241e2a17d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-03/ressourcen.json.gz",
+      "sha256": "3a112017c1345a72655c3ba558f4d1b57a853a427efd2b8825072b9019f544f6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-04/lauf.json",
+      "sha256": "9b52cbb553234ae15b44c0d87b9fabf20a7165cb44848dbd33f5e9ca950cbe54"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-04/ressourcen.json.gz",
+      "sha256": "f5f941ab26f19a2f1e8a1c4ebfc2b6d3a4110e86afe5912ae0eede2d238404a8"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-04/lauf.json",
+      "sha256": "240d3705cf870a6ae57effb5e15a49adc6f61c3f289d6eaf011cb1281638735f"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-04/ressourcen.json.gz",
+      "sha256": "8d2905df70dc8b774f75a23a65fa5fabae7fa81951e66248e8bac8b1d96246af"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-04/lauf.json",
+      "sha256": "63510360ef8197a5a45415c06cb9391826c2c2c6b9fac205e4a523d845732f58"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-04/ressourcen.json.gz",
+      "sha256": "fcb1551678622937f3b19fb0708505a67096ddf603217bf3db335a9d60f67ccd"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-04/lauf.json",
+      "sha256": "79d2c2b29a30f69f66fc93523d31240b93a03b88cf492ae1f3b7be9afd5396ee"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-04/ressourcen.json.gz",
+      "sha256": "62d30f5a12dd2305ca21c165eaf3f28afdbafb423da6c57d549c5650b2345e0f"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-04/lauf.json",
+      "sha256": "f55bbe6130639bc8f189514786026ee427b14ee03fb47fa3cc96ca3e18b2f717"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-04/ressourcen.json.gz",
+      "sha256": "07c2df09004a2bd6481081977645f0e215ed7d9c14440fc28b571b84f8f9e8b3"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-05/lauf.json",
+      "sha256": "efbf6e84bf4f39bd6c2b2c39b85086af2f67c04ae05aeb831d5ce181bb8834a6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V2/block-05/ressourcen.json.gz",
+      "sha256": "721df1c9d315fe8eb32fb8fb55aaee7b889d6f882b9b579d18d65e4087f51ac0"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-05/lauf.json",
+      "sha256": "037f5cc5ec5bc25ee1fd0d21dd75b9822764cc1c8002b939a7096694c8195f41"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V4/block-05/ressourcen.json.gz",
+      "sha256": "16747f2fff70f05a8055198a947181f31b9e2098dbc3529494e4fd71d833bcc6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-05/lauf.json",
+      "sha256": "4c6e2faf5221d8846f8a78f1e39c2c860c4aeb6e5eaf1b91d4b1b9e34912c811"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V0/block-05/ressourcen.json.gz",
+      "sha256": "ed033059e048e6e84648e6c6cdebc42efa27e6994a5c09868d95c43a03b500cb"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-05/lauf.json",
+      "sha256": "323dbd8ebaa882cf61cb651792bf665b3f4563befdc695076ebf83c6ff263b89"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V1/block-05/ressourcen.json.gz",
+      "sha256": "0fb3af566168652ed058e8202a4e17bb75d41a724780eccd668daa970c62c4a4"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-05/lauf.json",
+      "sha256": "72fa68d92bbc472313d59a2a58e1b998cd3a8bbc41306e327dce74a7bc36f365"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/V3/block-05/ressourcen.json.gz",
+      "sha256": "6f5c0df08d7486e27b7e14fa3441714c575a0e9f33d4be6e8e7a0a9615ec1d5b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-15-lauf-f1-summary.json.gz",
+      "sha256": "df82327b3699791bc6e35388763c2acbfeba23c416c50c59bb52523348de1a82"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-15-lauf-normal-summary.json.gz",
+      "sha256": "6d41d0b07e4d59c1c887aa9330ff17bc57b67962c22e4ef24b4572aa25333962"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-breaker-f1-summary.json",
+      "sha256": "9f0a7be197b63de36fb0776e892ff238101d924729c01e5c25edb2e87ab31656"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-breaker-l3-summary.json",
+      "sha256": "e0d2a99ca6350b5246f46e8cf5f3ab867988772d18567868efa98d4fafa57c00"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-busy-summary.json.gz",
+      "sha256": "869f3e264b349f144bfae9e45c59520e66ce8b4e1551e2c24022682712b46c16"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-f1-label.json.gz",
+      "sha256": "113f8e1a521c5561e53bf4b5d998eb9866648b18051546f1a691d039e241e8cc"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-f2-label.json.gz",
+      "sha256": "6de27fe1be0ea0d367fe2c7155869d3b73ea9d496f8f58f95aa23b641e64e67a"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-f2-summary.json.gz",
+      "sha256": "bf701320591e7f3934f5823c9e6b1e01017908686436f1db920ed26adef709b6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-l1-label-01.json.gz",
+      "sha256": "1a66cb8d8f51fef5ecc94b60e1a72dbd200ee0f96150d03ba6ea8c1926c097ea"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-l1-label-02.json.gz",
+      "sha256": "97a03a84b1993b9a01ec588939792d27ef6b4087b328f04a40b9deb6e7a4e9fa"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-l2-label.json.gz",
+      "sha256": "ae00b305b46b71ed47114ffeb0d4cdf5affafd23d16e9066e8ab7ecda1963293"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-l3-label.json.gz",
+      "sha256": "b5e1da6d9d83220a3c0384f33989802fc4fea2a96be5802af60785336fb89af8"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-l3-summary.json.gz",
+      "sha256": "bead069029861977023345abb092a21b43d4049a2dfe205fb4f8dccfdf4e066f"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-normal-label-01.json.gz",
+      "sha256": "ed5776ee4eca9feb678c59718d96e5de0d2ffb1dc58feceea1e991b57efff1a6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-normal-label-02.json.gz",
+      "sha256": "f1efb017814aa8236082c3f2181b7d7691469b141ee55025acfdae48e1b2fd5a"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-normal-label-03.json.gz",
+      "sha256": "88153d0b1546d4162074c9d53f7273779469b7c4f5be9d0b62d1322d9d65eb66"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-s1-label.json.gz",
+      "sha256": "2b2e1668991176835ff5a40b34da03c1d997373f5ebbe8cabc3b49941458d739"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-s1-summary.json.gz",
+      "sha256": "38bb984dc1a221d1b539dcf4c3a2b6bf91a50984eba19ebed461381aa42cbe7d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-16-transportauswertung.json",
+      "sha256": "b0781bee9afafc4dc6d9f9fcef2582a808a83973dc4687b784404f2c7a3c8fe0"
+    },
+    {
+      "pfad": "scripts/load/lib/artillery-live-messungen.mjs",
+      "sha256": "343ebed073757b6a699cd9a77d47d0d61650e8ef40a9172ff2db0adb075f005d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/evidenz/1B/json-lesen.mjs",
+      "sha256": "fa8403cac4b5841ffe2fdbd6c118edbaf3f94f3b6a5bfd6b7d6389441d0a5e87"
+    },
+    {
+      "pfad": "apps/backend/src/lib/openWeightLlmClient.ts",
+      "sha256": "4f402c8c1676f38be260ec97bf955bb2ab3063e8b3774f8a2fa4878cbbc081d5"
+    },
+    {
+      "pfad": "apps/backend/src/lib/openWeightLlmConfig.ts",
+      "sha256": "b7c88c44f72ab10a2431acd067009986c06235a00b04f859c8cd667c95019e3f"
+    },
+    {
+      "pfad": "apps/backend/src/lib/qaSummaryQueue.ts",
+      "sha256": "07a13f99a6e6c50ad2ec66be8d98c5655963a5e39cb855f0e7c8a7dc68dcb46e"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/abgabe-lokal.mjs",
+      "sha256": "026f57477efea9215ed132eabea1f30b7fa7eae3a8e0b0bf72670aa019a1ff46"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/bau-entwurf.mjs",
+      "sha256": "f2d89a5c1a6568a9ed83c23d28d46e8c386c3dfb41b53ba1f3d59f1fe935c5eb"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/bau.mjs",
+      "sha256": "81f64ad2fcf0c6395277bb1417b22257c67a25a8be24168857761376bcf8920b"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/daten-1a.mjs",
+      "sha256": "26b545571f4bcb650678b6ec3131509c503fe354225bd2d64e92575e82ebdff7"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/daten-1b34.mjs",
+      "sha256": "7e010bd1254af347a24960383c6b910e2c836a01dc79f3b28a14b0bb91922977"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/deck.mjs",
+      "sha256": "63992e7e36fd2fd786fdd56764b53648f587e7842d5388efbf08e32c759a4470"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/folien-1a.mjs",
+      "sha256": "e13461c27b43ba0587022e03d768192e60d7f1e2c38a607e94b1dda8464a2e43"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/folien-1b34.mjs",
+      "sha256": "07ba5059ef98bf85aeea65a4a4b81dd349f7fd1ff1e034784dc41559b0fa35bc"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/folien.mjs",
+      "sha256": "da0593741f0fd529b55b6ad11f55489946749e76a25b3db61546325aaacd73e6"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/grafik-1a.mjs",
+      "sha256": "921d3c57e33da61bea3a85aa8c0e2f5c0df14e8dc6a66032bcdf3466737a7646"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/grafik.mjs",
+      "sha256": "d96bafd8b9c9bce7341e22d9f6f1438758955043ffb63e529a4e0fc31dd06ca8"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout-latex-1a.mjs",
+      "sha256": "488e7a29a1b39215125101bb621f9b5b977278e12a74dad8a7ecbdd1d296012d"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout-latex.mjs",
+      "sha256": "2c4db1ff197cd741d61720a170fd999222a32643917b21167a8405592e84a6bf"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/handout.mjs",
+      "sha256": "59b1d444b674160f04e230e71565f4e00c7d92481945f56485eb9f8341045afa"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/layout-pruefung.mjs",
+      "sha256": "e8ba1c22095500d85ee54d9771edd72b4d60b9680c21e64ea9a6c8949cee5ae9"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/literatur-1a.mjs",
+      "sha256": "40efba42f67c37060fa4b0c801ab99e10bd47a9b0c334362bb6fe5e57d94f286"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/literatur.mjs",
+      "sha256": "1b50c295e44343b25da9f5bda93c753d037b90c7c5a4cac87bf2d19a425d1d41"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/nachweisumfang.mjs",
+      "sha256": "e44b84e9554eb6a117eb88e03fbd54dc731d24dfa53ed8c23f8a7e30919ee6ac"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/niklas-seiten.mjs",
+      "sha256": "5f729a5a510688921d68f1551da30ca9d2bd88ea85eb0a7188c8e86ff168e3be"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/notizen.mjs",
+      "sha256": "d91e0f403c928fe4b19ff428bdb13ddf169b5867ed41d497655c89b7b116b270"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/sprechheft.mjs",
+      "sha256": "19e3e85b1e4dd7e3fc38594f01053e32257c56c4de24a01f840661892246477c"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/teile.mjs",
+      "sha256": "2d424a0dfea189eb979b45b73c97d4061b2f870d864bcf625250cdc2bdcd0b3c"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/wegkarte.mjs",
+      "sha256": "452b292605d9acd22c4f9ec7cfb0e489902cd49bd635067d3ceb2338dad0ffe4"
+    },
+    {
+      "pfad": "docs/referat-thema-1/abgabe/bau/zahlen.mjs",
+      "sha256": "b300f129045b6e2743cfc67c38effcb5580a261d46b2266829294589df01841e"
+    }
+  ],
+  "ausgaben": [
+    {
+      "datei": "folien-gesamt.html",
+      "bytes": 2136438,
+      "sha256": "0ab9a8b306304c11118d4ac67476f4ecc4af16c8423694256837f78e67d3a8d5"
+    },
+    {
+      "datei": "folien-gesamt.pdf",
+      "bytes": 1602387,
+      "sha256": "ca83af97f2218496cbffd7820a3fb2f075b8f2bf1232e5c0f5be583879ac984a",
+      "seiten": 53
+    },
+    {
+      "datei": "folien-jonas.pdf",
+      "bytes": 1093729,
+      "sha256": "a881a5d73d5917c10fe1cbd5a039064a10f93559addfba9b85e157da0f9db112",
+      "seiten": 33
+    },
+    {
+      "datei": "folien-niklas.pdf",
+      "bytes": 557511,
+      "sha256": "9e8c8b90b640abf98316640999486dfb88c01c31d8fd93530e34eb481a23e15d",
+      "seiten": 20
+    }
+  ]
+}
