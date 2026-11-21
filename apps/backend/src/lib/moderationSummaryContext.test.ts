@@ -12,6 +12,7 @@ import {
   QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,
   QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   assemblePreparedModerationSummaryContext,
+  buildSummaryGroundingTextsBySourceId,
   countIncludedQaQuestionSources,
   createQaSummaryFallback,
   ensureMinimumQaQuestionCoverage,
@@ -1410,5 +1411,157 @@ describe('moderationSummaryContext', () => {
 
     expect(sourceKinds.length).toBeGreaterThanOrEqual(2);
     expect(sourceKinds.every((kind) => kind === 'qa-question')).toBe(true);
+  });
+
+  it('nimmt strukturierte Quiz- und Feedback-Aggregatwerte in buildSummaryGroundingTextsBySourceId auf und vererbt sie an Kompass-Signale ohne opake IDs oder Zeitstempel', () => {
+    const base = analysisFixture(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
+    const quizQuestionId = 'quiz-question:q-dist-1';
+    const answerAggregateId = 'quiz-result-aggregate:q-dist-1.answers';
+    const feedbackAggregateId = 'feedback-aggregate:mood-1';
+    const compassSignalId = 'compass-signal:feedback-alert';
+
+    const analysis = ModerationAnalysisContextV1Schema.parse({
+      ...base,
+      context: {
+        ...base.context,
+        meta: {
+          ...base.context.meta,
+          revisions: {
+            ...base.context.meta.revisions,
+            releasedResults: { state: 'available', value: 'released-r1' },
+            feedback: { state: 'available', value: 'feedback-r1' },
+          },
+        },
+        scope: {
+          ...base.context.scope,
+          channels: ['qa', 'quiz', 'quickFeedback'],
+          selectionLimits: {
+            ...base.context.scope.selectionLimits,
+            questions: 10,
+            compassSignals: 2,
+            resultAggregates: 2,
+            feedbackAggregates: 2,
+          },
+        },
+        compass: {
+          state: 'available',
+          rulesVersion: 'moderation-compass-rules-v1',
+          primarySignalSourceId: compassSignalId,
+          signals: [
+            {
+              sourceId: compassSignalId,
+              signal: 'feedback-pattern',
+              basis: 'feedback-rule-score',
+              cardKind: 'tempo',
+              questionSourceIds: [],
+              value: 0.75,
+              reason: 'Negative quick-feedback majority.',
+              evidence: [{ sourceId: feedbackAggregateId, detail: '15 negative votes.' }],
+              suggestedNextStep: {
+                action: 'request-clarification',
+                rationale: 'Ask what slowed participants down.',
+              },
+            },
+          ],
+        },
+        releasedResults: {
+          state: 'available',
+          aggregates: [{ sourceId: answerAggregateId }],
+        },
+        feedback: {
+          state: 'available',
+          aggregates: [{ sourceId: feedbackAggregateId }],
+        },
+        limitations: [],
+        sources: [
+          ...base.context.sources,
+          {
+            id: quizQuestionId,
+            kind: 'quiz-question',
+            quizScopeId: 'quiz-scope:77',
+            text: 'Welche Aussage zur Steigung 2,5 trifft zu?',
+            truncated: false,
+          },
+          {
+            id: answerAggregateId,
+            kind: 'quiz-result-aggregate',
+            label: 'Released answer distribution',
+            scope: {
+              kind: 'question',
+              quizScopeId: 'quiz-scope:77',
+              questionSourceId: quizQuestionId,
+            },
+            voteBasis: { kind: 'effective-vote', version: 'effective-vote-v1' },
+            population: { kind: 'eligible-submissions', eligible: 25, included: 20 },
+            aggregation: {
+              rule: 'answer-distribution',
+              unit: 'selections',
+              optionSet: 'all-answer-options',
+              responseCount: 20,
+              selectionCount: 20,
+              selectionCardinality: { minimumPerResponse: 1, maximumPerResponse: 1 },
+              buckets: [
+                { optionId: 'answer-option:88', label: 'Steigung positiv', count: 13 },
+                { optionId: 'answer-option:89', label: 'Steigung negativ', count: 7 },
+              ],
+            },
+          },
+          {
+            id: feedbackAggregateId,
+            kind: 'feedback-aggregate',
+            label: 'Quick feedback MOOD',
+            scope: {
+              channel: 'quickFeedback',
+              timeWindow: {
+                kind: 'interval',
+                from: '2026-11-21T16:00:00.000Z',
+                to: '2026-11-21T16:10:00.000Z',
+              },
+            },
+            population: { kind: 'eligible-feedback-responses', eligible: 25, included: 18 },
+            aggregation: {
+              feedbackType: 'MOOD',
+              rule: 'flashlight-distribution',
+              unit: 'votes',
+              buckets: [
+                { value: 'POSITIVE', count: 3 },
+                { value: 'NEUTRAL', count: 0 },
+                { value: 'NEGATIVE', count: 15 },
+              ],
+            },
+          },
+          {
+            id: compassSignalId,
+            kind: 'compass-signal',
+            label: 'Quick-feedback trend',
+          },
+        ],
+      },
+    });
+
+    const prepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });
+    const grounding = buildSummaryGroundingTextsBySourceId(prepared.request.promptContext);
+
+    const answerGrounding = grounding.get(answerAggregateId) ?? '';
+    expect(answerGrounding).toContain('Released answer distribution');
+    expect(answerGrounding).toContain('Steigung positiv');
+    expect(answerGrounding).toContain('13');
+    expect(answerGrounding).toContain('7');
+    expect(answerGrounding).toContain('Welche Aussage zur Steigung 2,5 trifft zu?');
+    expect(answerGrounding).not.toContain('77');
+    expect(answerGrounding).not.toContain('88');
+    expect(answerGrounding).not.toContain('89');
+    expect(prepared.presentationLabels.get(answerAggregateId)).toBe('Released answer distribution');
+
+    const feedbackGrounding = grounding.get(feedbackAggregateId) ?? '';
+    expect(feedbackGrounding).toContain('Quick feedback MOOD');
+    expect(feedbackGrounding).toContain('NEGATIVE');
+    expect(feedbackGrounding).toContain('15');
+    expect(feedbackGrounding).toContain('18');
+    expect(feedbackGrounding).not.toContain('2026');
+
+    const compassGrounding = grounding.get(compassSignalId) ?? '';
+    expect(compassGrounding).toContain('15');
+    expect(compassGrounding).not.toContain('0.75');
   });
 });

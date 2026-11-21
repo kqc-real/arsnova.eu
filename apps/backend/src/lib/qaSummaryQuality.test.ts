@@ -331,4 +331,78 @@ describe('hasAcceptableQaSummaryQuality', () => {
       ),
     ).toBe(true);
   });
+
+  it('akzeptiert wertgleiche Dezimal- und Tausenderformen bei strikter Trennung von bloßen Zahlen und Prozentwerten', () => {
+    const sourceTextsById = new Map<string, string>([
+      ['source-pct-int', 'Warum ist die Schwelle 80 %?'],
+      ['source-pct-dec', 'Warum liegt das Konfidenzintervall bei 95,50 %?'],
+      ['source-plain-int', 'Wir sind 80.0 Teilnehmende im Hörsaal — gibt es Zusatzplätze?'],
+      ['source-chapter-one', 'Ist Kapitel 1 klausurrelevant?'],
+      ['source-grouped-dec', 'Warum weicht der Schätzwert 1.234,50 so stark ab?'],
+    ]);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Statistik: Warum ist die Schwelle 80.0%?',
+              sourceIds: ['source-pct-int'],
+            },
+            {
+              text: 'Konfidenzintervall: Warum liegt die Schwelle bei 95.5%?',
+              sourceIds: ['source-pct-dec'],
+            },
+            {
+              text: 'Schätzwert: Warum weicht der Wert 1234.5 so stark ab?',
+              sourceIds: ['source-grouped-dec'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(true);
+
+    // Bloße Zahl (80.0) darf auch in wertgleicher Dezimalschreibweise (80.0% / 80 %) keinen Prozentbezug erfinden:
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Hörsaal: Warum sind 80.0% der Plätze belegt?',
+              sourceIds: ['source-plain-int'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(false);
+
+    // Kapitel 1 darf Tausendergruppierungen wie 1.000 nicht als Dezimalwert 1 freigeben:
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Klausur: Sind 1.000 Punkte für das Bestehen nötig?',
+              sourceIds: ['source-chapter-one'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(false);
+  });
 });

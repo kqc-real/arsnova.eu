@@ -161,21 +161,229 @@ function sourceText(source: ModerationPromptSource): string | null {
   }
 }
 
+function formatStructuredNumberTokens(
+  value: number,
+  options?: { readonly percentage?: boolean },
+): string[] {
+  if (!Number.isFinite(value)) return [];
+  const abs = Math.abs(value);
+  const forms = new Set<string>([String(abs)]);
+  if (!Number.isInteger(abs)) {
+    forms.add(abs.toFixed(1));
+    forms.add(abs.toFixed(2));
+    if (options?.percentage && Math.abs(abs - Number(abs.toFixed(2))) > 1e-9) {
+      forms.add(String(Math.round(abs)));
+    }
+  }
+  const suffix = options?.percentage ? '%' : '';
+  return [...forms].map((form) => `${form}${suffix}`);
+}
+
+function structuredQuizResultGroundingParts(
+  source: Extract<ModerationPromptSource, { kind: 'quiz-result-aggregate' }>,
+): string[] {
+  const parts: string[] = [
+    source.label,
+    ...formatStructuredNumberTokens(source.population.eligible),
+    ...formatStructuredNumberTokens(source.population.included),
+  ];
+  const { aggregation } = source;
+  switch (aggregation.rule) {
+    case 'answer-distribution':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.selectionCount),
+        ...formatStructuredNumberTokens(aggregation.selectionCardinality.minimumPerResponse),
+        ...formatStructuredNumberTokens(aggregation.selectionCardinality.maximumPerResponse),
+      );
+      for (const bucket of aggregation.buckets) {
+        parts.push(bucket.label, ...formatStructuredNumberTokens(bucket.count));
+      }
+      break;
+    case 'freetext-pattern-summary':
+      parts.push(...formatStructuredNumberTokens(aggregation.responseCount));
+      for (const pattern of aggregation.repeatedPatterns) {
+        parts.push(...formatStructuredNumberTokens(pattern.count));
+      }
+      break;
+    case 'correctness-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.correct),
+        ...formatStructuredNumberTokens(aggregation.incorrect),
+        ...formatStructuredNumberTokens(aggregation.unanswered),
+      );
+      if (aggregation.roundComparison) {
+        parts.push(
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.correct),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.incorrect),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.correct),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.incorrect),
+        );
+      }
+      break;
+    case 'rating-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.scale.minimum),
+        ...formatStructuredNumberTokens(aggregation.scale.maximum),
+      );
+      if (aggregation.mean !== null) {
+        parts.push(...formatStructuredNumberTokens(aggregation.mean));
+      }
+      for (const bucket of aggregation.buckets) {
+        parts.push(
+          ...formatStructuredNumberTokens(bucket.value),
+          ...formatStructuredNumberTokens(bucket.count),
+        );
+      }
+      break;
+    case 'numeric-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.inBandCount),
+      );
+      if (aggregation.median !== null) {
+        parts.push(...formatStructuredNumberTokens(aggregation.median));
+      }
+      if (aggregation.standardDeviation !== null) {
+        parts.push(...formatStructuredNumberTokens(aggregation.standardDeviation));
+      }
+      if (aggregation.inBandPercent !== null) {
+        parts.push(
+          ...formatStructuredNumberTokens(aggregation.inBandPercent, { percentage: true }),
+        );
+      }
+      if (aggregation.histogram) {
+        for (const bucket of aggregation.histogram) {
+          parts.push(
+            ...formatStructuredNumberTokens(bucket.from),
+            ...formatStructuredNumberTokens(bucket.to),
+            ...formatStructuredNumberTokens(bucket.count),
+          );
+        }
+      }
+      if (aggregation.roundComparison) {
+        parts.push(
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.inBandCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.inBandCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.inBandPercentDelta, {
+            percentage: true,
+          }),
+        );
+        if (aggregation.roundComparison.pairedAnalysis) {
+          parts.push(
+            ...formatStructuredNumberTokens(aggregation.roundComparison.pairedAnalysis.pairedCount),
+            ...formatStructuredNumberTokens(aggregation.roundComparison.pairedAnalysis.closerCount),
+            ...formatStructuredNumberTokens(
+              aggregation.roundComparison.pairedAnalysis.fartherCount,
+            ),
+            ...formatStructuredNumberTokens(
+              aggregation.roundComparison.pairedAnalysis.unchangedCount,
+            ),
+          );
+        }
+      }
+      break;
+    case 'score-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.minimum),
+        ...formatStructuredNumberTokens(aggregation.maximum),
+        ...formatStructuredNumberTokens(aggregation.mean),
+      );
+      break;
+    case 'completion-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.completed),
+        ...formatStructuredNumberTokens(aggregation.incomplete),
+      );
+      break;
+  }
+  return parts;
+}
+
+function structuredFeedbackGroundingParts(
+  source: Extract<ModerationPromptSource, { kind: 'feedback-aggregate' }>,
+): string[] {
+  const parts: string[] = [
+    source.label,
+    source.aggregation.feedbackType,
+    ...formatStructuredNumberTokens(source.population.eligible),
+    ...formatStructuredNumberTokens(source.population.included),
+  ];
+  for (const bucket of source.aggregation.buckets) {
+    parts.push(String(bucket.value), ...formatStructuredNumberTokens(bucket.count));
+  }
+  return parts;
+}
+
+function sourceGroundingParts(source: ModerationPromptSource): string[] {
+  switch (source.kind) {
+    case 'qa-question':
+      return source.content.state === 'included' ? [source.content.text] : [];
+    case 'semantic-topic':
+    case 'compass-signal':
+      return [source.label];
+    case 'quiz-question':
+    case 'learning-objective':
+      return [source.text];
+    case 'quiz-result-aggregate':
+      return structuredQuizResultGroundingParts(source);
+    case 'feedback-aggregate':
+      return structuredFeedbackGroundingParts(source);
+  }
+}
+
 /**
- * Model-visible text per citable source ID for deterministic output grounding.
- * `reference-only` Q&A items carry no text; semantic topics and compass signals
- * inherit only already-packed `included` evidence texts.
+ * Model-visible text and structured domain values per citable source ID for
+ * deterministic output grounding. `reference-only` Q&A items carry no text;
+ * semantic topics, learning objectives, question-scoped result aggregates, and
+ * compass signals inherit only already-packed model-visible evidence.
  */
 export function buildSummaryGroundingTextsBySourceId(
   promptContext: ModerationPromptContextV1,
 ): ReadonlyMap<string, string> {
   const directTexts = new Map<string, string>();
   for (const source of promptContext.context.sources) {
-    const text = sourceText(source)?.trim();
-    if (text) directTexts.set(source.id, text);
+    const parts = sourceGroundingParts(source)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (parts.length > 0) {
+      directTexts.set(source.id, [...new Set(parts)].join('\n'));
+    }
   }
 
   const groundingTexts = new Map<string, string>(directTexts);
+  for (const source of promptContext.context.sources) {
+    if (source.kind === 'quiz-result-aggregate' && source.scope.kind === 'question') {
+      const parts = [
+        directTexts.get(source.id),
+        directTexts.get(source.scope.questionSourceId),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(source.id, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  if (promptContext.context.learningContext.state === 'available') {
+    for (const objective of promptContext.context.learningContext.objectives) {
+      const linkedIds = [
+        ...(objective.scope.kind === 'tasks' ? objective.scope.taskSourceIds : []),
+        ...(objective.origin.kind === 'model-derived' ? objective.origin.derivedFromSourceIds : []),
+      ];
+      const parts = [
+        directTexts.get(objective.sourceId),
+        ...linkedIds.map((id) => directTexts.get(id)),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(objective.sourceId, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
   if (promptContext.context.topics.state === 'available') {
     for (const topic of promptContext.context.topics.items) {
       const parts = [

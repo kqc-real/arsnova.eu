@@ -1008,6 +1008,320 @@ describe('openWeightLlmClient', () => {
     expect(parsedEmpty).not.toHaveProperty('compass');
   });
 
+  it('akzeptiert in runPreparedQaSummary strukturierte Quiz- und Feedback-Aggregatwerte sowie wertgleiche Dezimalschreibweisen und lehnt ungeerdete Abweichungen ab', async () => {
+    const base = MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1;
+    const quizQuestionId = 'quiz-question:q-rating-1';
+    const ratingAggregateId = 'quiz-result-aggregate:q-rating-1.rating';
+    const numericAggregateId = 'quiz-result-aggregate:q-numeric-1.numeric';
+    const numericQuestionId = 'quiz-question:q-numeric-1';
+    const feedbackAggregateId = 'feedback-aggregate:stars-round-1';
+    const secondQaId = 'qa-question:22222222-2222-4222-8222-222222222222';
+    const baseQaQuestion =
+      base.context.questions.state === 'available' ? base.context.questions.items[0]! : null;
+    if (!baseQaQuestion) throw new Error('Erwartete Q&A-Frage im Minimalfixture.');
+
+    const rawContext = {
+      ...base.context,
+      meta: {
+        ...base.context.meta,
+        revisions: {
+          ...base.context.meta.revisions,
+          releasedResults: { state: 'available' as const, value: 'released-r1' },
+          feedback: { state: 'available' as const, value: 'feedback-r1' },
+        },
+      },
+      scope: {
+        ...base.context.scope,
+        channels: ['qa' as const, 'quiz' as const, 'quickFeedback' as const],
+        selectionLimits: {
+          ...base.context.scope.selectionLimits,
+          questions: 10,
+          resultAggregates: 4,
+          feedbackAggregates: 2,
+        },
+      },
+      questions:
+        base.context.questions.state === 'available'
+          ? {
+              ...base.context.questions,
+              corpus: {
+                total: 2,
+                eligible: 2,
+                analyzed: 2,
+                deduplicated: 2,
+                represented: 2,
+              },
+              items: [
+                baseQaQuestion,
+                {
+                  ...structuredClone(baseQaQuestion),
+                  sourceId: secondQaId,
+                },
+              ],
+            }
+          : base.context.questions,
+      releasedResults: {
+        state: 'available' as const,
+        aggregates: [{ sourceId: ratingAggregateId }, { sourceId: numericAggregateId }],
+      },
+      feedback: {
+        state: 'available' as const,
+        aggregates: [{ sourceId: feedbackAggregateId }],
+      },
+      limitations: [],
+      sources: [
+        ...base.context.sources.map((source) =>
+          source.kind === 'qa-question'
+            ? {
+                ...source,
+                content: {
+                  state: 'included' as const,
+                  text: 'Warum liegt die Bestehensgrenze bei 80 %?',
+                  truncated: false,
+                },
+              }
+            : source,
+        ),
+        {
+          id: secondQaId,
+          kind: 'qa-question' as const,
+          content: {
+            state: 'included' as const,
+            text: 'Warum liegt der Mittelwert in der Übung so niedrig?',
+            truncated: false,
+          },
+        },
+        {
+          id: quizQuestionId,
+          kind: 'quiz-question' as const,
+          quizScopeId: 'quiz-scope:99',
+          text: 'Wie verständlich war die Herleitung?',
+          truncated: false,
+        },
+        {
+          id: ratingAggregateId,
+          kind: 'quiz-result-aggregate' as const,
+          label: 'Released rating summary',
+          scope: {
+            kind: 'question' as const,
+            quizScopeId: 'quiz-scope:99',
+            questionSourceId: quizQuestionId,
+          },
+          voteBasis: { kind: 'effective-vote' as const, version: 'effective-vote-v1' as const },
+          population: { kind: 'eligible-submissions' as const, eligible: 20, included: 4 },
+          aggregation: {
+            rule: 'rating-summary' as const,
+            unit: 'ratings' as const,
+            responseCount: 4,
+            scale: { minimum: 1, maximum: 5 },
+            mean: 3.5,
+            buckets: [
+              { value: 1, count: 0 },
+              { value: 2, count: 1 },
+              { value: 3, count: 1 },
+              { value: 4, count: 1 },
+              { value: 5, count: 1 },
+            ],
+          },
+        },
+        {
+          id: numericQuestionId,
+          kind: 'quiz-question' as const,
+          quizScopeId: 'quiz-scope:99',
+          text: 'Schätzen Sie den Konfidenzwert.',
+          truncated: false,
+        },
+        {
+          id: numericAggregateId,
+          kind: 'quiz-result-aggregate' as const,
+          label: 'Released numeric summary',
+          scope: {
+            kind: 'question' as const,
+            quizScopeId: 'quiz-scope:99',
+            questionSourceId: numericQuestionId,
+          },
+          voteBasis: { kind: 'effective-vote' as const, version: 'effective-vote-v1' as const },
+          population: { kind: 'eligible-submissions' as const, eligible: 20, included: 8 },
+          aggregation: {
+            rule: 'numeric-summary' as const,
+            unit: 'numeric-responses' as const,
+            responseCount: 8,
+            median: 42.5,
+            standardDeviation: 4.25,
+            inBandCount: 5,
+            inBandPercent: 62.5,
+          },
+        },
+        {
+          id: feedbackAggregateId,
+          kind: 'feedback-aggregate' as const,
+          label: 'Quick feedback STARS',
+          scope: {
+            channel: 'quickFeedback' as const,
+            timeWindow: {
+              kind: 'interval' as const,
+              from: '2026-11-21T17:00:00.000Z',
+              to: '2026-11-21T17:05:00.000Z',
+            },
+          },
+          population: {
+            kind: 'eligible-feedback-responses' as const,
+            eligible: 20,
+            included: 14,
+          },
+          aggregation: {
+            feedbackType: 'STARS' as const,
+            rule: 'rating-distribution' as const,
+            unit: 'votes' as const,
+            buckets: [
+              { value: '1' as const, count: 9 },
+              { value: '2' as const, count: 5 },
+              { value: '3' as const, count: 0 },
+              { value: '4' as const, count: 0 },
+              { value: '5' as const, count: 0 },
+            ],
+          },
+        },
+      ],
+    };
+    const { instructionTokens, definitionTokens } = qaSummaryTechnicalHandoffTokenCounts();
+    const dataTokens = Buffer.byteLength(JSON.stringify(rawContext), 'utf8') + 256;
+    const packedInputTokens = instructionTokens + definitionTokens + dataTokens;
+    const promptContext = ModerationPromptContextV1Schema.parse({
+      ...base,
+      context: rawContext,
+      budget: {
+        ...base.budget,
+        instructionTokens,
+        definitionTokens,
+        dataTokens,
+        packedInputTokens,
+        reservedOutputTokens: 192,
+        safetyMarginTokens: 128,
+        contextWindowTokens: packedInputTokens + 320,
+      },
+    });
+    const prepared = assemblePreparedModerationSummaryContext({
+      promptContext,
+      cache: 'miss',
+      plan: {
+        capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+        selectedMode: 'full-context',
+        fallback: null,
+        inferenceConfigured: true,
+      },
+    });
+    const refFor = (id: string) =>
+      String(promptContext.context.sources.findIndex((source) => source.id === id) + 1);
+    const qa1Ref = refFor(baseQaQuestion.sourceId);
+    const ratingRef = refFor(ratingAggregateId);
+    const numericRef = refFor(numericAggregateId);
+    const feedbackRef = refFor(feedbackAggregateId);
+
+    // 1. Positivpfad: mean 3.5 -> "3,5", Feedback count 9/14 -> "9 von 14", und "80 %" -> "80.0%"
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) => {
+        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+        return completionResponse({
+          topics: [
+            {
+              topic: 'Bewertung',
+              question: 'Warum liegt der Mittelwert bei 3,5?',
+              refs: [ratingRef],
+            },
+            {
+              topic: 'Schnellfeedback',
+              question: 'Warum vergaben 9 von 14 Personen bei 80.0% Bestehensgrenze nur 1 Stern?',
+              refs: [feedbackRef, qa1Ref],
+            },
+          ],
+          next: {
+            sentence: 'Die 62,50 % Trefferquote der Schätzfrage im Plenum einordnen.',
+            refs: [numericRef],
+          },
+        });
+      },
+    });
+
+    await expect(runPreparedQaSummary(prepared)).resolves.toMatchObject({
+      execution: {
+        attemptedMode: 'full-context',
+        effectiveMode: 'full-context',
+        fallback: null,
+      },
+      output: {
+        status: 'ready',
+        statements: [
+          {
+            text: 'Bewertung: Warum liegt der Mittelwert bei 3,5?',
+            sourceIds: [ratingAggregateId],
+          },
+          {
+            text: 'Schnellfeedback: Warum vergaben 9 von 14 Personen bei 80.0% Bestehensgrenze nur 1 Stern?',
+            sourceIds: [feedbackAggregateId, baseQaQuestion.sourceId],
+          },
+        ],
+        suggestedNextSteps: [
+          {
+            text: 'Die 62,50 % Trefferquote der Schätzfrage im Plenum einordnen.',
+            sourceIds: [numericAggregateId],
+          },
+        ],
+      },
+    });
+
+    // 2. Negativpfad A: Bloßer Mittelwert 3.5 darf nicht als Prozentwert 3,5 % durchgehen.
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) => {
+        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+        return completionResponse({
+          topics: [
+            {
+              topic: 'Bewertung',
+              question: 'Warum sind nur 3,5 % mit der Herleitung zufrieden?',
+              refs: [ratingRef],
+            },
+          ],
+        });
+      },
+    });
+
+    await expect(runPreparedQaSummary(prepared)).resolves.toMatchObject({
+      execution: {
+        attemptedMode: 'full-context',
+        effectiveMode: 'extractive',
+        fallback: { reason: 'invalid_response' },
+      },
+    });
+
+    // 3. Negativpfad B: Opake Scope-IDs (quiz-scope:99) und Feedback-Timestamps (2026) erden keine Zahlen.
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) => {
+        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+        return completionResponse({
+          topics: [
+            {
+              topic: 'Schnellfeedback',
+              question: 'Warum wurden 2026 insgesamt 99 Stimmen abgegeben?',
+              refs: [feedbackRef, ratingRef],
+            },
+          ],
+        });
+      },
+    });
+
+    await expect(runPreparedQaSummary(prepared)).resolves.toMatchObject({
+      execution: {
+        attemptedMode: 'full-context',
+        effectiveMode: 'extractive',
+        fallback: { reason: 'invalid_response' },
+      },
+    });
+  });
+
   it('zwingt learning_objectives questionIds im Wire-Schema auf die Quell-IDs statt UUID-Regex', async () => {
     let translatedBody: string | null = null;
     resetOpenWeightLlmClientForTests({

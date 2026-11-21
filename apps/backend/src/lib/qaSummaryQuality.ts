@@ -52,7 +52,11 @@ const DANGLING_ENDING =
 const PERCENTAGE_VALUE_PATTERN =
   /(\d+(?:[.,]\d+)*)(?:[\s\u00a0\u202f]*(?:%|prozent\b|percento\b|percent\b|pour[\s\u00a0\u202f]*cent\b|por[\s\u00a0\u202f]*ciento\b|per[\s\u00a0\u202f]*cento\b))/giu;
 const NUMERIC_TOKEN_PATTERN = /\d+(?:[.,]\d+)*/gu;
-const GROUPED_THOUSANDS_PATTERN = /^\d{1,3}(?:[.,]\d{3})+$/u;
+const MIXED_DOT_THOUSANDS_DECIMAL_PATTERN = /^\d{1,3}(?:\.\d{3})+,\d+$/u;
+const MIXED_COMMA_THOUSANDS_DECIMAL_PATTERN = /^\d{1,3}(?:,\d{3})+\.\d+$/u;
+const MULTI_GROUPED_THOUSANDS_PATTERN = /^\d{1,3}(?:(?:\.\d{3}){2,}|(?:,\d{3}){2,})$/u;
+const SINGLE_GROUPED_THOUSANDS_PATTERN = /^\d{1,3}[.,]\d{3}$/u;
+const PLAIN_DECIMAL_PATTERN = /^\d+[.,]\d+$/u;
 const CONTENT_WORD_PATTERN = /\p{L}[\p{L}\p{N}]{3,}/gu;
 
 const MULTILINGUAL_STOPWORDS = new Set([
@@ -429,23 +433,62 @@ function hasConsistentQaCitationGrounding(
     return true;
   }
 
+  const statementNumberGroups = [...body.normalize('NFKC').matchAll(NUMERIC_TOKEN_PATTERN)].map(
+    (match) => canonicalNumericForms(match[0]),
+  );
   const citedSet = new Set(statement.sourceIds);
   for (const [qaSourceId, qaText] of includedQaTextsById) {
     if (citedSet.has(qaSourceId)) continue;
     const qaTokens = extractSignificantContentTokens(qaText);
-    if (countSignificantContentTokenMatches(statementTokens, qaTokens) >= 2) {
-      return false;
+    if (countSignificantContentTokenMatches(statementTokens, qaTokens) < 2) {
+      continue;
     }
+    if (statementNumberGroups.length > 0) {
+      const qaNumbers = extractCanonicalNumberSet(qaText);
+      if (!statementNumberGroups.every((forms) => forms.some((form) => qaNumbers.has(form)))) {
+        continue;
+      }
+    }
+    return false;
   }
   return true;
 }
 
+function normalizeDecimalValue(unsignedDotDecimal: string): string {
+  const [rawInt = '0', rawFrac = ''] = unsignedDotDecimal.split('.');
+  const cleanInt = rawInt.replace(/^0+(?=\d)/u, '');
+  const cleanFrac = rawFrac.replace(/0+$/u, '');
+  return cleanFrac.length > 0 ? `${cleanInt}.${cleanFrac}` : cleanInt;
+}
+
 function canonicalNumericForms(raw: string): string[] {
-  const normalizedDecimal = raw.replace(/,/g, '.');
-  if (GROUPED_THOUSANDS_PATTERN.test(raw)) {
-    return [normalizedDecimal, raw.replace(/[.,]/g, '')];
+  if (!raw.includes('.') && !raw.includes(',')) {
+    return [normalizeDecimalValue(raw)];
   }
-  return [normalizedDecimal];
+  if (MIXED_DOT_THOUSANDS_DECIMAL_PATTERN.test(raw)) {
+    return [normalizeDecimalValue(raw.replace(/\./g, '').replace(',', '.'))];
+  }
+  if (MIXED_COMMA_THOUSANDS_DECIMAL_PATTERN.test(raw)) {
+    return [normalizeDecimalValue(raw.replace(/,/g, ''))];
+  }
+  if (MULTI_GROUPED_THOUSANDS_PATTERN.test(raw)) {
+    return [normalizeDecimalValue(raw.replace(/[.,]/g, ''))];
+  }
+  if (SINGLE_GROUPED_THOUSANDS_PATTERN.test(raw)) {
+    if (/^0+[.,]\d{3}$/u.test(raw)) {
+      return [normalizeDecimalValue(raw.replace(',', '.'))];
+    }
+    const groupedInteger = normalizeDecimalValue(raw.replace(/[.,]/g, ''));
+    if (/^[1-9]\d{0,2}[.,]000$/u.test(raw)) {
+      return [...new Set([groupedInteger, raw.replace(',', '.')])];
+    }
+    const decimalValue = normalizeDecimalValue(raw.replace(',', '.'));
+    return [...new Set([decimalValue, groupedInteger])];
+  }
+  if (PLAIN_DECIMAL_PATTERN.test(raw)) {
+    return [normalizeDecimalValue(raw.replace(',', '.'))];
+  }
+  return [raw.replace(/,/g, '.')];
 }
 
 function extractCanonicalNumberSet(text: string): Set<string> {

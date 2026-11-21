@@ -154,7 +154,9 @@ Geschwisterquelle (`reconcileTopicSiblingQaCitations`; niemals `reference-only`-
 sodass beide Originalfragen unter »Verwendete Beiträge« lesbar bleiben. Anschließend
 verwirft ein enger Qualitätsfilter generative Ergebnisse mit fehlenden oder wiederholten
 Themenüberschriften, unvollständigen Sätzen, technischen Metadaten, ungeerdeten Zahlen-
-oder Prozentangaben ohne Deckung im zitierten Quelltext, clusterfremden Zitatvertauschungen
-oder generischen Antwortformat-Labels wie »Fragen«/»Beispiele« (sprachspezifisch für `de`,
-`en`, `fr`, `es`, `it`). In diesem Fall liefert die Queue statt der schwachen
-Modellantwort den quellengebundenen extraktiven Fallback.
+oder Prozentangaben ohne Deckung im zitierten Quelltext bzw. in den modellsichtbaren
+strukturierten Quiz-/Feedback-Aggregatwerten (wertgleiche Dezimalnormalisierung bei
+strikter Trennung von bloßen Zahlen und Prozentwerten), clusterfremden
+Zitatvertauschungen oder generischen Antwortformat-Labels wie »Fragen«/»Beispiele«
+(sprachspezifisch für `de`, `en`, `fr`, `es`, `it`). In diesem Fall liefert die Queue
+statt der schwachen Modellantwort den quellengebundenen extraktiven Fallback.
