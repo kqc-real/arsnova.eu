@@ -56,7 +56,7 @@ Dazu wünschte der Autor Titel-, Fahrplan- und Dankfolie und einen Designdurchga
   ignorierten Kopien (Deck und PDFs). Der frühere Eckstempel entfällt.
 - **Designregeln:** Typografie (Text ≥ 28 px, Sekundärtext 24 px, Vermerke 20 px gedämpft in einer Zeile),
   vertikaler Rhythmus (Inhalt im optischen Zentrum, Beleg unten), Abstandsstufen, Farbbedeutung. Beschrieben
-  im [README](../abgabe/jonas/README.md#designregeln-stand-2026-11-16), geprüft vom Layoutwächter.
+  im [README](../abgabe/bau/README.md#designregeln-stand-2026-11-16), geprüft vom Layoutwächter.
 
 ## Gemeinsames Deck aus einem Guss (_Ergänzt 2026-11-16_)
 
