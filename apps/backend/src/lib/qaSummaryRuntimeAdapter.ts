@@ -40,7 +40,9 @@ function projectLegacyOutputToModelOutputV2(
   legacy: QaSummaryModelOutput,
   prepared: PreparedModerationSummaryContext,
 ): QaSummaryModelOutputV2 {
-  const rankedSourceIds = prepared.request.promptContext.context.sources.map((source) => source.id);
+  const rankedSourceIds = prepared.request.promptContext.context.sources
+    .map((source) => source.id)
+    .filter((sourceId) => prepared.presentationLabels.has(sourceId));
   const allowedSourceIds = new Set(rankedSourceIds);
   const boundStatements = sortQaSummaryStatementsByImportance(
     legacy.statements

@@ -75,7 +75,7 @@ Die Adapterwahl ist ausdrücklich und nachvollziehbar:
 
 Vor dem Modelllauf baut die Queue den Kontext frisch auf; danach folgen derselbe erneute Kontextaufbau und ein Hashvergleich. Eine Quellenänderung verwirft die Modellantwort und bindet den Fallback an den neuen Stand. `summaryRuntime` prüft fertige Ergebnisse vor der nächsten Auslieferung erneut. Session-Purge löscht Ergebnis, Warteschlangeneintrag und flüchtiges Host-Credential und bricht einen laufenden Auftrag ab.
 
-Das technische Profil verwendet 8.192 konservative Budgeteinheiten, 640 Antwortreserve und 128 Sicherheitsmarge (unter dem praxisnahen 8k-Arbeitsfenster von Qwen3-4B Q4; nie Modelldefault). Passen Basismetadaten trotzdem nicht, degradiert der Packer sichtbar auf eine Q&A-Textbaseline bzw. Force-Fit-Mindestbelege. Das ist ein sicherer Betriebszustand, aber **keine bestandene Full-context- oder CPU-Prefill-Abnahme**. Details und offene Nachweise stehen in [Issue #456 – Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md).
+Das technische Profil verwendet 8.192 konservative Budgeteinheiten, 192 Antwortreserve (synchron mit dem V2-Ausgabelimit `max_tokens = 192`) und 128 Sicherheitsmarge (unter dem praxisnahen 8k-Arbeitsfenster von Qwen3-4B Q4; nie Modelldefault). Passen Basismetadaten trotzdem nicht, degradiert der Packer sichtbar auf eine Q&A-Textbaseline bzw. Force-Fit-Mindestbelege. Das ist ein sicherer Betriebszustand, aber **keine bestandene Full-context- oder CPU-Prefill-Abnahme**. Details und offene Nachweise stehen in [Issue #456 – Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md).
 
 ## Lokal prüfen
 

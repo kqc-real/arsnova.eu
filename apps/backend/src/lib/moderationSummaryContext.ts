@@ -35,7 +35,10 @@ import {
   packModerationPromptContext,
   type ModerationPromptPackingProfile,
 } from './moderationPromptContextPacking';
-import { resolveOpenWeightLlmConfig } from './openWeightLlmConfig';
+import {
+  OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+  resolveOpenWeightLlmConfig,
+} from './openWeightLlmConfig';
 import { resolveQaSummaryConfig } from './qaSummaryConfig';
 
 /**
@@ -53,7 +56,7 @@ export const QA_SUMMARY_MODERATION_PACKING_PROFILE = {
   contextWindowTokens: 8_192,
   instructionText: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   definitionText: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,
-  reservedOutputTokens: 640,
+  reservedOutputTokens: OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
   safetyMarginTokens: 128,
 } as const satisfies ModerationPromptPackingProfile;
 
@@ -229,20 +232,44 @@ export type PreparedModerationSummaryContext = Readonly<{
 /** Short reasons keep the empty packing shell under the configured token budget. */
 const QA_BASELINE_OMIT_REASON = 'qa-baseline';
 const QA_FORCE_FIT_OMIT_REASON = 'qa-force-fit';
+const QA_SUMMARY_BASE_MAX_QUESTION_CANDIDATES = 8;
+const QA_SUMMARY_MEDIUM_CORPUS_THRESHOLD = 24;
+const QA_SUMMARY_MEDIUM_CORPUS_MAX_QUESTION_CANDIDATES = 12;
 const QA_SUMMARY_MAX_QUESTION_CANDIDATES = 16;
 const QA_SUMMARY_LARGE_CORPUS_THRESHOLD = 100;
 const QA_SUMMARY_LARGE_CORPUS_TARGET_COVERAGE = 8;
 const QA_SUMMARY_MAX_SIGNAL_QUESTION_EVIDENCE = 2;
+const QA_SUMMARY_MAX_SIGNAL_QUESTIONS = 4;
+
+export function resolveSummaryMaxQuestionCandidates(totalQuestions: number): number {
+  if (totalQuestions >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD) {
+    return QA_SUMMARY_MAX_QUESTION_CANDIDATES;
+  }
+  if (totalQuestions >= QA_SUMMARY_MEDIUM_CORPUS_THRESHOLD) {
+    return QA_SUMMARY_MEDIUM_CORPUS_MAX_QUESTION_CANDIDATES;
+  }
+  return QA_SUMMARY_BASE_MAX_QUESTION_CANDIDATES;
+}
 
 function trimSummaryAnalysisQuestions(
   analysis: ModerationAnalysisContextV1,
-  maxQuestions = analysis.context.questions.state === 'available' &&
-  analysis.context.questions.corpus.total >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD
-    ? QA_SUMMARY_MAX_QUESTION_CANDIDATES
-    : 3,
+  maxQuestions = analysis.context.questions.state === 'available'
+    ? resolveSummaryMaxQuestionCandidates(analysis.context.questions.corpus.total)
+    : QA_SUMMARY_BASE_MAX_QUESTION_CANDIDATES,
 ): ModerationAnalysisContextV1 {
   const context = analysis.context;
-  if (context.questions.state !== 'available' || context.questions.items.length <= maxQuestions) {
+  const hasOversizedSignal =
+    context.compass.state === 'available' &&
+    context.compass.signals.some(
+      (signal) =>
+        signal.questionSourceIds.length > QA_SUMMARY_MAX_SIGNAL_QUESTIONS ||
+        signal.evidence.filter(({ sourceId }) => sourceId.startsWith('qa-question:')).length >
+          QA_SUMMARY_MAX_SIGNAL_QUESTIONS,
+    );
+  if (
+    context.questions.state !== 'available' ||
+    (context.questions.items.length <= maxQuestions && !hasOversizedSignal)
+  ) {
     return analysis;
   }
 
@@ -371,17 +398,27 @@ function trimSummaryAnalysisQuestions(
       ? {
           ...context.compass,
           signals: context.compass.signals.map((signal) => {
-            const trimmedQuestionIds = signal.questionSourceIds.filter((id) =>
-              finalReferencedQuestionIds.has(id),
-            );
+            const trimmedQuestionIds = signal.questionSourceIds
+              .filter((id) => finalReferencedQuestionIds.has(id))
+              .slice(0, QA_SUMMARY_MAX_SIGNAL_QUESTIONS);
             const finalSignalQuestionIds =
               trimmedQuestionIds.length > 0
                 ? trimmedQuestionIds
                 : signal.questionSourceIds.slice(0, 1);
-            const trimmedEvidence = signal.evidence.filter(
-              ({ sourceId }) =>
-                !sourceId.startsWith('qa-question:') || finalReferencedQuestionIds.has(sourceId),
-            );
+            const allowedSignalQuestionIds = new Set(finalSignalQuestionIds);
+            let seenQaEvidence = 0;
+            const trimmedEvidence = signal.evidence.filter(({ sourceId }) => {
+              if (!sourceId.startsWith('qa-question:')) return true;
+              if (
+                !finalReferencedQuestionIds.has(sourceId) ||
+                (allowedSignalQuestionIds.size > 0 && !allowedSignalQuestionIds.has(sourceId))
+              ) {
+                return false;
+              }
+              if (seenQaEvidence >= QA_SUMMARY_MAX_SIGNAL_QUESTIONS) return false;
+              seenQaEvidence += 1;
+              return true;
+            });
             const isCountBasedSignal =
               signal.signal === 'high-frequency' ||
               signal.signal === 'pinned-question' ||

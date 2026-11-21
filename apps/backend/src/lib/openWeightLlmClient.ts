@@ -35,6 +35,7 @@ import {
   normalizeOpenWeightLlmHostname,
   OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD,
   OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS,
+  OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
   resolveOpenWeightLlmConfig,
   type OpenWeightLlmConfig,
   type OpenWeightLlmTransport,
@@ -494,7 +495,10 @@ function buildChatCompletionBody(
       request.taskType === 'topic_label' && request.schemaVersion === 2
         ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
         : request.taskType === 'qa_summary' && request.schemaVersion === 2
-          ? Math.min(192, config.maxOutputTokens.qa_summary)
+          ? Math.min(
+              OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+              config.maxOutputTokens.qa_summary,
+            )
           : config.maxOutputTokens[request.taskType],
     temperature: 0,
     stream: false,

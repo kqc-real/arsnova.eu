@@ -18,7 +18,9 @@ import {
   prepareModerationSummaryContextFromAnalysis,
   qaSummaryTechnicalHandoffTokenCounts,
   resolveQaSummaryAdapterPlan,
+  resolveSummaryMaxQuestionCandidates,
 } from './moderationSummaryContext';
+import { OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS } from './openWeightLlmConfig';
 import {
   canonicalModerationPromptJson,
   estimateModerationPromptUtf8Tokens,
@@ -125,6 +127,11 @@ describe('moderationSummaryContext', () => {
     });
     expect(countIncludedQaQuestionSources(prepared.request.promptContext)).toBeGreaterThan(0);
     expect(prepared.request.promptContext.budget.contextWindowTokens).toBe(8_192);
+    expect(QA_SUMMARY_MODERATION_PACKING_PROFILE.reservedOutputTokens).toBe(
+      OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+    );
+    expect(prepared.request.promptContext.budget.reservedOutputTokens).toBe(192);
+    expect(prepared.request.promptContext.context.topics.state).toBe('available');
     expect(
       prepared.request.promptContext.budget.packedInputTokens +
         prepared.request.promptContext.budget.reservedOutputTokens +
@@ -132,6 +139,79 @@ describe('moderationSummaryContext', () => {
     ).toBeLessThanOrEqual(QA_SUMMARY_MODERATION_PACKING_PROFILE.contextWindowTokens);
     expect(prepared.request.promptContext.budget.truncations.length).toBeGreaterThan(0);
     expect(prepared.plan.selectedMode).toBe('full-context');
+  });
+
+  it('skaliert den Kandidatenpool für Sessions unter 100 Fragen monoton statt hart auf 3 zu kappen', () => {
+    expect(resolveSummaryMaxQuestionCandidates(6)).toBe(8);
+    expect(resolveSummaryMaxQuestionCandidates(23)).toBe(8);
+    expect(resolveSummaryMaxQuestionCandidates(24)).toBe(12);
+    expect(resolveSummaryMaxQuestionCandidates(99)).toBe(12);
+    expect(resolveSummaryMaxQuestionCandidates(100)).toBe(16);
+
+    const base = analysisFixture(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
+    if (base.context.questions.state !== 'available') {
+      throw new Error('Erwartete verfügbare Fragen im Minimalfixture.');
+    }
+    const templateQuestion = base.context.questions.items[0]!;
+    const templateSource = base.context.sources.find((source) => source.kind === 'qa-question');
+    if (!templateSource || templateSource.kind !== 'qa-question') {
+      throw new Error('Erwartete Q&A-Quelle im Minimalfixture.');
+    }
+
+    const items = Array.from({ length: 10 }, (_, index) => ({
+      ...structuredClone(templateQuestion),
+      sourceId: `qa-question:10000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+      status:
+        index === 0
+          ? ('PINNED' as const)
+          : index === 1
+            ? ('PENDING' as const)
+            : ('ACTIVE' as const),
+    }));
+    const sources = items.map((question, index) => ({
+      ...structuredClone(templateSource),
+      id: question.sourceId,
+      content: {
+        state: 'included' as const,
+        text: `Kurze Hörsaalfrage ${index + 1} zum Klausurstoff?`,
+        truncated: false,
+      },
+    }));
+    const mediumSessionAnalysis = ModerationAnalysisContextV1Schema.parse({
+      ...base,
+      context: {
+        ...base.context,
+        scope: {
+          ...base.context.scope,
+          questionFilter: {
+            ...base.context.scope.questionFilter,
+            statuses: ['PENDING', 'ACTIVE', 'PINNED'],
+          },
+          selectionLimits: {
+            ...base.context.scope.selectionLimits,
+            questions: 10,
+          },
+        },
+        questions: {
+          ...base.context.questions,
+          corpus: {
+            total: 40,
+            eligible: 40,
+            analyzed: 10,
+            deduplicated: 10,
+            represented: 10,
+          },
+          items,
+        },
+        sources,
+      },
+    });
+
+    const prepared = prepareModerationSummaryContextFromAnalysis({
+      analysis: mediumSessionAnalysis,
+      plan,
+    });
+    expect(countIncludedQaQuestionSources(prepared.request.promptContext)).toBeGreaterThan(3);
   });
 
   it('priorisiert Themen im tatsächlichen Kurzfassungs-Packer ohne zusätzliche Aufrufoption', () => {
@@ -726,9 +806,9 @@ describe('moderationSummaryContext', () => {
       analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
       plan: legacyPlan,
     });
-    const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources.map(
-      (source) => source.id,
-    );
+    const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources
+      .filter((source) => prepared.presentationLabels.has(source.id))
+      .map((source) => source.id);
     if (!firstSourceId || !secondSourceId) {
       throw new Error('Erwartete mindestens zwei Quellen im Referenzfixture.');
     }
@@ -853,9 +933,9 @@ describe('moderationSummaryContext', () => {
       analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
       plan,
     });
-    const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources.map(
-      (source) => source.id,
-    );
+    const [firstSourceId, secondSourceId] = prepared.request.promptContext.context.sources
+      .filter((source) => prepared.presentationLabels.has(source.id))
+      .map((source) => source.id);
     if (!firstSourceId || !secondSourceId) {
       throw new Error('Erwartete mindestens zwei Quellen im Referenzfixture.');
     }

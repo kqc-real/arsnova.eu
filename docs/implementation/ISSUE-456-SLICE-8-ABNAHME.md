@@ -62,11 +62,11 @@ Der technische Übergabepfad verwendet derzeit dieses feste Profil:
 | Anteil                                      |  Wert | Bedeutung                                                             |
 | ------------------------------------------- | ----: | --------------------------------------------------------------------- |
 | Kontextfenster                              | 8.192 | konservative UTF-8-Obergrenze des Packers für das feste Runtimeprofil |
-| technische Instruktion                      |   314 | exakte UTF-8-Bytes                                                    |
+| technische Instruktion (`v8`)               |   931 | exakte UTF-8-Bytes                                                    |
 | Bedeutungsdefinition                        |   203 | exakte UTF-8-Bytes                                                    |
-| Antwortreserve                              |   640 | reservierte Ausgabetokens                                             |
+| Antwortreserve                              |   192 | reservierte Ausgabetokens (synchron zu V2 `max_tokens = 192`)         |
 | Sicherheitsmarge                            |   128 | nicht für Eingabedaten verwendbar                                     |
-| verbleibende konservative Kontextobergrenze | 2.811 | kanonisches JSON des gepackten Fachkontexts                           |
+| verbleibende konservative Kontextobergrenze | 6.738 | kanonisches JSON des gepackten Fachkontexts                           |
 
 Die llama.cpp-Übergabe besteht bei V2 aus genau drei Nachrichten:
 
