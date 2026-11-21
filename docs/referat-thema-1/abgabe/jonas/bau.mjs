@@ -484,26 +484,26 @@ async function main() {
     // Ab hier wird geschrieben: ein altes Manifest darf nie zu neuen Ausgaben stehen.
     mkdirSync(ausgabe, { recursive: true });
     rmSync(join(ausgabe, 'manifest.json'), { force: true });
-    const deckPfad = join(ausgabe, 'jonas-deck.html');
+    const deckPfad = join(ausgabe, 'folien-gesamt.html');
     writeFileSync(deckPfad, html);
     // Ohne privat/notizen.mjs (öffentlicher Klon) entstehen nur die öffentlichen Ausgaben.
     if (mitNotizen) {
       mkdirSync(privatAusgabe, { recursive: true });
-      writeFileSync(join(privatAusgabe, 'vortrag-deck.html'), rohVortrag);
+      writeFileSync(join(privatAusgabe, 'folien-gesamt-mit-notizen.html'), rohVortrag);
     }
 
     const browser = await chromium.launch();
     try {
-      await drucke(browser, pathToFileURL(deckPfad).href, join(ausgabe, 'gemeinsames-deck.pdf'));
+      await drucke(browser, pathToFileURL(deckPfad).href, join(ausgabe, 'folien-gesamt.pdf'));
       await drucke(
         browser,
         `${pathToFileURL(deckPfad).href}?druck=jonas`,
-        join(ausgabe, 'jonas-folien.pdf'),
+        join(ausgabe, 'folien-jonas.pdf'),
       );
       await drucke(
         browser,
         `${pathToFileURL(deckPfad).href}?druck=niklas`,
-        join(ausgabe, 'niklas-folien.pdf'),
+        join(ausgabe, 'folien-niklas.pdf'),
       );
     } finally {
       await browser.close();
@@ -523,9 +523,9 @@ async function main() {
       const kartenBrowser = await chromium.launch();
       try {
         for (const [datei, person, liste, pause] of [
-          ['sprechkarten-jonas.pdf', 'Jonas', folienJonas(alle)],
+          ['notizen-karten-jonas.pdf', 'Jonas', folienJonas(alle)],
           [
-            'sprechkarten-niklas.pdf',
+            'notizen-karten-niklas.pdf',
             'Niklas',
             folienNiklas(alle, niklas),
             pauseNiklas(alle, niklas),
@@ -545,11 +545,11 @@ async function main() {
       }
 
       writeFileSync(
-        join(privatAusgabe, 'sprechnotizen.md'),
+        join(privatAusgabe, 'notizen-jonas.md'),
         await format(baueSprechnotizen(folienJonas(alle)), { ...formatierung, parser: 'markdown' }),
       );
       writeFileSync(
-        join(privatAusgabe, 'sprechnotizen-niklas.md'),
+        join(privatAusgabe, 'notizen-niklas.md'),
         await format(
           baueSprechnotizen(folienNiklas(alle, niklas), {
             person: 'Niklas',
@@ -565,9 +565,9 @@ async function main() {
       // Kein Datum im Heft: der Stand steht im Manifest (Eingaben mit SHA-256), der Bau bleibt reproduzierbar
       const stand = 'siehe manifest.json';
       for (const [datei, person, eintraege, zeitBezug] of [
-        ['sprechheft-jonas.html', 'Jonas', heftJonas, 'eigener Teil'],
-        ['sprechheft-niklas.html', 'Niklas', heftNiklas, 'eigener Teil'],
-        ['sprechheft-gesamt.html', 'Jonas und Niklas', heftGesamt, 'gesamt'],
+        ['notizen-heft-jonas.html', 'Jonas', heftJonas, 'eigener Teil'],
+        ['notizen-heft-niklas.html', 'Niklas', heftNiklas, 'eigener Teil'],
+        ['notizen-heft-gesamt.html', 'Jonas und Niklas', heftGesamt, 'gesamt'],
       ]) {
         writeFileSync(
           join(privatAusgabe, datei),
@@ -595,10 +595,10 @@ async function main() {
     };
     const ausgaben = [];
     for (const datei of [
-      'jonas-deck.html',
-      'gemeinsames-deck.pdf',
-      'jonas-folien.pdf',
-      'niklas-folien.pdf',
+      'folien-gesamt.html',
+      'folien-gesamt.pdf',
+      'folien-jonas.pdf',
+      'folien-niklas.pdf',
     ]) {
       const p = join(ausgabe, datei);
       const daten_ = readFileSync(p);
@@ -626,9 +626,9 @@ async function main() {
       bauskript: 'docs/referat-thema-1/abgabe/jonas/bau.mjs',
       niklas: { teil1: nikEintrag(niklasQuellen.teil1), teil2: nikEintrag(niklasQuellen.teil2) },
       folien: {
-        gemeinsamesDeck: ausgaben.find((a) => a.datei === 'gemeinsames-deck.pdf').seiten,
-        jonasUndReserve: ausgaben.find((a) => a.datei === 'jonas-folien.pdf').seiten,
-        niklasUndReserve: ausgaben.find((a) => a.datei === 'niklas-folien.pdf').seiten,
+        gemeinsamesDeck: ausgaben.find((a) => a.datei === 'folien-gesamt.pdf').seiten,
+        jonasUndReserve: ausgaben.find((a) => a.datei === 'folien-jonas.pdf').seiten,
+        niklasUndReserve: ausgaben.find((a) => a.datei === 'folien-niklas.pdf').seiten,
       },
       eingaben: eingaben.map(eingabeEintrag),
       ausgaben,
@@ -646,7 +646,7 @@ async function main() {
     console.log(`Ausgabe: ${ausgabe}; Handout: PaperLab (./paperlab check|final)`);
     console.log(
       mitNotizen
-        ? `Privat (nicht im Repo): ${privatAusgabe} (vortrag-deck.html mit Taste n, Sprechhefte, Notizen, Karten)`
+        ? `Privat (nicht im Repo): ${privatAusgabe} (folien-gesamt-mit-notizen.html mit Taste n, Sprechhefte, Notizen, Karten)`
         : 'Privat: übersprungen, privat/notizen.mjs fehlt (eigenes Repo)',
     );
   } finally {

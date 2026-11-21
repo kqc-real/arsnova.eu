@@ -32,7 +32,7 @@ diese persönliche Prüfung nicht.
 - [ ] Gültigkeitsgrenzen geprüft: WSL2, gemeinsamer Lastgenerator-/Dockerhost,
       Beitrittswelle, synthetischer Wortschatz, kein Rendering-/LLM-Nachweis.
 - [ ] Kosten-/Betriebsfolge und lexikalische Gegenalternative fachlich vertreten.
-- [ ] [Handout und Folien](../../abgabe/README.md) vollständig gelesen und anhand
+- [ ] [Handout und Folien](entwurf/README.md) vollständig gelesen und anhand
       der Messdaten, Quellen und tatsächlichen Prüfungsanforderungen freigegeben.
 
 **Persönlich geprüft von / Datum / Anmerkungen:** noch offen.

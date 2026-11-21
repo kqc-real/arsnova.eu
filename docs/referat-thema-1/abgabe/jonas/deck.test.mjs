@@ -672,7 +672,7 @@ test('Druck: jede Folie eine Seite 1600 × 900, J10 im Endzustand, feste Wegkart
   assert.ok(readFileSync(join(ordner, 'druck.pdf')).length > 10_000);
   await context.close();
 
-  // Nur Jonas' Folien und Reserve (für jonas-folien.pdf in Task 10)
+  // Nur Jonas' Folien und Reserve (für folien-jonas.pdf in Task 10)
   const nurJonas = await oeffne(deckOhneNiklas, { hash: '' });
   await nurJonas.page.evaluate(() => (document.documentElement.dataset.druck = 'jonas'));
   await nurJonas.page.emulateMedia({ media: 'print' });

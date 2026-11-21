@@ -5,8 +5,8 @@
 // Regel des Referats: keine Matrikelnummer im Repo).
 //
 // CLI: node abgabe-lokal.mjs   (vorher bau.mjs; abgabe-lokal.json nach abgabe-lokal.beispiel.json anlegen)
-// Ausgaben in abgabe-lokal/: jonas-deck.html (zum Vortragen), jonas-folien.pdf, niklas-folien.pdf,
-// gemeinsames-deck.pdf.
+// Ausgaben in abgabe-lokal/: folien-gesamt.html (zum Vortragen), folien-jonas.pdf, folien-niklas.pdf,
+// folien-gesamt.pdf.
 /* global console, process -- Node-Skript */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -36,7 +36,7 @@ const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /**
  * Setzt je Person „Matrikelnummer n“ in den Platz data-matrikel="<Name>" der Titelfolie. Bricht ab, wenn
  * ein Name keinen Platz hat oder nach dem Füllen noch ein Platz mit dem Vermerk übrig ist.
- * @param {string} html gebautes Deck (ausgabe/jonas-deck.html)
+ * @param {string} html gebautes Deck (ausgabe/folien-gesamt.html)
  * @param {{ name: string, matrikel: string }[]} gruppe
  */
 export function fuelleMatrikel(html, gruppe) {
@@ -105,10 +105,10 @@ async function main() {
     if (!istIgnoriert(p)) throw new Error(`${p} ist nicht von Git ignoriert, Abbruch`);
   }
   const { gruppe } = JSON.parse(readFileSync(eingabe, 'utf8'));
-  const quelle = join(HIER, 'ausgabe', 'jonas-deck.html');
+  const quelle = join(HIER, 'ausgabe', 'folien-gesamt.html');
   if (!existsSync(quelle)) throw new Error(`${quelle} fehlt, erst bau.mjs ausführen`);
   mkdirSync(ziel, { recursive: true });
-  const deck = join(ziel, 'jonas-deck.html');
+  const deck = join(ziel, 'folien-gesamt.html');
   writeFileSync(deck, fuelleMatrikel(readFileSync(quelle, 'utf8'), gruppe));
   console.log(`erzeugt: ${deck}`);
 
@@ -116,9 +116,9 @@ async function main() {
   const browser = await chromium.launch();
   try {
     for (const [name, druck] of [
-      ['gemeinsames-deck.pdf', ''],
-      ['jonas-folien.pdf', '?druck=jonas'],
-      ['niklas-folien.pdf', '?druck=niklas'],
+      ['folien-gesamt.pdf', ''],
+      ['folien-jonas.pdf', '?druck=jonas'],
+      ['folien-niklas.pdf', '?druck=niklas'],
     ]) {
       const pdf = join(ziel, name);
       await drucke(browser, `${pathToFileURL(deck).href}${druck}`, pdf);

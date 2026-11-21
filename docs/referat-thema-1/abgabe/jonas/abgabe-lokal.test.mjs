@@ -84,7 +84,7 @@ test('Eingabedatei und Ausgabeordner (PDFs und Deck) sind von Git ignoriert', ()
   for (const pfad of [
     'abgabe-lokal.json',
     'abgabe-lokal/folien.pdf',
-    'abgabe-lokal/jonas-deck.html',
+    'abgabe-lokal/folien-gesamt.html',
   ]) {
     // check-ignore endet mit 0, wenn der Pfad ignoriert ist; sonst wirft execFileSync.
     execFileSync('git', ['check-ignore', '-q', join(HIER, pfad)], { cwd: HIER });

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Schneller Probebau nur für Niklas' Teil: das gemeinsame Deck mit seinen nativen Folien (teile.mjs),
 // dazu sein Folien-PDF und seine Sprechnotizen in niklas/ausgabe/. Die abgestimmten Ausgaben samt
-// Manifest baut jonas/bau.mjs (dort auch niklas-folien.pdf und sprechnotizen-niklas.md).
+// Manifest baut jonas/bau.mjs (dort auch folien-niklas.pdf und notizen-niklas.md).
 //
 // Aufruf: node docs/referat-thema-1/abgabe/niklas/bau-entwurf.mjs [--ausgabe <ordner>]
 // Ausgaben: entwurf-deck.html, entwurf-1a.pdf (nur Niklas' Folien), sprechnotizen-1a.md
@@ -51,7 +51,7 @@ export function baueEntwurf() {
   return { html, n1a, n1b, alle };
 }
 
-/** Sprechnotizen für Niklas (Stichpunkte und Fließtext), wie sprechnotizen-niklas.md aus bau.mjs. */
+/** Sprechnotizen für Niklas (Stichpunkte und Fließtext), wie notizen-niklas.md aus bau.mjs. */
 export function notizenNiklas(alle, n1a, n1b) {
   return baueSprechnotizen(folienNiklas(alle, { teil1: n1a, teil2: n1b }), {
     person: 'Niklas',

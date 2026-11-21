@@ -1733,7 +1733,7 @@ export function folien(daten) {
   // ------------------------------------------------------------ J16, J16b Literaturverzeichnis (ZL S. 2–3)
   // Nach GD als Anhang (deck.mjs: anhang), damit es keine Übergabe unterbricht. Seit der Durchsicht 2026-11-18
   // ein gemeinsames Verzeichnis für das ganze Deck auf zwei Folien, alphabetisch fortlaufend; `gemeinsam` hält
-  // beide Folien in beiden Druckauszügen (jonas-folien.pdf, niklas-folien.pdf).
+  // beide Folien in beiden Druckauszügen (folien-jonas.pdf, folien-niklas.pdf).
   const haelfte = Math.ceil(LITERATUR.length / 2);
   [
     ['J16', LITERATUR.slice(0, haelfte), 1],

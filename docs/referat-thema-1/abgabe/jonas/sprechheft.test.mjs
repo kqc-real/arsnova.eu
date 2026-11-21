@@ -23,8 +23,8 @@ const heft = ladeHeft(ROOT);
 // Heftseiten und Vortragsdeck liegen privat (privat/, eigenes Repo); ohne sie entfallen diese Prüfungen
 const PRIVAT = join(ROOT, 'privat');
 const ohnePrivat = existsSync(join(ROOT, HEFT_ORDNER)) ? false : 'privat/ fehlt (eigenes Repo)';
-const VORTRAG = join(PRIVAT, 'ausgabe', 'vortrag-deck.html');
-const deck = readFileSync(join(HIER, 'ausgabe', 'jonas-deck.html'), 'utf8');
+const VORTRAG = join(PRIVAT, 'ausgabe', 'folien-gesamt-mit-notizen.html');
+const deck = readFileSync(join(HIER, 'ausgabe', 'folien-gesamt.html'), 'utf8');
 const folienIds = [
   ...new Set(
     [...deck.matchAll(/<section[^>]*class="folie[^"]*"[^>]*data-id="([^"]+)"/g)].map((m) => m[1]),
@@ -79,7 +79,7 @@ function texte(ordner, endungen, ausser = () => false) {
 }
 const korpus = [
   ...texte(ROOT, /\.(md|mjs|csv|txt|json|yml|sh|ps1)$/, (p) =>
-    /node_modules|\/\.git(\/|$)|privat\/sprechheft|privat\/ausgabe\/(?!sprechnotizen)|abgabe\/jonas\/ausgabe\//.test(
+    /node_modules|\/\.git(\/|$)|privat\/sprechheft|privat\/ausgabe\/(?!notizen-(jonas|niklas)\.md)|abgabe\/jonas\/ausgabe\//.test(
       relative(REPO, p),
     ),
   ),
@@ -111,7 +111,7 @@ test(
 
 test(
   'Referentenansicht (Taste n) folgt Folie und Stufe und steuert das Deck',
-  { skip: existsSync(VORTRAG) ? false : 'privat/ausgabe/vortrag-deck.html fehlt' },
+  { skip: existsSync(VORTRAG) ? false : 'privat/ausgabe/folien-gesamt-mit-notizen.html fehlt' },
   async () => {
     const { createRequire } = await import('node:module');
     const { pathToFileURL } = await import('node:url');

@@ -156,6 +156,6 @@ Die Fixture enthält unterschiedliche Rohtexte mit bewusst kleinem wiederholtem 
 Eine neue Untersuchung mit externem Generator und dokumentierter Zielhardware
 wäre eine eigene Reihe, kein Ersatz einzelner ungünstiger Blöcke.
 
-[Abgabeentwürfe](../abgabe/README.md), [Eigenanteil](./1A-eigenanteil.md),
+[Abgabeentwürfe](archiv/entwurf/README.md), [Eigenanteil](./1A-eigenanteil.md),
 [Prüfungen](./archiv/1A-pruefstand.md) und [Übergabe](./archiv/1A-abschluss-und-uebergabe.md)
 trennen technische Befunde von persönlicher Abgabe und GitHub-Abschluss.

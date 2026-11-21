@@ -2,7 +2,7 @@
 
 Niklas' Teil (1A, 1B Schritte 3–4) als native Folien im Stil des gemeinsamen Decks. Das abgestimmte Deck und
 Niklas' Folien-PDF baut [`jonas/bau.mjs`](../jonas/README.md) nach
-`jonas/ausgabe/` (`niklas-folien.pdf`); der Rückfallweg mit eingebetteten
+`jonas/ausgabe/` (`folien-niklas.pdf`); der Rückfallweg mit eingebetteten
 PDF-Seiten bleibt `--niklas1 <pdf>`.
 
 - **1A (N1–N10 ohne N8; Reserve RN1 Regelempfindlichkeit, RN2 Grenzen, RN4 Ressourcen; Literatur seit 2026-11-18 im gemeinsamen Verzeichnis J16, J16b):**

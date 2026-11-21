@@ -42,7 +42,7 @@ async function main(args) {
     throw new Error(
       'Der Dokumentbau verwendet die versionierten A1-Quellen ohne zusätzliche Argumente.',
     );
-  const ordner = join(root, 'docs/referat-thema-1/abgabe');
+  const ordner = join(root, 'docs/referat-thema-1/1A/archiv/entwurf');
   const daten = await readFile(
     join(
       root,

@@ -1,7 +1,7 @@
 # Befunde zu Niklas' Abgabe 1A (Folien und Handout)
 
-Gesammelt von Jonas am 2026-11-15 für das Treffen am 2026-11-16. Grundlage: `abgabe/1A-folien.pdf`,
-`abgabe/1A-handout.pdf` (Stand `main` nach PR #24), Prüfungsvorgabe
+Gesammelt von Jonas am 2026-11-15 für das Treffen am 2026-11-16. Grundlage: `1A/archiv/entwurf/1A-folien.pdf`,
+`1A/archiv/entwurf/1A-handout.pdf` (Stand `main` nach PR #24), Prüfungsvorgabe
 ([CLOUD-COMPUTING-REFERAT-PRUEFUNG.md](../../../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md)), IU-Richtlinien
 (RL) und Zitierleitfaden (ZL). Jeder Punkt ist ein Vorschlag; entscheiden muss Niklas. Spalte „Entwurf“: ob der
 [Folienentwurf](README.md) den Punkt schon umsetzt.
