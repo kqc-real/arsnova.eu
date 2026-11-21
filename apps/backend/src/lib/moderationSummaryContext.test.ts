@@ -266,6 +266,255 @@ describe('moderationSummaryContext', () => {
     expect(comparison?.qaSources).toBeGreaterThan(0);
   });
 
+  it.each([25, 80, 200] as const)(
+    'vergleicht topics-first, balanced und questions-first bei %i Hörsaalfragen und schützt unclusterte PINNED-/Technik-Fragen',
+    (totalQuestions) => {
+      const base = analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
+      if (
+        base.context.questions.state !== 'available' ||
+        base.context.topics.state !== 'available'
+      ) {
+        throw new Error('Erwartete verfügbare Fragen und Themen im Referenzfixture.');
+      }
+      const refQuestions = base.context.questions.items;
+      const templateTopic = base.context.topics.items[0]!;
+      const candidateCount = Math.min(totalQuestions, 32);
+      const topicIds = [
+        'semantic-topic:eval-regression',
+        'semantic-topic:eval-exam',
+        'semantic-topic:eval-confidence',
+        'semantic-topic:eval-peer-instruction',
+      ] as const;
+      const unclusteredPinnedTechId = 'qa-question:77777777-7777-4777-8777-000000000999';
+
+      const clusteredQuestions = Array.from({ length: candidateCount - 2 }, (_, idx) => {
+        const ref = refQuestions[idx % refQuestions.length]!;
+        const sourceId = `qa-question:77777777-7777-4777-8777-${String(idx + 1).padStart(12, '0')}`;
+        const topicId = idx < 16 ? topicIds[idx % topicIds.length]! : null;
+        return {
+          ...structuredClone(ref),
+          sourceId,
+          status: idx % 5 === 0 ? ('PENDING' as const) : ('ACTIVE' as const),
+          nlp:
+            ref.nlp.state === 'classified'
+              ? { ...structuredClone(ref.nlp), category: 'content' as const }
+              : structuredClone(ref.nlp),
+          topicSourceIds: topicId ? [topicId] : [],
+        };
+      });
+
+      // Zwei unclusterte Fragen: eine angeheftete Technikmeldung (Mikrofon/Stream) und eine Organisationsfrage.
+      const baseTechRef = refQuestions[2]!;
+      const unclusteredPinnedTech = {
+        ...structuredClone(baseTechRef),
+        sourceId: unclusteredPinnedTechId,
+        status: 'PINNED' as const,
+        nlp:
+          baseTechRef.nlp.state === 'classified'
+            ? { ...structuredClone(baseTechRef.nlp), category: 'technical' as const }
+            : structuredClone(baseTechRef.nlp),
+        topicSourceIds: [],
+      };
+      const unclusteredOrgId = 'qa-question:77777777-7777-4777-8777-000000000998';
+      const unclusteredOrg = {
+        ...structuredClone(refQuestions[1]!),
+        sourceId: unclusteredOrgId,
+        status: 'ACTIVE' as const,
+        nlp:
+          baseTechRef.nlp.state === 'classified'
+            ? { ...structuredClone(baseTechRef.nlp), category: 'organization' as const }
+            : structuredClone(baseTechRef.nlp),
+        topicSourceIds: [],
+      };
+
+      const allQuestions = [...clusteredQuestions, unclusteredOrg, unclusteredPinnedTech];
+      const topicItems = topicIds.map((topicId) => {
+        const members = clusteredQuestions
+          .filter((q) => q.topicSourceIds.includes(topicId))
+          .map((q) => q.sourceId);
+        const positiveVotes = clusteredQuestions
+          .filter((q) => members.includes(q.sourceId))
+          .reduce((sum, q) => sum + (q.votes.state === 'available' ? q.votes.positive : 0), 0);
+        const negativeVotes = clusteredQuestions
+          .filter((q) => members.includes(q.sourceId))
+          .reduce((sum, q) => sum + (q.votes.state === 'available' ? q.votes.negative : 0), 0);
+        return {
+          ...structuredClone(templateTopic),
+          sourceId: topicId,
+          labelOrigin: {
+            kind: 'source-extractive' as const,
+            sourceQuestionId: members[0]!,
+          },
+          aggregates: {
+            ...structuredClone(templateTopic.aggregates),
+            questionCount: members.length,
+            positiveVotes,
+            negativeVotes,
+            netVotes: positiveVotes - negativeVotes,
+            totalVotes: positiveVotes + negativeVotes,
+          },
+          representativeQuestionSourceId: members[0]!,
+          memberQuestionSourceIds: members,
+          representedQuestionSourceIds: members,
+        };
+      });
+
+      const controversialMember = clusteredQuestions[4]!;
+      const controversialScore =
+        controversialMember.votes.state === 'available' &&
+        controversialMember.votes.controversyScore.state === 'available'
+          ? controversialMember.votes.controversyScore.value
+          : 0.8;
+
+      const analysis = ModerationAnalysisContextV1Schema.parse({
+        ...base,
+        context: {
+          ...base.context,
+          scope: {
+            ...base.context.scope,
+            questionFilter: {
+              ...base.context.scope.questionFilter,
+              statuses: ['PENDING', 'ACTIVE', 'PINNED'],
+            },
+            selectionLimits: {
+              ...base.context.scope.selectionLimits,
+              questions: allQuestions.length,
+              topics: topicItems.length,
+              compassSignals: 1,
+            },
+          },
+          questions: {
+            ...base.context.questions,
+            corpus: {
+              total: totalQuestions,
+              eligible: totalQuestions,
+              analyzed: allQuestions.length,
+              deduplicated: allQuestions.length,
+              represented: allQuestions.length,
+            },
+            items: allQuestions,
+          },
+          topics: {
+            ...base.context.topics,
+            corpus: {
+              eligibleQuestions: allQuestions.length,
+              analyzedQuestions: allQuestions.length,
+              representedQuestions: 16,
+            },
+            items: topicItems,
+          },
+          compass: {
+            state: 'available',
+            rulesVersion:
+              base.context.compass.state === 'available'
+                ? base.context.compass.rulesVersion
+                : 'moderation-compass-rules-v1',
+            primarySignalSourceId: 'compass-signal:eval-controversy',
+            signals: [
+              {
+                sourceId: 'compass-signal:eval-controversy',
+                signal: 'high-controversy',
+                basis: 'controversy-score',
+                cardKind: 'friction',
+                questionSourceIds: [controversialMember.sourceId],
+                value: controversialScore,
+                reason: 'Kontroverse Hörsaalfrage im Auswahlkorpus.',
+                evidence: [
+                  {
+                    sourceId: controversialMember.sourceId,
+                    detail: 'Geteilte Stimmenverteilung.',
+                  },
+                ],
+                suggestedNextStep: {
+                  action: 'open-discussion',
+                  rationale: 'Kontroverse im Plenum einordnen.',
+                },
+              },
+            ],
+          },
+          sources: [
+            ...clusteredQuestions.map((q, idx) => ({
+              id: q.sourceId,
+              kind: 'qa-question' as const,
+              content: {
+                state: 'included' as const,
+                text: `Inhaltliche Hörsaalfrage ${idx + 1} zur Anwendung der Regressionsanalyse im Tutorium?`,
+                truncated: false,
+              },
+            })),
+            {
+              id: unclusteredOrgId,
+              kind: 'qa-question' as const,
+              content: {
+                state: 'included' as const,
+                text: 'Wann wird der Hörsaalplan für die Klausureinsicht veröffentlicht?',
+                truncated: false,
+              },
+            },
+            {
+              id: unclusteredPinnedTechId,
+              kind: 'qa-question' as const,
+              content: {
+                state: 'included' as const,
+                text: 'Das Mikrofon im Livestream setzt aus — können Sie das Headset prüfen?',
+                truncated: false,
+              },
+            },
+            ...topicIds.map((id, idx) => ({
+              id,
+              kind: 'semantic-topic' as const,
+              label: `Themencluster ${idx + 1}`,
+            })),
+            {
+              id: 'compass-signal:eval-controversy',
+              kind: 'compass-signal' as const,
+              label: 'Kontroverse im Hörsaal',
+            },
+            ...base.context.sources.filter((s) => s.kind === 'learning-objective'),
+          ],
+        },
+      });
+
+      const topicsFirstPack = packModerationPromptContext({
+        analysis,
+        profile: QA_SUMMARY_MODERATION_PACKING_PROFILE,
+        candidatePriority: 'topics-first',
+      });
+      const balancedPack = packModerationPromptContext({
+        analysis,
+        profile: QA_SUMMARY_MODERATION_PACKING_PROFILE,
+        candidatePriority: 'balanced',
+      });
+      const questionsFirstPack = packModerationPromptContext({
+        analysis,
+        profile: QA_SUMMARY_MODERATION_PACKING_PROFILE,
+        candidatePriority: 'questions-first',
+      });
+      const summaryPrepared = prepareModerationSummaryContextFromAnalysis({ analysis, plan });
+
+      const topicCount = (ctx: typeof topicsFirstPack) =>
+        ctx.context.topics.state === 'available' ? ctx.context.topics.items.length : 0;
+      const hasIncludedSource = (ctx: typeof topicsFirstPack, id: string) =>
+        ctx.context.sources.some(
+          (s) => s.id === id && s.kind === 'qa-question' && s.content.state === 'included',
+        );
+
+      // `questions-first` maximiert Einzelzitate, verdrängt aber bei knappem 8k-Budget alle Themencluster:
+      expect(countIncludedQaQuestionSources(questionsFirstPack)).toBeGreaterThanOrEqual(
+        countIncludedQaQuestionSources(topicsFirstPack),
+      );
+      expect(topicCount(questionsFirstPack)).toBe(0);
+
+      // `topics-first` und der Summary-V2-Pfad bewahren Themencluster (>= balanced) UND die unclusterte PINNED-Technikfrage:
+      expect(topicCount(topicsFirstPack)).toBeGreaterThanOrEqual(topicCount(balancedPack));
+      expect(topicCount(summaryPrepared.request.promptContext)).toBeGreaterThan(0);
+      expect(hasIncludedSource(topicsFirstPack, unclusteredPinnedTechId)).toBe(true);
+      expect(
+        hasIncludedSource(summaryPrepared.request.promptContext, unclusteredPinnedTechId),
+      ).toBe(true);
+    },
+  );
+
   it('hält semantische Themenmitgliedschaft und questionCount konsistent wenn >12 Fragen gekürzt werden', () => {
     const base = analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
     if (base.context.questions.state !== 'available' || base.context.topics.state !== 'available') {

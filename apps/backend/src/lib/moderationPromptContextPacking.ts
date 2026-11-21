@@ -50,7 +50,7 @@ export type PackModerationPromptContextInput = Readonly<{
   analysis: ModerationAnalysisContextV1;
   profile: ModerationPromptPackingProfile;
   packedAt?: Date;
-  candidatePriority?: 'balanced' | 'topics-first';
+  candidatePriority?: 'balanced' | 'topics-first' | 'questions-first';
 }>;
 
 type CandidateBundle = Readonly<{
@@ -517,26 +517,82 @@ function buildCandidateBundles(context: AnalysisDomain, index: PackingIndex): Ca
   ]);
 }
 
+function unclusteredUrgentQuestionTier(index: PackingIndex, sourceId: string): 0 | 1 | null {
+  const canonicalId = index.canonicalQuestionIdById.get(sourceId) ?? sourceId;
+  const question = index.questionById.get(canonicalId);
+  if (!question || question.topicSourceIds.length > 0) return null;
+  if (question.status === 'PINNED') return 0;
+  if (
+    question.nlp.state === 'classified' &&
+    (question.nlp.category === 'organization' || question.nlp.category === 'technical')
+  ) {
+    return 1;
+  }
+  return null;
+}
+
 function prioritizeCandidateBundles(
   candidates: readonly CandidateBundle[],
   priority: PackModerationPromptContextInput['candidatePriority'],
+  index: PackingIndex,
 ): CandidateBundle[] {
-  if (priority !== 'topics-first') return [...candidates];
+  if (!priority || priority === 'balanced') return [...candidates];
+
+  if (priority === 'questions-first') {
+    const rank = (candidate: CandidateBundle): number => {
+      switch (candidate.kind) {
+        case 'question':
+          return 0;
+        case 'topic':
+          return 1;
+        case 'signal':
+          return 2;
+        default:
+          return 3;
+      }
+    };
+    return candidates
+      .map((candidate, idx) => ({ candidate, idx }))
+      .sort((left, right) => rank(left.candidate) - rank(right.candidate) || left.idx - right.idx)
+      .map(({ candidate }) => candidate);
+  }
+
+  // `topics-first`: anchor the primary semantic cluster first, then guard at most
+  // one unclustered urgent moderation question (PINNED preferred, else organization/
+  // technical) so multi-cluster lectures cannot starve isolated urgent alerts before
+  // packing the remaining semantic topics, compass signals, and questions.
+  const topicCandidates = candidates.filter((candidate) => candidate.kind === 'topic');
+  const firstTopicKey = topicCandidates[0]?.key ?? null;
+  let guardedUrgentKey: string | null = null;
+  let bestUrgentTier: 0 | 1 | null = null;
+  for (const candidate of candidates) {
+    if (candidate.kind !== 'question') continue;
+    const tier = unclusteredUrgentQuestionTier(index, candidate.sourceId);
+    if (tier === null) continue;
+    if (bestUrgentTier === null || tier < bestUrgentTier) {
+      guardedUrgentKey = candidate.key;
+      bestUrgentTier = tier;
+      if (tier === 0) break;
+    }
+  }
+
   const rank = (candidate: CandidateBundle): number => {
+    if (candidate.key === firstTopicKey) return 0;
+    if (candidate.key === guardedUrgentKey) return 1;
     switch (candidate.kind) {
       case 'topic':
-        return 0;
-      case 'signal':
-        return 1;
-      case 'question':
         return 2;
-      default:
+      case 'signal':
         return 3;
+      case 'question':
+        return 4;
+      default:
+        return 5;
     }
   };
   return candidates
-    .map((candidate, index) => ({ candidate, index }))
-    .sort((left, right) => rank(left.candidate) - rank(right.candidate) || left.index - right.index)
+    .map((candidate, idx) => ({ candidate, idx }))
+    .sort((left, right) => rank(left.candidate) - rank(right.candidate) || left.idx - right.idx)
     .map(({ candidate }) => candidate);
 }
 
@@ -1078,6 +1134,7 @@ export function packModerationPromptContext(
   const candidates = prioritizeCandidateBundles(
     buildCandidateBundles(analysis.context, index),
     input.candidatePriority,
+    index,
   );
   for (const candidate of candidates) {
     const trial = cloneSelection(selection);

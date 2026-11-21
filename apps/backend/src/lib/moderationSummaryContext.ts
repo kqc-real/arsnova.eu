@@ -425,6 +425,21 @@ function trimSummaryAnalysisQuestions(
   }
 
   const ranked = forceFitQuestionCandidates(context.questions.items);
+  for (const question of ranked) {
+    if (question.topicSourceIds.length === 0 && question.status === 'PINNED') {
+      protectedIds.add(question.sourceId);
+      break;
+    }
+  }
+  for (const urgentCategory of ['organization', 'technical'] as const) {
+    const urgent = ranked.find(
+      (question) =>
+        question.topicSourceIds.length === 0 &&
+        question.nlp.state === 'classified' &&
+        question.nlp.category === urgentCategory,
+    );
+    if (urgent) protectedIds.add(urgent.sourceId);
+  }
   const kept: ForceFitQuestion[] = [];
   const keptIds = new Set<string>();
   for (const question of ranked) {
