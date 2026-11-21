@@ -926,10 +926,14 @@ export function ensureMinimumQaQuestionCoverage(input: {
     return input.initialPack;
   }
   const questionSection = input.analysis.context.questions;
+  const hasPackedSemanticTopics =
+    input.initialPack?.context.topics.state === 'available' &&
+    input.initialPack.context.topics.items.length > 0;
   const targetCoverage =
     questionSection.state === 'available'
       ? Math.min(
-          questionSection.corpus.total >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD
+          !hasPackedSemanticTopics &&
+            questionSection.corpus.total >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD
             ? QA_SUMMARY_LARGE_CORPUS_TARGET_COVERAGE
             : 1,
           questionSection.items.length,

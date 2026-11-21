@@ -17,6 +17,8 @@
     "seed:qa-forum": "tsx scripts/seed-qa-forum.ts",
     "seed:moderation-compass": "tsx scripts/seed-moderation-compass.ts",
     "eval:qa-nlp": "tsx scripts/eval-qa-nlp-gatekeeper.ts",
+    "eval:slice8-summary:pack": "tsx scripts/eval-issue-456-slice8-summary.ts --pack-only",
+    "eval:slice8-summary:live": "tsx scripts/eval-issue-456-slice8-summary.ts --live",
     "apply:qa-nlp": "tsx scripts/apply-qa-nlp-session.ts"
   },
   "dependencies": {

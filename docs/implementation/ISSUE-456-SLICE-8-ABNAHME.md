@@ -125,6 +125,9 @@ Während die realen Ende-zu-Ende-Funktions- und Laufzeitläufe für `learning_ob
 
 ```bash
 npm run load:issue-456:validate
+npm run eval:issue-456:slice8:pack
+# Optional gegen konfigurierte private llama-server-Runtime (3 Läufe bei T=0, ohne Secrets im Output):
+# OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 node --env-file=.env --import tsx apps/backend/scripts/eval-issue-456-slice8-summary.ts --live
 npm test -w @arsnova/shared-types -- --run \
   src/qa-summary-v2.test.ts \
   src/qa-summary-visibility.test.ts
