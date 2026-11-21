@@ -61,6 +61,38 @@ Testumgebungen `STAGING_PROJECT_NAME=arsnova-staging-<suffix>`,
 `STAGING_ENV_FILE`, HTTPS-Port und Origin passend setzen. Die Compose-Datei
 und die Betriebsbefehle bleiben dieselben.
 
+### Optionaler Aufbau für die Textanalyse
+
+Für das [45-Minuten-Mischprofil](../TESTING.md#gemischtes-lastprofil-mit-dem-demo-quiz-in-fünf-sprachen)
+beide Sidecar-Images aus demselben Quellstand wie die Apps bauen oder die
+entsprechenden Registry-Referenzen verwenden.
+
+```bash
+staging_tag=$(git rev-parse --short=12 HEAD)
+docker build -t "arsnova-staging-spacy:$staging_tag" docker/spacy
+docker build -t "arsnova-staging-encoder:$staging_tag" docker/wordcloud-encoder
+```
+
+Die entstandenen Image-Referenzen in der Staging-Umgebungsdatei unter
+`STAGING_SPACY_IMAGE` und `STAGING_ENCODER_IMAGE` eintragen. Für die
+generativen Pfade zusätzlich den [privaten LLM-Dienst und Q&A-Summary](#gemeinsamer-spacy-sidecar-und-llm-slot)
+konfigurieren. Das Opt-in beim Aufruf des Wrappers setzen und für `status`,
+`rollback` und `down` desselben Projekts beibehalten.
+
+```bash
+STAGING_TEXT_ANALYSIS=true ./scripts/staging-compose.sh config
+STAGING_TEXT_ANALYSIS=true ./scripts/staging-compose.sh up
+```
+
+Der Encoder hat keinen Netzwerkzugang. Beide Apps lesen seinen Unix-Socket
+über ein eigenes Compose-Volume. Der Wrapper prüft aus jeder App für
+`de`, `en`, `fr`, `es` und `it` eine Lemmatisierung und einen Encoder-Vektor.
+Für Italienisch muss spaCy `andavano` auf `andare` zurückführen. Ein Fehler
+bricht den Kaltstart vor der Nginx-Aktivierung ab. Bei einem Wechsel des
+Staging-Profils oder der Images zuerst `down` mit der bisherigen
+Konfiguration ausführen. Die projektbezogenen Datenvolumes bleiben dabei
+erhalten.
+
 ## Start und Readiness
 
 ```bash
