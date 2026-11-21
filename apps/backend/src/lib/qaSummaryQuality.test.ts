@@ -405,4 +405,78 @@ describe('hasAcceptableQaSummaryQuality', () => {
       ),
     ).toBe(false);
   });
+
+  it('erhält Vorzeichen bei negativen Kennzahlen und Prozent-Deltas ohne Bindestrich-Tokens oder Bereiche zu verfälschen', () => {
+    const sourceTextsById = new Map<string, string>([
+      ['source-neg-median', 'Released numeric summary\n4\n0\n-12.5\n-12.50\n2.5\n0%\n-25%'],
+      ['source-pos-median', 'Released numeric summary\n4\n12.5\n2.5'],
+      ['source-hyphen-range', 'Status 404 tritt in Kapitel 10-20 auf — woran liegt das?'],
+    ]);
+
+    // -12.5 erlaubt -12,50 / −12,5 und -25 % erlaubt -25,0 %, während HTTP-404 und 10 bis 20 vorzeichenneutral bleiben:
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Schätzwert: Warum liegt der Median bei -12,50?',
+              sourceIds: ['source-neg-median'],
+            },
+            {
+              text: 'Rundenvergleich: Warum sank die Trefferquote um −25,0 %?',
+              sourceIds: ['source-neg-median'],
+            },
+            {
+              text: 'Fehlermeldung: Warum tritt HTTP-404 in Abschnitt 10 bis 20 auf?',
+              sourceIds: ['source-hyphen-range'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(true);
+
+    // Negativer Median -12.5 darf weder 12,5 noch +12,5 freigeben:
+    for (const wrongSignStatement of [
+      'Schätzwert: Warum liegt der Median bei 12,5?',
+      'Schätzwert: Warum liegt der Median bei +12,5?',
+      'Rundenvergleich: Warum stieg die Trefferquote um +25 %?',
+    ]) {
+      expect(
+        hasAcceptableQaSummaryQuality(
+          {
+            status: 'ready',
+            statements: [{ text: wrongSignStatement, sourceIds: ['source-neg-median'] }],
+            suggestedNextSteps: [],
+            limitations: [],
+          },
+          'de',
+          { minimumStatements: 1, sourceTextsById },
+        ),
+      ).toBe(false);
+    }
+
+    // Umgekehrt darf positiver Median 12.5 kein negatives -12,5 freigeben:
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Schätzwert: Warum liegt der Median bei -12,5?',
+              sourceIds: ['source-pos-median'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(false);
+  });
 });

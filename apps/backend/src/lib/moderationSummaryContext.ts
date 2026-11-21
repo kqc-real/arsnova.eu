@@ -166,13 +166,16 @@ function formatStructuredNumberTokens(
   options?: { readonly percentage?: boolean },
 ): string[] {
   if (!Number.isFinite(value)) return [];
-  const abs = Math.abs(value);
-  const forms = new Set<string>([String(abs)]);
+  const normalized = Object.is(value, -0) ? 0 : value;
+  const sign = normalized < 0 ? '-' : '';
+  const abs = Math.abs(normalized);
+  const forms = new Set<string>([`${sign}${String(abs)}`]);
   if (!Number.isInteger(abs)) {
-    forms.add(abs.toFixed(1));
-    forms.add(abs.toFixed(2));
+    forms.add(`${sign}${abs.toFixed(1)}`);
+    forms.add(`${sign}${abs.toFixed(2)}`);
     if (options?.percentage && Math.abs(abs - Number(abs.toFixed(2))) > 1e-9) {
-      forms.add(String(Math.round(abs)));
+      const rounded = Math.round(abs);
+      forms.add(`${rounded === 0 ? '' : sign}${String(rounded)}`);
     }
   }
   const suffix = options?.percentage ? '%' : '';

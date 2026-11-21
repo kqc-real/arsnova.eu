@@ -49,9 +49,12 @@ const TECHNICAL_META_PATTERNS = [
 const DANGLING_ENDING =
   /\b(?:eine|einen|einem|einer|hohe|niedrige|mehrere|wenige|positive[nmrs]?|negative[nmrs]?|starke[nmrs]?|geringe[nmrs]?)\s*[.!?…»”’)]*$/iu;
 
-const PERCENTAGE_VALUE_PATTERN =
-  /(\d+(?:[.,]\d+)*)(?:[\s\u00a0\u202f]*(?:%|prozent\b|percento\b|percent\b|pour[\s\u00a0\u202f]*cent\b|por[\s\u00a0\u202f]*ciento\b|per[\s\u00a0\u202f]*cento\b))/giu;
-const NUMERIC_TOKEN_PATTERN = /\d+(?:[.,]\d+)*/gu;
+const SIGNED_NUMERIC_CORE = '(?<![\\p{L}\\p{N}\\]\\)])[+\\-\\u2212\\u2013]?\\d+(?:[.,]\\d+)*';
+const PERCENTAGE_VALUE_PATTERN = new RegExp(
+  `(${SIGNED_NUMERIC_CORE})(?:[\\s\\u00a0\\u202f]*(?:%|prozent\\b|percento\\b|percent\\b|pour[\\s\\u00a0\\u202f]*cent\\b|por[\\s\\u00a0\\u202f]*ciento\\b|per[\\s\\u00a0\\u202f]*cento\\b))`,
+  'giu',
+);
+const NUMERIC_TOKEN_PATTERN = new RegExp(SIGNED_NUMERIC_CORE, 'gu');
 const MIXED_DOT_THOUSANDS_DECIMAL_PATTERN = /^\d{1,3}(?:\.\d{3})+,\d+$/u;
 const MIXED_COMMA_THOUSANDS_DECIMAL_PATTERN = /^\d{1,3}(?:,\d{3})+\.\d+$/u;
 const MULTI_GROUPED_THOUSANDS_PATTERN = /^\d{1,3}(?:(?:\.\d{3}){2,}|(?:,\d{3}){2,})$/u;
@@ -461,7 +464,7 @@ function normalizeDecimalValue(unsignedDotDecimal: string): string {
   return cleanFrac.length > 0 ? `${cleanInt}.${cleanFrac}` : cleanInt;
 }
 
-function canonicalNumericForms(raw: string): string[] {
+function canonicalUnsignedNumericForms(raw: string): string[] {
   if (!raw.includes('.') && !raw.includes(',')) {
     return [normalizeDecimalValue(raw)];
   }
@@ -489,6 +492,27 @@ function canonicalNumericForms(raw: string): string[] {
     return [normalizeDecimalValue(raw.replace(',', '.'))];
   }
   return [raw.replace(/,/g, '.')];
+}
+
+function applyCanonicalSign(unsignedForm: string, isNegative: boolean): string {
+  if (!isNegative || /^0(?:\.0+)?$/u.test(unsignedForm)) {
+    return unsignedForm;
+  }
+  return `-${unsignedForm}`;
+}
+
+function canonicalNumericForms(raw: string): string[] {
+  const firstChar = raw[0];
+  const isNegative = firstChar === '-' || firstChar === '\u2212' || firstChar === '\u2013';
+  const hasSign = isNegative || firstChar === '+';
+  const unsignedRaw = hasSign ? raw.slice(1) : raw;
+  return [
+    ...new Set(
+      canonicalUnsignedNumericForms(unsignedRaw).map((form) =>
+        applyCanonicalSign(form, isNegative),
+      ),
+    ),
+  ];
 }
 
 function extractCanonicalNumberSet(text: string): Set<string> {

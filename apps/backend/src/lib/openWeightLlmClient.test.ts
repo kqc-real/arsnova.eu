@@ -1014,6 +1014,8 @@ describe('openWeightLlmClient', () => {
     const ratingAggregateId = 'quiz-result-aggregate:q-rating-1.rating';
     const numericAggregateId = 'quiz-result-aggregate:q-numeric-1.numeric';
     const numericQuestionId = 'quiz-question:q-numeric-1';
+    const signedNumericQuestionId = 'quiz-question:q-numeric-signed';
+    const signedNumericAggregateId = 'quiz-result-aggregate:q-numeric-signed.numeric';
     const feedbackAggregateId = 'feedback-aggregate:stars-round-1';
     const secondQaId = 'qa-question:22222222-2222-4222-8222-222222222222';
     const baseQaQuestion =
@@ -1062,7 +1064,11 @@ describe('openWeightLlmClient', () => {
           : base.context.questions,
       releasedResults: {
         state: 'available' as const,
-        aggregates: [{ sourceId: ratingAggregateId }, { sourceId: numericAggregateId }],
+        aggregates: [
+          { sourceId: ratingAggregateId },
+          { sourceId: numericAggregateId },
+          { sourceId: signedNumericAggregateId },
+        ],
       },
       feedback: {
         state: 'available' as const,
@@ -1153,6 +1159,34 @@ describe('openWeightLlmClient', () => {
           },
         },
         {
+          id: signedNumericQuestionId,
+          kind: 'quiz-question' as const,
+          quizScopeId: 'quiz-scope:99',
+          text: 'Schätzen Sie die Temperaturabweichung.',
+          truncated: false,
+        },
+        {
+          id: signedNumericAggregateId,
+          kind: 'quiz-result-aggregate' as const,
+          label: 'Released numeric summary',
+          scope: {
+            kind: 'question' as const,
+            quizScopeId: 'quiz-scope:99',
+            questionSourceId: signedNumericQuestionId,
+          },
+          voteBasis: { kind: 'effective-vote' as const, version: 'effective-vote-v1' as const },
+          population: { kind: 'eligible-submissions' as const, eligible: 20, included: 4 },
+          aggregation: {
+            rule: 'numeric-summary' as const,
+            unit: 'numeric-responses' as const,
+            responseCount: 4,
+            median: -12.5,
+            standardDeviation: 2.5,
+            inBandCount: 0,
+            inBandPercent: 0,
+          },
+        },
+        {
           id: feedbackAggregateId,
           kind: 'feedback-aggregate' as const,
           label: 'Quick feedback STARS',
@@ -1216,6 +1250,7 @@ describe('openWeightLlmClient', () => {
     const qa1Ref = refFor(baseQaQuestion.sourceId);
     const ratingRef = refFor(ratingAggregateId);
     const numericRef = refFor(numericAggregateId);
+    const signedNumericRef = refFor(signedNumericAggregateId);
     const feedbackRef = refFor(feedbackAggregateId);
 
     // 1. Positivpfad: mean 3.5 -> "3,5", Feedback count 9/14 -> "9 von 14", und "80 %" -> "80.0%"
@@ -1320,6 +1355,69 @@ describe('openWeightLlmClient', () => {
         fallback: { reason: 'invalid_response' },
       },
     });
+
+    // 4. Vorzeichenpfad: median -12.5 erlaubt -12,50, lehnt aber vorzeichenverdrehte 12,5 und +12,5 ab.
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) => {
+        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+        return completionResponse({
+          topics: [
+            {
+              topic: 'Schätzwert',
+              question: 'Warum liegt der Median bei -12,50?',
+              refs: [signedNumericRef],
+            },
+          ],
+        });
+      },
+    });
+
+    await expect(runPreparedQaSummary(prepared)).resolves.toMatchObject({
+      execution: {
+        attemptedMode: 'full-context',
+        effectiveMode: 'full-context',
+        fallback: null,
+      },
+      output: {
+        status: 'ready',
+        statements: [
+          {
+            text: 'Schätzwert: Warum liegt der Median bei -12,50?',
+            sourceIds: [signedNumericAggregateId],
+          },
+        ],
+      },
+    });
+
+    for (const flippedQuestion of [
+      'Warum liegt der Median bei 12,5?',
+      'Warum liegt der Median bei +12,5?',
+    ]) {
+      resetOpenWeightLlmClientForTests({
+        config: () => defaultConfig,
+        request: async (input) => {
+          if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+          return completionResponse({
+            topics: [
+              {
+                topic: 'Schätzwert',
+                question: flippedQuestion,
+                refs: [signedNumericRef],
+              },
+            ],
+          });
+        },
+      });
+
+      await expect(runPreparedQaSummary(prepared)).resolves.toMatchObject({
+        execution: {
+          attemptedMode: 'full-context',
+          effectiveMode: 'extractive',
+          fallback: { reason: 'invalid_response' },
+        },
+      });
+    }
   });
 
   it('zwingt learning_objectives questionIds im Wire-Schema auf die Quell-IDs statt UUID-Regex', async () => {
