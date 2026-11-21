@@ -79,8 +79,7 @@ services:
       retries: 5
     stop_grace_period: 15s
 
-  # Optionaler spaCy-Sidecar (Story 1.14b, umgesetzt). Nicht Teil von deploy.sh.
-  # Start: COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy
+  # Optionale Textanalyse: Ersteinrichtung per Compose, Updates über scripts/prod-text-sidecars.sh.
   spacy:
     profiles: ['nlp']
     image: ${SPACY_IMAGE:-arsnova-spacy:3.8.15}
@@ -111,7 +110,7 @@ services:
       retries: 5
     stop_grace_period: 10s
 
-  # Start: COMPOSE_PROFILES=encoder WORD_CLOUD_ENCODER_IMAGE=arsnova-wordcloud-encoder:e5-small ./scripts/prod-compose.sh up -d wordcloud-encoder
+  # Encoder-Updates gemeinsam mit spaCy über scripts/prod-text-sidecars.sh.
   wordcloud-encoder:
     profiles: ['encoder']
     image: ${WORD_CLOUD_ENCODER_IMAGE:-arsnova-wordcloud-encoder:e5-small}

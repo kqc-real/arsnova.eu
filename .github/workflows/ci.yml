@@ -155,10 +155,10 @@ jobs:
           bash -n scripts/backup/*.sh
           bash -n scripts/backup/tests/*.sh
           bash -n scripts/ci/*.sh
-          for script in scripts/deploy.sh scripts/prod-replicas.sh scripts/deploy/*.sh deploy/production/nginx-pools.sh; do
+          for script in scripts/deploy.sh scripts/prod-replicas.sh scripts/prod-compose.sh scripts/prod-text-sidecars.sh scripts/build-text-sidecars.sh scripts/deploy/*.sh deploy/production/nginx-pools.sh; do
             bash -n "$script"
           done
-          shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh scripts/ci/*.sh scripts/deploy.sh scripts/prod-replicas.sh scripts/deploy/*.sh deploy/production/nginx-pools.sh
+          shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh scripts/ci/*.sh scripts/deploy.sh scripts/prod-replicas.sh scripts/prod-compose.sh scripts/prod-text-sidecars.sh scripts/build-text-sidecars.sh scripts/deploy/*.sh deploy/production/nginx-pools.sh
           node --test scripts/ci/*.test.mjs scripts/deploy/*.test.mjs
           python3 -m py_compile scripts/monitoring/arsnova_monitor.py
           python3 -m unittest discover -s scripts/monitoring/tests -p 'test_*.py'

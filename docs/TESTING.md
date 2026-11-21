@@ -912,6 +912,33 @@ prüfen. Yjs muss vor und nach der Umschaltung per Nginx erreichbar sein und
 bei einer Rotation über eine Replika den alten Socket schließen.
 [Produktions-Runbook](operations/PRODUCTION-REPLICAS.md).
 
+### Rollout der Produktions-Sidecars
+
+`node --test scripts/deploy/text-sidecar-rollout.test.mjs scripts/ci/staging-text-analysis.test.mjs`
+prüft den Deploy-Zustand, die unveränderlichen Image-Referenzen, den
+automatischen Restore und die Locale-Verträge. Beim isolierten
+Zielhost-Smoke einen frischen Compose-Projektnamen, separate Volumes und
+die Produktions-Compose-Services mit eigenem internen Netz verwenden.
+
+1. Beide Apps und die bisherigen Sidecars starten. Die Container- und
+   Image-IDs erfassen.
+2. Einen Kandidaten mit aktuellem spaCy und altem Encoder anwenden.
+   Der Vorlauf muss Französisch ablehnen und beide ursprünglichen
+   Image-IDs wiederherstellen.
+3. Beide aktuellen Images anwenden. Alle fünf Locales müssen aus beiden
+   Apps bestätigt sein. Im Statusfile müssen beide geprüften Digests stehen.
+   Die Image-Halter im Zustand `created` müssen das aktuelle Paar und das
+   Rollback-Paar referenzieren.
+4. Dasselbe Paar erneut anwenden. Beide Sidecar-Container und das vorige
+   Rollback-Paar müssen erhalten bleiben.
+5. Einen unterbrochenen Wechsel in Staging nachstellen. `--recover`
+   muss das gespeicherte Paar wiederherstellen. Anschließend muss
+   `--rollback` zu den ursprünglichen Image-IDs zurückkehren.
+6. In jeder Phase prüfen, dass die App-IDs erhalten bleiben und ihre
+   HTTP-Readiness nach dem Wechsel erreichbar ist.
+
+[Sidecar-Runbook](operations/PRODUCTION-TEXT-SIDECARS.md).
+
 ### Staging-Compose mit zwei Apps
 
 Das [Staging-Runbook](operations/STAGING-COMPOSE.md) beschreibt den lokalen

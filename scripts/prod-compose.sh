@@ -19,6 +19,7 @@ cd "$REPO_ROOT"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
 ENV_FILE="${ENV_FILE:-.env.production}"
 IMAGE_ENV_FILE="${IMAGE_ENV_FILE:-.env.arsnova-image}"
+TEXT_SIDECAR_ENV_FILE="$REPO_ROOT/.deploy-state/text-sidecars.env"
 # Nur für Compose-Interpolation auf Fresh-Hosts ohne Deploy-State.
 # Kein gültiges Deploy-Ziel (deploy.sh lehnt ab); Pull von app/pdf-worker schlägt fehl.
 ARSNOVA_COMPOSE_INFRA_PLACEHOLDER="${ARSNOVA_COMPOSE_INFRA_PLACEHOLDER:-ghcr.io/kqc-real/arsnova.eu@sha256:0000000000000000000000000000000000000000000000000000000000000000}"
@@ -67,6 +68,10 @@ else
   echo "Warnung: weder $IMAGE_ENV_FILE noch ARSNOVA_IMAGE gesetzt." >&2
   echo "  Infra-Placeholder aktiv — nur postgres/redis (Disaster-Recovery/Fresh-Host)." >&2
   echo "  App/pdf-worker erst nach Digest-Deploy starten (schreibt $IMAGE_ENV_FILE)." >&2
+fi
+
+if [[ -f "$TEXT_SIDECAR_ENV_FILE" ]]; then
+  args+=(--env-file "$TEXT_SIDECAR_ENV_FILE")
 fi
 
 exec docker compose "${args[@]}" "$@"
