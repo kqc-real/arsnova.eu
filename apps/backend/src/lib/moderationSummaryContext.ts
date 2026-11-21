@@ -25,6 +25,8 @@ import {
   type QaSummaryFallback,
   type QaSummaryInferenceRequest,
   type QaSummaryInferenceRequestV2,
+  type QaSummaryModelOutputV2,
+  type QaSummaryStatementV2,
 } from '@arsnova/shared-types';
 import type { HostTokenContext } from './hostAuth';
 import { buildModerationPromptContext } from './moderationPromptContext';
@@ -35,8 +37,15 @@ import {
   packModerationPromptContext,
   type ModerationPromptPackingProfile,
 } from './moderationPromptContextPacking';
-import { resolveOpenWeightLlmConfig } from './openWeightLlmConfig';
+import {
+  OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+  resolveOpenWeightLlmConfig,
+} from './openWeightLlmConfig';
 import { resolveQaSummaryConfig } from './qaSummaryConfig';
+import {
+  countSignificantContentTokenMatches,
+  extractSignificantContentTokens,
+} from './qaSummaryQuality';
 
 /**
  * Technical, executable handoff only. Prompt quality and didactic efficacy are
@@ -53,7 +62,7 @@ export const QA_SUMMARY_MODERATION_PACKING_PROFILE = {
   contextWindowTokens: 8_192,
   instructionText: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   definitionText: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,
-  reservedOutputTokens: 640,
+  reservedOutputTokens: OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
   safetyMarginTokens: 128,
 } as const satisfies ModerationPromptPackingProfile;
 
@@ -152,6 +161,374 @@ function sourceText(source: ModerationPromptSource): string | null {
   }
 }
 
+function formatStructuredNumberTokens(
+  value: number,
+  options?: { readonly percentage?: boolean },
+): string[] {
+  if (!Number.isFinite(value)) return [];
+  const normalized = Object.is(value, -0) ? 0 : value;
+  const sign = normalized < 0 ? '-' : '';
+  const abs = Math.abs(normalized);
+  const forms = new Set<string>([`${sign}${String(abs)}`]);
+  if (!Number.isInteger(abs)) {
+    forms.add(`${sign}${abs.toFixed(1)}`);
+    forms.add(`${sign}${abs.toFixed(2)}`);
+    if (options?.percentage && Math.abs(abs - Number(abs.toFixed(2))) > 1e-9) {
+      const rounded = Math.round(abs);
+      forms.add(`${rounded === 0 ? '' : sign}${String(rounded)}`);
+    }
+  }
+  const suffix = options?.percentage ? '%' : '';
+  return [...forms].map((form) => `${form}${suffix}`);
+}
+
+function structuredQuizResultGroundingParts(
+  source: Extract<ModerationPromptSource, { kind: 'quiz-result-aggregate' }>,
+): string[] {
+  const parts: string[] = [
+    source.label,
+    ...formatStructuredNumberTokens(source.population.eligible),
+    ...formatStructuredNumberTokens(source.population.included),
+  ];
+  const { aggregation } = source;
+  switch (aggregation.rule) {
+    case 'answer-distribution':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.selectionCount),
+        ...formatStructuredNumberTokens(aggregation.selectionCardinality.minimumPerResponse),
+        ...formatStructuredNumberTokens(aggregation.selectionCardinality.maximumPerResponse),
+      );
+      for (const bucket of aggregation.buckets) {
+        parts.push(bucket.label, ...formatStructuredNumberTokens(bucket.count));
+      }
+      break;
+    case 'freetext-pattern-summary':
+      parts.push(...formatStructuredNumberTokens(aggregation.responseCount));
+      for (const pattern of aggregation.repeatedPatterns) {
+        parts.push(...formatStructuredNumberTokens(pattern.count));
+      }
+      break;
+    case 'correctness-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.correct),
+        ...formatStructuredNumberTokens(aggregation.incorrect),
+        ...formatStructuredNumberTokens(aggregation.unanswered),
+      );
+      if (aggregation.roundComparison) {
+        parts.push(
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.correct),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.incorrect),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.correct),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.incorrect),
+        );
+      }
+      break;
+    case 'rating-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.scale.minimum),
+        ...formatStructuredNumberTokens(aggregation.scale.maximum),
+      );
+      if (aggregation.mean !== null) {
+        parts.push(...formatStructuredNumberTokens(aggregation.mean));
+      }
+      for (const bucket of aggregation.buckets) {
+        parts.push(
+          ...formatStructuredNumberTokens(bucket.value),
+          ...formatStructuredNumberTokens(bucket.count),
+        );
+      }
+      break;
+    case 'numeric-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.inBandCount),
+      );
+      if (aggregation.median !== null) {
+        parts.push(...formatStructuredNumberTokens(aggregation.median));
+      }
+      if (aggregation.standardDeviation !== null) {
+        parts.push(...formatStructuredNumberTokens(aggregation.standardDeviation));
+      }
+      if (aggregation.inBandPercent !== null) {
+        parts.push(
+          ...formatStructuredNumberTokens(aggregation.inBandPercent, { percentage: true }),
+        );
+      }
+      if (aggregation.histogram) {
+        for (const bucket of aggregation.histogram) {
+          parts.push(
+            ...formatStructuredNumberTokens(bucket.from),
+            ...formatStructuredNumberTokens(bucket.to),
+            ...formatStructuredNumberTokens(bucket.count),
+          );
+        }
+      }
+      if (aggregation.roundComparison) {
+        parts.push(
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round1.inBandCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.responseCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.round2.inBandCount),
+          ...formatStructuredNumberTokens(aggregation.roundComparison.inBandPercentDelta, {
+            percentage: true,
+          }),
+        );
+        if (aggregation.roundComparison.pairedAnalysis) {
+          parts.push(
+            ...formatStructuredNumberTokens(aggregation.roundComparison.pairedAnalysis.pairedCount),
+            ...formatStructuredNumberTokens(aggregation.roundComparison.pairedAnalysis.closerCount),
+            ...formatStructuredNumberTokens(
+              aggregation.roundComparison.pairedAnalysis.fartherCount,
+            ),
+            ...formatStructuredNumberTokens(
+              aggregation.roundComparison.pairedAnalysis.unchangedCount,
+            ),
+          );
+        }
+      }
+      break;
+    case 'score-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.responseCount),
+        ...formatStructuredNumberTokens(aggregation.minimum),
+        ...formatStructuredNumberTokens(aggregation.maximum),
+        ...formatStructuredNumberTokens(aggregation.mean),
+      );
+      break;
+    case 'completion-summary':
+      parts.push(
+        ...formatStructuredNumberTokens(aggregation.completed),
+        ...formatStructuredNumberTokens(aggregation.incomplete),
+      );
+      break;
+  }
+  return parts;
+}
+
+function structuredFeedbackGroundingParts(
+  source: Extract<ModerationPromptSource, { kind: 'feedback-aggregate' }>,
+): string[] {
+  const parts: string[] = [
+    source.label,
+    source.aggregation.feedbackType,
+    ...formatStructuredNumberTokens(source.population.eligible),
+    ...formatStructuredNumberTokens(source.population.included),
+  ];
+  for (const bucket of source.aggregation.buckets) {
+    parts.push(String(bucket.value), ...formatStructuredNumberTokens(bucket.count));
+  }
+  return parts;
+}
+
+function sourceGroundingParts(source: ModerationPromptSource): string[] {
+  switch (source.kind) {
+    case 'qa-question':
+      return source.content.state === 'included' ? [source.content.text] : [];
+    case 'semantic-topic':
+    case 'compass-signal':
+      return [source.label];
+    case 'quiz-question':
+    case 'learning-objective':
+      return [source.text];
+    case 'quiz-result-aggregate':
+      return structuredQuizResultGroundingParts(source);
+    case 'feedback-aggregate':
+      return structuredFeedbackGroundingParts(source);
+  }
+}
+
+/**
+ * Model-visible text and structured domain values per citable source ID for
+ * deterministic output grounding. `reference-only` Q&A items carry no text;
+ * semantic topics, learning objectives, question-scoped result aggregates, and
+ * compass signals inherit only already-packed model-visible evidence.
+ */
+export function buildSummaryGroundingTextsBySourceId(
+  promptContext: ModerationPromptContextV1,
+): ReadonlyMap<string, string> {
+  const directTexts = new Map<string, string>();
+  for (const source of promptContext.context.sources) {
+    const parts = sourceGroundingParts(source)
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (parts.length > 0) {
+      directTexts.set(source.id, [...new Set(parts)].join('\n'));
+    }
+  }
+
+  const groundingTexts = new Map<string, string>(directTexts);
+  for (const source of promptContext.context.sources) {
+    if (source.kind === 'quiz-result-aggregate' && source.scope.kind === 'question') {
+      const parts = [
+        directTexts.get(source.id),
+        directTexts.get(source.scope.questionSourceId),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(source.id, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  if (promptContext.context.learningContext.state === 'available') {
+    for (const objective of promptContext.context.learningContext.objectives) {
+      const linkedIds = [
+        ...(objective.scope.kind === 'tasks' ? objective.scope.taskSourceIds : []),
+        ...(objective.origin.kind === 'model-derived' ? objective.origin.derivedFromSourceIds : []),
+      ];
+      const parts = [
+        directTexts.get(objective.sourceId),
+        ...linkedIds.map((id) => directTexts.get(id)),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(objective.sourceId, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  if (promptContext.context.topics.state === 'available') {
+    for (const topic of promptContext.context.topics.items) {
+      const parts = [
+        directTexts.get(topic.sourceId),
+        directTexts.get(topic.representativeQuestionSourceId),
+        ...topic.representedQuestionSourceIds.map((id) => directTexts.get(id)),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(topic.sourceId, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  if (promptContext.context.compass.state === 'available') {
+    for (const signal of promptContext.context.compass.signals) {
+      const evidenceIds = [
+        ...signal.questionSourceIds,
+        ...signal.evidence.map(({ sourceId }) => sourceId),
+      ];
+      const parts = [
+        directTexts.get(signal.sourceId),
+        ...evidenceIds.map((id) => groundingTexts.get(id) ?? directTexts.get(id)),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(signal.sourceId, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  return groundingTexts;
+}
+
+export function buildIncludedQaQuestionTextsBySourceId(
+  promptContext: ModerationPromptContextV1,
+): ReadonlyMap<string, string> {
+  const result = new Map<string, string>();
+  for (const source of promptContext.context.sources) {
+    if (source.kind === 'qa-question' && source.content.state === 'included') {
+      const text = source.content.text.trim();
+      if (text) result.set(source.id, text);
+    }
+  }
+  return result;
+}
+
+function summaryStatementBodyForGrounding(text: string): string {
+  const colonIndex = text.indexOf(':');
+  if (colonIndex > 0) return text.slice(colonIndex + 1).trim();
+  const dashMatch = text.match(/\s[–—-]\s/u);
+  if (dashMatch?.index !== undefined) {
+    return text.slice(dashMatch.index + dashMatch[0].length).trim();
+  }
+  return text.trim();
+}
+
+/**
+ * Deterministic cluster co-citation repair: when a generated statement cites one
+ * member of a packed `semantic-topic` (e.g. Question C), shares zero content stems
+ * with its cited source(s), and clearly paraphrases an uncited `included` sibling
+ * question in the same packed topic (e.g. Question D), adds the `included` sibling
+ * to `sourceIds` so `Verwendete Beiträge` transparently surfaces both questions.
+ * Never inspects or cites `reference-only` entries.
+ */
+export function reconcileTopicSiblingQaCitations(
+  output: QaSummaryModelOutputV2,
+  promptContext: ModerationPromptContextV1,
+): QaSummaryModelOutputV2 {
+  if (promptContext.context.topics.state !== 'available') {
+    return output;
+  }
+  const includedQaTexts = buildIncludedQaQuestionTextsBySourceId(promptContext);
+  if (includedQaTexts.size < 2) {
+    return output;
+  }
+  const directSourceTexts = new Map<string, string>();
+  for (const source of promptContext.context.sources) {
+    const text = sourceText(source)?.trim();
+    if (text) directSourceTexts.set(source.id, text);
+  }
+  const topics = promptContext.context.topics.items;
+
+  const reconcileStatement = (statement: QaSummaryStatementV2): QaSummaryStatementV2 => {
+    const bodyTokens = extractSignificantContentTokens(
+      summaryStatementBodyForGrounding(statement.text),
+    );
+    if (bodyTokens.length < 2) return statement;
+
+    const citedText = statement.sourceIds
+      .map((sourceId) => directSourceTexts.get(sourceId) ?? '')
+      .filter(Boolean)
+      .join('\n');
+    const citedTokens = extractSignificantContentTokens(citedText);
+    if (countSignificantContentTokenMatches(bodyTokens, citedTokens) > 0) {
+      return statement;
+    }
+
+    const citedSet = new Set(statement.sourceIds);
+    const candidateSiblingIds = new Set<string>();
+    for (const topic of topics) {
+      const touchesTopic =
+        citedSet.has(topic.sourceId) ||
+        topic.memberQuestionSourceIds.some((memberId) => citedSet.has(memberId));
+      if (!touchesTopic) continue;
+      for (const memberId of topic.memberQuestionSourceIds) {
+        if (!citedSet.has(memberId) && includedQaTexts.has(memberId)) {
+          candidateSiblingIds.add(memberId);
+        }
+      }
+    }
+    if (candidateSiblingIds.size === 0) return statement;
+
+    const matchingSiblings = [...candidateSiblingIds]
+      .map((siblingId) => {
+        const siblingTokens = extractSignificantContentTokens(includedQaTexts.get(siblingId) ?? '');
+        return {
+          siblingId,
+          matches: countSignificantContentTokenMatches(bodyTokens, siblingTokens),
+        };
+      })
+      .filter(({ matches }) => matches >= 2)
+      .sort(
+        (left, right) =>
+          right.matches - left.matches ||
+          compareModerationPromptCodeUnits(left.siblingId, right.siblingId),
+      );
+    if (matchingSiblings.length === 0) return statement;
+
+    const nextSourceIds = [
+      ...statement.sourceIds,
+      ...matchingSiblings.map(({ siblingId }) => siblingId),
+    ].slice(0, 8);
+    return {
+      ...statement,
+      sourceIds: [...new Set(nextSourceIds)],
+    };
+  };
+
+  return {
+    ...output,
+    statements: output.statements.map(reconcileStatement),
+    suggestedNextSteps: output.suggestedNextSteps.map(reconcileStatement),
+  };
+}
+
 export function projectLegacyQaSummaryRequest(
   promptContext: ModerationPromptContextV1,
 ): QaSummaryInferenceRequest {
@@ -184,20 +561,44 @@ export type PreparedModerationSummaryContext = Readonly<{
 /** Short reasons keep the empty packing shell under the configured token budget. */
 const QA_BASELINE_OMIT_REASON = 'qa-baseline';
 const QA_FORCE_FIT_OMIT_REASON = 'qa-force-fit';
+const QA_SUMMARY_BASE_MAX_QUESTION_CANDIDATES = 8;
+const QA_SUMMARY_MEDIUM_CORPUS_THRESHOLD = 24;
+const QA_SUMMARY_MEDIUM_CORPUS_MAX_QUESTION_CANDIDATES = 12;
 const QA_SUMMARY_MAX_QUESTION_CANDIDATES = 16;
 const QA_SUMMARY_LARGE_CORPUS_THRESHOLD = 100;
 const QA_SUMMARY_LARGE_CORPUS_TARGET_COVERAGE = 8;
 const QA_SUMMARY_MAX_SIGNAL_QUESTION_EVIDENCE = 2;
+const QA_SUMMARY_MAX_SIGNAL_QUESTIONS = 4;
+
+export function resolveSummaryMaxQuestionCandidates(totalQuestions: number): number {
+  if (totalQuestions >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD) {
+    return QA_SUMMARY_MAX_QUESTION_CANDIDATES;
+  }
+  if (totalQuestions >= QA_SUMMARY_MEDIUM_CORPUS_THRESHOLD) {
+    return QA_SUMMARY_MEDIUM_CORPUS_MAX_QUESTION_CANDIDATES;
+  }
+  return QA_SUMMARY_BASE_MAX_QUESTION_CANDIDATES;
+}
 
 function trimSummaryAnalysisQuestions(
   analysis: ModerationAnalysisContextV1,
-  maxQuestions = analysis.context.questions.state === 'available' &&
-  analysis.context.questions.corpus.total >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD
-    ? QA_SUMMARY_MAX_QUESTION_CANDIDATES
-    : 3,
+  maxQuestions = analysis.context.questions.state === 'available'
+    ? resolveSummaryMaxQuestionCandidates(analysis.context.questions.corpus.total)
+    : QA_SUMMARY_BASE_MAX_QUESTION_CANDIDATES,
 ): ModerationAnalysisContextV1 {
   const context = analysis.context;
-  if (context.questions.state !== 'available' || context.questions.items.length <= maxQuestions) {
+  const hasOversizedSignal =
+    context.compass.state === 'available' &&
+    context.compass.signals.some(
+      (signal) =>
+        signal.questionSourceIds.length > QA_SUMMARY_MAX_SIGNAL_QUESTIONS ||
+        signal.evidence.filter(({ sourceId }) => sourceId.startsWith('qa-question:')).length >
+          QA_SUMMARY_MAX_SIGNAL_QUESTIONS,
+    );
+  if (
+    context.questions.state !== 'available' ||
+    (context.questions.items.length <= maxQuestions && !hasOversizedSignal)
+  ) {
     return analysis;
   }
 
@@ -235,6 +636,21 @@ function trimSummaryAnalysisQuestions(
   }
 
   const ranked = forceFitQuestionCandidates(context.questions.items);
+  for (const question of ranked) {
+    if (question.topicSourceIds.length === 0 && question.status === 'PINNED') {
+      protectedIds.add(question.sourceId);
+      break;
+    }
+  }
+  for (const urgentCategory of ['organization', 'technical'] as const) {
+    const urgent = ranked.find(
+      (question) =>
+        question.topicSourceIds.length === 0 &&
+        question.nlp.state === 'classified' &&
+        question.nlp.category === urgentCategory,
+    );
+    if (urgent) protectedIds.add(urgent.sourceId);
+  }
   const kept: ForceFitQuestion[] = [];
   const keptIds = new Set<string>();
   for (const question of ranked) {
@@ -326,17 +742,27 @@ function trimSummaryAnalysisQuestions(
       ? {
           ...context.compass,
           signals: context.compass.signals.map((signal) => {
-            const trimmedQuestionIds = signal.questionSourceIds.filter((id) =>
-              finalReferencedQuestionIds.has(id),
-            );
+            const trimmedQuestionIds = signal.questionSourceIds
+              .filter((id) => finalReferencedQuestionIds.has(id))
+              .slice(0, QA_SUMMARY_MAX_SIGNAL_QUESTIONS);
             const finalSignalQuestionIds =
               trimmedQuestionIds.length > 0
                 ? trimmedQuestionIds
                 : signal.questionSourceIds.slice(0, 1);
-            const trimmedEvidence = signal.evidence.filter(
-              ({ sourceId }) =>
-                !sourceId.startsWith('qa-question:') || finalReferencedQuestionIds.has(sourceId),
-            );
+            const allowedSignalQuestionIds = new Set(finalSignalQuestionIds);
+            let seenQaEvidence = 0;
+            const trimmedEvidence = signal.evidence.filter(({ sourceId }) => {
+              if (!sourceId.startsWith('qa-question:')) return true;
+              if (
+                !finalReferencedQuestionIds.has(sourceId) ||
+                (allowedSignalQuestionIds.size > 0 && !allowedSignalQuestionIds.has(sourceId))
+              ) {
+                return false;
+              }
+              if (seenQaEvidence >= QA_SUMMARY_MAX_SIGNAL_QUESTIONS) return false;
+              seenQaEvidence += 1;
+              return true;
+            });
             const isCountBasedSignal =
               signal.signal === 'high-frequency' ||
               signal.signal === 'pinned-question' ||
@@ -726,10 +1152,14 @@ export function ensureMinimumQaQuestionCoverage(input: {
     return input.initialPack;
   }
   const questionSection = input.analysis.context.questions;
+  const hasPackedSemanticTopics =
+    input.initialPack?.context.topics.state === 'available' &&
+    input.initialPack.context.topics.items.length > 0;
   const targetCoverage =
     questionSection.state === 'available'
       ? Math.min(
-          questionSection.corpus.total >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD
+          !hasPackedSemanticTopics &&
+            questionSection.corpus.total >= QA_SUMMARY_LARGE_CORPUS_THRESHOLD
             ? QA_SUMMARY_LARGE_CORPUS_TARGET_COVERAGE
             : 1,
           questionSection.items.length,

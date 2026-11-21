@@ -35,6 +35,7 @@ import {
   normalizeOpenWeightLlmHostname,
   OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD,
   OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS,
+  OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
   resolveOpenWeightLlmConfig,
   type OpenWeightLlmConfig,
   type OpenWeightLlmTransport,
@@ -74,12 +75,21 @@ const ChatCompletionResponseSchema = z
   })
   .passthrough();
 
+export interface OpenWeightLlmTimings {
+  readonly promptMs: number | null;
+  readonly promptPerSecond: number | null;
+  readonly predictedMs: number | null;
+  readonly predictedPerSecond: number | null;
+}
+
 export interface OpenWeightLlmTelemetry {
   readonly taskType: OpenWeightLlmTaskType;
   readonly elapsedMs: number;
   readonly model: string | null;
   readonly promptTokens: number | null;
   readonly completionTokens: number | null;
+  readonly finishReason?: 'stop' | 'length' | 'unknown';
+  readonly timings?: OpenWeightLlmTimings;
 }
 
 export type OpenWeightLlmCompletedResult = {
@@ -309,7 +319,45 @@ function summaryCitableRefs(request: OpenWeightLlmSummaryRequestV2, refs: Map<st
     .map(({ id }) => refs.get(id)!);
 }
 
-function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
+function compactSummaryTopics(
+  topics: OpenWeightLlmSummaryRequestV2['promptContext']['context']['topics'],
+) {
+  if (topics.state !== 'available' || topics.items.length === 0) return undefined;
+  return {
+    freshness: topics.freshness.state,
+    items: topics.items.map((topic) => ({
+      sourceId: topic.sourceId,
+      labelOrigin: topic.labelOrigin.kind,
+      representativeQuestionSourceId: topic.representativeQuestionSourceId,
+      representedQuestionSourceIds: topic.representedQuestionSourceIds,
+      memberQuestionSourceIds: topic.memberQuestionSourceIds,
+    })),
+  };
+}
+
+function compactSummaryCompass(
+  compass: OpenWeightLlmSummaryRequestV2['promptContext']['context']['compass'],
+) {
+  if (compass.state !== 'available' || compass.signals.length === 0) return undefined;
+  return {
+    primarySignalSourceId: compass.primarySignalSourceId,
+    signals: compass.signals.map((signal) => {
+      const evidenceSourceIds = [...new Set(signal.evidence.map(({ sourceId }) => sourceId))];
+      return {
+        sourceId: signal.sourceId,
+        signal: signal.signal,
+        cardKind: signal.cardKind,
+        ...(signal.questionSourceIds.length > 0
+          ? { questionSourceIds: signal.questionSourceIds }
+          : {}),
+        evidenceSourceIds,
+        suggestedAction: signal.suggestedNextStep.action,
+      };
+    }),
+  };
+}
+
+export function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
   const refs = summarySourceRefs(request);
   const { locale, questions, topics, compass, learningContext, releasedResults, feedback } =
     request.promptContext.context;
@@ -334,13 +382,16 @@ function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
     {
       locale,
       sources,
-      topics: topics.state === 'available' ? topics : undefined,
-      compass: compass.state === 'available' ? compass : undefined,
+      topics: compactSummaryTopics(topics),
+      compass: compactSummaryCompass(compass),
       learningContext: learningContext.state === 'available' ? learningContext : undefined,
       releasedResults: releasedResults.state === 'available' ? releasedResults : undefined,
       feedback: feedback.state === 'available' ? feedback : undefined,
     },
-    (_key, value: unknown) => (typeof value === 'string' ? (refs.get(value) ?? value) : value),
+    (key, value: unknown) =>
+      typeof value === 'string' && key !== 'text' && key !== 'label'
+        ? (refs.get(value) ?? value)
+        : value,
   );
 }
 
@@ -421,6 +472,10 @@ function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, 
   return base;
 }
 
+export function projectCompactSummaryWireContext(request: OpenWeightLlmSummaryRequestV2): string {
+  return compactSummaryContext(request);
+}
+
 function buildChatCompletionBody(
   request: OpenWeightLlmRequest,
   config: OpenWeightLlmConfig,
@@ -453,13 +508,37 @@ function buildChatCompletionBody(
       request.taskType === 'topic_label' && request.schemaVersion === 2
         ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
         : request.taskType === 'qa_summary' && request.schemaVersion === 2
-          ? Math.min(192, config.maxOutputTokens.qa_summary)
+          ? Math.min(
+              OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+              config.maxOutputTokens.qa_summary,
+            )
           : config.maxOutputTokens[request.taskType],
     temperature: 0,
     stream: false,
     reasoning_effort: 'none',
     chat_template_kwargs: { enable_thinking: false },
   });
+}
+
+function finiteTimingNumber(
+  timings: Record<string, unknown> | undefined,
+  key: string,
+): number | null {
+  const value = timings?.[key];
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function extractCompletionTimings(
+  timings: Record<string, unknown> | undefined,
+): OpenWeightLlmTimings | undefined {
+  if (!timings) return undefined;
+  const parsed: OpenWeightLlmTimings = {
+    promptMs: finiteTimingNumber(timings, 'prompt_ms'),
+    promptPerSecond: finiteTimingNumber(timings, 'prompt_per_second'),
+    predictedMs: finiteTimingNumber(timings, 'predicted_ms'),
+    predictedPerSecond: finiteTimingNumber(timings, 'predicted_per_second'),
+  };
+  return Object.values(parsed).some((value) => value !== null) ? parsed : undefined;
 }
 
 function parseCompletion(
@@ -506,6 +585,15 @@ function parseCompletion(
   if (parsedOutput.data.taskType !== request.taskType) return reject('task_type', completion.data);
   if (!hasOnlyAllowedOpenWeightLlmReferences(request, parsedOutput.data))
     return reject('question_references', completion.data);
+  const rawFinishReason = completion.data.choices[0]?.finish_reason;
+  const finishReason: OpenWeightLlmTelemetry['finishReason'] =
+    rawFinishReason === undefined
+      ? undefined
+      : rawFinishReason === 'stop' || rawFinishReason === 'length'
+        ? rawFinishReason
+        : 'unknown';
+  const timings = extractCompletionTimings(completion.data.timings);
+
   return {
     status: 'completed',
     output: parsedOutput.data,
@@ -515,6 +603,8 @@ function parseCompletion(
       model: completion.data.model ?? null,
       promptTokens: completion.data.usage?.prompt_tokens ?? null,
       completionTokens: completion.data.usage?.completion_tokens ?? null,
+      ...(finishReason !== undefined ? { finishReason } : {}),
+      ...(timings !== undefined ? { timings } : {}),
     },
   };
 }

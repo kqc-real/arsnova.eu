@@ -247,7 +247,7 @@ Wenn die Lehrkraft im Kompass zusätzlich den Block **»Kurzfassung der offenen 
 4. **`compass`:** Die regelbasierten Kompasskarten und der regelbasierte Handlungsvorschlag.
 5. **`learningContext`:** Bestätigte und aktive Lernziele der Session bzw. aktuellen Frage.
 6. **`releasedResults` & `feedback`:** Ausschließlich bereits freigegebene Quiz-Aggregate und Blitzlicht-/Tempo-Verteilungen.
-7. **`sources` & `budget`:** Typisiertes Quellenregister (`q1`, `t1`, `c1`, `l1`, `r1`, `f1`) und der exakte Token-/Byte-Budgetbericht (8.192-Profil mit 640 Tokens Antwortreserve, 128 Tokens Sicherheitsmarge und konservativem UTF-8-Byte-Budget für das kanonische Kontext-JSON).
+7. **`sources` & `budget`:** Typisiertes Quellenregister (`q1`, `t1`, `c1`, `l1`, `r1`, `f1`) und der exakte Token-/Byte-Budgetbericht (8.192-Profil mit 192 Tokens Antwortreserve analog zum V2-Ausgabelimit, 128 Tokens Sicherheitsmarge und konservativem UTF-8-Byte-Budget für das kanonische Kontext-JSON).
 
 Über **Diagnose → Kontextvorschau laden** (`qa.summaryContextPreview`) kann die Lehrkraft jederzeit transparent einsehen, welche Bereiche, Quellenmengen und eventuellen Budgetkürzungen in den Kontext eingeflossen sind.
 

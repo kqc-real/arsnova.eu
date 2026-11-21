@@ -519,8 +519,12 @@ beiden Apps prüfen.
 
 ```bash
 node --import tsx apps/backend/scripts/eval-qa-nlp-gatekeeper.ts
+npm run eval:issue-456:slice8:pack
 OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
   node --env-file=.env --import tsx apps/backend/scripts/eval-qa-summary-locales.ts
+# Optional: Slice-8-Vollkontext- & TTFT-/Prefill-Messung (3 Läufe bei T=0, geheimnisfreies JSON)
+OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
+  node --env-file=.env --import tsx apps/backend/scripts/eval-issue-456-slice8-summary.ts --live
 ```
 
 Die Klassifikationsprobe wertet 15 synthetische Holdout-Fragen je App-Locale aus.

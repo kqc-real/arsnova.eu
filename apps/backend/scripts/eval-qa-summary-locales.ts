@@ -11,6 +11,10 @@ import {
   QA_SUMMARY_ADAPTER_CAPABILITIES,
 } from '../src/lib/moderationSummaryContext';
 import { QA_SUMMARY_TIMEOUT_DEFAULT_MS } from '../src/lib/qaSummaryConfig';
+import {
+  countSignificantContentTokenMatches,
+  extractSignificantContentTokens,
+} from '../src/lib/qaSummaryQuality';
 import { runPreparedQaSummary } from '../src/lib/qaSummaryRuntimeAdapter';
 
 const QUESTIONS: Record<AppLocale, readonly string[]> = {
@@ -105,13 +109,32 @@ async function main(): Promise<void> {
     const headings = statements.map((text) => text.split(':', 1)[0]!);
     // These examples contain no numbers, so a generated date or quantity cannot come from them.
     const inventedNumber = statements.some((text) => /\p{N}/u.test(text));
+    const sourceTextById = new Map(sources.map(({ id, content }) => [id, content.text]));
+    const noSiblingMismatch = result.output.statements.every((statement) => {
+      const colonIdx = statement.text.indexOf(':');
+      const body = colonIdx > 0 ? statement.text.slice(colonIdx + 1) : statement.text;
+      const bodyTokens = extractSignificantContentTokens(body);
+      if (bodyTokens.length < 2) return true;
+      const citedTokens = extractSignificantContentTokens(
+        statement.sourceIds.map((id) => sourceTextById.get(id) ?? '').join('\n'),
+      );
+      if (countSignificantContentTokenMatches(bodyTokens, citedTokens) > 0) return true;
+      const citedSet = new Set(statement.sourceIds);
+      return [...sourceTextById.entries()].every(
+        ([id, text]) =>
+          citedSet.has(id) ||
+          countSignificantContentTokenMatches(bodyTokens, extractSignificantContentTokens(text)) <
+            2,
+      );
+    });
     const passed =
       result.execution.effectiveMode === 'full-context' &&
       result.output.status === 'ready' &&
       elapsedMs < QA_SUMMARY_TIMEOUT_DEFAULT_MS &&
       cited &&
       distinctThemes &&
-      !inventedNumber;
+      !inventedNumber &&
+      noSiblingMismatch;
     process.stdout.write(
       JSON.stringify({
         locale,
@@ -123,6 +146,7 @@ async function main(): Promise<void> {
         cited,
         distinctThemes,
         inventedNumber,
+        noSiblingMismatch,
         passed,
       }) + '\n',
     );
