@@ -4,6 +4,7 @@ set -euo pipefail
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 project=${STAGING_PROJECT_NAME:-arsnova-staging}
 env_file=${STAGING_ENV_FILE:-"$root/.env.staging"}
+text_analysis=${STAGING_TEXT_ANALYSIS:-false}
 
 case "${1:-}" in
   up|rollback|status|config|down) ;;
@@ -20,10 +21,25 @@ if [[ ! -f "$env_file" ]]; then
   echo 'Staging-Umgebungsdatei fehlt. Vorlage: .env.staging.example' >&2
   exit 2
 fi
+compose_files=(--file "$root/docker-compose.staging.yml")
+support_services=(postgres redis pdf-worker spacy qa-summary-redis)
+checked_services=(app-a app-b yjs-relay pdf-worker spacy qa-summary-redis)
+case "$text_analysis" in
+  true)
+    compose_files+=(--file "$root/docker-compose.staging.text-analysis.yml")
+    support_services+=(encoder)
+    checked_services+=(encoder)
+    ;;
+  false) ;;
+  *)
+    echo 'STAGING_TEXT_ANALYSIS muss true oder false sein.' >&2
+    exit 2
+    ;;
+esac
 
 compose() {
   docker compose --project-name "$project" --env-file "$env_file" \
-    --file "$root/docker-compose.staging.yml" "$@"
+    "${compose_files[@]}" "$@"
 }
 
 check_running_replicas() {
@@ -119,14 +135,19 @@ case "$1" in
   up)
     running=$(compose ps --status running --quiet app-a app-b)
     if [[ -n "$running" ]]; then
-      check_running_replicas "$(compose ps --status running --quiet app-a app-b yjs-relay pdf-worker spacy qa-summary-redis)"
-      compose up -d --wait --wait-timeout 120 postgres redis pdf-worker spacy qa-summary-redis
+      check_running_replicas "$(compose ps --status running --quiet "${checked_services[@]}")"
+      compose up -d --wait --wait-timeout 120 "${support_services[@]}"
       compose up -d --no-deps app-a app-b
     else
       compose up -d --wait --wait-timeout 120 app-a app-b
     fi
     wait_replica_readiness
     wait_subscribers 2
+    if [[ "$text_analysis" == true ]]; then
+      for app in app-a app-b; do
+        compose exec -T "$app" node /app/staging-text-analysis-readiness.mjs
+      done
+    fi
     compose up -d --no-deps yjs-relay
     wait_relay_readiness
     compose up -d --no-deps nginx
