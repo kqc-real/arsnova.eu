@@ -81,7 +81,7 @@
     },
     {
       "pfad": "docs/referat-thema-1/nachweisumfang.md",
-      "sha256": "4aa5980704ebdffad080d2bd730cc51b044341764aaf66fb6181e8b1559a63b2"
+      "sha256": "6f759b1da3f1a17afc6bae0421a2fcf7598c009545bb0ae508a45d5c3724be22"
     },
     {
       "pfad": "docs/referat-thema-1/adr/1C-023-release-timeout-90-s-zu-kurz.md",
@@ -604,24 +604,24 @@
     {
       "datei": "jonas-deck.html",
       "bytes": 2136367,
-      "sha256": "62a39d1ebceece75bda1f1d62ca9751b714201d7b1ba24972151a662dc913ac8"
+      "sha256": "48df6cad30a5afdb5655dbbf85d9cc035268fdcecff329f44e3e863298f2edda"
     },
     {
       "datei": "gemeinsames-deck.pdf",
-      "bytes": 1602290,
-      "sha256": "9956830cc63ed7aa55b70ed46618cafa0a496487b607cfac01310a62abd060b5",
+      "bytes": 1602292,
+      "sha256": "f555b4c934ea5f7f515e52994dbfe1d93b6c6e6183465cb94443e4cddf352fd3",
       "seiten": 53
     },
     {
       "datei": "jonas-folien.pdf",
-      "bytes": 1093661,
-      "sha256": "f3cd62cd161b90f825d80087273ca828360cb77bed2adc4ac1ec690b8a87b6bb",
+      "bytes": 1093663,
+      "sha256": "9205c454c0c4ae2fd15911bdae74ae59828fc832e372014539f4c119c3196d22",
       "seiten": 33
     },
     {
       "datei": "niklas-folien.pdf",
-      "bytes": 557485,
-      "sha256": "67852b2348818b55b99a6a43d95a5b0761524658c7877d839e2f0d1cb85d01e7",
+      "bytes": 557489,
+      "sha256": "5eb7aa20cf974b7dafab868dceed183e1fd74c30f616ac44683d0f9cf3ef9e0b",
       "seiten": 20
     }
   ]

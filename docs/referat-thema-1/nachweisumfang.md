@@ -23,7 +23,7 @@ Nur Werte, deren Rohdaten und Protokolle beide auf diesem Stand liegen.
 | ------------------------------------------ | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | Gewertete Laborzeit                        | **20,3 h** (20 h 21 min, 73.235 s)  | Abschnitt [Laborzeit](#laborzeit)                                                                                     |
 | Aufbau, Tests und weitere Läufe            | **29,3 h** (29 h 15 min, 105.311 s) | Abschnitt [Aufbau, Tests und weitere Läufe](#aufbau-tests-und-weitere-läufe); Rechnerzeit, getrennt von der Laborzeit |
-| Automatisierte Tests                       | **326**                             | Abschnitt [Tests](#tests); ohne die Tests des Abgabe-Builds                                                           |
+| Automatisierte Tests                       | **328**                             | Abschnitt [Tests](#tests); ohne die Tests des Abgabe-Builds                                                           |
 | ADRs                                       | **35** (1B: 13, 1C: 22)             | `ls adr/1[BC]-*.md`; 1A hat statt ADRs einen Experimentvertrag                                                        |
 | Vorab festgelegte Hypothesen und Kriterien | **50**                              | Abschnitt [Hypothesen](#hypothesen-und-kriterien)                                                                     |
 
@@ -78,7 +78,7 @@ zählt die Differenz der Testzeilen.
 
 | Kennzahl            | Wert                                        | Dateien                                                                   |
 | ------------------- | ------------------------------------------- | ------------------------------------------------------------------------- |
-| Messwerkzeuge 1B/1C | 126 (23 Dateien)                            | `docs/referat-thema-1/evidenz/**/*.test.mjs`                              |
+| Messwerkzeuge 1B/1C | 128 (23 Dateien)                            | `docs/referat-thema-1/evidenz/**/*.test.mjs`                              |
 | Pester 1B (Windows) | 57 (3 Dateien)                              | `docs/referat-thema-1/evidenz/1B/**/*.Tests.ps1`                          |
 | 1A Lastwerkzeuge    | 108 (16 neue Dateien)                       | `scripts/load/**/*.test.mjs`, neu seit `21734265`                         |
 | Backend 1C          | 35 (4 neue Dateien, netto +1 in geänderten) | `apps/backend/src/__tests__/*.test.ts`, neu oder geändert seit `21734265` |
