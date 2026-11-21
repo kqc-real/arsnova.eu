@@ -1,0 +1,257 @@
+<!doctype html>
+<!-- Vorlage für Jonas' Handout. handout.mjs setzt Basis, Titel und Seiten an den Platzhaltern ein.
+     Jede .seite ist genau eine A4-Seite (178 × 265 mm Satzspiegel bei 16 mm Rand);
+     rendereHandout() prüft, dass kein Inhalt überläuft. -->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    {{BASIS}}
+    <title>{{TITEL}}</title>
+    <link rel="stylesheet" href="stil.css" />
+    <style>
+      @page {
+        size: A4;
+        margin: 16mm;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #fff;
+      }
+      body {
+        width: 178mm;
+        color: var(--tinte);
+        font-family: var(--f-text);
+        font-size: 9.6pt;
+        line-height: 1.42;
+        hyphens: auto;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .seite {
+        height: 264mm;
+        display: flex;
+        flex-direction: column;
+        break-after: page;
+        overflow: hidden;
+      }
+      .seite:last-child {
+        break-after: auto;
+      }
+      .inhalt {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+      }
+      footer {
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid var(--linie);
+        padding-top: 1.6mm;
+        color: var(--gedaempft);
+        font-size: 7.6pt;
+      }
+      h1 {
+        margin: 0 0 1.5mm;
+        color: var(--blau);
+        font-size: 20pt;
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+      }
+      .unter {
+        margin: 0 0 1mm;
+        font-size: 11pt;
+        font-weight: 600;
+        color: var(--text-2);
+      }
+      .meta {
+        margin: 0 0 4mm;
+        color: var(--gedaempft);
+        font-size: 8.6pt;
+      }
+      h2 {
+        margin: 5mm 0 2.5mm;
+        color: var(--blau);
+        font-size: 13.5pt;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+      .inhalt > h2:first-child {
+        margin-top: 0;
+      }
+      h3 {
+        margin: 3.6mm 0 1.2mm;
+        font-size: 10.2pt;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 2.2mm;
+        orphans: 3;
+        widows: 3;
+      }
+      ul {
+        margin: 0 0 2.2mm;
+        padding-left: 5mm;
+      }
+      li {
+        margin: 0 0 1mm;
+      }
+      /* Messwerte im Fließtext: Inter halbfett mit Tabellenziffern (Plex Mono nur für Commits, Pfade). */
+      .w {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      code,
+      .mono {
+        font-family: var(--f-mono);
+        font-size: 0.9em;
+        hyphens: manual;
+      }
+      .etikett {
+        padding: 0.2mm 1.6mm;
+        border-radius: 1mm;
+        font-size: 0.72em;
+        vertical-align: 0.12em;
+      }
+      .kasten {
+        margin: 0 0 3.5mm;
+        padding: 2.6mm 3.4mm;
+        border-left: 1.2mm solid var(--blau);
+        background: #edf3f8;
+      }
+      .grenzen {
+        margin: 1.5mm 0 3mm;
+        padding: 1.6mm 3mm 0.6mm;
+        border: 1px solid var(--linie);
+        border-left: 1.2mm solid var(--petrol);
+        font-size: 8.5pt;
+        line-height: 1.35;
+      }
+      .grenzen.b {
+        border-left-color: var(--bernstein);
+      }
+      .grenzen p {
+        margin: 0 0 0.6mm;
+      }
+      .grenzen ul {
+        margin: 0 0 1mm;
+      }
+      .kasten p:last-child {
+        margin-bottom: 0;
+      }
+      .zitat {
+        margin: 1.4mm 0 2.4mm;
+        padding: 1.6mm 3mm;
+        border-left: 1mm solid var(--linie);
+        color: var(--text-2);
+      }
+      .zitat.antwort {
+        border-left-color: var(--bernstein);
+        background: var(--bernstein-hell);
+        font-family: var(--f-mono);
+        font-size: 8.4pt;
+      }
+      table {
+        width: 100%;
+        margin: 1.5mm 0 1mm;
+        border-collapse: collapse;
+        font-size: 8.5pt;
+        line-height: 1.35;
+      }
+      th,
+      td {
+        padding: 1.3mm 1.8mm 1.3mm 0;
+        border-bottom: 1px solid var(--linie);
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        border-bottom: 1.5px solid var(--tinte);
+        color: var(--text-2);
+        font-size: 7.8pt;
+        font-weight: 700;
+      }
+      /* Urteile neutral: Petrol und Bernstein bleiben den Etiketten 1C und 1B vorbehalten. */
+      td.ja {
+        color: var(--tinte);
+        font-weight: 700;
+      }
+      td.empf {
+        color: var(--text-2);
+        font-weight: 600;
+        font-style: italic;
+      }
+      table.personen td,
+      table.personen th {
+        padding-top: 1mm;
+        padding-bottom: 1mm;
+      }
+      .quelle {
+        margin: 0 0 3mm;
+        color: var(--gedaempft);
+        font-size: 7.6pt;
+        line-height: 1.35;
+      }
+      figure {
+        margin: 2mm 0 3mm;
+      }
+      figure svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--raster);
+      }
+      pre.nutzlast {
+        margin: 0;
+        padding: 2mm 3mm;
+        border-left: 1mm solid var(--petrol);
+        background: var(--raster);
+        font-family: var(--f-mono);
+        font-size: 7.6pt;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      figcaption {
+        margin-top: 1.4mm;
+        color: var(--gedaempft);
+        font-size: 7.6pt;
+        line-height: 1.35;
+      }
+      figcaption b {
+        color: var(--tinte);
+      }
+      ol.literatur {
+        margin: 0 0 2mm;
+        padding-left: 7mm;
+        font-size: 8.4pt;
+        line-height: 1.38;
+      }
+      ol.literatur li {
+        margin-bottom: 1.3mm;
+        padding-left: 1mm;
+      }
+      ol.literatur li::marker {
+        content: '[' counter(list-item) ']  ';
+        color: var(--gedaempft);
+      }
+      a {
+        color: var(--blau);
+        overflow-wrap: anywhere;
+        text-decoration: none;
+      }
+      .klein {
+        font-size: 8.4pt;
+      }
+    </style>
+  </head>
+  <body>
+    {{SEITEN}}
+  </body>
+</html>

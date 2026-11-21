@@ -14,7 +14,7 @@ festgelegt, siehe [Planung](../../1B-3u4-Planung.md).
   31,9 GiB RAM; app-host 2 vCPU/4 GiB, llm-host 8 vCPU/10 GiB.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T180652-l2-label`, lokal etwa 19:06–19:26 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-l2-label.json).
+- [Ergebnis-JSON](messung/2026-11-16-lauf-l2-label.json.gz).
 - Lokale Quellen unter `%USERPROFILE%\labor-1b\20261116T180652-l2-label\`:
   Treiber, Transport-TSVs, App-Log, Störungsjournal und Nachprüfungen.
   PCAPs mit Token bleiben lokal. Repo-JSON und lokales Ergebnis identisch.

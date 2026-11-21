@@ -105,6 +105,8 @@ Nur beim Aufruf von `lauf.sh` direkt im app-host wirken außerdem `LAB_BODY` (Pr
 
 Mitschnitte enthalten den Runtime-Token im `Authorization`-Header und bleiben in `~/labor-1b` (Windows: `%USERPROFILE%\labor-1b`); sie kommen nie ins Repo. Ins Repo kommen nur Ergebnis-JSON, Berichte und Belege ohne Secrets und Protokolle. Die Szenariodaten sind synthetisch (1C-Fixture).
 
+_Ergänzt 2026-11-17:_ Gewertete Ergebnis-JSONs über 1 MB liegen byte-identisch gzip-komprimiert als `.json.gz` im Repo; Leser verwenden `json-lesen.mjs`.
+
 ## 8. Übergabe an Niklas (Schritte 3–4)
 
 Stand für Störversuche und Betriebsaufwand auf dem eigenen Rechner. Auftrag: Issue [#9](https://github.com/NiklasSkulll/arsnova.eu/issues/9). Schritt-für-Schritt unter Windows, auch mit Codex in WSL: [WINDOWS.md](vm/WINDOWS.md). Für Codex: [`AGENTS.md`, Abschnitt 1B-Labor für Agenten](../../AGENTS.md#1b-labor-für-agenten-codex-claude).

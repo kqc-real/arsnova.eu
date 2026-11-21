@@ -1,0 +1,12 @@
+{
+  "quelleSha256": "04638ffa2dd2ffa4c01e748b6631bdc8f47bc7e274fd378eb816e58275e01c8b",
+  "auftrag": 2,
+  "locale": "de",
+  "finishReason": "stop",
+  "status": "uncertain",
+  "aussagen": 4,
+  "mitTrenner": 0,
+  "ausgabe": "Pending moderation status indicates unresolved questions awaiting host review.\nHost-pinned questions require active attention to maintain visibility and relevance.\nQuestion classification and thematic analysis are currently disabled in the system.\nThe system has limited capacity to represent all questions due to prompt budget constraints.",
+  "torAkzeptiert": false,
+  "grund": "0 von 4 Aussagen in der Form „Stichwort: Text“ (qaSummaryQuality.ts)"
+}

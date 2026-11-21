@@ -201,6 +201,12 @@ was 1B zeigt.
   [Rahmendokument](./00-rahmen-und-pruefung.md#leistungsbestandteile-und-bewertung)),
   wer Einstieg und Gruppensynthese übernimmt, gemeinsames Foliendesign.
 
+_Ergänzt 2026-11-15:_ Jonas schlägt eine andere Reihenfolge vor: Niklas (1A)
+→ Jonas (der Auftrag am Stück, 1C und 1B Schritte 1–2 verwoben) → Niklas
+(1B Schritte 3–4), also zwei Sprecherwechsel. Dazu ein gemeinsames Deck, das
+eine Person von Anfang bis Ende teilt. Noch mit Niklas abzustimmen; Begründung
+und Übergänge im [Präsentations-Design, Abschnitt 3](./specs/2026-11-15-praesentation-jonas-design.md#3-reihenfolge-der-gruppe).
+
 ## 1B: zwei PRs nacheinander (Vorschlag, mit Niklas abzustimmen)
 
 _Ergänzt 2026-11-12._ Vorschlag von Jonas, mit Niklas noch nicht abgestimmt:

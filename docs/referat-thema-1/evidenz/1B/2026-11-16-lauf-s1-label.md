@@ -18,14 +18,14 @@ wird nicht mitgewertet.
   Ursprüngliche App-VM mit 2 vCPU/4 GiB bleibt erhalten.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T203745-s1-label`, lokal etwa 21:37–21:57 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-s1-label.json), bytegleich mit
+- [Ergebnis-JSON](messung/2026-11-16-lauf-s1-label.json.gz), bytegleich mit
   lokalem Ergebnis. Rohdaten unter
   `%USERPROFILE%\labor-1b\20261116T203745-s1-label\`.
 - Zwei-Host-Normalreferenz auf demselben Rechner, Commit
   `7c64dd6a0352df1e51981ab16300532eb849f712`, insgesamt 30 Aufträge:
-  [Teil 1](messung/2026-11-16-lauf-normal-label-01.json),
-  [Teil 2](messung/2026-11-16-lauf-normal-label-02.json),
-  [Teil 3](messung/2026-11-16-lauf-normal-label-03.json).
+  [Teil 1](messung/2026-11-16-lauf-normal-label-01.json.gz),
+  [Teil 2](messung/2026-11-16-lauf-normal-label-02.json.gz),
+  [Teil 3](messung/2026-11-16-lauf-normal-label-03.json.gz).
 
 Alle Zahlen gelten für diesen Rechner und die jeweils genannten Commits.
 `buildS1Result` reproduziert den gespeicherten Ergebniskern aus lokalen

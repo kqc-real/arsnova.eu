@@ -1,0 +1,338 @@
+<!doctype html>
+<!-- Vorlage des Browser-Decks; deck.mjs setzt die Platzhalter ein (Stil, Folien, Laufzeit). -->
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thema 1 · Vortragsdeck</title>
+    <!--{{STIL}}-->
+    <style>
+      /* Bühne: 1600 × 900, auf das Fenster skaliert, mit Rand in Bühnenfarbe. */
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #10161d;
+      }
+      body.maus-ruhig {
+        cursor: none;
+      }
+      .buehne {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 1600px;
+        height: 900px;
+        overflow: hidden;
+        background: var(--grund);
+        color: var(--tinte);
+        font-family: var(--f-text);
+        transform: translate(-50%, -50%) scale(var(--massstab, 1));
+        outline: none;
+      }
+      .buehne > .folie {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .buehne > .folie[data-aktuell] {
+        display: flex;
+      }
+      [hidden] {
+        display: none !important;
+      }
+
+      /* Seiten aus Niklas' PDF */
+      .folie.folie-bild {
+        padding: 0;
+      }
+      .folie-bild img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .niklas-platzhalter {
+        margin: 0;
+        color: var(--text-2);
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+      .niklas-platzhalter span {
+        color: var(--gedaempft);
+        font-size: var(--s-text);
+        font-weight: 400;
+      }
+
+      /* Kleine Wegkarte mit dem Auftrag (oben links über dem Titel, Kreisrand bündig mit dem Titel) */
+      .weg-mini {
+        position: absolute;
+        left: calc(var(--rand) - 12px);
+        top: 22px;
+        width: 450px;
+        height: 52px;
+        z-index: 2;
+      }
+      .weg-mini-karte {
+        display: block;
+      }
+      /* Wegkarte oben links (wegkarte.mjs): auf dem Bildschirm der beständige Läufer je Weg (deck.js
+         setzeMarker), im Druck die feste Marke in jeder Folie (Endbild). Beide aus derselben Zeichnung. */
+      /* .folie p setzt text-wrap: pretty (stil.css); die Beschriftung bleibt einzeilig */
+      .weg-mini .weg-beschriftung {
+        text-wrap: nowrap;
+      }
+      .weg-marke .weg-punkt {
+        transform: translate(-50%, -50%);
+      }
+      /* Störungszeichen auf der Karte über der Senke zum zweiten Host; je Aufbaustufe ein Satz */
+      .weg-zeichen-ort {
+        position: absolute;
+        display: grid;
+        transform: translateX(-50%);
+      }
+      .weg-stufe {
+        grid-area: 1 / 1;
+        justify-self: center;
+      }
+      .weg-zeichen-reihe {
+        display: flex;
+        gap: 6px;
+        color: var(--bernstein);
+      }
+      .weg-zeichen {
+        display: block;
+      }
+      .weg-punkt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        box-sizing: border-box;
+        width: 30px;
+        height: 30px;
+        border: 3px solid var(--blau);
+        border-radius: 50%;
+        background: rgb(11 94 168 / 0.16);
+      }
+      .weg-punkt::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 10px;
+        height: 10px;
+        margin: -5px 0 0 -5px;
+        border-radius: 50%;
+        background: var(--blau);
+      }
+      .weg-beschriftung {
+        position: absolute;
+        left: 462px;
+        top: 0;
+        height: 30px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+        color: var(--text-2);
+        font-size: var(--s-min);
+        font-weight: 600;
+      }
+      .weg-beschriftung .etikett {
+        padding: 0 10px;
+      }
+      .weg-etiketten {
+        display: contents;
+      }
+      /* Läufer: ausgeblendet ohne data-an; Wechsel des Wegs blendet über (300 ms) */
+      .weg-laeufer {
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 300ms ease,
+          visibility 0s linear 300ms;
+      }
+      .weg-laeufer[data-an] {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 300ms ease;
+      }
+      .weg-laeufer .weg-punkt {
+        offset-rotate: 0deg;
+        offset-distance: 0%;
+        transition:
+          offset-distance 600ms ease,
+          opacity 300ms ease;
+      }
+      .weg-laeufer .weg-punkt.weg-punkt-springt {
+        transition: opacity 300ms ease;
+      }
+      .weg-laeufer .weg-punkt:not([data-an]),
+      .weg-laeufer .weg-saum:not([data-an]),
+      .weg-laeufer .weg-wirkung:not([data-an]),
+      .weg-laeufer .weg-satz:not([data-an]) {
+        opacity: 0;
+      }
+      .weg-laeufer .weg-saum,
+      .weg-laeufer .weg-wirkung,
+      .weg-laeufer .weg-satz {
+        transition: opacity 300ms ease;
+      }
+      .weg-laeufer.weg-sofort * {
+        transition: none !important;
+      }
+      @media screen {
+        .folie > .weg-marke {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .weg-laeufer,
+        .weg-laeufer * {
+          transition: none !important;
+        }
+      }
+
+      /* Reserve-Übersicht (Taste r) */
+      .reserve-uebersicht {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        box-sizing: border-box;
+        padding: 72px var(--rand) 48px;
+        background: var(--grund);
+        color: var(--tinte);
+        font-family: var(--f-text);
+      }
+      .reserve-uebersicht h2 {
+        margin: 0 0 32px;
+        color: var(--blau);
+        font-size: var(--s-titel);
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .reserve-uebersicht ol {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 40px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .reserve-uebersicht button {
+        display: flex;
+        gap: 18px;
+        align-items: baseline;
+        width: 100%;
+        padding: 14px 24px;
+        border: var(--linie-min) solid var(--linie);
+        border-radius: 10px;
+        background: var(--grund);
+        color: var(--tinte);
+        font: 400 var(--s-text) / 1.3 var(--f-text);
+        text-align: left;
+        cursor: pointer;
+      }
+      .reserve-uebersicht button .mono {
+        color: var(--blau);
+        font-weight: 600;
+      }
+      .reserve-uebersicht button:hover {
+        border-color: var(--blau);
+      }
+      .reserve-uebersicht button:focus-visible {
+        outline: 4px solid var(--blau);
+        outline-offset: 3px;
+      }
+      /* Hilfe im Fluss unter der Liste: überlappt nie, auch bei vielen Reservefolien */
+      .reserve-hilfe {
+        margin: 24px 0 0;
+        color: var(--gedaempft);
+        font-size: var(--s-min);
+      }
+
+      .live {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      /* Druck/PDF: jede Folie eine Seite 1600 × 900, Wegkarte fest im Endbild der Folie. */
+      @page {
+        size: 1600px 900px;
+        margin: 0;
+      }
+      .clip-standbild {
+        display: none;
+      }
+      @media print {
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        html,
+        body {
+          height: auto;
+          overflow: visible;
+          background: #fff;
+        }
+        .buehne {
+          position: static;
+          width: auto;
+          height: auto;
+          overflow: visible;
+          transform: none;
+        }
+        .buehne > .folie {
+          position: relative;
+          display: flex;
+        }
+        .buehne > .folie + .folie {
+          break-before: page;
+        }
+        .clip {
+          display: none !important;
+        }
+        .clip-standbild {
+          display: block !important;
+        }
+        .weg-laeufer,
+        .reserve-uebersicht,
+        .live {
+          display: none !important;
+        }
+        /* Einzel-PDFs: eigene Folien und Reserve; die Titelfolie (beide Namen) und das gemeinsame
+           Literaturverzeichnis stehen in jedem. */
+        html[data-druck='jonas']
+          .folie:not([data-teil='jonas']):not([data-teil='reserve']):not([data-titelfolie]):not(
+            [data-gemeinsam]
+          ),
+        html[data-druck='jonas'] .folie[data-autor='niklas'] {
+          display: none !important;
+        }
+        html[data-druck='niklas']
+          .folie:not([data-teil='niklas']):not([data-autor='niklas']):not([data-titelfolie]):not(
+            [data-gemeinsam]
+          ) {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="buehne" tabindex="-1" aria-roledescription="Präsentation" aria-label="Thema 1">
+      <!--{{FOLIEN}}-->
+      <!--{{WEG}}-->
+      <!--{{UEBERSICHT}}-->
+    </main>
+    <p class="live" aria-live="polite"></p>
+    <!--{{KONFIG}}-->
+    <!--{{SKRIPT}}-->
+  </body>
+</html>
