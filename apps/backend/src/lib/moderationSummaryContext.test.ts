@@ -17,6 +17,7 @@ import {
   ensureMinimumQaQuestionCoverage,
   prepareModerationSummaryContextFromAnalysis,
   qaSummaryTechnicalHandoffTokenCounts,
+  reconcileTopicSiblingQaCitations,
   resolveQaSummaryAdapterPlan,
   resolveSummaryMaxQuestionCandidates,
 } from './moderationSummaryContext';
@@ -1078,6 +1079,69 @@ describe('moderationSummaryContext', () => {
     expect(run.execution.effectiveMode).toBe('extractive');
     expect(run.execution.fallback).toMatchObject({ reason: 'invalid_response' });
     expect(JSON.stringify(run.output)).not.toContain('80 %');
+  });
+
+  it('ergänzt bei Nachbarfragen-Verwechslung im selben Themen-Cluster nur enthaltene Geschwisterquellen (Frage C vs. Frage D)', () => {
+    const base = analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
+    const prepared = prepareModerationSummaryContextFromAnalysis({ analysis: base, plan });
+    const questionCId = 'qa-question:33333333-3333-4333-8333-333333333333';
+    const questionDId = 'qa-question:44444444-4444-4444-8444-444444444444';
+
+    // Im Standard-Referenzpack ist D reference-only: reconcileTopicSiblingQaCitations darf D NIEMALS zitieren.
+    const dSourceInDefaultPack = prepared.request.promptContext.context.sources.find(
+      (source) => source.id === questionDId,
+    );
+    if (
+      dSourceInDefaultPack?.kind === 'qa-question' &&
+      dSourceInDefaultPack.content.state === 'reference-only'
+    ) {
+      const unreconciledRefOnly = reconcileTopicSiblingQaCitations(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Prüfungsumfang: Müssen wir den vierten Abschnitt für die Prüfung lernen?',
+              sourceIds: [questionCId],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        prepared.request.promptContext,
+      );
+      expect(unreconciledRefOnly.statements[0]?.sourceIds).toEqual([questionCId]);
+    }
+
+    // Sind sowohl C als auch D im selben Themen-Cluster als `included` gepackt, wird D ko-zitiert.
+    const bothIncludedContext = structuredClone(prepared.request.promptContext);
+    bothIncludedContext.context.sources = bothIncludedContext.context.sources.map((source) =>
+      source.id === questionDId
+        ? {
+            id: questionDId,
+            kind: 'qa-question' as const,
+            content: {
+              state: 'included' as const,
+              text: 'Müssen wir den vierten Abschnitt für die Prüfung lernen?',
+              truncated: false,
+            },
+          }
+        : source,
+    );
+    const reconciled = reconcileTopicSiblingQaCitations(
+      {
+        status: 'ready',
+        statements: [
+          {
+            text: 'Prüfungsumfang: Müssen wir den vierten Abschnitt für die Prüfung lernen?',
+            sourceIds: [questionCId],
+          },
+        ],
+        suggestedNextSteps: [],
+        limitations: [],
+      },
+      bothIncludedContext,
+    );
+    expect(reconciled.statements[0]?.sourceIds).toEqual([questionCId, questionDId]);
   });
 
   it('zeigt bei mehreren offenen Fragen keine zusätzliche Themenzeile', () => {

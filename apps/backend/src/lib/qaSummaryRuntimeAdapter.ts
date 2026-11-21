@@ -9,9 +9,11 @@ import {
   type QaSummaryStatementV2,
 } from '@arsnova/shared-types';
 import {
+  buildIncludedQaQuestionTextsBySourceId,
   buildSummaryGroundingTextsBySourceId,
   countIncludedQaQuestionSources,
   createQaSummaryFallback,
+  reconcileTopicSiblingQaCitations,
   type PreparedModerationSummaryContext,
 } from './moderationSummaryContext';
 import { runOpenWeightLlmSummaryV2 } from './openWeightLlmClient';
@@ -119,6 +121,9 @@ export async function runPreparedQaSummary(
   options: { readonly signal?: AbortSignal } = {},
 ): Promise<QaSummaryPreparedRun> {
   const groundingTextsById = buildSummaryGroundingTextsBySourceId(prepared.request.promptContext);
+  const includedQaTextsById = buildIncludedQaQuestionTextsBySourceId(
+    prepared.request.promptContext,
+  );
 
   if (prepared.plan.selectedMode === 'full-context') {
     // Belt-and-suspenders: never call the runtime when the pack has no Q&A evidence.
@@ -133,17 +138,24 @@ export async function runPreparedQaSummary(
       });
     }
     const result = await runOpenWeightLlmSummaryV2(prepared.request, options);
+    const reconciledOutput =
+      result.status === 'completed' && result.output.output.status !== 'failed'
+        ? reconcileTopicSiblingQaCitations(result.output.output, prepared.request.promptContext)
+        : null;
     if (
-      result.status === 'completed' &&
-      result.output.output.status !== 'failed' &&
+      reconciledOutput !== null &&
       hasAcceptableQaSummaryQuality(
-        result.output.output,
+        reconciledOutput,
         prepared.request.promptContext.context.locale,
-        { minimumStatements: 1, sourceTextsById: groundingTextsById },
+        {
+          minimumStatements: 1,
+          sourceTextsById: groundingTextsById,
+          includedQaTextsById,
+        },
       )
     ) {
       return {
-        output: result.output.output,
+        output: reconciledOutput,
         execution: QaSummaryExecutionV2Schema.parse({
           attemptedMode: 'full-context',
           effectiveMode: 'full-context',
@@ -159,13 +171,18 @@ export async function runPreparedQaSummary(
 
   if (prepared.plan.selectedMode === 'legacy-text') {
     const legacy = await runQaSummaryLegacyRequest(prepared.legacyRequest, options);
-    const output =
+    const projected =
       legacy.status === 'failed' ? null : projectLegacyOutputToModelOutputV2(legacy, prepared);
+    const output =
+      projected === null
+        ? null
+        : reconcileTopicSiblingQaCitations(projected, prepared.request.promptContext);
     if (
       output !== null &&
       hasAcceptableQaSummaryQuality(output, prepared.request.promptContext.context.locale, {
         minimumStatements: 2,
         sourceTextsById: groundingTextsById,
+        includedQaTextsById,
       })
     ) {
       return {

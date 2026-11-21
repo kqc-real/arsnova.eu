@@ -278,4 +278,57 @@ describe('hasAcceptableQaSummaryQuality', () => {
       ),
     ).toBe(false);
   });
+
+  it('lehnt Aussagen ab, die Frage C zitieren, aber ohne Cluster-Abgleich ausschließlich Frage D paraphrasieren', () => {
+    const questionC = 'Ist Kapitel 4 klausurrelevant?';
+    const questionD = 'Müssen wir den vierten Abschnitt für die Prüfung lernen?';
+    const sourceTextsById = new Map<string, string>([
+      ['qa-question:c', questionC],
+      ['qa-question:d', questionD],
+    ]);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Klausurstoff: Müssen wir den vierten Abschnitt für die Prüfung lernen?',
+              sourceIds: ['qa-question:c'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        {
+          minimumStatements: 1,
+          sourceTextsById,
+          includedQaTextsById: sourceTextsById,
+        },
+      ),
+    ).toBe(false);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Klausurstoff: Müssen wir den vierten Abschnitt für die Prüfung lernen?',
+              sourceIds: ['qa-question:c', 'qa-question:d'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        {
+          minimumStatements: 1,
+          sourceTextsById,
+          includedQaTextsById: sourceTextsById,
+        },
+      ),
+    ).toBe(true);
+  });
 });

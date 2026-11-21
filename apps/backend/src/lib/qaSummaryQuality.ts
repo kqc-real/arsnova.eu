@@ -53,6 +53,392 @@ const PERCENTAGE_VALUE_PATTERN =
   /(\d+(?:[.,]\d+)*)(?:[\s\u00a0\u202f]*(?:%|prozent\b|percento\b|percent\b|pour[\s\u00a0\u202f]*cent\b|por[\s\u00a0\u202f]*ciento\b|per[\s\u00a0\u202f]*cento\b))/giu;
 const NUMERIC_TOKEN_PATTERN = /\d+(?:[.,]\d+)*/gu;
 const GROUPED_THOUSANDS_PATTERN = /^\d{1,3}(?:[.,]\d{3})+$/u;
+const CONTENT_WORD_PATTERN = /\p{L}[\p{L}\p{N}]{3,}/gu;
+
+const MULTILINGUAL_STOPWORDS = new Set([
+  // de
+  'aber',
+  'alle',
+  'allem',
+  'allen',
+  'aller',
+  'alles',
+  'also',
+  'auch',
+  'beim',
+  'dabei',
+  'dann',
+  'dass',
+  'dein',
+  'deine',
+  'denn',
+  'diese',
+  'diesem',
+  'diesen',
+  'dieser',
+  'dieses',
+  'doch',
+  'dort',
+  'durch',
+  'eben',
+  'eine',
+  'einem',
+  'einen',
+  'einer',
+  'eines',
+  'etwa',
+  'etwas',
+  'euch',
+  'euer',
+  'eure',
+  'ganz',
+  'gibt',
+  'haben',
+  'hatte',
+  'hier',
+  'ihre',
+  'ihrem',
+  'ihren',
+  'ihrer',
+  'immer',
+  'jede',
+  'jedem',
+  'jeden',
+  'jeder',
+  'jedes',
+  'jetzt',
+  'kann',
+  'kein',
+  'keine',
+  'keinem',
+  'keinen',
+  'keiner',
+  'können',
+  'könnte',
+  'könnten',
+  'mehr',
+  'mein',
+  'meine',
+  'mich',
+  'muss',
+  'müssen',
+  'müsste',
+  'nach',
+  'nicht',
+  'noch',
+  'oder',
+  'ohne',
+  'sehr',
+  'sein',
+  'seine',
+  'seinem',
+  'seinen',
+  'seiner',
+  'sich',
+  'sind',
+  'soll',
+  'sollen',
+  'sollte',
+  'sollten',
+  'über',
+  'unser',
+  'unsere',
+  'unter',
+  'viel',
+  'viele',
+  'vom',
+  'wann',
+  'warum',
+  'was',
+  'weil',
+  'welche',
+  'welchem',
+  'welchen',
+  'welcher',
+  'welches',
+  'wenn',
+  'werden',
+  'wieso',
+  'wird',
+  'wurde',
+  'wurden',
+  // en
+  'about',
+  'after',
+  'again',
+  'also',
+  'been',
+  'before',
+  'being',
+  'between',
+  'both',
+  'could',
+  'does',
+  'doing',
+  'done',
+  'each',
+  'even',
+  'from',
+  'have',
+  'having',
+  'here',
+  'into',
+  'just',
+  'many',
+  'more',
+  'most',
+  'much',
+  'must',
+  'need',
+  'only',
+  'other',
+  'over',
+  'same',
+  'should',
+  'some',
+  'such',
+  'than',
+  'that',
+  'their',
+  'them',
+  'then',
+  'there',
+  'these',
+  'they',
+  'this',
+  'those',
+  'through',
+  'under',
+  'very',
+  'want',
+  'were',
+  'what',
+  'when',
+  'where',
+  'which',
+  'while',
+  'with',
+  'would',
+  'your',
+  // fr
+  'alors',
+  'après',
+  'aussi',
+  'autre',
+  'autres',
+  'avec',
+  'avoir',
+  'bien',
+  'cela',
+  'celle',
+  'celles',
+  'celui',
+  'cette',
+  'comme',
+  'comment',
+  'dans',
+  'dois',
+  'doit',
+  'doivent',
+  'donc',
+  'encore',
+  'entre',
+  'être',
+  'faire',
+  'faut',
+  'leur',
+  'leurs',
+  'mais',
+  'même',
+  'moins',
+  'nous',
+  'peut',
+  'peuvent',
+  'plus',
+  'pour',
+  'pourquoi',
+  'quand',
+  'quel',
+  'quelle',
+  'quelles',
+  'quels',
+  'sans',
+  'sont',
+  'sous',
+  'tout',
+  'toute',
+  'toutes',
+  'tous',
+  'très',
+  'votre',
+  'vous',
+  // es
+  'algo',
+  'alguno',
+  'algunos',
+  'ante',
+  'como',
+  'cómo',
+  'contra',
+  'cual',
+  'cuál',
+  'cuales',
+  'cuáles',
+  'cuando',
+  'cuándo',
+  'debe',
+  'deben',
+  'debería',
+  'desde',
+  'donde',
+  'dónde',
+  'entre',
+  'esta',
+  'está',
+  'están',
+  'estas',
+  'este',
+  'esto',
+  'estos',
+  'hacer',
+  'hasta',
+  'mucho',
+  'muchos',
+  'nosotros',
+  'otra',
+  'otras',
+  'otro',
+  'otros',
+  'para',
+  'pero',
+  'poco',
+  'porque',
+  'puede',
+  'pueden',
+  'quién',
+  'sobre',
+  'solo',
+  'también',
+  'tiene',
+  'tienen',
+  'todo',
+  'todos',
+  // it
+  'allora',
+  'altri',
+  'altro',
+  'anche',
+  'ancora',
+  'avere',
+  'come',
+  'cosa',
+  'così',
+  'deve',
+  'devono',
+  'dobbiamo',
+  'dopo',
+  'dove',
+  'dovrebbe',
+  'essere',
+  'fare',
+  'fatto',
+  'hanno',
+  'loro',
+  'molti',
+  'molto',
+  'nostra',
+  'nostro',
+  'ogni',
+  'perché',
+  'però',
+  'più',
+  'poco',
+  'può',
+  'possono',
+  'quale',
+  'quali',
+  'quando',
+  'quella',
+  'quelle',
+  'quelli',
+  'quello',
+  'questa',
+  'queste',
+  'questi',
+  'questo',
+  'senza',
+  'sono',
+  'sopra',
+  'sotto',
+  'tutta',
+  'tutte',
+  'tutti',
+  'tutto',
+]);
+
+export function extractSignificantContentTokens(text: string): string[] {
+  const normalized = text.normalize('NFKC').toLocaleLowerCase('de');
+  const unique = new Set<string>();
+  for (const match of normalized.matchAll(CONTENT_WORD_PATTERN)) {
+    const token = match[0];
+    if (!MULTILINGUAL_STOPWORDS.has(token)) {
+      unique.add(token);
+    }
+  }
+  return [...unique];
+}
+
+function tokensShareContentStem(left: string, right: string): boolean {
+  if (left === right) return true;
+  if (left.length >= 6 && right.length >= 6) {
+    return left.startsWith(right.slice(0, 6)) || right.startsWith(left.slice(0, 6));
+  }
+  return false;
+}
+
+export function countSignificantContentTokenMatches(
+  statementTokens: readonly string[],
+  candidateTokens: readonly string[],
+): number {
+  if (statementTokens.length === 0 || candidateTokens.length === 0) return 0;
+  let matches = 0;
+  for (const token of statementTokens) {
+    if (candidateTokens.some((candidate) => tokensShareContentStem(token, candidate))) {
+      matches += 1;
+    }
+  }
+  return matches;
+}
+
+function hasConsistentQaCitationGrounding(
+  statement: QaSummaryStatementV2,
+  sourceTextsById: ReadonlyMap<string, string>,
+  includedQaTextsById: ReadonlyMap<string, string>,
+): boolean {
+  if (includedQaTextsById.size < 2) return true;
+  const body = statementParts(statement.text)?.body ?? statement.text;
+  const statementTokens = extractSignificantContentTokens(body);
+  if (statementTokens.length < 2) return true;
+
+  const citedText = statement.sourceIds
+    .map((sourceId) => sourceTextsById.get(sourceId) ?? '')
+    .filter(Boolean)
+    .join('\n');
+  const citedTokens = extractSignificantContentTokens(citedText);
+  if (countSignificantContentTokenMatches(statementTokens, citedTokens) > 0) {
+    return true;
+  }
+
+  const citedSet = new Set(statement.sourceIds);
+  for (const [qaSourceId, qaText] of includedQaTextsById) {
+    if (citedSet.has(qaSourceId)) continue;
+    const qaTokens = extractSignificantContentTokens(qaText);
+    if (countSignificantContentTokenMatches(statementTokens, qaTokens) >= 2) {
+      return false;
+    }
+  }
+  return true;
+}
 
 function canonicalNumericForms(raw: string): string[] {
   const normalizedDecimal = raw.replace(/,/g, '.');
@@ -131,6 +517,7 @@ function isCompletePlainStatement(text: string, body: string): boolean {
 export type QaSummaryQualityOptions = Readonly<{
   minimumStatements?: number;
   sourceTextsById?: ReadonlyMap<string, string>;
+  includedQaTextsById?: ReadonlyMap<string, string>;
 }>;
 
 /**
@@ -184,6 +571,17 @@ export function hasAcceptableQaSummaryQuality(
       )
     ) {
       return false;
+    }
+    if (options.includedQaTextsById) {
+      const includedQaTextsById = options.includedQaTextsById;
+      if (
+        output.statements.some(
+          (statement) =>
+            !hasConsistentQaCitationGrounding(statement, sourceTextsById, includedQaTextsById),
+        )
+      ) {
+        return false;
+      }
     }
   }
   const leads = completeParts.map(({ lead }) => lead);

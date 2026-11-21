@@ -25,6 +25,8 @@ import {
   type QaSummaryFallback,
   type QaSummaryInferenceRequest,
   type QaSummaryInferenceRequestV2,
+  type QaSummaryModelOutputV2,
+  type QaSummaryStatementV2,
 } from '@arsnova/shared-types';
 import type { HostTokenContext } from './hostAuth';
 import { buildModerationPromptContext } from './moderationPromptContext';
@@ -40,6 +42,10 @@ import {
   resolveOpenWeightLlmConfig,
 } from './openWeightLlmConfig';
 import { resolveQaSummaryConfig } from './qaSummaryConfig';
+import {
+  countSignificantContentTokenMatches,
+  extractSignificantContentTokens,
+} from './qaSummaryQuality';
 
 /**
  * Technical, executable handoff only. Prompt quality and didactic efficacy are
@@ -198,6 +204,118 @@ export function buildSummaryGroundingTextsBySourceId(
     }
   }
   return groundingTexts;
+}
+
+export function buildIncludedQaQuestionTextsBySourceId(
+  promptContext: ModerationPromptContextV1,
+): ReadonlyMap<string, string> {
+  const result = new Map<string, string>();
+  for (const source of promptContext.context.sources) {
+    if (source.kind === 'qa-question' && source.content.state === 'included') {
+      const text = source.content.text.trim();
+      if (text) result.set(source.id, text);
+    }
+  }
+  return result;
+}
+
+function summaryStatementBodyForGrounding(text: string): string {
+  const colonIndex = text.indexOf(':');
+  if (colonIndex > 0) return text.slice(colonIndex + 1).trim();
+  const dashMatch = text.match(/\s[–—-]\s/u);
+  if (dashMatch?.index !== undefined) {
+    return text.slice(dashMatch.index + dashMatch[0].length).trim();
+  }
+  return text.trim();
+}
+
+/**
+ * Deterministic cluster co-citation repair: when a generated statement cites one
+ * member of a packed `semantic-topic` (e.g. Question C), shares zero content stems
+ * with its cited source(s), and clearly paraphrases an uncited `included` sibling
+ * question in the same packed topic (e.g. Question D), adds the `included` sibling
+ * to `sourceIds` so `Verwendete Beiträge` transparently surfaces both questions.
+ * Never inspects or cites `reference-only` entries.
+ */
+export function reconcileTopicSiblingQaCitations(
+  output: QaSummaryModelOutputV2,
+  promptContext: ModerationPromptContextV1,
+): QaSummaryModelOutputV2 {
+  if (promptContext.context.topics.state !== 'available') {
+    return output;
+  }
+  const includedQaTexts = buildIncludedQaQuestionTextsBySourceId(promptContext);
+  if (includedQaTexts.size < 2) {
+    return output;
+  }
+  const directSourceTexts = new Map<string, string>();
+  for (const source of promptContext.context.sources) {
+    const text = sourceText(source)?.trim();
+    if (text) directSourceTexts.set(source.id, text);
+  }
+  const topics = promptContext.context.topics.items;
+
+  const reconcileStatement = (statement: QaSummaryStatementV2): QaSummaryStatementV2 => {
+    const bodyTokens = extractSignificantContentTokens(
+      summaryStatementBodyForGrounding(statement.text),
+    );
+    if (bodyTokens.length < 2) return statement;
+
+    const citedText = statement.sourceIds
+      .map((sourceId) => directSourceTexts.get(sourceId) ?? '')
+      .filter(Boolean)
+      .join('\n');
+    const citedTokens = extractSignificantContentTokens(citedText);
+    if (countSignificantContentTokenMatches(bodyTokens, citedTokens) > 0) {
+      return statement;
+    }
+
+    const citedSet = new Set(statement.sourceIds);
+    const candidateSiblingIds = new Set<string>();
+    for (const topic of topics) {
+      const touchesTopic =
+        citedSet.has(topic.sourceId) ||
+        topic.memberQuestionSourceIds.some((memberId) => citedSet.has(memberId));
+      if (!touchesTopic) continue;
+      for (const memberId of topic.memberQuestionSourceIds) {
+        if (!citedSet.has(memberId) && includedQaTexts.has(memberId)) {
+          candidateSiblingIds.add(memberId);
+        }
+      }
+    }
+    if (candidateSiblingIds.size === 0) return statement;
+
+    const matchingSiblings = [...candidateSiblingIds]
+      .map((siblingId) => {
+        const siblingTokens = extractSignificantContentTokens(includedQaTexts.get(siblingId) ?? '');
+        return {
+          siblingId,
+          matches: countSignificantContentTokenMatches(bodyTokens, siblingTokens),
+        };
+      })
+      .filter(({ matches }) => matches >= 2)
+      .sort(
+        (left, right) =>
+          right.matches - left.matches ||
+          compareModerationPromptCodeUnits(left.siblingId, right.siblingId),
+      );
+    if (matchingSiblings.length === 0) return statement;
+
+    const nextSourceIds = [
+      ...statement.sourceIds,
+      ...matchingSiblings.map(({ siblingId }) => siblingId),
+    ].slice(0, 8);
+    return {
+      ...statement,
+      sourceIds: [...new Set(nextSourceIds)],
+    };
+  };
+
+  return {
+    ...output,
+    statements: output.statements.map(reconcileStatement),
+    suggestedNextSteps: output.suggestedNextSteps.map(reconcileStatement),
+  };
 }
 
 export function projectLegacyQaSummaryRequest(
