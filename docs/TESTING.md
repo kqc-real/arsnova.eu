@@ -928,6 +928,155 @@ Routing nach einem Nginx-Neustart prüfen und B anschließend wieder
 beschreibt den Sync über WSS, den Widerruf alter Tokens und den
 Reconnect einschließlich Offline-Änderungen nach einem Relay-Neustart.
 
+### Gemischtes Lastprofil mit dem Demo-Quiz in fünf Sprachen
+
+Das 45-Minuten-Profil nutzt zwei Staging-Apps mit je 30 DB-Verbindungen,
+Nginx und Redis Pub/Sub. Es umfasst 20 Räume, 230 Teilnahmen und 730
+Quizstimmen in 65 Runden. Die Räume
+starten je Sprache gestaffelt im angegebenen Minutenfenster und bleiben
+jeweils bis zu zwölf Minuten aktiv. Damit überlappen höchstens zwei
+Sprachgruppen. Die Startfenster sind Annahmen für den Lasttest.
+
+| Locale | Startminute | Räume und Teilnahmen                                |
+| ------ | ----------- | --------------------------------------------------- |
+| `de`   | 0–1         | Quiz mit Q&A × 20, drei Quizräume × 6               |
+| `en`   | 8–9         | Q&A × 20, zwei Quizräume × 6, Beitritt × 6          |
+| `fr`   | 16–17       | Q&A × 20, zwei Quizräume × 6, Beitritt × 6          |
+| `es`   | 24–25       | Q&A × 20, zwei Quizräume × 6, Beitritt × 6          |
+| `it`   | 32–33       | Quiz mit Q&A × 60, zwei Quizräume × 6, Beitritt × 6 |
+
+Die Quizräume verwenden die jeweilige Fassung
+`apps/frontend/src/assets/demo/quiz-demo-showcase.<locale>.json`.
+Für dieses Profil fünf Originalfragen aus der Demo auswählen
+(`order` 0, 1, 3, 4 und 5). Bei der Übernahme ihre relative Reihenfolge
+und Antwortdaten beibehalten und `order` lückenlos neu vergeben. Die
+Abstimmungen starten innerhalb eines Raums in kurzen Wellen, zwischen
+Räumen versetzt. Der vorhandene Runner
+`scripts/load/demo-quiz-classroom-30.mjs` lädt über
+`QUIZ_CONTENT_LOCALE` das vollständige 13-Fragen-Demo-Quiz für den
+separaten Einraumtest.
+
+Pro Sprache den Freitext der Demo-Quiz-Frage zum Lernen in einem
+Quizraum auswerten, in `de` und `it` im kombinierten Raum. Pro
+Sprache im Q&A-Raum zusätzlich sechs sichtbare Fragen zum Demo-Quiz
+und sechs Bewertungen erzeugen. Für Freitext und Q&A synthetische
+Beiträge in der jeweiligen Sprache mit mehreren paraphrasierten
+Beiträgen je Thema verwenden. Geeignete Themen sind Lernstrategien
+für Freitext sowie Timer, Fragetypen und Ergebnisansicht für Q&A.
+
+#### Zehn Aufrufe des Moderationskompasses
+
+Je Sprache den Kompass einmal im Q&A-Kanal nach Eingang der sechs
+sichtbaren Fragen und einmal in einem separaten Quizraum nach Freigabe
+eines Ergebnisses öffnen. Für `de` und `it` den ersten Aufruf im Q&A-Kanal
+des kombinierten Raums ausführen. Die Minuten sind Richtwerte ab Laufstart.
+Bei später verfügbaren Signalen im selben Raum auf die jeweilige Phase
+warten. Insgesamt zehn verschiedene Sessions verwenden.
+
+| Locale | Minute im Q&A-Kanal | Minute im separaten Quizraum |
+| ------ | ------------------- | ---------------------------- |
+| `de`   | 3                   | 6                            |
+| `en`   | 11                  | 14                           |
+| `fr`   | 19                  | 22                           |
+| `es`   | 27                  | 30                           |
+| `it`   | 35                  | 38                           |
+
+Den Host-Dialog im Browser über `host-moderation-compass` öffnen. Zeit
+vom Klick bis zum sichtbaren Dialog, Karten und gültige Quellen der
+jeweiligen Session erfassen. Andere Räume bleiben währenddessen aktiv.
+Die Karten nutzen vorhandene Host-Signale. Die Öffnung liest den
+Zusammenfassungsstatus und startet selbst keine Inferenz. In den fünf
+Q&A-Räumen den unten vorgesehenen Zusammenfassungsauftrag ausdrücklich
+im selben Dialog starten. Keine zusätzlichen Zusammenfassungen für die
+fünf Quizräume anfordern.
+
+#### Analyseaufträge pro Sprache
+
+| Pfad                       | Auslösung                                                                                                                                   | Nachweis                                                                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Freitext-Wortwolke         | Die Antworten per `session.getLiveFreetext` lesen und per `wordCloud.analyze` mit `LEXICAL` und `LEMMA` auswerten                           | `normalizationApplied: LEMMA` und Modellkennung der Locale                                                                                                              |
+| Q&A-Wortwolke              | `wordCloud.analyzeQa` mit `ALL_ELIGIBLE`, `LEXICAL` und `LEMMA` ausführen                                                                   | Sichtbarer Korpus der Session und angewandte Glättung                                                                                                                   |
+| Themen in Freitext und Q&A | Beide Wortwolken mit `SEMANTIC` und `normalization: NONE` ausführen                                                                         | Encoder-Ergebnis und mindestens ein per LLM benanntes Thema mit `labelOrigin: model`. Einen aktuellen Runtime-Aufruf über Metadaten belegen                             |
+| Q&A-Zusammenfassung        | Nach der Q&A-Themenanalyse im Kompass über `qa.requestSummary` via Nginx starten und `qa.summaryRuntime` mit Host-Berechtigung auf B prüfen | Statusübergang bis zum Ergebnis mit passender Locale und gültigen Quellen. Für den Modellnachweis `execution.effectiveMode: full-context` und den Runtime-Aufruf prüfen |
+
+Pro Sprache zwei spaCy-Aufrufe, zwei Themenanalysen mit Label-Auftrag und
+eine Zusammenfassung einplanen. Die Host-Aktionen innerhalb desselben
+Raums nacheinander ausführen. Andere Räume stimmen während der Analysen
+weiter ab. Cache-Treffer und Fallbacks im Bericht ausweisen. Für jeden
+der drei LLM-Pfade pro Sprache mindestens einen frischen Modelllauf
+bestätigen.
+
+In den kombinierten Räumen bei laufender Zusammenfassung den nächsten
+Quiz-Fragenwechsel bis zur fertigen Zusammenfassung verschieben. So bleibt
+der autorisierte Kontext während der Inferenz stabil. Die Wartezeit
+separat erfassen.
+
+#### Lernzielableitung aus dem Demo-Quiz
+
+Pro Lastlauf einen Lernzielauftrag einplanen, optional einen zweiten in
+einer anderen noch aktiven Demo-Session. Im Standardablauf den ersten
+Auftrag in einem separaten `de`-Quizraum auf A starten, den zweiten
+bei freiem Slot in einem `it`-Quizraum auf B. Die gewählten Locales in
+Folgeläufen wechseln. Je Auftrag eine bewertbare Demo-Frage (`order` 3
+in der Quelldatei) mit ihrer Session-Frage-ID und der Raum-Locale
+verwenden. Vor `session.deriveLearningObjectives` als Host die aktuelle
+`learningContextRevision` über `session.getLearningObjectives` lesen und
+für die Ableitung eine frische `operationId` verwenden.
+
+Für den Konflikttest während der ersten Ableitung, sobald A den
+Redis-Slot nachweislich hält, einen zusätzlichen Q&A-Themenauftrag aus
+dem anderen Raum über B starten. Die reguläre Themenanalyse der Sprache
+separat bei freiem Slot ausführen. Im Konflikt genau einen Inferenz-POST
+und für B `labelOrigin: extractive` prüfen.
+
+Für jeden Lernzielauftrag Dauer und Runtime-Aufrufe erfassen. Bei
+`status: completed` mit `appliedCount > 0` über die jeweils andere App
+die gespeicherten Entwürfe (`origin.kind: model-derived`,
+`confirmation.state: draft`), die Referenz zur Demo-Frage und die um eins
+erhöhte Revision prüfen. Bei `busy` unveränderte Lernziele und Revision
+prüfen und das Ergebnis als belegten Slot erfassen.
+
+Für den Lauf `STAGING_TEXT_ANALYSIS=true` und die versionierten Sidecar-Images
+verwenden. Der Staging-Wrapper bestätigt vor der Nginx-Aktivierung die
+Lemmatisierung und den Encoder-Zugriff in allen fünf Sprachen aus beiden
+Apps. Für Modell-Aufträge den privaten LLM-Endpunkt einrichten und
+`STAGING_LLM_ENABLED=true` sowie `STAGING_QA_SUMMARY_ENABLED=true` setzen.
+[Staging](operations/STAGING-COMPOSE.md#optionaler-aufbau-für-die-textanalyse),
+[LLM-Slot](features/open-weight-llm-runtime.md#laufzeitvertrag).
+
+Im Bericht Join- und Vote-p95, vollständigen Stimmenstand am Host,
+WebSocket-Fehler und CPU/RAM der Staging-Dienste festhalten. Für die
+Analyseaufträge pro Locale Dauer, angewandten Modus, Runtime-Aufrufe,
+Cache-Treffer und Fallback-Grund erfassen. Für die Zusammenfassung
+Aufnahmezeit und Zeit bis zum Ergebnis getrennt messen. Der Hörsaaltest
+mit 1 × 500 und der Stresstest mit 30 × 30 ergänzen dieses Mischprofil.
+
+#### Zielhostmessung mit den aktualisierten Sidecars
+
+Am 21. November 2026 lief das Profil für 45 Minuten im isolierten Staging
+auf 8 vCPUs und 15,22 GiB RAM. Beide Apps nutzten `679b89344a3d` und je
+30 DB-Verbindungen. Qwen3-4B-Instruct-2507 (Q4_K_M) lief in einer separaten
+Runtime mit vier Threads auf dem privaten Modellhost.
+
+| Messgröße                                  | Vorheriger Lauf | Aktualisierte Images |
+| ------------------------------------------ | --------------: | -------------------: |
+| Join p95                                   |        493,8 ms |             475,6 ms |
+| Quiz-Vote p95                              |        107,3 ms |             102,5 ms |
+| Host-WebSocket p95 ab letzter Vote-Antwort |        148,5 ms |             149,0 ms |
+| Zielhost-CPU p95 / Spitze                  |   25,3 / 76,4 % |        24,2 / 73,3 % |
+| Zielhost-RAM-Spitze                        |        7,06 GiB |             7,26 GiB |
+
+PostgreSQL bestätigte 20 Sessions, 230 Teilnahmen, 730 Quizstimmen,
+30 Q&A-Fragen und 30 Q&A-Bewertungen. Alle 65 vollständigen Stimmenstände
+kamen am Host-WebSocket an. Die zehn Kompassaufrufe dauerten 87–143 ms.
+Alle zehn Lemmatisierungen, alle zehn Themenanalysen mit generativen Labels
+und alle fünf Vollkontext-Zusammenfassungen mit gültigen Quellen gelangen.
+Beide Lernzielaufträge speicherten je einen auf der anderen App lesbaren
+Entwurf. Der deutsche Quizraum wartete 9,6 s mit dem nächsten Fragenwechsel.
+Die Zielhostwerte enthalten die übrige Hostlast. Der vorherige Lauf nutzte
+einen Encoder für Deutsch und Englisch sowie spaCy ohne italienische
+Lookup-Tabelle. Die beiden Läufe belegen die beobachteten Werte je Aufbau.
+
 ### Gebündelte Joins und Votes im Replikabetrieb
 
 Für den Replikabetrieb laufen die Choice-Vote-Regressionen mit PostgreSQL.
@@ -946,6 +1095,26 @@ Bei der Profilierung Nginx- und Node-Zeitmarken pro Request korrelieren,
 damit die Zeit bis zum HTTP-Handler von der DB-Zeit im Handler getrennt
 bleibt. Bei einem Transportvergleich dieselbe TLS-Zertifikatsart und
 dieselbe CPU-Zuteilung für beide Aufbauten verwenden.
+
+### Kaltstart bei 500 gleichzeitigen Joins
+
+Der erste 500er-Join beginnt nach der Readiness frisch erstellter
+App-Container. Vor diesem Lauf keine Probe-Joins ausführen. Das
+Hörsaalprofil startet die 500 HTTP-Requests gemeinsam und öffnet nach
+jeder Join-Antwort den Teilnehmer-WebSocket. Für den Vergleich TLS,
+CPU-Zuteilung, Compose-Topologie und DNS-Verhalten des Lastgenerators
+gleich halten. Bei einem gesonderten Test mit voraufgelöstem Hostnamen
+weiterhin TLS mit Hostnamen prüfen und die Messreihe separat ausweisen.
+
+Die Join-Migration bündelt Teilnehmernummern, Inserts und Revision. Mit
+PostgreSQL und Redis die Nummern, den ersten Join-Zeitstempel, die
+Teilnehmerrevision, Konflikte innerhalb einer Gruppe und die
+Replay-Capabilities prüfen.
+
+```bash
+RUN_PG_CAPABILITY_TESTS=1 npm run test -w @arsnova/backend -- \
+  src/__tests__/session.capabilities.pg.test.ts
+```
 
 ### Live-Signale über Redis Pub/Sub
 
