@@ -152,6 +152,51 @@ function sourceText(source: ModerationPromptSource): string | null {
   }
 }
 
+/**
+ * Model-visible text per citable source ID for deterministic output grounding.
+ * `reference-only` Q&A items carry no text; semantic topics and compass signals
+ * inherit only already-packed `included` evidence texts.
+ */
+export function buildSummaryGroundingTextsBySourceId(
+  promptContext: ModerationPromptContextV1,
+): ReadonlyMap<string, string> {
+  const directTexts = new Map<string, string>();
+  for (const source of promptContext.context.sources) {
+    const text = sourceText(source)?.trim();
+    if (text) directTexts.set(source.id, text);
+  }
+
+  const groundingTexts = new Map<string, string>(directTexts);
+  if (promptContext.context.topics.state === 'available') {
+    for (const topic of promptContext.context.topics.items) {
+      const parts = [
+        directTexts.get(topic.sourceId),
+        directTexts.get(topic.representativeQuestionSourceId),
+        ...topic.representedQuestionSourceIds.map((id) => directTexts.get(id)),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(topic.sourceId, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  if (promptContext.context.compass.state === 'available') {
+    for (const signal of promptContext.context.compass.signals) {
+      const evidenceIds = [
+        ...signal.questionSourceIds,
+        ...signal.evidence.map(({ sourceId }) => sourceId),
+      ];
+      const parts = [
+        directTexts.get(signal.sourceId),
+        ...evidenceIds.map((id) => groundingTexts.get(id) ?? directTexts.get(id)),
+      ].filter((value): value is string => Boolean(value));
+      if (parts.length > 0) {
+        groundingTexts.set(signal.sourceId, [...new Set(parts)].join('\n'));
+      }
+    }
+  }
+  return groundingTexts;
+}
+
 export function projectLegacyQaSummaryRequest(
   promptContext: ModerationPromptContextV1,
 ): QaSummaryInferenceRequest {

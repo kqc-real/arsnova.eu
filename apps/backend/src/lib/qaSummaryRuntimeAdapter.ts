@@ -9,6 +9,7 @@ import {
   type QaSummaryStatementV2,
 } from '@arsnova/shared-types';
 import {
+  buildSummaryGroundingTextsBySourceId,
   countIncludedQaQuestionSources,
   createQaSummaryFallback,
   type PreparedModerationSummaryContext,
@@ -115,6 +116,8 @@ export async function runPreparedQaSummary(
   prepared: PreparedModerationSummaryContext,
   options: { readonly signal?: AbortSignal } = {},
 ): Promise<QaSummaryPreparedRun> {
+  const groundingTextsById = buildSummaryGroundingTextsBySourceId(prepared.request.promptContext);
+
   if (prepared.plan.selectedMode === 'full-context') {
     // Belt-and-suspenders: never call the runtime when the pack has no Q&A evidence.
     if (
@@ -134,7 +137,7 @@ export async function runPreparedQaSummary(
       hasAcceptableQaSummaryQuality(
         result.output.output,
         prepared.request.promptContext.context.locale,
-        1,
+        { minimumStatements: 1, sourceTextsById: groundingTextsById },
       )
     ) {
       return {
@@ -158,7 +161,10 @@ export async function runPreparedQaSummary(
       legacy.status === 'failed' ? null : projectLegacyOutputToModelOutputV2(legacy, prepared);
     if (
       output !== null &&
-      hasAcceptableQaSummaryQuality(output, prepared.request.promptContext.context.locale)
+      hasAcceptableQaSummaryQuality(output, prepared.request.promptContext.context.locale, {
+        minimumStatements: 2,
+        sourceTextsById: groundingTextsById,
+      })
     ) {
       return {
         output,

@@ -941,6 +941,65 @@ describe('moderationSummaryContext', () => {
     },
   );
 
+  it('fällt auf extractive zurück wenn das Modell ungeerdete Prozent- oder Stimmenzahlen erfindet', async () => {
+    const legacyPlan = {
+      capabilities: resolveQaSummaryAdapterPlan().capabilities,
+      selectedMode: 'legacy-text' as const,
+      fallback: createQaSummaryFallback('legacy-text', 'adapter_incompatible'),
+      inferenceConfigured: true,
+    };
+    const prepared = prepareModerationSummaryContextFromAnalysis({
+      analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
+      plan: legacyPlan,
+    });
+    const qaSources = prepared.request.promptContext.context.sources.filter(
+      (source) => source.kind === 'qa-question' && source.content.state === 'included',
+    );
+    const [firstSource, secondSource] = qaSources;
+    if (!firstSource || !secondSource) {
+      throw new Error('Erwartete mindestens zwei enthaltene Q&A-Quellen im Referenzfixture.');
+    }
+
+    resetQaSummaryAdapterForTests({
+      config: () => ({
+        enabled: true,
+        timeoutMs: 1_000,
+        queueLimit: 8,
+        concurrency: 1,
+        cooldownMs: 30_000,
+        ttlMs: 1_800_000,
+        maxSources: 20,
+        inferenceUrl: 'http://127.0.0.1:8787/summary',
+        inferenceToken: null,
+      }),
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({
+            status: 'ready',
+            statements: [
+              {
+                text: 'Lineare Regression: Weitere Rechenbeispiele werden gewünscht.',
+                sourceIds: [firstSource.id],
+              },
+              {
+                text: 'Anwesenheitspflicht: Kontroverse Bewertung mit 80 % negativen und 80 % positiven Stimmen.',
+                sourceIds: [secondSource.id],
+              },
+            ],
+            suggestedNextSteps: [],
+            limitations: [],
+          }),
+      }),
+    });
+
+    const run = await runPreparedQaSummary(prepared);
+    expect(run.execution.effectiveMode).toBe('extractive');
+    expect(run.execution.fallback).toMatchObject({ reason: 'invalid_response' });
+    expect(JSON.stringify(run.output)).not.toContain('80 %');
+  });
+
   it('zeigt bei mehreren offenen Fragen keine zusätzliche Themenzeile', () => {
     const prepared = prepareModerationSummaryContextFromAnalysis({
       analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),

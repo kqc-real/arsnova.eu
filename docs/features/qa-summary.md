@@ -148,9 +148,9 @@ Produktiv weder `QA_SUMMARY_ENABLED` noch `OPEN_WEIGHT_LLM_ENABLED` stillschweig
 
 Runtime R ist in die Summary-Queue verdrahtet und bleibt im Repository standardmäßig deaktiviert (`false`). Auf dem privaten 8-vCPU-Produktionshost wurden neben dem kurzen `topic_label`-Auftrag (Einzel- und Multi-Cluster-Batch V2: 6 Cluster in 22,9 s) und `learning_objectives` (10 Entwürfe im Demo-Quiz, ~3,56 GiB Peak-RAM) auch `qa_summary` V2 mit dem damaligen Instruktionsvertrag `qa-summary-technical-handoff-v2` (`qa-summary-model-output-v3`: 56,9 s, 374 Completion-Tokens) erfolgreich real ausgeführt. Die aktuelle `v7`-Modellprobe steht unter [Lokal prüfen](#lokal-prüfen). Die formale Detailprotokollierung (isolierte TTFT-/Prefill- und RSS-Werte für die Obergrenze des reichhaltigen 8.192-Vollkontexts sowie fachliche Qualitätsabnahme) bleibt in der [Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md) als getrennter Abnahmepunkt dokumentiert; kein Flag wird im Repository standardmäßig aktiviert.
 
-Vor der Anzeige verwirft ein enger Qualitätsfilter generative Ergebnisse mit nur einer
-Aussage, fehlenden oder wiederholten Themenüberschriften, unvollständigen Sätzen,
-technischen Metadaten oder generischen Antwortformat-Labels wie »Fragen«/»Beispiele«
-(sprachspezifisch für `de`, `en`, `fr`, `es`, `it`). In diesem Fall
-liefert die Queue statt der schwachen Modellantwort den quellengebundenen extraktiven
-Fallback.
+Vor der Anzeige verwirft ein enger Qualitätsfilter generative Ergebnisse mit fehlenden
+oder wiederholten Themenüberschriften, unvollständigen Sätzen, technischen Metadaten,
+ungeerdeten Zahlen- oder Prozentangaben ohne Deckung im zitierten Quelltext oder
+generischen Antwortformat-Labels wie »Fragen«/»Beispiele« (sprachspezifisch für `de`,
+`en`, `fr`, `es`, `it`). In diesem Fall liefert die Queue statt der schwachen
+Modellantwort den quellengebundenen extraktiven Fallback.

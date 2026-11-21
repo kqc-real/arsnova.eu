@@ -115,4 +115,167 @@ describe('hasAcceptableQaSummaryQuality', () => {
       ),
     ).toBe(false);
   });
+
+  it.each([
+    [
+      'de',
+      'Klausurrelevanz: Ist Kapitel 4 klausurrelevant?',
+      'Ist Kapitel 4 klausurrelevant?',
+      'Anwesenheit: Sind 80 % der Stimmen dagegen?',
+      'Soll die Anwesenheit verpflichtend sein?',
+    ],
+    [
+      'en',
+      'Exam scope: Is chapter 4 relevant for the exam?',
+      'Is chapter 4 relevant for the exam?',
+      'Attendance: Did 80 percent reject mandatory attendance?',
+      'Should attendance be mandatory?',
+    ],
+    [
+      'fr',
+      'Examen: Le chapitre 4 est-il au programme ?',
+      'Le chapitre 4 est-il au programme ?',
+      'Présence: Y a-t-il 80\u202f% d’avis négatifs ?',
+      'La présence doit-elle être obligatoire ?',
+    ],
+    [
+      'es',
+      'Examen: ¿Entra el capítulo 4 en el examen?',
+      '¿Entra el capítulo 4 en el examen?',
+      'Asistencia: ¿Hay un 80 por ciento en contra?',
+      '¿Debería ser obligatoria la asistencia?',
+    ],
+    [
+      'it',
+      'Esame: Il capitolo 4 è rilevante per l’esame?',
+      'Il capitolo 4 è rilevante per l’esame?',
+      'Presenza: Ci sono l’80 per cento di voti contrari?',
+      'La presenza dovrebbe essere obbligatoria?',
+    ],
+  ] as const)(
+    'prüft Zahlen- und Prozent-Grounding gegen die zitierten Quellen in %s',
+    (locale, groundedStatement, groundedSource, ungroundedStatement, ungroundedSource) => {
+      const sourceTextsById = new Map<string, string>([
+        ['source-0', groundedSource],
+        ['source-1', ungroundedSource],
+      ]);
+
+      expect(
+        hasAcceptableQaSummaryQuality(
+          {
+            status: 'ready',
+            statements: [{ text: groundedStatement, sourceIds: ['source-0'] }],
+            suggestedNextSteps: [],
+            limitations: [],
+          },
+          locale,
+          { minimumStatements: 1, sourceTextsById },
+        ),
+      ).toBe(true);
+
+      expect(
+        hasAcceptableQaSummaryQuality(
+          {
+            status: 'ready',
+            statements: [
+              { text: groundedStatement, sourceIds: ['source-0'] },
+              { text: ungroundedStatement, sourceIds: ['source-1'] },
+            ],
+            suggestedNextSteps: [],
+            limitations: [],
+          },
+          locale,
+          { minimumStatements: 1, sourceTextsById },
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it('lehnt Prozentbehauptungen ab, wenn die Quelle nur eine bloße Zahl ohne Prozentbezug trägt', () => {
+    const sourceTextsById = new Map<string, string>([
+      ['source-0', 'Wir sind 80 Studierende im Hörsaal — gibt es Tutorien?'],
+      ['source-1', 'Warum liegt das Konfidenzintervall bei 95,5 %?'],
+    ]);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            { text: 'Tutorien: Warum bewerten 80 % die Übung kritisch?', sourceIds: ['source-0'] },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(false);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Konfidenzintervall: Warum liegt die Schwelle bei 95.5%?',
+              sourceIds: ['source-1'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(true);
+  });
+
+  it('lehnt Zahlen aus einer nicht zitierten Quelle sowie ungeerdete Zahlen in suggestedNextSteps ab', () => {
+    const sourceTextsById = new Map<string, string>([
+      ['source-chapter', 'Ist Kapitel 4 klausurrelevant?'],
+      ['source-attendance', 'Soll die Anwesenheit verpflichtend sein?'],
+    ]);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Klausurstoff: Ist Kapitel 4 klausurrelevant?',
+              sourceIds: ['source-attendance'],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(false);
+
+    expect(
+      hasAcceptableQaSummaryQuality(
+        {
+          status: 'ready',
+          statements: [
+            {
+              text: 'Anwesenheit: Soll die Anwesenheit verpflichtend sein?',
+              sourceIds: ['source-attendance'],
+            },
+          ],
+          suggestedNextSteps: [
+            {
+              text: 'Die 40 positiven und 40 negativen Stimmen im Plenum einordnen.',
+              sourceIds: ['source-attendance'],
+            },
+          ],
+          limitations: [],
+        },
+        'de',
+        { minimumStatements: 1, sourceTextsById },
+      ),
+    ).toBe(false);
+  });
 });
