@@ -943,6 +943,26 @@ damit die Zeit bis zum HTTP-Handler von der DB-Zeit im Handler getrennt
 bleibt. Bei einem Transportvergleich dieselbe TLS-Zertifikatsart und
 dieselbe CPU-Zuteilung für beide Aufbauten verwenden.
 
+### Kaltstart bei 500 gleichzeitigen Joins
+
+Der erste 500er-Join beginnt nach der Readiness frisch erstellter
+App-Container. Vor diesem Lauf keine Probe-Joins ausführen. Das
+Hörsaalprofil startet die 500 HTTP-Requests gemeinsam und öffnet nach
+jeder Join-Antwort den Teilnehmer-WebSocket. Für den Vergleich TLS,
+CPU-Zuteilung, Compose-Topologie und DNS-Verhalten des Lastgenerators
+gleich halten. Bei einem gesonderten Test mit voraufgelöstem Hostnamen
+weiterhin TLS mit Hostnamen prüfen und die Messreihe separat ausweisen.
+
+Die Join-Migration bündelt Teilnehmernummern, Inserts und Revision. Mit
+PostgreSQL und Redis die Nummern, den ersten Join-Zeitstempel, die
+Teilnehmerrevision, Konflikte innerhalb einer Gruppe und die
+Replay-Capabilities prüfen.
+
+```bash
+RUN_PG_CAPABILITY_TESTS=1 npm run test -w @arsnova/backend -- \
+  src/__tests__/session.capabilities.pg.test.ts
+```
+
 ### Live-Signale über Redis Pub/Sub
 
 Der gezielte Backend-Test für diesen optionalen Statuspfad prüft eigene und
