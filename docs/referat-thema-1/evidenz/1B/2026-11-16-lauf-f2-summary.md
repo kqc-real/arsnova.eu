@@ -13,7 +13,7 @@ Niklas hat die freigegebene Reihe mit fünf Summary-Aufträgen und Live-Last
 - app-host: 2 vCPU/4 GiB RAM; llm-host: 8 vCPU/10 GiB RAM.
 - Lauf-ID `20261115T235806-f2-summary`; lokal 2026-11-16 von etwa
   00:58 bis 01:29 Uhr MEZ. Der Laufname verwendet UTC.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-f2-summary.json),
+- [Ergebnis-JSON](messung/2026-11-16-lauf-f2-summary.json.gz),
   [Tageskalibrierung](2026-11-16-kalibrierung.md), Timeout explizit 300 000 ms.
   Erfasster Energiesparplan unverändert Ausbalanciert; Windows-Energiemodus
   nicht aus diesem Schema ableitbar.

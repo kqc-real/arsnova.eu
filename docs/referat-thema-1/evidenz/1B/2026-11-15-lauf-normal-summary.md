@@ -14,7 +14,7 @@ auf dem committeten Stand ausgeführt, ohne Störung und ohne `--arbeitsstand`.
 - Lauf-ID: `20261115T202740-normal-summary`.
 - Kalibrierung: `kalibrierung-20261115T190323.json`, gleicher Rechner und
   Energiesparplan; wirksames Summary-Budget 300 000 ms.
-- [Ergebnis-JSON](messung/2026-11-15-lauf-normal-summary.json) mit `umgebung`.
+- [Ergebnis-JSON](messung/2026-11-15-lauf-normal-summary.json.gz) mit `umgebung`.
 - Lokale ergänzende Quellen unter
   `%USERPROFILE%\labor-1b\20261115T202740-normal-summary\`:
   `treiber.json`, `app.tsv`, `app.log`, `wiederherstellung.json`, Prüfberichte.

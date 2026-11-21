@@ -15,12 +15,12 @@ Gewertete Reihe mit drei Summary-Aufträgen auf Commit
   Encoder deaktiviert. Ursprüngliche App-VM mit 2 vCPU/4 GiB bleibt erhalten.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T210422-s1-summary`, lokal etwa 22:04–22:24 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-s1-summary.json), bytegleich mit
+- [Ergebnis-JSON](messung/2026-11-16-lauf-s1-summary.json.gz), bytegleich mit
   lokalem Ergebnis. Ergänzende Rohdaten unter
   `%USERPROFILE%\labor-1b\20261116T210422-s1-summary\`.
 - [Zwei-Host-Normalreferenz](2026-11-15-lauf-normal-summary.md): zehn Aufträge
   auf demselben Rechner, Commit `5e758d0a870bc38441b60c541a6ff6f3d0662ee2`;
-  [Referenz-JSON](messung/2026-11-15-lauf-normal-summary.json).
+  [Referenz-JSON](messung/2026-11-15-lauf-normal-summary.json.gz).
 
 Alle Zahlen gelten für diesen Rechner und die jeweils genannten Commits.
 `buildS1Result` reproduziert den gespeicherten Ergebniskern aus den lokalen

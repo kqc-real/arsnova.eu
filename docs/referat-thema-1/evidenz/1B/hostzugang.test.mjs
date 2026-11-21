@@ -57,3 +57,24 @@ test('ein Fehler beim Erneuern geht an den Aufrufer, der alte Token bleibt nicht
   u.vor(1000);
   await assert.rejects(token(), /UNAUTHORIZED/);
 });
+
+// Clip (2026-11-15): Der Treiber schreibt den Host-Zugang für die Browser-Aufnahme in eine
+// Datei nur für den Besitzer; sie bleibt im Laborordner, nie im Repo.
+test('zugangSchreiben legt die Datei mit Modus 0600 und nur den drei Feldern an', async () => {
+  const { mkdtempSync, statSync, readFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { zugangSchreiben } = await import('./hostzugang.mjs');
+  const pfad = join(mkdtempSync(join(tmpdir(), 'zugang-')), 'zugang.json');
+  zugangSchreiben(pfad, { code: 'ABC123', hostToken: 't', hostBrowserCapability: 'c', x: 1 });
+  assert.equal(statSync(pfad).mode & 0o777, 0o600);
+  assert.deepEqual(JSON.parse(readFileSync(pfad, 'utf8')), {
+    code: 'ABC123',
+    hostToken: 't',
+    hostBrowserCapability: 'c',
+  });
+  assert.throws(
+    () => zugangSchreiben(pfad, { code: 'X', hostToken: 't', hostBrowserCapability: 'c' }),
+    /EEXIST/,
+  );
+});

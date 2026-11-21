@@ -13,7 +13,7 @@ Runtime ausgeführt. Diese F1-Reihe ist die eigene Label-B0-Referenz.
   31,9 GiB RAM; app-host 2 vCPU/4 GiB, llm-host 8 vCPU/10 GiB.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T141936-f1-label`, lokal etwa 15:19–16:21 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-f1-label.json),
+- [Ergebnis-JSON](messung/2026-11-16-lauf-f1-label.json.gz),
   [Normalreihe mit Quellen der drei Teile](2026-11-16-lauf-normal-label-03.md).
 - Lokale Quellen unter `%USERPROFILE%\labor-1b\20261116T141936-f1-label\`:
   Treiber, App-Log, Transport-TSVs, Journal und Wiederherstellung.
@@ -111,8 +111,8 @@ Einzelteile mit `vergleichen.mjs` prüfen, B0-Datei immer zuerst:
 
 ```bash
 node docs/referat-thema-1/evidenz/1B/vergleichen.mjs \
-  docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-f1-label.json \
-  docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-normal-label-01.json
+  docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-f1-label.json.gz \
+  docs/referat-thema-1/evidenz/1B/messung/2026-11-16-lauf-normal-label-01.json.gz
 ```
 
 Für die weiteren Einzelteile das letzte Argument durch Teil 02 bzw. 03 ersetzen.

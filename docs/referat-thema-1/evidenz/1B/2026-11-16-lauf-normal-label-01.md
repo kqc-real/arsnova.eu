@@ -13,7 +13,7 @@ Live-Last ausgeführt, auf regulärem Commit ohne `--arbeitsstand`.
   31,9 GiB RAM; app-host 2 vCPU/4 GiB, llm-host 8 vCPU/10 GiB.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T104243-normal-label-01`, lokal etwa 11:42–12:44 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-normal-label-01.json).
+- [Ergebnis-JSON](messung/2026-11-16-lauf-normal-label-01.json.gz).
 - Lokale Quellen unter `%USERPROFILE%\labor-1b\20261116T104243-normal-label-01\`:
   Treiber, App-Log, Transport-TSVs, Settings, Versionen und Nachprüfungen.
   PCAPs mit Token bleiben lokal; Repo-JSON und lokales Ergebnis sind identisch.

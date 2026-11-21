@@ -13,7 +13,7 @@ und Live-Last ausgeführt, regulär ohne `--arbeitsstand`.
   31,9 GiB RAM; app-host 2 vCPU/4 GiB, llm-host 8 vCPU/10 GiB.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T131108-normal-label-03`, lokal etwa 14:11–15:13 Uhr MEZ.
-- [Ergebnis-JSON Teil 3](messung/2026-11-16-lauf-normal-label-03.json),
+- [Ergebnis-JSON Teil 3](messung/2026-11-16-lauf-normal-label-03.json.gz),
   [Teil 1](2026-11-16-lauf-normal-label-01.md),
   [Teil 2](2026-11-16-lauf-normal-label-02.md).
 - Lokale Quellen unter `%USERPROFILE%\labor-1b\20261116T131108-normal-label-03\`:

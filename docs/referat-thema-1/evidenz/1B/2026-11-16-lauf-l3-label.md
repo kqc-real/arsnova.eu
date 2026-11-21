@@ -14,7 +14,7 @@ mit Live-Last ausgeführt. Umfang vorab im gekürzten
   31,9 GiB RAM; app-host 2 vCPU/4 GiB, llm-host 8 vCPU/10 GiB.
 - Node: beide VM-Hosts v24.22.3, App-Container v24.19.0.
 - Lauf-ID `20261116T183013-l3-label`, lokal etwa 19:30–19:49 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-l3-label.json).
+- [Ergebnis-JSON](messung/2026-11-16-lauf-l3-label.json.gz).
 - Lokale Quellen unter `%USERPROFILE%\labor-1b\20261116T183013-l3-label\`:
   Treiber, App-Log, Transport-TSVs, Journal und Nachprüfungen.
   PCAPs mit Token bleiben lokal. Repo-JSON und lokales Ergebnis identisch.

@@ -372,3 +372,8 @@ _Ergänzt 2026-11-16:_ Der zuvor offene Branch-/Beitragsabgleich ist jetzt
 Umfang und Beitragsdokumentation sind bearbeitet, erforderliche PR-Prüfungen
 und Merge stehen aus. Der Abgleich weist die verbleibenden lokalen Prüfprobleme
 aus; keine pauschal grüne CI behaupten.
+
+_Ergänzt 2026-11-17 (Jonas, Cloud-Einordnung auf J13b):_ Vorschlag für zwei
+getrennte Service-Level-Ziele, nicht gemessen und nicht umgesetzt:
+Verfügbarkeit „95 % der Aufträge haben nach 300 s einen Endstatus“ und Nutzen
+„ein festgelegter Anteil endet `full-context`“. Das erste erfüllt der Pfad im Labor dank Fallback, das zweite liegt bei 0 von 20 (ADR 1C-018, 1C-019).

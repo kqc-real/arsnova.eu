@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { liesJson } from './json-lesen.mjs';
 import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import { evaluateLiveComparison } from './experiment.mjs';
@@ -106,6 +106,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const [a, b] = process.argv.slice(2);
   if (!a || !b)
     throw new Error('Aufruf: vergleichen.mjs BASIS/ergebnis.json VARIANTE/ergebnis.json');
-  const read = (p) => JSON.parse(readFileSync(p, 'utf8'));
+  const read = liesJson;
   process.stdout.write(JSON.stringify(compareExperiments(read(a), read(b)), null, 2) + '\n');
 }

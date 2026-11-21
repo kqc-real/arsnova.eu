@@ -1,0 +1,13 @@
+{
+  "datum": "2026-11-15",
+  "profil": "performance",
+  "wartezeitS": 148.6,
+  "raffungS": 4,
+  "gerafftS": 145.6,
+  "startS": 1.8,
+  "hinweis": "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt.",
+  "quelle": "evidenz/1B/2026-11-15-clip.md",
+  "grund": "gate",
+  "latenzMs": 147748,
+  "timeoutMs": 300000
+}

@@ -21,13 +21,15 @@ import { randomUUID } from 'node:crypto';
 import { laborKorpus } from './korpus.mjs';
 import { createHttpTrpcSingle } from '../../../../scripts/load/lib/trpc-runtime.mjs';
 import { configureQaSessionIfNeeded } from '../../../../scripts/load/lib/configure-qa-if-needed.mjs';
-import { hostZugang } from './hostzugang.mjs';
+import { hostZugang, zugangSchreiben } from './hostzugang.mjs';
 
 const { values: arg } = parseArgs({
   options: {
     trpc: { type: 'string', default: 'http://127.0.0.1:3000/trpc' },
     auftraege: { type: 'string', default: '1' },
     out: { type: 'string' },
+    // Nur für die Clip-Aufnahme: Host-Zugang (Modus 0600) in diese Datei, siehe clip.mjs.
+    'zugang-datei': { type: 'string' },
     teilnehmer: { type: 'string', default: '200' },
     'pause-ms': { type: 'string', default: '31000' },
     'warte-max-ms': { type: 'string', default: '900000' },
@@ -192,12 +194,19 @@ async function szenarioAnlegen() {
     if (token !== aktuell.token) aktuell = { token, client: createHttpTrpcSingle(arg.trpc, token) };
     return aktuell.client;
   };
-  return { hostClient, sessionId, code, stimmen };
+  return {
+    hostClient,
+    sessionId,
+    code,
+    stimmen,
+    zugang: { code, hostToken, hostBrowserCapability },
+  };
 }
 
 const startedAt = jetzt();
 const firstScenario = await szenarioAnlegen();
 const { stimmen } = firstScenario;
+if (arg['zugang-datei']) zugangSchreiben(arg['zugang-datei'], firstScenario.zugang);
 const breakerScenarios = [firstScenario];
 if (config.consumer === 'breaker-summary') {
   for (let i = 1; i < auftraege; i++) breakerScenarios.push(await szenarioAnlegen());

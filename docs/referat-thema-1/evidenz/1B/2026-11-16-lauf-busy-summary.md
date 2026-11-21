@@ -13,7 +13,7 @@ Niklas hat die freigegebene Reihe mit zehn Summary-Aufträgen und Live-Last
   Windows 11 Pro, Hyper-V ohne CPU-Pinning.
 - app-host: 2 vCPU/4 GiB RAM; llm-host: 8 vCPU/10 GiB RAM.
 - Lauf-ID `20261116T021116-busy-summary`; lokal etwa 03:11–04:12 Uhr MEZ.
-- [Ergebnis-JSON](messung/2026-11-16-lauf-busy-summary.json), Timeout ausdrücklich
+- [Ergebnis-JSON](messung/2026-11-16-lauf-busy-summary.json.gz), Timeout ausdrücklich
   300 000 ms nach der [Tageskalibrierung](2026-11-16-kalibrierung.md).
 - Lokale Quellen unter `%USERPROFILE%\labor-1b\20261116T021116-busy-summary\`:
   Treiber, App-Log, Transport-TSVs, Störungsjournal und VM-Nachprüfungen.

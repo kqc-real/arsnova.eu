@@ -14,7 +14,7 @@ Rückfrage selbst ausgeführt. F1 entspricht der vorgesehenen B0-Referenz.
   Windows 11 Pro, Hyper-V ohne CPU-Pinning.
 - app-host: 2 vCPU/4 GiB; llm-host: 8 vCPU/10 GiB.
 - Lauf-ID: `20261115T215523-f1-summary`; Summary-Budget 300 000 ms.
-- [Ursprüngliches Ergebnis-JSON](messung/2026-11-15-lauf-f1-summary.json),
+- [Ursprüngliches Ergebnis-JSON](messung/2026-11-15-lauf-f1-summary.json.gz),
   mit `umgebung`; lokale Quellen unter
   `%USERPROFILE%\labor-1b\20261115T215523-f1-summary\`:
   `experiment-config.json`, `treiber.json`, `app.tsv`, `app.log`,
