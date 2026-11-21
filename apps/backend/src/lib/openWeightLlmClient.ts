@@ -309,7 +309,45 @@ function summaryCitableRefs(request: OpenWeightLlmSummaryRequestV2, refs: Map<st
     .map(({ id }) => refs.get(id)!);
 }
 
-function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
+function compactSummaryTopics(
+  topics: OpenWeightLlmSummaryRequestV2['promptContext']['context']['topics'],
+) {
+  if (topics.state !== 'available' || topics.items.length === 0) return undefined;
+  return {
+    freshness: topics.freshness.state,
+    items: topics.items.map((topic) => ({
+      sourceId: topic.sourceId,
+      labelOrigin: topic.labelOrigin.kind,
+      representativeQuestionSourceId: topic.representativeQuestionSourceId,
+      representedQuestionSourceIds: topic.representedQuestionSourceIds,
+      memberQuestionSourceIds: topic.memberQuestionSourceIds,
+    })),
+  };
+}
+
+function compactSummaryCompass(
+  compass: OpenWeightLlmSummaryRequestV2['promptContext']['context']['compass'],
+) {
+  if (compass.state !== 'available' || compass.signals.length === 0) return undefined;
+  return {
+    primarySignalSourceId: compass.primarySignalSourceId,
+    signals: compass.signals.map((signal) => {
+      const evidenceSourceIds = [...new Set(signal.evidence.map(({ sourceId }) => sourceId))];
+      return {
+        sourceId: signal.sourceId,
+        signal: signal.signal,
+        cardKind: signal.cardKind,
+        ...(signal.questionSourceIds.length > 0
+          ? { questionSourceIds: signal.questionSourceIds }
+          : {}),
+        evidenceSourceIds,
+        suggestedAction: signal.suggestedNextStep.action,
+      };
+    }),
+  };
+}
+
+export function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
   const refs = summarySourceRefs(request);
   const { locale, questions, topics, compass, learningContext, releasedResults, feedback } =
     request.promptContext.context;
@@ -334,13 +372,16 @@ function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
     {
       locale,
       sources,
-      topics: topics.state === 'available' ? topics : undefined,
-      compass: compass.state === 'available' ? compass : undefined,
+      topics: compactSummaryTopics(topics),
+      compass: compactSummaryCompass(compass),
       learningContext: learningContext.state === 'available' ? learningContext : undefined,
       releasedResults: releasedResults.state === 'available' ? releasedResults : undefined,
       feedback: feedback.state === 'available' ? feedback : undefined,
     },
-    (_key, value: unknown) => (typeof value === 'string' ? (refs.get(value) ?? value) : value),
+    (key, value: unknown) =>
+      typeof value === 'string' && key !== 'text' && key !== 'label'
+        ? (refs.get(value) ?? value)
+        : value,
   );
 }
 

@@ -6,6 +6,7 @@ import {
   MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1,
   MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1,
   ModerationAnalysisContextV1Schema,
+  ModerationPromptContextV1Schema,
   OPEN_WEIGHT_LLM_SCHEMA_VERSION,
   type OpenWeightLlmLearningObjectivesOutput,
   type OpenWeightLlmLearningObjectivesRequest,
@@ -20,6 +21,7 @@ import {
 } from '@arsnova/shared-types';
 import {
   OPEN_WEIGHT_LLM_LEARNING_OBJECTIVES_SYSTEM_PROMPT_VERSION,
+  compactSummaryContext,
   inspectOpenWeightLlmAvailability,
   resetOpenWeightLlmClientForTests,
   runOpenWeightLlm,
@@ -33,7 +35,9 @@ import {
   QA_SUMMARY_ADAPTER_CAPABILITIES,
   QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,
   QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
+  assemblePreparedModerationSummaryContext,
   prepareModerationSummaryContextFromAnalysis,
+  qaSummaryTechnicalHandoffTokenCounts,
 } from './moderationSummaryContext';
 import { logger } from './logger';
 import { runPreparedQaSummary } from './qaSummaryRuntimeAdapter';
@@ -618,6 +622,390 @@ describe('openWeightLlmClient', () => {
     expect(
       body.response_format.schema.properties.topics.items.properties.refs.items.enum,
     ).not.toContain(excludedRef);
+  });
+
+  it('entfernt numerische Scores, Konfidenzen und Stimmenaggregate aus topics und compass im Modell-Wire-Kontext', async () => {
+    const withHandoffBudget = (fixture: typeof MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1) => {
+      const { instructionTokens, definitionTokens } = qaSummaryTechnicalHandoffTokenCounts();
+      const packedInputTokens = instructionTokens + definitionTokens + fixture.budget.dataTokens;
+      const reserved = fixture.budget.reservedOutputTokens + fixture.budget.safetyMarginTokens;
+      return ModerationPromptContextV1Schema.parse({
+        ...fixture,
+        budget: {
+          ...fixture.budget,
+          instructionTokens,
+          definitionTokens,
+          packedInputTokens,
+          contextWindowTokens: Math.max(
+            fixture.budget.contextWindowTokens,
+            packedInputTokens + reserved,
+          ),
+        },
+      });
+    };
+    const collectNumericValues = (
+      value: unknown,
+      path = '',
+    ): Array<{ path: string; value: number }> => {
+      if (typeof value === 'number') return [{ path, value }];
+      if (Array.isArray(value)) {
+        return value.flatMap((entry, index) => collectNumericValues(entry, `${path}[${index}]`));
+      }
+      if (value !== null && typeof value === 'object') {
+        return Object.entries(value).flatMap(([key, entry]) =>
+          collectNumericValues(entry, path ? `${path}.${key}` : key),
+        );
+      }
+      return [];
+    };
+
+    const prepared = assemblePreparedModerationSummaryContext({
+      promptContext: withHandoffBudget(
+        structuredClone(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1),
+      ),
+      cache: 'miss',
+      plan: {
+        capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+        selectedMode: 'full-context',
+        fallback: null,
+        inferenceConfigured: true,
+      },
+    });
+
+    let translatedBody: string | null = null;
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) => {
+        if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+        translatedBody = input.body;
+        return completionResponse({
+          topics: [
+            {
+              topic: 'Prüfungsumfang Kapitel vier',
+              question: 'Ist Kapitel 4 klausurrelevant?',
+              refs: ['3', '4'],
+            },
+            {
+              topic: 'Verpflichtende Anwesenheit',
+              question: 'Soll eine Anwesenheitspflicht gelten?',
+              refs: ['5', '6'],
+            },
+          ],
+        });
+      },
+    });
+
+    await expect(runOpenWeightLlmSummaryV2(prepared.request)).resolves.toMatchObject({
+      status: 'completed',
+    });
+
+    const body = JSON.parse(translatedBody ?? '{}') as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    const wireContent = body.messages[2]!.content;
+    expect(wireContent).toBe(compactSummaryContext(prepared.request));
+
+    for (const forbiddenSubstring of [
+      'clusterConfidence',
+      'labelQuality',
+      'aggregates',
+      'positiveVotes',
+      'negativeVotes',
+      'netVotes',
+      'totalVotes',
+      'distinctParticipants',
+      'questionCount',
+      'corpus',
+      'analysisVersion',
+      'analyzedAt',
+      'rulesVersion',
+      'controversyScore',
+      'bestScore',
+      'uncalibrated-model-score',
+      '0.8',
+      '0,8',
+      '0.88648',
+      '0,886483',
+      '0.94',
+      '0.92',
+      '0.9',
+      '40 positiven',
+      '30 positiven',
+    ]) {
+      expect(wireContent).not.toContain(forbiddenSubstring);
+    }
+
+    const context = JSON.parse(wireContent) as {
+      sources: Array<{ id: string; kind: string; label?: string; text?: string }>;
+      topics: unknown;
+      compass: unknown;
+    };
+    expect(collectNumericValues(context.topics, 'topics')).toEqual([]);
+    expect(collectNumericValues(context.compass, 'compass')).toEqual([]);
+
+    expect(context.sources).toEqual(
+      expect.arrayContaining([
+        { id: '7', kind: 'semantic-topic', label: 'Beispiele zur linearen Regression' },
+        { id: '8', kind: 'semantic-topic', label: 'Prüfungsumfang' },
+        { id: '9', kind: 'semantic-topic', label: 'Anwesenheitspflicht' },
+        { id: '10', kind: 'compass-signal', label: 'Höchster Best-Score im Auswahlkorpus' },
+        { id: '11', kind: 'compass-signal', label: 'Höchste Kontroversität im Auswahlkorpus' },
+      ]),
+    );
+    expect(context.topics).toEqual({
+      freshness: 'current',
+      items: [
+        {
+          sourceId: '7',
+          labelOrigin: 'source-extractive',
+          representativeQuestionSourceId: '1',
+          representedQuestionSourceIds: ['1', '2'],
+          memberQuestionSourceIds: ['1', '2'],
+        },
+        {
+          sourceId: '8',
+          labelOrigin: 'source-extractive',
+          representativeQuestionSourceId: '3',
+          representedQuestionSourceIds: ['3', '4'],
+          memberQuestionSourceIds: ['3', '4'],
+        },
+        {
+          sourceId: '9',
+          labelOrigin: 'source-extractive',
+          representativeQuestionSourceId: '5',
+          representedQuestionSourceIds: ['5', '6'],
+          memberQuestionSourceIds: ['5', '6'],
+        },
+      ],
+    });
+    expect(context.compass).toEqual({
+      primarySignalSourceId: '11',
+      signals: [
+        {
+          sourceId: '10',
+          signal: 'high-best-score',
+          cardKind: 'topics',
+          questionSourceIds: ['3'],
+          evidenceSourceIds: ['3'],
+          suggestedAction: 'address-question',
+        },
+        {
+          sourceId: '11',
+          signal: 'high-controversy',
+          cardKind: 'friction',
+          questionSourceIds: ['5'],
+          evidenceSourceIds: ['5'],
+          suggestedAction: 'open-discussion',
+        },
+      ],
+    });
+  });
+
+  it('härtet compactSummaryContext auch für verfügbare labelQuality, Themen-Shares, leere Abschnitte und Quelltext-Kollisionen', () => {
+    const withHandoffBudget = <
+      T extends { budget: typeof MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1.budget },
+    >(
+      fixture: T,
+    ) => {
+      const { instructionTokens, definitionTokens } = qaSummaryTechnicalHandoffTokenCounts();
+      const packedInputTokens = instructionTokens + definitionTokens + fixture.budget.dataTokens;
+      const reserved = fixture.budget.reservedOutputTokens + fixture.budget.safetyMarginTokens;
+      return ModerationPromptContextV1Schema.parse({
+        ...fixture,
+        budget: {
+          ...fixture.budget,
+          instructionTokens,
+          definitionTokens,
+          packedInputTokens,
+          contextWindowTokens: Math.max(
+            fixture.budget.contextWindowTokens,
+            packedInputTokens + reserved,
+          ),
+        },
+      });
+    };
+    const base = structuredClone(MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1);
+    const firstQuestionId = base.context.sources[0]!.id;
+    const topicConcentrationId = 'compass-signal:topic-share';
+    const richPromptContext = withHandoffBudget({
+      ...base,
+      context: {
+        ...base.context,
+        topics: {
+          ...base.context.topics,
+          freshness: {
+            state: 'stale' as const,
+            analysisRevision: 'qa-ranking-v2:0',
+            currentRevision: 'questions-r1',
+            reason: '42 neue Stimmen seit Analyse.',
+          },
+          items: base.context.topics.items.map((topic, index) =>
+            index === 0
+              ? {
+                  ...topic,
+                  labelOrigin: {
+                    kind: 'model-generated' as const,
+                    modelId: 'qwen3-4b-instruct-2507-q4_k_m',
+                    modelVersion: '1',
+                    generationVersion: 'topic-label-system-v1',
+                    derivedFromSourceIds: topic.memberQuestionSourceIds,
+                  },
+                  labelQuality: { state: 'available' as const, value: 0.83 },
+                  clusterConfidence: {
+                    state: 'available' as const,
+                    value: 0.77,
+                    meaning: 'uncalibrated-model-score' as const,
+                  },
+                  aggregates: {
+                    ...topic.aggregates,
+                    distinctParticipants: { state: 'available' as const, value: 38 },
+                  },
+                }
+              : topic,
+          ),
+        },
+        compass: {
+          ...base.context.compass,
+          primarySignalSourceId: topicConcentrationId,
+          signals: [
+            {
+              sourceId: topicConcentrationId,
+              signal: 'topic-concentration' as const,
+              basis: 'topic-question-share' as const,
+              cardKind: 'topics' as const,
+              questionSourceIds: [],
+              value: 0.6666666666666666,
+              reason: '67% der berechtigten Fragen entfallen auf dieses Thema.',
+              evidence: [
+                {
+                  sourceId: 'semantic-topic:linear-regression-examples',
+                  detail: 'Anteil 0,67 (4 von 6 Fragen).',
+                },
+              ],
+              suggestedNextStep: {
+                action: 'monitor' as const,
+                rationale: 'Beobachten, ob die 67%-Konzentration anhält.',
+              },
+            },
+          ],
+        },
+        sources: [
+          ...base.context.sources
+            .filter((source) => source.kind !== 'compass-signal')
+            .map((source, index) =>
+              index === 1 && source.kind === 'qa-question' && source.content.state === 'included'
+                ? {
+                    ...source,
+                    content: {
+                      ...source.content,
+                      text: firstQuestionId,
+                    },
+                  }
+                : source,
+            ),
+          {
+            id: topicConcentrationId,
+            kind: 'compass-signal' as const,
+            label: 'Topic concentration',
+          },
+        ],
+      },
+    });
+
+    const preparedRich = assemblePreparedModerationSummaryContext({
+      promptContext: richPromptContext,
+      cache: 'miss',
+      plan: {
+        capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+        selectedMode: 'full-context',
+        fallback: null,
+        inferenceConfigured: true,
+      },
+    });
+    const richWire = compactSummaryContext(preparedRich.request);
+    for (const forbidden of [
+      '0.83',
+      '0.77',
+      '38',
+      '42',
+      '0.6666',
+      '0,67',
+      '67%',
+      'topic-label-system-v1',
+      'qa-ranking-v2:0',
+    ]) {
+      expect(richWire).not.toContain(forbidden);
+    }
+
+    const parsedRich = JSON.parse(richWire) as {
+      sources: Array<{ id: string; text?: string }>;
+      topics: { freshness: string; items: Array<{ labelOrigin: string; sourceId: string }> };
+      compass: {
+        primarySignalSourceId: string;
+        signals: Array<Record<string, unknown>>;
+      };
+    };
+    expect(parsedRich.sources[1]?.text).toBe(firstQuestionId);
+    expect(parsedRich.topics.freshness).toBe('stale');
+    expect(parsedRich.topics.items[0]?.labelOrigin).toBe('model-generated');
+    expect(parsedRich.compass).toEqual({
+      primarySignalSourceId: '11',
+      signals: [
+        {
+          sourceId: '11',
+          signal: 'topic-concentration',
+          cardKind: 'topics',
+          evidenceSourceIds: ['7'],
+          suggestedAction: 'monitor',
+        },
+      ],
+    });
+    expect(parsedRich.compass.signals[0]).not.toHaveProperty('questionSourceIds');
+
+    const emptyAvailable = withHandoffBudget({
+      ...MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1,
+      context: {
+        ...MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1.context,
+        meta: {
+          ...MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1.context.meta,
+          revisions: {
+            ...MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1.context.meta.revisions,
+            topics: { state: 'available' as const, value: 'topics-empty-r1' },
+          },
+        },
+        topics: {
+          state: 'available' as const,
+          analysisVersion: 'fixture-semantic-analysis-v1',
+          model: { id: 'fixture-semantic-encoder', version: '1' },
+          analyzedAt: '2026-01-15T10:01:00.000Z',
+          freshness: { state: 'current' as const, analysisRevision: 'topics-empty-r1' },
+          corpus: { eligibleQuestions: 1, analyzedQuestions: 1, representedQuestions: 0 },
+          items: [],
+        },
+        compass: {
+          state: 'available' as const,
+          rulesVersion: 'moderation-compass-rules-v1' as const,
+          signals: [],
+          primarySignalSourceId: null,
+        },
+      },
+    });
+    const preparedEmpty = assemblePreparedModerationSummaryContext({
+      promptContext: emptyAvailable,
+      cache: 'miss',
+      plan: {
+        capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+        selectedMode: 'full-context',
+        fallback: null,
+        inferenceConfigured: true,
+      },
+    });
+    const parsedEmpty = JSON.parse(compactSummaryContext(preparedEmpty.request)) as Record<
+      string,
+      unknown
+    >;
+    expect(parsedEmpty).not.toHaveProperty('topics');
+    expect(parsedEmpty).not.toHaveProperty('compass');
   });
 
   it('zwingt learning_objectives questionIds im Wire-Schema auf die Quell-IDs statt UUID-Regex', async () => {
