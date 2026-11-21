@@ -8,7 +8,7 @@ x-encoder-client: &encoder-client
       condition: service_healthy
   volumes:
     - encoder_socket:/run/wordcloud-encoder:ro
-    - ./deploy/staging/text-analysis-readiness.mjs:/app/staging-text-analysis-readiness.mjs:ro
+    - ./deploy/text-analysis-readiness.mjs:/app/staging-text-analysis-readiness.mjs:ro
 
 services:
   app-a: *encoder-client

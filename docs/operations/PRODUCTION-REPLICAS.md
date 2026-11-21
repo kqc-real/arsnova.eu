@@ -7,6 +7,9 @@ Alle Apps verwenden den bereitgestellten Digest, dasselbe PostgreSQL und
 denselben Redis. Nginx bleibt auf dem Host und terminiert TLS. Die App-Ports
 sind an Loopback gebunden.
 
+Die gemeinsamen NLP-Sidecars verwenden den separaten
+[Sidecar-Rollout](PRODUCTION-TEXT-SIDECARS.md) unter derselben Operationssperre.
+
 | Modus     | HTTP / tRPC-WebSocket | Yjs                  | App-DB-Pools |
 | --------- | --------------------- | -------------------- | ------------ |
 | `single`  | A                     | Embedded-Relay auf A | Basiswert    |
