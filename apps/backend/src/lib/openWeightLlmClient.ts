@@ -33,6 +33,7 @@ import {
   isBlockedOpenWeightLlmHost,
   isPrivateOpenWeightLlmAddress,
   normalizeOpenWeightLlmHostname,
+  OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS,
   OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD,
   OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS,
   OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
@@ -649,7 +650,7 @@ export async function runOpenWeightLlm(
 
   let result: OpenWeightLlmRunResult;
   let lease: RedisLease | null = null;
-  let canReleaseLease = true;
+  let postOutcomeUnconfirmed = false;
   try {
     if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
       lease = await waitForAbort(
@@ -703,8 +704,7 @@ export async function runOpenWeightLlm(
         return { status: 'unavailable' };
       }
       signal.throwIfAborted();
-      // Bei einem Transportunterbruch kann der Server den POST noch bearbeiten.
-      canReleaseLease = false;
+      postOutcomeUnconfirmed = true;
       const completion = await hooks.request({
         transport: config.transport,
         resolvedAddress,
@@ -714,7 +714,7 @@ export async function runOpenWeightLlm(
         body: requestBody,
         signal,
       });
-      canReleaseLease = true;
+      postOutcomeUnconfirmed = false;
       if (debugLearningObjectives) {
         logger.info(
           JSON.stringify({
@@ -739,7 +739,12 @@ export async function runOpenWeightLlm(
   } catch (error) {
     result = { status: classifyCaughtError(error, options.signal, timeoutSignal) };
   } finally {
-    if (lease && canReleaseLease) {
+    if (lease) {
+      if (postOutcomeUnconfirmed) {
+        // Give llama-server time to observe the closed connection. The next
+        // owner still has to check /slots under its own lease before posting.
+        await new Promise((resolve) => setTimeout(resolve, OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS));
+      }
       await waitForAbort(
         lease.release(),
         AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS),

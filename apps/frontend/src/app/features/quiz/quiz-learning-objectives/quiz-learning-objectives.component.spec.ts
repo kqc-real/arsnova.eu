@@ -1090,7 +1090,7 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(message).not.toMatch(/Token|Batch/i);
   });
 
-  it('übernimmt fertige Entwürfe vor dem Zeitlimit und setzt beim nächsten Versuch bei den übrigen Fragen fort', async () => {
+  it('setzt nach Zeitlimit und vorübergehend belegtem Modell bei den übrigen Fragen fort', async () => {
     const store = TestBed.inject(QuizStoreService);
     const quiz = store.createQuiz({ name: 'Fortsetzen' });
     const first = store.addQuestion(quiz.id, {
@@ -1145,6 +1145,16 @@ describe('QuizLearningObjectivesComponent', () => {
           };
         }
         expect(input.questions.map((question) => question.sourceQuestionId)).toEqual([second.id]);
+        if (calls === 2) {
+          return {
+            schemaVersion: 1,
+            operationId: input.operationId,
+            quizId: input.quizId,
+            expectedBundleRevision: input.expectedBundleRevision,
+            status: 'busy',
+            retry: 'manual',
+          };
+        }
         return {
           schemaVersion: 1,
           operationId: input.operationId,
@@ -1174,9 +1184,10 @@ describe('QuizLearningObjectivesComponent', () => {
     await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
     fixture.detectChanges();
 
-    expect(
-      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
-    ).toEqual(['Die erste Frage erklären.']);
+    const savedBundle = store.getLearningObjectiveBundle(quiz.id);
+    expect(savedBundle.objectives.map((objective) => objective.text)).toEqual([
+      'Die erste Frage erklären.',
+    ]);
     expect(fixture.componentInstance.derivationMessage()).toContain(
       'Die schon formulierten Lernziele stehen als Entwürfe in der Liste.',
     );
@@ -1185,10 +1196,16 @@ describe('QuizLearningObjectivesComponent', () => {
     ) as HTMLButtonElement;
     expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
     resume.click();
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('busy'));
+    fixture.detectChanges();
+    expect(store.getLearningObjectiveBundle(quiz.id)).toEqual(savedBundle);
+    expect(resume.disabled).toBe(false);
+    expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
+    resume.click();
     await vi.waitFor(() =>
       expect(store.getLearningObjectiveBundle(quiz.id).objectives).toHaveLength(2),
     );
-    expect(runDerivationMock).toHaveBeenCalledTimes(2);
+    expect(runDerivationMock).toHaveBeenCalledTimes(3);
     expect(
       store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
     ).toEqual(['Die erste Frage erklären.', 'Die zweite Frage erklären.']);

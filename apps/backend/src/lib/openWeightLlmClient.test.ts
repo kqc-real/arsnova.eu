@@ -216,6 +216,7 @@ async function waitFor(predicate: () => boolean): Promise<void> {
 describe('openWeightLlmClient', () => {
   afterEach(() => {
     resetOpenWeightLlmClientForTests();
+    vi.useRealTimers();
     vi.unstubAllEnvs();
     redis.set.mockReset();
     redis.eval.mockReset();
@@ -295,24 +296,67 @@ describe('openWeightLlmClient', () => {
     expect(request.mock.calls.map(([input]) => input.method)).toEqual(['GET']);
   });
 
-  it('lässt den Slot nach einem unklaren POST-Abbruch bis zum Ablauf belegt', async () => {
-    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
-    redis.set.mockResolvedValue('OK');
-    redis.eval.mockResolvedValue(1);
-    resetOpenWeightLlmClientForTests({
-      config: () => defaultConfig,
-      request: async ({ method }) => {
-        if (method === 'GET') return { status: 200, body: '[]' };
-        throw new Error('socket disconnected');
-      },
-    });
+  it.each(['aborted', 'unavailable'] as const)(
+    'gibt die Redis-Reservierung nach unterbrochenem POST (%s) frei und prüft vor dem neuen POST den Runtime-Slot',
+    async (status) => {
+      vi.useFakeTimers();
+      vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+      let owner: string | null = null;
+      redis.set.mockImplementation(async (_key: string, nextOwner: string) => {
+        if (owner !== null) return null;
+        owner = nextOwner;
+        return 'OK';
+      });
+      redis.eval.mockImplementation(
+        async (script: string, _keys: number, _key: string, token: string) => {
+          if (owner !== token) return 0;
+          if (script.includes('DEL')) owner = null;
+          return 1;
+        },
+      );
+      const controller = new AbortController();
+      let slotBusy = false;
+      let postCalls = 0;
+      resetOpenWeightLlmClientForTests({
+        config: () => defaultConfig,
+        request: async ({ method }) => {
+          if (method === 'GET') return { status: slotBusy ? 503 : 200, body: '[]' };
+          postCalls += 1;
+          if (postCalls === 1) {
+            slotBusy = true;
+            if (status === 'aborted') controller.abort();
+            throw new Error('socket disconnected');
+          }
+          return completionResponse(outputs.learning_objectives);
+        },
+      });
 
-    await expect(runOpenWeightLlm(requests.topic_label)).resolves.toEqual({
-      status: 'unavailable',
-    });
-    expect(redis.eval).toHaveBeenCalledTimes(1);
-    expect(redis.eval.mock.calls[0]?.[0]).toContain('PEXPIRE');
-  });
+      const operation = runOpenWeightLlmLearningObjectives(requests.learning_objectives, {
+        signal: controller.signal,
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(postCalls).toBe(1);
+      expect(owner).not.toBeNull();
+      await vi.advanceTimersByTimeAsync(1_499);
+      expect(owner).not.toBeNull();
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(operation).resolves.toEqual({ status });
+      expect(owner).toBeNull();
+
+      await expect(
+        runOpenWeightLlmLearningObjectives(requests.learning_objectives),
+      ).resolves.toEqual({ status: 'busy', retry: 'manual' });
+      expect(postCalls).toBe(1);
+      expect(owner).toBeNull();
+
+      slotBusy = false;
+      await expect(
+        runOpenWeightLlmLearningObjectives(requests.learning_objectives),
+      ).resolves.toMatchObject({ status: 'completed' });
+      expect(postCalls).toBe(2);
+      expect(owner).toBeNull();
+    },
+  );
 
   it('hält die dokumentierte Modellprobe synchron zum Backend-Translator', async () => {
     const fixture = JSON.parse(
