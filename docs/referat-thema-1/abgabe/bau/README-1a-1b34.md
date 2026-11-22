@@ -23,8 +23,8 @@ PDF-Seiten bleibt `--niklas1 <pdf>`.
   Fahrplan, GK Systembild, N1–N10), übergibt auf N10 an Jonas („Was, wenn wir die schwere Arbeit auslagern?“),
   übernimmt nach J15 mit M1–M4 und spricht G9 und GD. 15 min Redezeit je Person samt Rahmen, Fragen kommen hinzu;
   Niklas plant 14:25 min.
-- **Sprechnotizen:** je Folie `notiz` (Fließtext) und `stichpunkte` (zum freien Vortrag), privat in
-  `privat/notizen.mjs` (siehe README in `abgabe/bau`); `[Weiter]` markiert
+- **Sprechnotizen:** je Folie `notiz` (Fließtext) und `stichpunkte` (zum freien Vortrag), lokal in
+  `privat/notizen.mjs` (nicht Teil der Abgabe, siehe README in `abgabe/bau`); `[Weiter]` markiert
   jeden Tastendruck einer Aufbaustufe (GK: drei; N6: drei, Stufe 0 zeigt nur Umrisse; N7: zwei; N9: zwei wie M1, je Variante; N10: Diskussion, dann Übergabe; G9: „Gemeinsam“ zuletzt; M1: drei, je
   Störung eine Stufe; M2: Stopp, dann Zu spät; M3: Summary, dann
   Label; M4: Entscheidung).

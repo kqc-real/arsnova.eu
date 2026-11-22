@@ -13,7 +13,11 @@
       "sha256": null
     }
   },
-  "folien": { "gemeinsamesDeck": 40, "jonasUndReserve": 23, "niklasUndReserve": 17 },
+  "folien": {
+    "gemeinsamesDeck": 40,
+    "jonasUndReserve": 23,
+    "niklasUndReserve": 17
+  },
   "eingaben": [
     {
       "pfad": "docs/referat-thema-1/evidenz/1B/messung/2026-11-13-lauf.json",
@@ -125,7 +129,7 @@
     },
     {
       "pfad": "apps/backend/src/lib/qaSummaryConfig.ts",
-      "sha256": "3a5f316f90b8dd708ff05e6452d51689f0d601fabb6299ea1d7420b20124a79f"
+      "sha256": "5d1b91cc3286c1ebc652469bc1d79c3efd4f1f1364209a5f381cdb575302691c"
     },
     {
       "pfad": "docs/referat-thema-1/1B/1B-ergebnis.md",
@@ -141,7 +145,7 @@
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/bau.mjs",
-      "sha256": "81f64ad2fcf0c6395277bb1417b22257c67a25a8be24168857761376bcf8920b"
+      "sha256": "3fcdb95cdf46e951db7dc5c46bed63f328e1919a573ccd4317126af8ddc7bb85"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/daten-1a.mjs",
@@ -221,11 +225,11 @@
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/notizen.mjs",
-      "sha256": "d91e0f403c928fe4b19ff428bdb13ddf169b5867ed41d497655c89b7b116b270"
+      "sha256": "a18a89db36134a51ca5b070e9de9d5003adb1b6f4daeec6fb2ed85af06f9114b"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/sprechheft.mjs",
-      "sha256": "19e3e85b1e4dd7e3fc38594f01053e32257c56c4de24a01f840661892246477c"
+      "sha256": "df98e72a5019dad7c226dbc18e053eebe2f94814b3883bf76e99c528ca0c22a6"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/stil.css",
@@ -589,15 +593,15 @@
     },
     {
       "pfad": "apps/backend/src/lib/openWeightLlmClient.ts",
-      "sha256": "4f402c8c1676f38be260ec97bf955bb2ab3063e8b3774f8a2fa4878cbbc081d5"
+      "sha256": "70ac8677f2287727fe0bd330d9c5d67422c5ee057de5af80c08f0199c6f0404e"
     },
     {
       "pfad": "apps/backend/src/lib/openWeightLlmConfig.ts",
-      "sha256": "b7c88c44f72ab10a2431acd067009986c06235a00b04f859c8cd667c95019e3f"
+      "sha256": "0b2fcaeb81355d9d46aee2d4eaf000bfff083de11c09296a1cbcceb5ab18bee4"
     },
     {
       "pfad": "apps/backend/src/lib/qaSummaryQueue.ts",
-      "sha256": "07a13f99a6e6c50ad2ec66be8d98c5655963a5e39cb855f0e7c8a7dc68dcb46e"
+      "sha256": "20989ad73bc9d4d630b1d419ae9bb8f4ef3a456f294a4f4b9eeed56b2ef6b88a"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/abgabe-lokal.mjs",
@@ -609,7 +613,7 @@
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/bau.mjs",
-      "sha256": "81f64ad2fcf0c6395277bb1417b22257c67a25a8be24168857761376bcf8920b"
+      "sha256": "3fcdb95cdf46e951db7dc5c46bed63f328e1919a573ccd4317126af8ddc7bb85"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/daten-1a.mjs",
@@ -677,11 +681,11 @@
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/notizen.mjs",
-      "sha256": "d91e0f403c928fe4b19ff428bdb13ddf169b5867ed41d497655c89b7b116b270"
+      "sha256": "a18a89db36134a51ca5b070e9de9d5003adb1b6f4daeec6fb2ed85af06f9114b"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/sprechheft.mjs",
-      "sha256": "19e3e85b1e4dd7e3fc38594f01053e32257c56c4de24a01f840661892246477c"
+      "sha256": "df98e72a5019dad7c226dbc18e053eebe2f94814b3883bf76e99c528ca0c22a6"
     },
     {
       "pfad": "docs/referat-thema-1/abgabe/bau/teile.mjs",
@@ -700,24 +704,24 @@
     {
       "datei": "folien-gesamt.html",
       "bytes": 1927318,
-      "sha256": "7be33017962b92617f55c9f053dbf6782d8d0e9af52c34cfb663391ff68b2377"
+      "sha256": "da0233622e58630a6007242e08b8fc4f2585459b1c33f5c52867be45c6545c3e"
     },
     {
       "datei": "folien-gesamt.pdf",
       "bytes": 1318807,
-      "sha256": "89b23839b4c525cbcdd6bcb16eeeaa3e2415a2d377bc6ab5840d5adefb2d48a0",
+      "sha256": "1770792b9e335bda7315a02351837e4da26b0f98564e66142719199fd949ac34",
       "seiten": 40
     },
     {
       "datei": "folien-jonas.pdf",
       "bytes": 847294,
-      "sha256": "8fd54f40430cdb072f2b07da6bf9c81e0094f014d845e6fc09dd0c810791c55e",
+      "sha256": "1c5b5d245e9047c491aa8db2237655976a5f81a7f0be855bcf9e0a5b76debbbe",
       "seiten": 23
     },
     {
       "datei": "folien-niklas.pdf",
       "bytes": 519788,
-      "sha256": "018065be71b4a61b317d0604e377b77e600c5cb322b15cb241289b835f790835",
+      "sha256": "33cab05c9d6d20090b9f1a5aa4e7271c5bb527b6962fc9f23011c6f76d4c6634",
       "seiten": 17
     }
   ]

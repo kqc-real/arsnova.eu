@@ -30,8 +30,8 @@ import {
 import { fmt } from './zahlen.mjs';
 import { mitNotizen } from './notizen.mjs';
 
-// Ablesetexte und Stichpunkte liegen privat (privat/notizen.mjs); ohne sie entfallen die Prüfungen dazu
-const OHNE_NOTIZEN = mitNotizen ? false : 'privat/notizen.mjs fehlt (eigenes Repo)';
+// Ablesetexte und Stichpunkte liegen lokal (privat/notizen.mjs); ohne sie entfallen die Prüfungen dazu
+const OHNE_NOTIZEN = mitNotizen ? false : 'privat/notizen.mjs fehlt (lokal)';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const daten = ladeFolienDaten(ROOT);
@@ -996,7 +996,7 @@ test(
 test('R4-I1: Früherer OOM ohne Kausalaussage „weil mehr Tokens“ (ADR 1C-024: nicht getrennt gemessen)', () => {
   const kausal = /weil[^.]*mehr Tokens|\(mehr Tokens/;
   for (const f of F) assert.ok(!kausal.test(alles(f)), f.id);
-  // Fragenkatalog liegt privat (privat/, eigenes Repo); fehlt er, entfällt diese Teilprüfung
+  // Fragenkatalog liegt lokal (privat/); fehlt er, entfällt diese Teilprüfung
   const katalogPfad = resolve(ROOT, 'privat/fragenkatalog.md');
   if (existsSync(katalogPfad)) {
     assert.ok(!kausal.test(readFileSync(katalogPfad, 'utf8')), 'Fragenkatalog');

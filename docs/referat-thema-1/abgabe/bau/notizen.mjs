@@ -1,4 +1,4 @@
-// Ablesetexte (notiz) und Stichpunkte liegen privat in privat/notizen.mjs (eigenes Repo, nicht im Fork).
+// Ablesetexte (notiz) und Stichpunkte liegen lokal in privat/notizen.mjs (nicht Teil der Abgabe).
 // Die Folienmodule rufen privat('ID.feld', { werte }) auf; ohne die private Datei bleibt das Feld leer und
 // das öffentliche Deck baut trotzdem.
 import { existsSync } from 'node:fs';
@@ -11,7 +11,7 @@ const texte = existsSync(DATEI) ? (await import(pathToFileURL(DATEI).href)).defa
 /** true, wenn die privaten Notizen vorliegen. */
 export const mitNotizen = texte !== null;
 
-/** Notiz oder Stichpunkte einer Folie; undefined ohne privates Repo. */
+/** Notiz oder Stichpunkte einer Folie; undefined ohne lokale Notizen. */
 export function privat(schluessel, werte) {
   if (!texte) return undefined;
   const f = texte[schluessel];

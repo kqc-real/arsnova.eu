@@ -24,8 +24,8 @@ import { folien, ladeFolienDaten } from './folien.mjs';
 import { niklasTeile } from './teile.mjs';
 import { mitNotizen } from './notizen.mjs';
 
-// Ablesetexte und Stichpunkte liegen privat (privat/notizen.mjs); ohne sie entfallen die Prüfungen dazu
-const OHNE_NOTIZEN = mitNotizen ? false : 'privat/notizen.mjs fehlt (eigenes Repo)';
+// Ablesetexte und Stichpunkte liegen lokal (privat/notizen.mjs); ohne sie entfallen die Prüfungen dazu
+const OHNE_NOTIZEN = mitNotizen ? false : 'privat/notizen.mjs fehlt (lokal)';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HIER, '../..');
@@ -43,7 +43,7 @@ const AUSGABEN = [
   'folien-jonas.pdf',
   'folien-niklas.pdf',
 ];
-// Private Ausgaben (nicht im Repo, nicht im Manifest): bei --ausgabe unter <ausgabe>/privat
+// Vortragsunterlagen (lokal, nicht im Manifest): bei --ausgabe unter <ausgabe>/privat
 const PRIVAT = [
   'folien-gesamt-mit-notizen.html',
   'notizen-jonas.md',
@@ -159,7 +159,7 @@ test('folien-jonas.pdf: Titel, J1–J16 plus Reserve, eine Seite je Folie, 1600 
 });
 
 test(
-  'öffentliches Deck ohne Sprechheft; Vortragsdeck mit Referentenansicht nur privat',
+  'öffentliches Deck ohne Sprechheft; Vortragsdeck mit Referentenansicht nur lokal',
   { skip: OHNE_NOTIZEN },
   () => {
     const offen = readFileSync(join(platzhalter, 'folien-gesamt.html'), 'utf8');

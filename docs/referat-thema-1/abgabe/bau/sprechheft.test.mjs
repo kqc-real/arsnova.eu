@@ -20,9 +20,9 @@ const HIER = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HIER, '..', '..');
 const REPO = join(ROOT, '..', '..');
 const heft = ladeHeft(ROOT);
-// Heftseiten und Vortragsdeck liegen privat (privat/, eigenes Repo); ohne sie entfallen diese Prüfungen
+// Heftseiten und Vortragsdeck liegen lokal (privat/); ohne sie entfallen diese Prüfungen
 const PRIVAT = join(ROOT, 'privat');
-const ohnePrivat = existsSync(join(ROOT, HEFT_ORDNER)) ? false : 'privat/ fehlt (eigenes Repo)';
+const ohnePrivat = existsSync(join(ROOT, HEFT_ORDNER)) ? false : 'privat/ fehlt (lokal)';
 const VORTRAG = join(PRIVAT, 'ausgabe', 'folien-gesamt-mit-notizen.html');
 const deck = readFileSync(join(HIER, '..', 'folien-gesamt.html'), 'utf8');
 const folienIds = [

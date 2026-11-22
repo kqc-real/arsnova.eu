@@ -383,7 +383,7 @@ async function main() {
     },
   });
   const ausgabe = resolve(o.ausgabe ?? STANDARD_AUSGABE);
-  // Private Ausgaben (Vortragsdeck mit Referentenansicht, Notizen, Karten, Hefte) nicht ins öffentliche Repo:
+  // Vortragsunterlagen (Deck mit Referentenansicht, Notizen, Karten, Hefte) gehören nicht zur Abgabe:
   // standardmäßig in den von Git ignorierten Ordner privat/ausgabe, bei --ausgabe daneben unter privat/.
   const privatAusgabe = resolve(
     o.privat ?? (o.ausgabe ? join(ausgabe, 'privat') : join(ROOT, 'privat', 'ausgabe')),
@@ -486,7 +486,7 @@ async function main() {
     rmSync(join(ausgabe, 'manifest.json'), { force: true });
     const deckPfad = join(ausgabe, 'folien-gesamt.html');
     writeFileSync(deckPfad, html);
-    // Ohne privat/notizen.mjs (öffentlicher Klon) entstehen nur die öffentlichen Ausgaben.
+    // Ohne privat/notizen.mjs entstehen nur die Abgabedateien.
     if (mitNotizen) {
       mkdirSync(privatAusgabe, { recursive: true });
       writeFileSync(join(privatAusgabe, 'folien-gesamt-mit-notizen.html'), rohVortrag);
@@ -646,8 +646,8 @@ async function main() {
     console.log(`Ausgabe: ${ausgabe}; Handout: PaperLab (./paperlab check|final)`);
     console.log(
       mitNotizen
-        ? `Privat (nicht im Repo): ${privatAusgabe} (folien-gesamt-mit-notizen.html mit Taste n, Sprechhefte, Notizen, Karten)`
-        : 'Privat: übersprungen, privat/notizen.mjs fehlt (eigenes Repo)',
+        ? `Vortragsunterlagen (lokal): ${privatAusgabe} (folien-gesamt-mit-notizen.html mit Taste n, Sprechhefte, Notizen, Karten)`
+        : 'Vortragsunterlagen: übersprungen, privat/notizen.mjs fehlt',
     );
   } finally {
     rmSync(arbeit, { recursive: true, force: true });

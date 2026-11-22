@@ -22,8 +22,8 @@ import { STUFE_1B34, ersatzSvg, folien1B34 } from './folien-1b34.mjs';
 import { LITERATUR_1A, kurzbeleg1A } from './literatur-1a.mjs';
 import { mitNotizen } from './notizen.mjs';
 
-// Ablesetexte und Stichpunkte liegen privat (privat/notizen.mjs); ohne sie entfallen die Prüfungen dazu
-const OHNE_NOTIZEN = mitNotizen ? false : 'privat/notizen.mjs fehlt (eigenes Repo)';
+// Ablesetexte und Stichpunkte liegen lokal (privat/notizen.mjs); ohne sie entfallen die Prüfungen dazu
+const OHNE_NOTIZEN = mitNotizen ? false : 'privat/notizen.mjs fehlt (lokal)';
 
 const HIER = resolve(fileURLToPath(import.meta.url), '..');
 const ROOT = resolve(HIER, '../..');

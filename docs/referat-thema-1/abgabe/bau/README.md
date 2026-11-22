@@ -2,7 +2,7 @@
 
 Dieser Ordner erzeugt reproduzierbar, was Jonas für Thema 1 vorträgt: das gemeinsame Browser-Deck, die
 PDF-Fassungen, die Sprechnotizen und ein Manifest mit Prüfsummen. Das Handout entsteht seit 2026-11-15 in
-PaperLab (privates Repo, Typ `referat`, IU-Format nach Gestaltungs- und Zitierleitfaden); dieser Ordner
+PaperLab (Typ `referat`, IU-Format nach Gestaltungs- und Zitierleitfaden); dieser Ordner
 liefert ihm Zahlen und Abbildungen.
 
 ## Bauen
@@ -65,7 +65,7 @@ er läuft springt auf das letzte Bild (`deck.js`, `clipSchritt`).
 ## Sprechnotizen, Sprungplan, roter Faden
 
 - Jede Folie hat zwei Fassungen: `stichpunkte` (3–6, zum freien Vortrag, Zahlen mit Einheit) und `notiz`
-  (Fließtext zum Üben). Beide stehen nicht im Repo, sondern in `privat/notizen.mjs` (eigenes Repo); die
+  (Fließtext zum Üben). Beide liegen lokal in `privat/notizen.mjs` und gehören nicht zur Abgabe; die
   Folienmodule rufen sie über `privat('ID.feld', { werte })` aus `notizen.mjs` ab. Ohne diese Datei baut
   `bau.mjs` nur die öffentlichen Ausgaben, und die Tests zu Notizen werden übersprungen. `[Weiter]` markiert jeden Tastendruck einer Aufbaustufe (GK, J7, J9, J12, J13, J15, G9; bei Niklas N6, N7, N9, N10, M1–M4). Auf J13 kommen erst die Stufen, dann der Clip.
 - Der Sprungplan steht oben in den Sprechnotizen jeder Person, gezählt nur über die eigene Redezeit ab der
@@ -129,13 +129,13 @@ die Herkunft von Niklas' Teilen.
 
 ## Ausgaben (`ausgabe/`)
 
-| Datei                   | Inhalt                                                                                                          |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `folien-gesamt.html`    | Gemeinsames Deck zum Vortragen, selbstständig (Schriften, Bilder, Clip)                                         |
-| `folien-gesamt.pdf`     | Druck des gemeinsamen Decks, eine Seite je Folie                                                                |
-| `folien-jonas.pdf`      | Titel GT, Jonas' Folien (J1–J15), GN, Literatur J16, J16b und Reserve                                           |
-| `../../privat/ausgabe/` | Nicht im Repo (von Git ignoriert): Vortragsdeck mit Referentenansicht, Sprechnotizen, Sprechkarten, Sprechhefte |
-| `manifest.json`         | SHA-256 aller Ein- und Ausgaben, Seitenzahlen                                                                   |
+| Datei                   | Inhalt                                                                  |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `folien-gesamt.html`    | Gemeinsames Deck zum Vortragen, selbstständig (Schriften, Bilder, Clip) |
+| `folien-gesamt.pdf`     | Druck des gemeinsamen Decks, eine Seite je Folie                        |
+| `folien-jonas.pdf`      | Titel GT, Jonas' Folien (J1–J15), GN, Literatur J16, J16b und Reserve   |
+| `../../privat/ausgabe/` | Lokal, von Git ignoriert: Vortragsunterlagen                            |
+| `manifest.json`         | SHA-256 aller Ein- und Ausgaben, Seitenzahlen                           |
 
 **Vortrag:** Reserve im Deck mit Taste `r`, Ziffer 1–9 oder Pfeile und Enter, `Esc` zurück. Persönliche
 Vortragsunterlagen entstehen beim Bau im von Git ignorierten Ordner `privat/ausgabe/`.

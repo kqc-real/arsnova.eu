@@ -1,6 +1,6 @@
 # Abgabe Referat Thema 1 (Jonas und Niklas)
 
-Gemeinsame Abgabe, ohne Sprechnotizen. Die Handouts enthalten Name und Matrikelnummer (Abgabefassung). Zum Öffnen:
+Gemeinsame Abgabe. Die Handouts enthalten Name und Matrikelnummer (Abgabefassung). Zum Öffnen:
 
 | Datei                                        | Inhalt                                                                      |
 | -------------------------------------------- | --------------------------------------------------------------------------- |
@@ -12,10 +12,6 @@ Gemeinsame Abgabe, ohne Sprechnotizen. Die Handouts enthalten Name und Matrikeln
 | [`handout-niklas.pdf`](./handout-niklas.pdf) | Handout Niklas (1A, 1B Schritte 3–4), gebaut in PaperLab (`paperlab final`) |
 
 [`manifest.json`](./manifest.json) hält Prüfsummen, Seitenzahlen und Eingaben des Baus fest.
-
-Die Fassungen mit Notizen (`folien-gesamt-mit-notizen.html`, `notizen-heft-*.html`,
-`notizen-karten-*.pdf`, `notizen-*.md`) entstehen nur im privaten Repo unter
-`privat/ausgabe/`.
 
 ## Bauen
 

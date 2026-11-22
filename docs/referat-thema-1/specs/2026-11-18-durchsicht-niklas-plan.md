@@ -366,7 +366,7 @@ gemeinsam: true`. Die Aufteilung ist alphabetisch fortlaufend, etwa die
 
 **Files:**
 
-- Modify (privat):
+- Modify (lokal):
   - `privat/notizen.mjs`:
     - Einträge für GT, G0, GK, J2, J4, N4, M1, G9, GD;
     - neue Einträge GN, LV1, LV2;
@@ -400,14 +400,11 @@ gemeinsam: true`. Die Aufteilung ist alphabetisch fortlaufend, etwa die
     - die Referentenansicht auf GN (Taste n);
     - Seiten der beiden Einzel-PDFs mit Literatur.
 - [ ] **Step 6: Commit**
-  - Fork:
-    `build(referat): rebuild deck and PDFs after the joint review`
-  - privat: `feat: update notes and booklet for the joint review changes`
+  - `build(referat): rebuild deck and PDFs after the joint review`
 
 ### Abschluss
 
 - Eine Durchsicht des ganzen Zweigs durch einen frischen Reviewer.
 - Danach `loadout:docs-sync` für die README-Dateien:
-  - `abgabe/jonas/README.md` (Folienliste, Literatur);
-  - `privat/README.md`.
+  - `abgabe/jonas/README.md` (Folienliste, Literatur).
 - Push erst nach Rückfrage.
