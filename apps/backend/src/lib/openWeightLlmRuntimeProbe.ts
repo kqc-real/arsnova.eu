@@ -21,6 +21,7 @@ import {
 } from '@arsnova/shared-types';
 import {
   isOpenWeightLlmEnabled,
+  OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS,
   OPEN_WEIGHT_LLM_MODEL_ALIAS,
   resolveOpenWeightLlmLearningTimeoutMs,
   resolveOpenWeightLlmSummaryTimeoutMs,
@@ -380,13 +381,11 @@ async function runOneTask(
   }
 }
 
-const OPEN_WEIGHT_LLM_PROBE_CANCEL_COOLDOWN_MS = 1_500;
-
 async function waitForProbeCancelCooldown(
   previousOutcome: OpenWeightLlmProbeTaskResult,
 ): Promise<void> {
   if (previousOutcome.reason === 'aborted' || previousOutcome.reason === 'timeout') {
-    await new Promise((resolve) => setTimeout(resolve, OPEN_WEIGHT_LLM_PROBE_CANCEL_COOLDOWN_MS));
+    await new Promise((resolve) => setTimeout(resolve, OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS));
   }
 }
 

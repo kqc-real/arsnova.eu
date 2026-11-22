@@ -35696,6 +35696,10 @@
         <source>Bei den übrigen Fragen fortsetzen</source>
         <target>Continua</target>
         </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumePending" datatype="html">
+        <source>Übrige Fragen werden bearbeitet</source>
+        <target>Elaborazione delle domande rimanenti</target>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
         <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
         <target>Per le domande rimanenti esistono già delle bozze.</target>

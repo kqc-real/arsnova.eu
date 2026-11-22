@@ -137,11 +137,12 @@ Das Profil `llm-http` ist ausschließlich ein lokaler Laborpfad. Der Produktions
 
 ## Laufzeitvertrag
 
-- global höchstens ein App-Auftrag gleichzeitig über alle drei Auftragstypen;
+- pro App-Prozess höchstens ein laufender Auftrag über alle drei Auftragstypen;
+- im Betrieb mit mehreren App-Instanzen zusätzlich eine atomare Redis-Reservierung vor der Slot-Sonde (`OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED=true`). Vor dem POST prüft und erneuert die App die eigene Reservierung. Belegung und Redis-Ausfall führen zu den vorhandenen Fallbacks beziehungsweise zum manuellen Retry. Alle Apps an derselben Runtime müssen dasselbe Redis und dieselbe Einstellung verwenden;
 - vor jedem Modellaufruf `GET /slots?fail_on_no_slot=1`;
 - maximal ein POST nach erfolgreicher Slot-Sonde, keine App-interne Modellqueue;
 - belegter Slot: Label und Summary liefern sofort ihren fachlichen Fallback, Lernzielableitung `{ status: "busy", retry: "manual" }`;
-- Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung, brechen danach den HTTP-Aufruf ab und lösen das globale Inflight in `finally`; verspätete DNS-Ergebnisse starten keinen Request. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches;
+- Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung und brechen danach den HTTP-Aufruf ab. Bei einem unterbrochenen POST hält die App die Redis-Reservierung noch 1,5 Sekunden, damit der Modellserver den Verbindungsabbruch erkennen kann. Danach gibt sie ihre Reservierung frei. Der nächste Auftrag prüft den Modellslot unter seiner eigenen Reservierung. Bei einem App-Ausfall oder fehlgeschlagener Freigabe läuft die Reservierung weiterhin nach dem Auftrags-Timeout plus 15 Sekunden ab der letzten Besitzerprüfung ab. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches;
 - Circuit Breaker öffnet nach drei Timeout-/Verfügbarkeits-/Antwortfehlern für 30 Sekunden;
 - URL-Hostnamen werden aufgelöst und auf ausschließlich Loopback/RFC1918/ULA geprüft; die Anfrage wird an die geprüfte IP gepinnt;
 - Telemetrie enthält nur Auftragstyp, Modellalias, Laufzeit und Tokenzahlen, keine Prompttexte.

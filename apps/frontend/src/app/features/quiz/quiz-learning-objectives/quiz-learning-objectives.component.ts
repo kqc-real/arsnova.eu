@@ -307,6 +307,7 @@ export class QuizLearningObjectivesComponent {
     () => this.derivationCanRetry() && this.derivationResumeCoveredCount() > 0,
   );
   readonly derivationIsPending = computed(() => this.derivationStatus() === 'pending');
+  protected readonly derivationResumesRemainingQuestions = signal(false);
   readonly confirmAllInProgress = signal(false);
   readonly deleteAllDraftsPending = signal(false);
   readonly deleteAllInProgress = signal(false);
@@ -440,6 +441,7 @@ export class QuizLearningObjectivesComponent {
     const sequence = ++this.derivationSequence;
     const controller = new AbortController();
     this.derivationAbortController = controller;
+    this.derivationResumesRemainingQuestions.set(resumeCovered.size > 0);
     this.derivationStatus.set('pending');
     this.derivationProgress.set(null);
     this.derivationMessage.set(this.derivationPendingMessage());
