@@ -69,6 +69,7 @@ describe('QuizPreviewComponent', () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: true,
+      shuffleAnswerOptions: false,
       preset: 'PLAYFUL',
     },
     questions: [

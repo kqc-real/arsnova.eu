@@ -377,6 +377,41 @@ describe('usageStatistic', () => {
         data: expect.objectContaining({ processedAt: expect.any(Date) }),
       }),
     );
+    const lockQueryArg = okTx.$queryRaw.mock.calls[0]?.[0] as unknown;
+    const lockSql = Array.isArray(lockQueryArg)
+      ? lockQueryArg.join(' ')
+      : lockQueryArg && typeof lockQueryArg === 'object' && 'strings' in lockQueryArg
+        ? ((lockQueryArg as { strings?: readonly string[] }).strings?.join(' ') ?? '')
+        : String(lockQueryArg ?? '');
+    expect(lockSql).toContain('FOR UPDATE SKIP LOCKED');
+  });
+
+  it('überspringt durch ein anderes Replikat gesperrte Outbox-Zeilen ohne Fehlerzähler', async () => {
+    vi.mocked(prisma.usageStatisticOutbox.findMany).mockResolvedValue([
+      {
+        id: 'outbox-locked',
+        kind: 'PARTICIPATION',
+        sessionId: 'session-locked',
+        idempotencyKey: 'participation:locked',
+        createdAt: new Date(),
+        processedAt: null,
+        attempts: 0,
+        lastError: null,
+      },
+    ] as never);
+    const skippedTx = {
+      $queryRaw: vi.fn().mockResolvedValueOnce([]),
+      $executeRaw: vi.fn(),
+      usageStatisticOutbox: { update: vi.fn() },
+    };
+    vi.mocked(prisma.$transaction).mockImplementation(((fn: (t: typeof skippedTx) => unknown) =>
+      fn(skippedTx)) as unknown as typeof prisma.$transaction);
+
+    const processed = await processUsageStatisticOutbox(10, new Date('2026-05-04T12:00:00.000Z'));
+    expect(processed).toBe(0);
+    expect(skippedTx.$executeRaw).not.toHaveBeenCalled();
+    expect(skippedTx.usageStatisticOutbox.update).not.toHaveBeenCalled();
+    expect(prisma.usageStatisticOutbox.update).not.toHaveBeenCalled();
   });
 
   it('zählt nach Abbruch vor Commit beim erneuten Drain exakt einmal', async () => {

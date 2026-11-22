@@ -12,6 +12,7 @@ import {
   QuickFeedbackVoteInputSchema,
   QuickFeedbackIsActiveInputSchema,
   QuickFeedbackIsActiveOutputSchema,
+  QuickFeedbackLockStateSchema,
   QuickFeedbackResultSchema,
   MoodValueEnum,
   AbcdValueEnum,
@@ -263,8 +264,8 @@ end
 redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
 return cjson.encode({ ok = true })
 `;
-const MUTATE_SESSION_BOUND_QUICK_FEEDBACK_SCRIPT = `
--- QUICK_FEEDBACK_MUTATE_SESSION_BOUND
+const MUTATE_QUICK_FEEDBACK_SCRIPT = `
+-- QUICK_FEEDBACK_MUTATE
 local raw = redis.call('GET', KEYS[1])
 if not raw then
   return cjson.encode({ error = 'MISSING' })
@@ -273,9 +274,13 @@ local decoded, current = pcall(cjson.decode, raw)
 if not decoded or type(current) ~= 'table' then
   return cjson.encode({ error = 'MALFORMED' })
 end
-if current['sessionBound'] ~= true
-  or current['sessionId'] ~= ARGV[1]
-  or redis.call('EXISTS', KEYS[7]) == 1 then
+if ARGV[1] ~= '' then
+  if current['sessionBound'] ~= true
+    or current['sessionId'] ~= ARGV[1]
+    or redis.call('EXISTS', KEYS[7]) == 1 then
+    return cjson.encode({ error = 'SESSION_MISMATCH' })
+  end
+elseif current['sessionBound'] == true then
   return cjson.encode({ error = 'SESSION_MISMATCH' })
 end
 
@@ -287,6 +292,14 @@ if action == 'END' then
   redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
   return cjson.encode({ ok = true })
 end
+
+local nextDecoded, nextResult = pcall(cjson.decode, ARGV[2])
+if not nextDecoded or type(nextResult) ~= 'table' then
+  return cjson.encode({ error = 'MALFORMED' })
+end
+local currentLockVersion = tonumber(current['lockVersion']) or 0
+local lockVersion = currentLockVersion + 1
+nextResult['lockVersion'] = lockVersion
 
 if action == 'RESET_ALL' then
   for index = 3, 6 do
@@ -304,9 +317,13 @@ elseif action == 'DISCUSSION' then
   end
 end
 
-redis.call('SET', KEYS[1], ARGV[2], 'EX', tonumber(ARGV[3]))
+redis.call('SET', KEYS[1], cjson.encode(nextResult), 'EX', tonumber(ARGV[3]))
 redis.call('SET', KEYS[2], '1', 'EX', tonumber(ARGV[4]))
-return cjson.encode({ ok = true })
+return cjson.encode({
+  ok = true,
+  locked = nextResult['locked'] == true,
+  lockVersion = lockVersion
+})
 `;
 type StoredQuickFeedbackResult = QuickFeedbackResult & {
   sessionBound?: boolean;
@@ -318,6 +335,7 @@ type StoredQuickFeedbackResult = QuickFeedbackResult & {
   /** One-shot votes written after successful participant-capability validation. */
   validatedParticipantVoteCount?: number;
 };
+
 type SessionQuickFeedbackGate = {
   id: string;
   quickFeedbackEnabled: boolean;
@@ -517,26 +535,26 @@ async function createSessionBoundQuickFeedback(
   throwForQuickFeedbackMutationError(payload.error);
 }
 
-type SessionBoundMutationAction = 'REPLACE' | 'RESET_ALL' | 'DISCUSSION' | 'SECOND_ROUND' | 'END';
+type QuickFeedbackMutationAction = 'REPLACE' | 'RESET_ALL' | 'DISCUSSION' | 'SECOND_ROUND' | 'END';
 
-async function mutateSessionBoundQuickFeedback(
+async function mutateQuickFeedback(
   code: string,
   result: StoredQuickFeedbackResult,
-  action: SessionBoundMutationAction,
+  action: QuickFeedbackMutationAction,
   knownTtlSeconds = KNOWN_FEEDBACK_TTL_SECONDS,
-): Promise<void> {
-  const sessionId = result.sessionId;
-  if (!sessionId) {
+): Promise<{ locked?: boolean; lockVersion?: number }> {
+  const sessionId = result.sessionBound === true ? result.sessionId : null;
+  if (result.sessionBound === true && !sessionId) {
     throw new TRPCError({
       code: 'NOT_FOUND',
       message: 'Feedback-Runde nicht gefunden oder abgelaufen.',
     });
   }
   const raw = await getRedis().eval(
-    MUTATE_SESSION_BOUND_QUICK_FEEDBACK_SCRIPT,
+    MUTATE_QUICK_FEEDBACK_SCRIPT,
     7,
-    ...sessionBoundMutationKeys(code, sessionId),
-    sessionId,
+    ...sessionBoundMutationKeys(code, sessionId ?? ''),
+    sessionId ?? '',
     JSON.stringify(result),
     String(FEEDBACK_TTL_SECONDS),
     String(knownTtlSeconds),
@@ -544,6 +562,10 @@ async function mutateSessionBoundQuickFeedback(
   );
   const payload = parseQuickFeedbackMutationResult(raw);
   throwForQuickFeedbackMutationError(payload.error);
+  return {
+    locked: typeof payload.locked === 'boolean' ? payload.locked : undefined,
+    lockVersion: typeof payload.lockVersion === 'number' ? payload.lockVersion : undefined,
+  };
 }
 
 function generateCode(): string {
@@ -999,6 +1021,7 @@ export const quickFeedbackRouter = router({
       const initial: StoredQuickFeedbackResult = {
         type: input.type,
         locked: false,
+        lockVersion: 0,
         showLiveResults: input.showLiveResults ?? quickFeedbackDefaultsToLiveResults(input.type),
         totalVotes: 0,
         distribution: emptyDistribution(input.type),
@@ -1033,9 +1056,7 @@ export const quickFeedbackRouter = router({
   changeType: publicProcedure
     .input(UpdateQuickFeedbackTypeInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.type = input.type;
       result.locked = false;
@@ -1054,18 +1075,7 @@ export const quickFeedbackRouter = router({
         result.validatedParticipantVoteCount = 0;
       }
 
-      if (result.sessionBound === true) {
-        await mutateSessionBoundQuickFeedback(code, result, 'RESET_ALL');
-      } else {
-        const multi = redis.multi();
-        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-        multi.del(votersKey(code));
-        multi.del(choicesKey(code));
-        multi.del(choicesR1Key(code));
-        multi.del(tempoBucketsKey(code));
-        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-        await multi.exec();
-      }
+      await mutateQuickFeedback(code, result, 'RESET_ALL');
 
       return { ok: true };
     }),
@@ -1101,9 +1111,7 @@ export const quickFeedbackRouter = router({
   reset: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.totalVotes = 0;
       result.locked = false;
@@ -1120,18 +1128,7 @@ export const quickFeedbackRouter = router({
         result.validatedParticipantVoteCount = 0;
       }
 
-      if (result.sessionBound === true) {
-        await mutateSessionBoundQuickFeedback(code, result, 'RESET_ALL');
-      } else {
-        const multi = redis.multi();
-        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-        multi.del(votersKey(code));
-        multi.del(choicesKey(code));
-        multi.del(choicesR1Key(code));
-        multi.del(tempoBucketsKey(code));
-        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-        await multi.exec();
-      }
+      await mutateQuickFeedback(code, result, 'RESET_ALL');
 
       return { ok: true };
     }),
@@ -1139,23 +1136,11 @@ export const quickFeedbackRouter = router({
   end: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
 
       const result = await loadQuickFeedbackForHost(ctx, code);
 
-      if (result.sessionBound === true) {
-        await mutateSessionBoundQuickFeedback(code, result, 'END', KNOWN_FEEDBACK_GRACE_SECONDS);
-      } else {
-        const multi = redis.multi();
-        multi.del(feedbackKey(code));
-        multi.del(votersKey(code));
-        multi.del(choicesKey(code));
-        multi.del(choicesR1Key(code));
-        multi.del(tempoBucketsKey(code));
-        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_GRACE_SECONDS);
-        await multi.exec();
-      }
+      await mutateQuickFeedback(code, result, 'END', KNOWN_FEEDBACK_GRACE_SECONDS);
       await invalidateFeedbackHostToken(code);
 
       return { ok: true };
@@ -1163,31 +1148,26 @@ export const quickFeedbackRouter = router({
 
   toggleLock: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
+    .output(QuickFeedbackLockStateSchema)
     .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       result.locked = !result.locked;
-
-      if (result.sessionBound === true) {
-        await mutateSessionBoundQuickFeedback(code, result, 'REPLACE');
-      } else {
-        const multi = redis.multi();
-        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-        await multi.exec();
+      const stored = await mutateQuickFeedback(code, result, 'REPLACE');
+      if (stored.locked === undefined || stored.lockVersion === undefined) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Gespeicherter Sperrstatus ist unvollständig.',
+        });
       }
-      return { locked: result.locked };
+      return { locked: stored.locked, lockVersion: stored.lockVersion };
     }),
 
   /** Diskussionsphase starten (Story 2.7): Runde 1 sichern, Abstimmung sperren. */
   startDiscussion: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       if (result.discussion) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Diskussionsphase bereits aktiv.' });
@@ -1199,22 +1179,7 @@ export const quickFeedbackRouter = router({
       result.locked = true;
       result.currentRound = 1;
 
-      const cKey = choicesKey(code);
-      const r1Key = choicesR1Key(code);
-      if (result.sessionBound === true) {
-        await mutateSessionBoundQuickFeedback(code, result, 'DISCUSSION');
-      } else {
-        const currentChoices = await redis.hgetall(cKey);
-        const multi = redis.multi();
-        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-        if (Object.keys(currentChoices).length > 0) {
-          multi.del(r1Key);
-          multi.hset(r1Key, currentChoices);
-          multi.expire(r1Key, FEEDBACK_TTL_SECONDS);
-        }
-        await multi.exec();
-      }
+      await mutateQuickFeedback(code, result, 'DISCUSSION');
       return { ok: true };
     }),
 
@@ -1222,9 +1187,7 @@ export const quickFeedbackRouter = router({
   startSecondRound: publicProcedure
     .input(QuickFeedbackVoteInputSchema.pick({ sessionCode: true }))
     .mutation(async ({ ctx, input }) => {
-      const redis = getRedis();
       const code = input.sessionCode.toUpperCase();
-      const key = feedbackKey(code);
       const result = await loadQuickFeedbackForHost(ctx, code);
       if (!result.discussion) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Erst Diskussionsphase starten.' });
@@ -1242,16 +1205,7 @@ export const quickFeedbackRouter = router({
         result.validatedParticipantVoteCount = 0;
       }
 
-      if (result.sessionBound === true) {
-        await mutateSessionBoundQuickFeedback(code, result, 'SECOND_ROUND');
-      } else {
-        const multi = redis.multi();
-        multi.set(key, JSON.stringify(result), 'EX', FEEDBACK_TTL_SECONDS);
-        multi.set(knownFeedbackKey(code), '1', 'EX', KNOWN_FEEDBACK_TTL_SECONDS);
-        multi.del(votersKey(code));
-        multi.del(choicesKey(code));
-        await multi.exec();
-      }
+      await mutateQuickFeedback(code, result, 'SECOND_ROUND');
 
       return { ok: true };
     }),

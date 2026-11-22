@@ -1031,6 +1031,7 @@ export class QuizListComponent implements OnInit {
       nicknameTheme: presetDefaults.nicknameTheme ?? 'KINDERGARTEN',
       bonusTokenCount: null,
       readingPhaseEnabled: presetDefaults.readingPhaseEnabled ?? false,
+      shuffleAnswerOptions: false,
       preset,
     };
 

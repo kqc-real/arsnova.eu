@@ -402,6 +402,12 @@
   user-select: none;
 }
 
+.foyer-entrance-layer__chip-emoji-image {
+  inline-size: 1em;
+  block-size: 1em;
+  object-fit: contain;
+}
+
 .foyer-entrance-layer--compact .foyer-entrance-layer__chip-emoji {
   font-size: 1.12rem;
 }

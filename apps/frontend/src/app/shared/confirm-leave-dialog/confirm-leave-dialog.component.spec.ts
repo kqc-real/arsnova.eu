@@ -57,6 +57,7 @@ describe('ConfirmLeaveDialogComponent', () => {
     const confirm = Array.from(fixture.nativeElement.querySelectorAll('button')).find(
       (button) => (button as HTMLButtonElement).textContent?.trim() === 'Alle Quizze löschen',
     ) as HTMLButtonElement;
+    expect(confirm.classList).toContain('confirm-leave__confirm');
     confirm.click();
     expect(close).toHaveBeenCalledExactlyOnceWith(true);
   });

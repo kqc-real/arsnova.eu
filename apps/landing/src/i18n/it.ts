@@ -155,7 +155,7 @@ const it: Messages = {
       },
       {
         label: 'Nuvola di parole tematica',
-        text: 'Parole ed espressioni sono ponderate in base all’ordinamento scelto: saldo dei voti, consenso solido o controversia.',
+        text: 'La dimensione dei termini può essere ponderata in base al saldo dei voti, al consenso solido, ai voti divisi o al numero di domande in cui compare il termine.',
       },
       {
         label: 'Bussola di moderazione',
@@ -169,22 +169,22 @@ const it: Messages = {
     moderationActive: 'Pre-moderazione attiva',
     sortMostSupported: 'Saldo dei voti',
     sortBest: 'Consenso solido',
-    sortControversial: 'Controversia',
+    sortControversial: 'Voti divisi',
     questions: [
       {
-        score: '+18',
+        score: '+11',
+        title: 'In cosa il Q&A differisce dal testo libero nel quiz?',
+        meta: '100% a favore · 11 voti',
+      },
+      {
+        score: '+12',
         title: 'Quando una stima rientra in un intervallo accettabile?',
-        meta: '15 favorevoli · 3 contrari · consenso solido',
+        meta: '83,3% a favore · 18 voti',
       },
       {
         score: '+4',
         title: 'Dobbiamo davvero nascondere i risultati prima della discussione?',
-        meta: '9 positivi · 5 negativi · controversa',
-      },
-      {
-        score: '+11',
-        title: 'In cosa il Q&A differisce dal testo libero nel quiz?',
-        meta: '11 positivi · 0 negativi · la più sostenuta',
+        meta: '64,3% a favore · 14 voti',
       },
     ],
     wordCloud: 'Nuvola di parole Q&A',
@@ -305,6 +305,8 @@ const it: Messages = {
     eyebrow: 'Cosa distingue arsnova.eu',
     title: 'Tutto il necessario per la partecipazione del pubblico in diretta',
     lead: 'Inizia senza account e prepara, conduci ed esamina le sessioni in diretta. Il codice aperto permette di verificare come funziona la piattaforma.',
+    peerInstructionDescription:
+      'I partecipanti votano prima individualmente, discutono le ragioni delle loro risposte e poi votano di nuovo. Il confronto tra i due turni mostra come sono cambiate le risposte.',
     items: [
       {
         title: 'Crea e conduci dal telefono',
@@ -410,16 +412,16 @@ const it: Messages = {
     pointsCol: 'Punti',
     correctCol: 'Corretto',
     names: [
-      'Gatto corallo',
-      'Pappagallo colorato',
-      'Orso bruno',
-      'Topo verde oliva',
-      'Cigno azzurro',
-      'Drago rosso',
-      'Farfalla rosa',
-      'Orso bruno 2',
-      'Drago rosso 8',
-      'Giraffa celeste',
+      'Muso di gatto',
+      'Pappagallo',
+      'Orso',
+      'Topo',
+      'Cigno',
+      'Drago',
+      'Farfalla',
+      'Orso 2',
+      'Drago 8',
+      'Giraffa',
     ],
   },
   structuredQuestionTypes: {

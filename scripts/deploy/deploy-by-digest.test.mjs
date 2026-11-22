@@ -9,6 +9,7 @@ import {
   existsSync,
   unlinkSync,
   readdirSync,
+  rmSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
@@ -95,6 +96,7 @@ function runRunnerSelectionDeploy({
   redisVolumePresent = false,
   redisProbeValue = '1',
   redisTimeoutSeconds = 3,
+  activeReplica = '',
 }) {
   const work = mkdtempSync(join(tmpdir(), `arsnova-runner-${mode}-`));
   const bin = join(work, 'mock-bin');
@@ -110,7 +112,12 @@ function runRunnerSelectionDeploy({
     writeFileSync(join(work, '.env.arsnova-image'), `ARSNOVA_IMAGE=${current.image}\n`);
   }
 
-  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh', 'lib-arch.sh']) {
+  for (const name of [
+    'lib-image-ref.sh',
+    'lib-deploy-state.sh',
+    'lib-arch.sh',
+    'lib-operation-lock.sh',
+  ]) {
     copyFileSync(join(repoRoot, 'scripts', 'deploy', name), join(work, 'scripts', 'deploy', name));
   }
   copyFileSync(deployScript, join(work, 'scripts', 'deploy.sh'));
@@ -195,6 +202,13 @@ if [[ "$1" == "image" && "$2" == "inspect" ]]; then
     exit 0
   fi
   exit 1
+fi
+
+if [[ "$1" == "ps" ]]; then
+  if [[ -n "$MOCK_ACTIVE_REPLICA" ]]; then
+    printf '%s running\n' "$MOCK_ACTIVE_REPLICA"
+  fi
+  exit 0
 fi
 
 if [[ "$1" == "inspect" ]]; then
@@ -383,6 +397,7 @@ exit 1
     DEPLOY_IMAGE: mode === 'normal' ? target.image : '',
     DEPLOY_SHA: mode === 'normal' ? target.sha : '',
     MOCK_ACTIVE_IMAGE: activeImage ?? '',
+    MOCK_ACTIVE_REPLICA: activeReplica,
     MOCK_INITIAL_CHECKOUT_SHA: initialCheckoutSha,
     MOCK_CHECKOUT_MARKER: join(work, '.mock-checkout-complete'),
     MOCK_LOG: mockLog,
@@ -613,6 +628,100 @@ test('writer drain and all-cache purge gate retention and app startup', () => {
 function runnerEvents(log) {
   return log.split('\n').filter((line) => /^(MIGRATE|PROBE|STOP|RUN|RETENTION|START) /.test(line));
 }
+
+test('Deploy verlangt Topologie-Rollback vor Migration und Writer-Drain', () => {
+  for (const activeReplica of ['arsnova-v3-app-b', 'arsnova-v3-app-c', 'arsnova-v3-yjs-relay']) {
+    const scenario = runRunnerSelectionDeploy({
+      mode: 'normal',
+      target: { image: RUNNER_IMAGE_C, sha: RUNNER_SHA_C },
+      activeReplica,
+    });
+    assert.equal(scenario.result.status, 1);
+    assert.match(scenario.result.stderr, /scripts\/prod-replicas\.sh rollback/);
+    assert.doesNotMatch(scenario.log, /^(?:INFRA|MIGRATE|STOP|RUN|RETENTION|START) /m);
+  }
+});
+
+test('Produktionsprofile begrenzen den gemeinsamen Pool und verwenden denselben Digest', () => {
+  const projectDir = mkdtempSync(join(tmpdir(), 'arsnova-prod-replica-contract-'));
+  writeMinimalProdEnv(projectDir);
+  for (const file of ['docker-compose.prod.yml', 'docker-compose.prod.replicas.yml']) {
+    copyFileSync(join(repoRoot, file), join(projectDir, file));
+  }
+  const resolveServices = (files, profiles, pool) => {
+    const result = spawnSync(
+      'docker',
+      [
+        'compose',
+        ...files.flatMap((file) => ['-f', file]),
+        ...profiles.flatMap((profile) => ['--profile', profile]),
+        'config',
+        '--format',
+        'json',
+      ],
+      {
+        cwd: projectDir,
+        env: {
+          ...process.env,
+          ARSNOVA_IMAGE: VALID_DIGEST,
+          ARSNOVA_REPLICA_POOL_MAX: pool,
+          COMPOSE_PROFILES: '',
+        },
+        encoding: 'utf8',
+      },
+    );
+    assert.equal(result.status, 0, result.stderr);
+    return JSON.parse(result.stdout).services;
+  };
+  const base = ['docker-compose.prod.yml'];
+  const overlay = [...base, 'docker-compose.prod.replicas.yml'];
+  const single = resolveServices(base, [], '30');
+  assert.equal(single['app-b'], undefined);
+  assert.equal(single['app-c'], undefined);
+  assert.equal(single['yjs-relay'], undefined);
+  assert.equal(single.app.entrypoint ?? undefined, undefined);
+
+  for (const [profiles, pool, services] of [
+    [['app-replicas'], '30', ['app', 'app-b']],
+    [['app-replicas', 'app-third'], '20', ['app', 'app-b', 'app-c']],
+  ]) {
+    const cfg = resolveServices(overlay, profiles, pool);
+    if (services.length === 2) assert.equal(cfg['app-c'], undefined);
+    assert.equal(cfg['yjs-relay'].image, VALID_DIGEST);
+    for (const name of services) {
+      const app = cfg[name];
+      assert.equal(app.image, VALID_DIGEST);
+      assert.equal(app.environment.DATABASE_POOL_MAX, pool);
+      assert.equal(app.environment.SESSION_STATUS_PUBSUB_ENABLED, 'true');
+      assert.equal(app.environment.TRPC_WS_SHARED_LIMITS_ENABLED, 'true');
+      assert.equal(app.environment.YJS_RELAY_MODE, 'external');
+      assert.deepEqual(app.entrypoint, ['node', 'apps/backend/dist/index.js']);
+      assert.ok(app.ports.every((port) => port.host_ip === '127.0.0.1'));
+    }
+    assert.equal(cfg['app-b'].restart, 'unless-stopped');
+    assert.equal(cfg['yjs-relay'].restart, 'unless-stopped');
+  }
+});
+
+test('Nginx-Pool-Renderer ordnet HTTP, tRPC-WebSocket und Yjs pro Modus zu', () => {
+  for (const [mode, ports] of [
+    ['single', [3000, 3001, 3002]],
+    ['primary', [3000, 3001, 13202]],
+    ['dual', [3000, 13100, 3001, 13101, 13202]],
+    ['triple', [3000, 13100, 13300, 3001, 13101, 13301, 13202]],
+  ]) {
+    const result = spawnSync('bash', ['scripts/prod-replicas.sh', 'render', mode], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(
+      [...result.stdout.matchAll(/server 127\.0\.0\.1:(\d+)/g)].map(([, port]) => Number(port)),
+      ports,
+    );
+    assert.ok(result.stdout.includes(`return 200 "${mode}\\n"`));
+  }
+});
 
 test('already-enabled Redis AOF is verified before infrastructure recreation', () => {
   const scenario = runRunnerSelectionDeploy({
@@ -1061,6 +1170,7 @@ test('real deploy.sh aborts amd64 image before compose up/run and state writes',
     'lib-image-ref.sh',
     'lib-deploy-state.sh',
     'lib-arch.sh',
+    'lib-operation-lock.sh',
     'checkout-deploy-sha.sh',
   ]) {
     const src = join(repoRoot, 'scripts', 'deploy', name);
@@ -1528,7 +1638,12 @@ test('deploy.sh --rollback fails clearly without previous state', () => {
   const work = mkdtempSync(join(tmpdir(), 'arsnova-rollback-'));
   mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
   writeFileSync(join(work, '.env.production'), 'NODE_ENV=production\n');
-  for (const name of ['lib-image-ref.sh', 'lib-deploy-state.sh', 'lib-arch.sh']) {
+  for (const name of [
+    'lib-image-ref.sh',
+    'lib-deploy-state.sh',
+    'lib-arch.sh',
+    'lib-operation-lock.sh',
+  ]) {
     writeFileSync(
       join(work, 'scripts', 'deploy', name),
       readFileSync(join(repoRoot, 'scripts', 'deploy', name)),
@@ -1546,24 +1661,14 @@ test('deploy.sh --rollback fails clearly without previous state', () => {
   assert.match(`${result.stderr}${result.stdout}`, /Previous-Deploy-State|previous/i);
 });
 
-test('CI deploy bootstraps DEPLOY_SHA checkout before deploy.sh', () => {
+test('CI lädt den Runner aus DEPLOY_SHA und der Runner sperrt vor dem Checkout', () => {
   const yaml = readFileSync(ciWorkflow, 'utf8');
   const deployJob = yaml.split('name: Deploy via SSH')[1];
-  assert.ok(deployJob, 'Deploy via SSH step missing');
-  const script = deployJob.split('script: |')[1]?.split(/^ {2}[A-Za-z]/m)[0];
-  assert.ok(script, 'deploy SSH script missing');
-
-  const checkoutIdx = script.indexOf('git checkout --detach --force "$DEPLOY_SHA"');
-  const deployIdx = script.indexOf('./scripts/deploy.sh');
-  assert.ok(checkoutIdx >= 0, 'bootstrap checkout missing in deploy SSH');
-  assert.ok(deployIdx >= 0, 'deploy.sh invocation missing');
-  assert.ok(checkoutIdx < deployIdx, 'DEPLOY_SHA must be checked out before ./scripts/deploy.sh');
-  // Must not invoke a helper that only exists after checkout
-  assert.doesNotMatch(
-    script.slice(0, deployIdx),
-    /(?:^|\s)(?:\.\/)?scripts\/deploy\/checkout-deploy-sha\.sh\b/,
-    'bootstrap must be inline for 1B→1C cutover',
-  );
+  assert.match(deployJob, /git show "\$DEPLOY_SHA:scripts\/deploy\/release.sh"/);
+  const runner = readFileSync(join(repoRoot, 'scripts/deploy/release.sh'), 'utf8');
+  const lockIdx = runner.indexOf('lock_operation "$root" release');
+  const checkoutIdx = runner.indexOf('git checkout --detach --force "$DEPLOY_SHA"');
+  assert.ok(lockIdx >= 0 && lockIdx < checkoutIdx);
 });
 
 test('CI deploy requires 15 GiB free after pruning and before checkout', () => {
@@ -1639,19 +1744,14 @@ test('first manual rollout bootstraps inline without assuming the target helper 
   assert.doesNotMatch(bootstrapBlock, /checkout-deploy-sha\.sh/);
 });
 
-test('CI rollback starts installed script without pre-checkout', () => {
+test('Rollout, Produktions-Smoke und Recovery laufen in einem SSH-Job', () => {
   const yaml = readFileSync(ciWorkflow, 'utf8');
-  const rollbackJob = yaml.split('name: Roll back via SSH')[1];
-  assert.ok(rollbackJob, 'Roll back via SSH step missing');
-  const script = rollbackJob.split('script: |')[1]?.split(/^ {2}[A-Za-z]/m)[0];
-  assert.ok(script, 'rollback SSH script missing');
-
-  assert.match(script, /\.\/scripts\/deploy\.sh --rollback/);
-  assert.doesNotMatch(
-    script,
-    /git checkout/,
-    'rollback must not checkout before reading previous.state',
-  );
+  assert.match(yaml, /DEPLOY_SMOKE_URL: https:/);
+  assert.doesNotMatch(yaml, /name: Roll back via SSH/);
+  const runner = readFileSync(join(repoRoot, 'scripts/deploy/release.sh'), 'utf8');
+  assert.match(runner, /replicas drain &&[\s\S]*scripts\/deploy\.sh" "\$action"/);
+  assert.match(runner, /action=--recover/);
+  assert.match(runner, /action=--rollback/);
 });
 
 test('bootstrap regression: old checkout with compose build is not executed', () => {
@@ -1765,3 +1865,150 @@ test('ops docs use prod-compose / digest-deploy, not bare compose or server buil
     `production docs must use ./scripts/prod-compose.sh or digest deploy:\n${violations.join('\n')}`,
   );
 });
+
+for (const scenario of [
+  { name: 'rollout', failure: '', steps: 'check mode rollback deploy up smoke' },
+  { name: 'konkurrierender Topologiewechsel', failure: 'lock', steps: '' },
+  { name: 'fehlende Nginx-Rechte', failure: 'check', steps: 'check' },
+  {
+    name: 'unvollständiger Digest-Deploy',
+    failure: 'deploy',
+    steps: 'check mode rollback deploy drain --recover up smoke',
+  },
+  {
+    name: 'fehlgeschlagener Smoke nach State-Rotation',
+    failure: 'smoke',
+    steps: 'check mode rollback deploy up smoke drain --rollback up smoke',
+  },
+]) {
+  test(`Release unter einer Sperre: ${scenario.name}`, (t) => {
+    const work = mkdtempSync(join(tmpdir(), 'arsnova-release-'));
+    t.after(() => rmSync(work, { recursive: true, force: true }));
+    const stateDir = join(work, '.deploy-state');
+    mkdirSync(stateDir);
+    mkdirSync(join(work, 'scripts', 'deploy'), { recursive: true });
+    mkdirSync(join(work, 'deploy', 'production'), { recursive: true });
+    const mockBin = join(work, 'bin');
+    mkdirSync(mockBin);
+    const steps = join(work, 'steps');
+    const lock = join(work, '.arsnova-prod-operation.lock');
+    if (scenario.failure === 'lock') mkdirSync(lock);
+    const deployLibs = [
+      'lib-operation-lock.sh',
+      'lib-deploy-state.sh',
+      'lib-image-ref.sh',
+      'release.sh',
+    ];
+    for (const name of deployLibs) {
+      copyFileSync(
+        join(repoRoot, 'scripts', 'deploy', name),
+        join(work, 'scripts', 'deploy', name),
+      );
+    }
+    copyFileSync(
+      join(repoRoot, 'deploy', 'production', 'nginx-pools.sh'),
+      join(work, 'deploy', 'production', 'nginx-pools.sh'),
+    );
+    writeFileSync(
+      join(work, 'scripts/deploy/lib-arch.sh'),
+      'require_image_compatible_with_host() { :; }\n',
+    );
+    writeFileSync(join(work, 'scripts/verify-production-serving.mjs'), '');
+    writeRunnerSnapshot(stateDir, 'current.state', RUNNER_IMAGE_A, RUNNER_SHA_A);
+    writeRunnerSnapshot(stateDir, 'target.state', RUNNER_IMAGE_B, RUNNER_SHA_B);
+
+    writeFileSync(
+      join(work, 'scripts/prod-replicas.sh'),
+      `#!/bin/bash
+set -eu
+source "$ARSNOVA_RELEASE_LOCK_LIB"
+if [[ "$1" != mode ]]; then lock_operation "$DEPLOY_DIR"; fi
+printf '%s\\n' "$1" >> "$TEST_STEPS"
+if [[ "$1" == "$TEST_FAILURE" ]]; then exit 19; fi
+if [[ "$1" == mode ]]; then printf 'dual\\n'; fi
+`,
+    );
+    writeFileSync(
+      join(work, 'scripts/deploy.sh'),
+      `#!/bin/bash
+set -eu
+source "$DEPLOY_DIR/scripts/deploy/lib-operation-lock.sh"
+lock_operation "$DEPLOY_DIR"
+step=\${1:-deploy}
+printf '%s\\n' "$step" >> "$TEST_STEPS"
+if [[ "$step" == "$TEST_FAILURE" ]]; then exit 18; fi
+case "$step" in
+  deploy)
+    cp "$DEPLOY_DIR/.deploy-state/current.state" "$DEPLOY_DIR/.deploy-state/previous.state"
+    cp "$DEPLOY_DIR/.deploy-state/target.state" "$DEPLOY_DIR/.deploy-state/current.state"
+    ;;
+  --rollback)
+    cp "$DEPLOY_DIR/.deploy-state/previous.state" "$DEPLOY_DIR/.deploy-state/current.state"
+    rm "$DEPLOY_DIR/scripts/deploy/lib-operation-lock.sh"
+    ;;
+esac
+`,
+    );
+    writeFileSync(
+      join(mockBin, 'git'),
+      `#!/bin/bash
+case "$1" in
+  show) cat "$DEPLOY_DIR/scripts/deploy/lib-operation-lock.sh" ;;
+  checkout) test -f "$DEPLOY_DIR/.arsnova-prod-operation.lock/release-pid" ;;
+  *) exit 17 ;;
+esac
+`,
+      { mode: 0o755 },
+    );
+    writeFileSync(
+      join(mockBin, 'docker'),
+      `#!/bin/bash
+set -eu
+case "$1" in
+  inspect) printf '%s\\n' '${RUNNER_IMAGE_A}' ;;
+  pull|image) ;;
+  exec)
+    printf 'smoke\\n' >> "$TEST_STEPS"
+    if [[ "$TEST_FAILURE" == smoke && ! -f "$TEST_STEPS.smoke-failed" ]]; then
+      touch "$TEST_STEPS.smoke-failed"
+      exit 16
+    fi
+    ;;
+  *) exit 15 ;;
+esac
+`,
+      { mode: 0o755 },
+    );
+
+    const result = spawnSync('bash', [join(work, 'scripts/deploy/release.sh')], {
+      cwd: work,
+      env: {
+        ...process.env,
+        DEPLOY_DIR: work,
+        DEPLOY_IMAGE: RUNNER_IMAGE_B,
+        DEPLOY_SHA: RUNNER_SHA_B,
+        DEPLOY_SMOKE_URL: 'https://staging.test',
+        TEST_FAILURE: scenario.failure,
+        TEST_STEPS: steps,
+        PATH: `${mockBin}:${process.env.PATH}`,
+      },
+      encoding: 'utf8',
+    });
+    assert.equal(
+      result.status,
+      scenario.failure === 'check' ? 19 : scenario.failure ? 1 : 0,
+      result.stderr,
+    );
+    assert.equal(
+      existsSync(steps) ? readFileSync(steps, 'utf8').trim().replaceAll('\n', ' ') : '',
+      scenario.steps,
+    );
+    assert.equal(existsSync(lock), scenario.failure === 'lock');
+    assert.deepEqual(
+      readSnapshot(join(stateDir, 'current.state')),
+      scenario.failure
+        ? { image: RUNNER_IMAGE_A, sha: RUNNER_SHA_A }
+        : { image: RUNNER_IMAGE_B, sha: RUNNER_SHA_B },
+    );
+  });
+}

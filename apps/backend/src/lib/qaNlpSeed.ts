@@ -22,11 +22,181 @@ export type QaNlpSeedExample = {
   readonly tags: readonly QaNlpSeedTag[];
 };
 
+const LOCALE_TRAINING_TEXTS: Record<QaNlpSeedLocale, Record<QaNlpCategory, readonly string[]>> = {
+  de: {
+    content: [
+      'Welche Annahme steckt hinter dem Beweis der Konvergenz?',
+      'Wieso bleibt die kinetische Energie bei einem elastischen Stoß erhalten?',
+      'Können Sie erklären, wann eine Schätzung unverzerrt ist?',
+      'Was unterscheidet eine proportionale Zuordnung von einer linearen Funktion?',
+    ],
+    organization: [
+      'Wer teilt die Gruppen für das nächste Tutorium ein?',
+      'Wo steht der Termin für die Ersatzübung?',
+      'Welche Gruppe präsentiert zuerst?',
+      'Bis zu welchem Tag können wir uns für den mündlichen Termin anmelden?',
+    ],
+    technical: [
+      'Mein Handy zeigt nach dem Öffnen des Links nur eine leere Seite.',
+      'Der Ton ist bei der Aufzeichnung komplett stumm.',
+      'Die Website hängt und meine Antwort lässt sich nicht absenden.',
+      'Die Seite meldet einen Netzwerkfehler beim Speichern der Datei.',
+    ],
+  },
+  en: {
+    content: [
+      'Why is the estimate biased when data is missing?',
+      'Can you explain why the inverse does not exist in this example?',
+      'What distinguishes a local optimum from a global optimum?',
+      'How does friction change the energy balance?',
+    ],
+    organization: [
+      'When does the replacement session start?',
+      'Can we switch groups for the next tutorial?',
+      'How do we sign up for a presentation slot?',
+      'Is this an individual report or a group submission?',
+    ],
+    technical: [
+      'The lecture recording plays but I cannot hear the lecturer.',
+      'The page turns white when I follow the link.',
+      'My browser says the connection timed out while saving.',
+      'The answer box disappears when I open the keyboard.',
+    ],
+  },
+  fr: {
+    content: [
+      'Pourquoi le coefficient change-t-il de signe quand on centre les données ?',
+      'À quoi correspond l’ordonnée à l’origine dans cet exemple ?',
+      'Comment obtenir la valeur propre de la matrice ?',
+      'Est-ce que la vitesse reste constante dans ce modèle ?',
+      'Quelle différence y a-t-il entre une variable continue et une variable discrète ?',
+      'Peut-on appliquer ce théorème si la fonction n’est pas dérivable ?',
+      'D’où vient le terme quadratique dans le calcul ?',
+      'Comment savoir si un estimateur est biaisé ?',
+    ],
+    organization: [
+      'Quand commence la prochaine séance de travaux dirigés ?',
+      'Comment s’inscrire au deuxième groupe de travaux pratiques ?',
+      'Est-ce qu’on peut rendre le devoir à deux ?',
+      'Qui doit passer en premier lors de la présentation de groupe ?',
+      'À partir de quelle date peut-on choisir un créneau pour l’oral ?',
+      'Dans quelle salle aura lieu la séance de jeudi ?',
+      'Faut-il prévenir quelqu’un si on manque le cours de demain ?',
+      'Est-ce que la date de remise du projet a été reportée ?',
+    ],
+    technical: [
+      'L’écran reste vide quand j’ouvre la page sur mon téléphone.',
+      'Impossible d’entendre l’enregistrement du cours sur mon ordinateur.',
+      'Le site se bloque quand j’essaie de joindre le fichier.',
+      'Le lien de connexion renvoie une erreur dans mon navigateur.',
+      'La zone de saisie disparaît quand j’ouvre le clavier.',
+      'Le bouton pour envoyer ma réponse ne réagit plus.',
+      'La connexion au réseau coupe dès que j’ouvre le quiz.',
+      'Les caractères accentués s’affichent comme des carrés dans le formulaire.',
+    ],
+  },
+  es: {
+    content: [
+      '¿Por qué cambia de signo el coeficiente en este ejemplo?',
+      '¿Cómo obtenemos la derivada de una función compuesta?',
+      '¿Qué representa la intersección con el eje vertical?',
+      '¿Qué diferencia hay entre una variable discreta y una continua?',
+      '¿Cuándo es válido aproximar la distribución por una normal?',
+      '¿En qué se basa la hipótesis de independencia del modelo?',
+      '¿Se conserva la energía si aparece rozamiento?',
+      '¿Qué información aporta el determinante de una matriz?',
+    ],
+    organization: [
+      '¿A qué hora empieza la tutoría de mañana?',
+      '¿Podemos elegir otro grupo para el próximo taller?',
+      '¿Cuándo se abre la inscripción para la prueba oral?',
+      '¿Hay que presentar el proyecto antes o después del descanso?',
+      '¿En qué aula tendrá lugar la clase del miércoles?',
+      '¿Cada persona tiene que entregar su propia memoria?',
+      '¿Quién asigna los turnos de las exposiciones?',
+      '¿Se puede aplazar la entrega del proyecto hasta el lunes?',
+    ],
+    technical: [
+      'El navegador muestra una página vacía al abrir el enlace.',
+      'No consigo escuchar la grabación en el ordenador.',
+      'El formulario se congela cuando intento adjuntar un documento.',
+      'No puedo pulsar el botón para enviar el voto.',
+      'El móvil deja de mostrar la casilla al abrir el teclado.',
+      'El sitio da un error de conexión al guardar.',
+      'La red se desconecta cuando se carga el cuestionario.',
+      'Se borran las respuestas cada vez que recargo la página.',
+    ],
+  },
+  it: {
+    content: [
+      'Perché il coefficiente cambia segno in questo grafico?',
+      'Come si trova la derivata di una funzione composta?',
+      'Che cosa rappresenta l’intercetta sull’asse verticale?',
+      'Qual è la differenza tra una variabile continua e una discreta?',
+      'Quando possiamo approssimare la distribuzione con una normale?',
+      'Per quale motivo il teorema richiede la continuità?',
+      'Perché la forza di attrito riduce l’energia cinetica?',
+      'Che informazione ci dà il determinante di una matrice?',
+    ],
+    organization: [
+      'A che ora comincia il prossimo incontro di tutorato?',
+      'Possiamo scegliere un altro gruppo per l’esercitazione?',
+      'Quando si aprono le iscrizioni per l’esame orale?',
+      'Dobbiamo presentare il progetto prima o dopo la pausa?',
+      'In quale aula si tiene la lezione di mercoledì?',
+      'Ogni studente deve inviare una relazione individuale?',
+      'Chi stabilisce i turni per gli interventi?',
+      'Possiamo rinviare la scadenza del progetto a lunedì?',
+    ],
+    technical: [
+      'Il browser mostra una pagina vuota quando apro il collegamento.',
+      'La registrazione parte ma non si sente l’audio.',
+      'Il sito si blocca quando provo ad allegare un documento.',
+      'Non riesco a premere il tasto per inviare il voto.',
+      'Quando appare la tastiera scompare la casella di testo.',
+      'Al salvataggio compare un errore di connessione.',
+      'La rete si disconnette appena carico il questionario.',
+      'Se aggiorno la pagina vengono cancellate le risposte.',
+    ],
+  },
+  mixed: {
+    content: [
+      'Come si distingue a discrete variable da una continua?',
+      'Comment calculer la derivative de cette fonction ?',
+      'Why does der Koeffizient das Vorzeichen wechseln?',
+    ],
+    organization: [
+      '¿Cuándo se abre registration para el laboratorio?',
+      'Can I move to the gruppo del mercoledì?',
+      'À quelle heure starts the makeup class?',
+    ],
+    technical: [
+      'The screen stays blank après avoir ouvert le lien.',
+      'Non funziona il submit button sul telefono.',
+      "El audio doesn't play en mi navegador.",
+    ],
+  },
+};
+
+const LOCALE_TRAINING_EXAMPLES: readonly QaNlpSeedExample[] = QA_NLP_SEED_LOCALES.flatMap(
+  (locale) =>
+    (['content', 'organization', 'technical'] as const).flatMap((category) =>
+      LOCALE_TRAINING_TEXTS[locale][category].map((text) => ({
+        text,
+        category,
+        locale,
+        split: 'train',
+        tags: [locale === 'mixed' ? 'code-switch' : 'canonical'],
+      })),
+    ),
+);
+
 /**
  * Kuratiertes Q&A-Seed-Set fuer Gatekeeper-Training und Evaluation (ADR-0032).
  * Synthetisch, aber hoersaalnah; keine personenbezogenen Texte.
  */
 export const QA_NLP_SEED_EXAMPLES: readonly QaNlpSeedExample[] = [
+  ...LOCALE_TRAINING_EXAMPLES,
   // --- content / train ---
   {
     text: 'Kommt der Median in der Klausur vor?',

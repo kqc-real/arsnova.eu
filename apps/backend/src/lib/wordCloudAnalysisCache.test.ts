@@ -68,7 +68,7 @@ const output = {
   normalizationFallbackUsed: false,
   normalizationFallbackReason: null,
   fallbackLocale: 'de',
-  analysisVersion: '1.14b.14',
+  analysisVersion: '1.14b.15',
   modelId: 'de_core_news_sm@3.8.0',
   snapshotHash: 'a'.repeat(64),
   status: 'ready',
@@ -121,7 +121,7 @@ describe('wordCloudAnalysisCache', () => {
   it('bildet Text-Schluessel ohne Rohtext und mit Analyseversion', () => {
     const textHash = hashWordCloudText('Häuser');
     const key = buildWordCloudTextCacheKey('de', textHash);
-    expect(key).toContain('nlp:wc:text:de:1.14b.14:');
+    expect(key).toContain('nlp:wc:text:de:1.14b.15:');
     expect(key).toContain(textHash);
     expect(key).not.toContain('Häuser');
   });
@@ -130,7 +130,7 @@ describe('wordCloudAnalysisCache', () => {
     const key = buildWordCloudSnapshotCacheKey(input, scope);
     expect(
       key.startsWith(
-        'nlp:wc:snapshot:v2:{11111111-1111-4111-8111-111111111111}:value:ABC123:LEXICAL:TOP:LEMMA:1.14b.14:',
+        'nlp:wc:snapshot:v2:{11111111-1111-4111-8111-111111111111}:value:ABC123:LEXICAL:TOP:LEMMA:1.14b.15:',
       ),
     ).toBe(true);
     expect(key).toContain(':qa-basis-label-v2:');

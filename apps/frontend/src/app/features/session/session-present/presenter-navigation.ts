@@ -45,6 +45,7 @@ interface HostViewPreferences {
 @Injectable({ providedIn: 'root' })
 export class SessionPresentationState {
   private startedCode: string | null = null;
+  private dismissedStartOfferCode: string | null = null;
   private lastHostView: { code: string; preferences: HostViewPreferences } | null = null;
 
   hasStarted(code: string): boolean {
@@ -53,6 +54,14 @@ export class SessionPresentationState {
 
   markStarted(code: string): void {
     this.startedCode = normalizeHostSessionCode(code);
+  }
+
+  hasDismissedStartOffer(code: string): boolean {
+    return this.dismissedStartOfferCode === normalizeHostSessionCode(code);
+  }
+
+  dismissStartOffer(code: string): void {
+    this.dismissedStartOfferCode = normalizeHostSessionCode(code);
   }
 
   rememberHostView(code: string, preferences: HostViewPreferences): void {

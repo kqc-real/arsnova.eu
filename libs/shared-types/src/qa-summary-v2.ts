@@ -18,7 +18,8 @@ export const QA_SUMMARY_CONTEXT_PREVIEW_CONTRACT_VERSION = 'qa-summary-context-p
 export const QA_SUMMARY_ADAPTER_CAPABILITIES_CONTRACT_VERSION =
   'qa-summary-adapter-capabilities-v1' as const;
 export const QA_SUMMARY_FALLBACK_CONTRACT_VERSION = 'qa-summary-fallback-v1' as const;
-export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v5' as const;
+export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v8' as const;
+export const QA_SUMMARY_MAX_TOPIC_LENGTH = 48;
 
 /** Short aliases for consumers that consistently call contract literals “contracts”. */
 export const QA_SUMMARY_CONTEXT_V2_CONTRACT = QA_SUMMARY_CONTEXT_V2_CONTRACT_VERSION;
@@ -71,6 +72,44 @@ export const QaSummaryModelOutputV2Schema = QaSummaryModelOutputV2BaseSchema.sup
   },
 );
 export type QaSummaryModelOutputV2 = z.infer<typeof QaSummaryModelOutputV2Schema>;
+
+/** Wire format for the private model. The adapter expands references to canonical source IDs. */
+export function createQaSummaryModelWireSchema(sourceRefs: readonly string[]) {
+  const refs = z.array(z.enum(sourceRefs)).min(1).max(2);
+  const statement = z
+    .object({
+      sentence: z.string().trim().min(12).max(120),
+      refs,
+    })
+    .strict();
+  return z
+    .object({
+      topics: z
+        .array(
+          z
+            .object({
+              // Check the complete title after generation. A decoder maxLength can cut words.
+              topic: z
+                .string()
+                .trim()
+                .min(1)
+                .refine((topic) => topic.length <= QA_SUMMARY_MAX_TOPIC_LENGTH),
+              question: z
+                .string()
+                .trim()
+                .min(12)
+                .max(120)
+                .refine((question) => question.endsWith('?')),
+              refs,
+            })
+            .strict(),
+        )
+        .min(1)
+        .max(Math.min(4, sourceRefs.length)),
+      next: statement.optional(),
+    })
+    .strict();
+}
 
 function utf8ByteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;

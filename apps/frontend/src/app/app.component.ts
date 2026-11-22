@@ -30,7 +30,7 @@ import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
-import { SwUpdate } from '@angular/service-worker';
+import { PwaUpdateService } from './core/pwa-update.service';
 import { ThemePresetService } from './core/theme-preset.service';
 import { PresetSnackbarFocusService } from './core/preset-snackbar-focus.service';
 import { Subscription } from 'rxjs';
@@ -60,10 +60,6 @@ const STORAGE_PLAYFUL_WELCOMED = 'home-playful-welcomed';
 const STORAGE_PWA_INSTALL_DISMISSED = 'pwa-install-dismissed';
 const DEV_SERVICE_WORKER_RESET_MARKER = 'dev-service-worker-reset-v1';
 const PWA_INSTALL_DISMISSED_DAYS = 7;
-/** Ohne regelmäßige `checkForUpdate()`-Aufrufe feuert `versionUpdates` nicht — Banner erscheint nie. */
-const PWA_UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
-/** Wenn `serviceWorker.ready` nicht zeitnah auflöst (selten), Polling trotzdem starten. */
-const PWA_UPDATE_READY_FALLBACK_MS = 8_000;
 const FOOTER_STATUS_POLL_INTERVAL_MS = 5 * 60 * 1000;
 const FOOTER_STATS_DIALOG_REFRESH_MS = 30_000;
 
@@ -117,7 +113,8 @@ export class AppComponent implements OnInit, OnDestroy {
     infoLandingUrl(INFO_LANDING_ANCHORS.features, undefined, this.themePreset.theme()),
   );
   isOnline = signal(true);
-  updateAvailable = signal(false);
+  private readonly pwaUpdates = inject(PwaUpdateService);
+  readonly updateAvailable = this.pwaUpdates.available;
   private readonly motdHeaderState = inject(MotdHeaderStateService);
   private readonly updateBannerSuppression = inject(UpdateBannerSuppressionService);
   /**
@@ -178,24 +175,18 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly swUpdate = inject(SwUpdate, { optional: true });
   private readonly focusService = inject(PresetSnackbarFocusService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly hostDisplayMode = inject(HostDisplayModeService);
   private readonly seo = inject(SeoService);
   private readonly injector = inject(Injector);
-  private versionSub: Subscription | null = null;
   private routerSub: Subscription | null = null;
   private presetSub: Subscription | null = null;
   private removeProductFeedbackOnlineRetry: (() => void) | null = null;
-  /** Browser: `setInterval` / `setTimeout` liefern `number` (nicht Node-`Timeout`). */
-  private pwaUpdateIntervalId: number | null = null;
   private destroyed = false;
-  private pwaUpdateReadyFallbackId: number | null = null;
   private footerStatusIntervalId: number | null = null;
   private footerStatsLoadedAt = 0;
-  private pwaUpdatePollingArmed = false;
   private _appFooterRef?: ElementRef<HTMLElement>;
   private footerResizeObserver: ResizeObserver | null = null;
   private observedFooterElement: HTMLElement | null = null;
@@ -377,7 +368,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private scheduleNonCriticalStartupWork(): void {
     const run = (): void => {
       this.refreshFooterStatusPollingState({ immediate: true });
-      this.checkForUpdates();
+      if (!this.destroyed) this.pwaUpdates.start();
     };
     if (typeof requestIdleCallback !== 'undefined') {
       requestIdleCallback(run, { timeout: 4000 });
@@ -531,7 +522,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    this.versionSub?.unsubscribe();
     this.routerSub?.unsubscribe();
     this.presetSub?.unsubscribe();
     this.removeProductFeedbackOnlineRetry?.();
@@ -542,19 +532,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.clearFooterMoreFocusGraceTimers();
     if (isPlatformBrowser(this.platformId)) {
       document.removeEventListener('keydown', this.footerMoreEscapeCapture, true);
-      document.removeEventListener('visibilitychange', this.onDocumentVisibilityForPwaUpdate);
       document.removeEventListener(
         'visibilitychange',
         this.onDocumentVisibilityForFooterStatusPolling,
       );
-      if (this.pwaUpdateIntervalId !== null) {
-        clearInterval(this.pwaUpdateIntervalId);
-        this.pwaUpdateIntervalId = null;
-      }
-      if (this.pwaUpdateReadyFallbackId !== null) {
-        clearTimeout(this.pwaUpdateReadyFallbackId);
-        this.pwaUpdateReadyFallbackId = null;
-      }
       this.stopFooterStatusPolling();
       this.disconnectFooterOffsetObserver();
       window.removeEventListener('beforeinstallprompt', this.beforeInstallPromptListener);
@@ -573,62 +554,6 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!(target instanceof HTMLElement)) return;
     this.hasScrolled.set(target.scrollTop > 0);
   }
-
-  private checkForUpdates(): void {
-    if (!this.swUpdate?.isEnabled) return;
-    this.versionSub = this.swUpdate.versionUpdates.subscribe((evt) => {
-      if (evt.type === 'VERSION_READY') this.updateAvailable.set(true);
-    });
-
-    const armPolling = (): void => {
-      if (this.pwaUpdatePollingArmed) return;
-      this.pwaUpdatePollingArmed = true;
-      this.requestPwaUpdateCheck();
-      this.pwaUpdateIntervalId = window.setInterval(
-        () => this.requestPwaUpdateCheck(),
-        PWA_UPDATE_CHECK_INTERVAL_MS,
-      );
-      document.addEventListener('visibilitychange', this.onDocumentVisibilityForPwaUpdate);
-    };
-
-    const clearReadyFallback = (): void => {
-      if (this.pwaUpdateReadyFallbackId !== null) {
-        clearTimeout(this.pwaUpdateReadyFallbackId);
-        this.pwaUpdateReadyFallbackId = null;
-      }
-    };
-
-    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      this.pwaUpdateReadyFallbackId = window.setTimeout(() => {
-        this.pwaUpdateReadyFallbackId = null;
-        armPolling();
-      }, PWA_UPDATE_READY_FALLBACK_MS);
-
-      void navigator.serviceWorker.ready
-        .then(() => {
-          clearReadyFallback();
-          armPolling();
-        })
-        .catch(() => {
-          clearReadyFallback();
-          armPolling();
-        });
-    } else {
-      armPolling();
-    }
-  }
-
-  private requestPwaUpdateCheck(): void {
-    if (!this.swUpdate?.isEnabled) return;
-    void this.swUpdate.checkForUpdate().catch(() => {
-      /* offline, CORS oder kein SW — ignorieren */
-    });
-  }
-
-  private readonly onDocumentVisibilityForPwaUpdate = (): void => {
-    if (document.visibilityState !== 'visible') return;
-    this.requestPwaUpdateCheck();
-  };
 
   private setupPwaInstallPrompt(): void {
     if (this.isStandalone()) return;
@@ -781,7 +706,6 @@ export class AppComponent implements OnInit, OnDestroy {
   @HostListener('window:online')
   onOnline(): void {
     this.isOnline.set(true);
-    this.requestPwaUpdateCheck();
     this.refreshFooterStatusPollingState({ immediate: true });
     void this.flushProductFeedbackOutbox();
   }

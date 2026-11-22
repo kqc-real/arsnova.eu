@@ -9,6 +9,11 @@
   box-sizing: border-box;
 }
 
+/* Der Dialogcontainer kann seinen Blockstil nach dem gemeinsamen Titelstil laden. */
+.dialog-title-header[mat-dialog-title] {
+  display: flex;
+}
+
 .dialog-title-header__icon {
   display: flex;
   align-items: center;
@@ -18,7 +23,7 @@
   height: 2.5rem;
   margin-top: 0.125rem;
   border-radius: var(--mat-sys-corner-medium, 0.75rem);
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
+  border: var(--app-icon-tile-border);
   background: transparent;
   color: var(--mat-sys-primary);
   --app-presenter-icon-size: 1.5rem;
@@ -29,6 +34,13 @@
     width: var(--app-presenter-icon-size, 1.5rem);
     height: var(--app-presenter-icon-size, 1.5rem);
   }
+}
+
+.dialog-title-header__icon--compact {
+  width: 2rem;
+  height: 2rem;
+  margin-top: 0;
+  --app-presenter-icon-size: 1.125rem;
 }
 
 .dialog-title-header__icon--warn {

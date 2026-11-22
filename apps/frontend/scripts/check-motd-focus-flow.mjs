@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Browser-E2E für den MOTD-Fokusrücksprung auf der Desktop-Startseite.
+ * Browser-E2E für den MOTD-Fokusrücksprung und den Kopf des News-Archiv-Dialogs.
  * WebKit deckt die Safari-nahe Pointer-/Tab-Reihenfolge ab; zwei Szenarien
  * bilden zusätzlich fehlendes window.TouchEvent und fehlenden Button-Fokus nach.
  *
@@ -124,7 +124,7 @@ async function assertNextTabContinuesHeroFlow(page) {
 
   assert(
     await isActiveLocator(scenarioOptions.first()),
-    `${forwardKey} erreicht nicht „Quiz erstellen & verwalten“: ${await activeElementLabel(page)}`,
+    `${forwardKey} erreicht nicht »Quiz auswählen«: ${await activeElementLabel(page)}`,
   );
   for (let index = 1; index < 3; index += 1) {
     await page.keyboard.press(forwardKey);
@@ -198,6 +198,54 @@ async function assertPointerReturn(page) {
   await assertNextTabContinuesHeroFlow(page);
 }
 
+async function assertArchiveDialogHeader(page) {
+  const motd = await openHomeWithMotd(page);
+  await motd.getByRole('button', { name: 'Meldung schließen' }).click();
+  await motd.waitFor({ state: 'hidden' });
+
+  const trigger = page.locator('.top-toolbar__motd-btn');
+  await trigger.press('Enter');
+  const archive = page.locator('app-motd-archive-dialog');
+  const heading = archive.getByRole('heading', { name: 'News-Archiv' });
+  await heading.waitFor({ timeout: 5_000 });
+
+  // Material darf seine Originalregeln auch nach dem gemeinsamen Titelstil einfügen.
+  await page.evaluate(() => {
+    const materialStyles = [...document.querySelectorAll('style')].find(
+      (style) =>
+        style.textContent.includes('.mat-mdc-dialog-inner-container') &&
+        style.textContent.includes('.mat-mdc-dialog-title::before'),
+    );
+    if (!materialStyles) throw new Error('Dialogstile von Angular Material fehlen.');
+    document.head.append(materialStyles);
+  });
+
+  const close = archive.getByRole('button', { name: 'Schließen', exact: true });
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const [icon, text, closeButton] = await Promise.all([
+      heading.locator('.dialog-title-header__icon').boundingBox(),
+      heading.locator('.dialog-title-header__heading').boundingBox(),
+      close.boundingBox(),
+    ]);
+    assert(
+      icon &&
+        text &&
+        closeButton &&
+        text.x >= icon.x + icon.width &&
+        text.y < icon.y + icon.height &&
+        text.x + text.width <= closeButton.x &&
+        closeButton.x + closeButton.width <= width,
+      `Bei ${width} px müssen Icon, Titel und Schließen-Button nebeneinander sichtbar sein: ${JSON.stringify({ icon, text, closeButton })}`,
+    );
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await close.press('Escape');
+  await heading.waitFor({ state: 'hidden', timeout: 5_000 });
+  assert(await isActiveLocator(trigger), 'Nach Escape muss der Fokus zum Archiv-Trigger zurück.');
+}
+
 async function runScenario(
   browser,
   name,
@@ -264,6 +312,8 @@ async function runScenario(
       await motd.getByRole('button', { name: 'Alles klar!' }).click();
       await motd.waitFor({ state: 'hidden', timeout: 5_000 });
       await assertPointerReturn(page);
+    } else if (name === 'archive-dialog-header') {
+      await assertArchiveDialogHeader(page);
     } else {
       throw new Error(`Unbekanntes MOTD-Fokusszenario: ${name}`);
     }
@@ -300,6 +350,7 @@ async function main() {
       suppressMotdButtonFocus: true,
     });
     await runScenario(browser, 'pointer-ack', { missingTouchEvent: true });
+    await runScenario(browser, 'archive-dialog-header');
   } finally {
     await browser.close();
   }

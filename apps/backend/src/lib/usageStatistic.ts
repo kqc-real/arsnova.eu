@@ -482,7 +482,9 @@ function outboxMutationForKind(kind: UsageOutboxKind): {
 
 /**
  * Apply + processedAt in einer Transaktion (Crash vor Markierung ⇒ Rollback, kein Doppelzählen).
- * FOR UPDATE auf der Outbox-Zeile verhindert parallele Drains.
+ * FOR UPDATE SKIP LOCKED auf der Outbox-Zeile verhindert Lock-Wait-Staus bei
+ * konkurrierenden Replikaten; bereits gesperrte Zeilen bleiben für den aktiven
+ * Worker oder den nächsten Scheduler-Lauf erhalten.
  */
 async function applyOutboxRowAtomically(
   row: { id: string; kind: UsageOutboxKind; sessionId: string },
@@ -495,7 +497,7 @@ async function applyOutboxRowAtomically(
       SELECT "id"
       FROM "UsageStatisticOutbox"
       WHERE "id" = ${row.id} AND "processedAt" IS NULL
-      FOR UPDATE
+      FOR UPDATE SKIP LOCKED
     `;
     if (locked.length === 0) return;
 

@@ -13,6 +13,7 @@ import type { FoyerChipLabel, FoyerChipLabelKind } from './foyer-chip-label.util
 
 export type FoyerEntranceChip = FoyerChipLabel & {
   id: string;
+  emojiImageUrl?: string;
   participantId?: string;
   hiddenParticipantIds?: string[];
   teamId: string | null;

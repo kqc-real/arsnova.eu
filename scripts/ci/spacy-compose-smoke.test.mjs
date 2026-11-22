@@ -11,15 +11,10 @@ function readCompose(fileName) {
 }
 
 function extractServiceBlock(composeText, serviceName) {
-  const marker = `\n  ${serviceName}:\n`;
-  const start = composeText.indexOf(marker);
-  assert.notEqual(start, -1, `Service ${serviceName} fehlt`);
-  const afterHeading = start + marker.length;
-  const nextMatch = composeText
-    .slice(afterHeading)
-    .match(/\n {2}[A-Za-z0-9._-]+:\n|\n[A-Za-z0-9._-]+:\n/);
-  const end = nextMatch ? afterHeading + (nextMatch.index ?? 0) : composeText.length;
-  return composeText.slice(start + 1, end);
+  const headings = [...composeText.matchAll(/^(?: {2})?[A-Za-z0-9._-]+:(?: &[A-Za-z0-9._-]+)?$/gm)];
+  const heading = headings.findIndex(([line]) => line.startsWith(`  ${serviceName}:`));
+  assert.notEqual(heading, -1, `Service ${serviceName} fehlt`);
+  return composeText.slice(headings[heading].index, headings[heading + 1]?.index);
 }
 
 function assertSidecarHardening(block, label) {

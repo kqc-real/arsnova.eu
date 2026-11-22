@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import {
   qaSummaryQuestionSourceId,
+  QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
   type QaSummaryContextPreviewDTO,
   type QaSummaryRuntimeCompatibleDTO,
   type QaSummaryRuntimeV2DTO,
@@ -42,7 +43,7 @@ describe('ModerationCompassDialogComponent', () => {
     return {
       schemaVersion: 1,
       contractVersion: 'qa-summary-context-preview-v1',
-      instructionVersion: 'qa-summary-technical-handoff-v5',
+      instructionVersion: QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
       definitionVersion: 'moderation-prompt-definitions-v1',
       capabilities: v2Runtime({ inferenceConfigured: false, result: null }).capabilities,
       selectedMode: null,
@@ -406,6 +407,10 @@ describe('ModerationCompassDialogComponent', () => {
     ) as HTMLButtonElement;
     expect(button.textContent).toContain('Frage öffnen');
     expect(button.getAttribute('aria-label')).toContain('Warum diese Verteilung?');
+    expect(fixture.nativeElement.textContent).toContain('Fragen mit geteilten Stimmen');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Geh kurz auf Fragen mit geteilten Stimmen ein.',
+    );
     button.focus();
     button.click();
     fixture.detectChanges();
@@ -1311,6 +1316,69 @@ describe('ModerationCompassDialogComponent', () => {
         '[data-testid="moderation-summary"] .moderation-compass-card__source-button',
       )?.textContent,
     ).toContain(`Fragen:\u00a0${firstQuestion}`);
+  });
+
+  it('macht ko-zitierte Nachbarfragen desselben Themen-Clusters unter Verwendete Beiträge im Wortlaut sichtbar', () => {
+    const questionCId = 'qa-question:33333333-3333-4333-8333-333333333333';
+    const questionDId = 'qa-question:44444444-4444-4444-8444-444444444444';
+    const questionCText = 'Ist Kapitel 4 klausurrelevant?';
+    const questionDText = 'Müssen wir den vierten Abschnitt für die Prüfung lernen?';
+    const onSummarySourceActivate = vi.fn();
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      visibleQuestionCount: 4,
+      onSummarySourceActivate,
+      runtime: v2Runtime({
+        inferenceConfigured: true,
+        result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
+          status: 'ready',
+          statements: [
+            {
+              text: `Prüfungsumfang: ${questionDText}`,
+              sourceIds: [questionCId, questionDId],
+            },
+          ],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [
+            { id: questionCId, kind: 'qa-question', label: questionCText },
+            { id: questionDId, kind: 'qa-question', label: questionDText },
+          ],
+          modelVersion: 'qwen3-4b',
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'full-context',
+            fallback: null,
+          },
+        },
+      }),
+    });
+
+    (
+      fixture.nativeElement.querySelector(
+        '.moderation-compass-dialog__summary-button',
+      ) as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    const sources = fixture.nativeElement.querySelector(
+      '.moderation-compass-dialog__summary-sources',
+    ) as HTMLDetailsElement;
+    expect(sources.textContent).toContain('Verwendete Beiträge (2)');
+    sources.open = true;
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll(
+        '[data-testid="moderation-summary"] .moderation-compass-card__source-button',
+      ),
+      (el) => (el as HTMLButtonElement).textContent?.trim(),
+    );
+    expect(buttons).toEqual([`Fragen:\u00a0${questionCText}`, `Fragen:\u00a0${questionDText}`]);
   });
 
   it('erklärt die Auswertung verständlich und verbirgt Fachbegriffe in technischen Details', async () => {

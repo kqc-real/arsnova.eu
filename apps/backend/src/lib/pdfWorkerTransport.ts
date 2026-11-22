@@ -46,6 +46,8 @@ const PdfWorkerRequestSchema = z
   .strict();
 
 export class PdfWorkerFatalRenderError extends Error {}
+/** Der Worker kann nach einer unterbrochenen Antwort noch rendern. */
+export class PdfWorkerUncertainCompletionError extends Error {}
 
 class PdfWorkerRenderDeadlineError extends PdfWorkerFatalRenderError {
   constructor() {
@@ -138,10 +140,18 @@ export async function renderPdfViaWorker(
           }
           chunks.push(chunk);
         });
-        response.once('error', () => reject(new Error('PDF-Worker-Verbindung wurde beendet')));
+        const disconnected = () =>
+          reject(new PdfWorkerUncertainCompletionError('PDF-Worker-Verbindung wurde beendet'));
+        response.once('error', disconnected);
+        response.once('aborted', disconnected);
         response.once('end', () => {
           if (response.statusCode !== 200) {
-            reject(new Error(`PDF-Worker antwortete mit Status ${response.statusCode ?? 0}`));
+            const message = `PDF-Worker antwortete mit Status ${response.statusCode ?? 0}`;
+            reject(
+              response.statusCode === 504
+                ? new PdfWorkerUncertainCompletionError(message)
+                : new Error(message),
+            );
             return;
           }
           const pdf = Buffer.concat(chunks);
@@ -156,7 +166,9 @@ export async function renderPdfViaWorker(
     request.setTimeout(options.timeoutMs ?? PDF_WORKER_REQUEST_TIMEOUT_MS, () => {
       request.destroy(new Error('PDF-Worker-Request hat das Zeitlimit überschritten'));
     });
-    request.once('error', () => reject(new Error('PDF-Worker ist nicht erreichbar')));
+    request.once('error', () =>
+      reject(new PdfWorkerUncertainCompletionError('PDF-Worker ist nicht erreichbar')),
+    );
     request.end(body);
   });
 }
@@ -202,6 +214,7 @@ export async function createPdfWorkerServer(options: {
   const server = createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/health') {
       request.resume();
+      response.setHeader('x-pdf-worker-state', lifecycle);
       emptyResponse(response, lifecycle === 'fatal' ? 503 : 204);
       return;
     }

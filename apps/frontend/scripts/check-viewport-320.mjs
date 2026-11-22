@@ -822,6 +822,7 @@ async function main() {
     { width: 820, height: 1180, label: 'footer-820' },
     { width: 959, height: 800, label: 'footer-959' },
     { width: 960, height: 800, label: 'footer-960' },
+    { width: 1024, height: 768, label: 'ipad-mini-landscape' },
     { width: 1280, height: 800, label: 'footer-desktop' },
   ];
   const footerLocales = [
@@ -883,10 +884,48 @@ async function main() {
     };
   };
 
+  const inspectHostOptions = (tabletRow) => {
+    const group = document.querySelector('.home-scenario__options');
+    const options = [...group.querySelectorAll('button')].map((button) => {
+      const label = button.querySelector('.home-scenario__option-label');
+      const icon = button.querySelector('.home-scenario__option-icon').getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      const text = range.getBoundingClientRect();
+      const { left, right, top, bottom, width, height } = button.getBoundingClientRect();
+      return {
+        left,
+        top,
+        width,
+        height,
+        bottom,
+        textFits:
+          text.left >= icon.right &&
+          text.right <= right &&
+          text.top >= top &&
+          text.bottom <= bottom,
+      };
+    });
+    const { left, right, width } = group.getBoundingClientRect();
+    const container = group.parentElement.getBoundingClientRect();
+    return {
+      options,
+      centered: Math.abs(left - container.left - (container.right - right)) < 1,
+      compact: tabletRow || window.innerWidth < 600 || width < container.width - 1,
+      heroGap:
+        document.querySelector('.home-hero-band').getBoundingClientRect().top -
+        document.querySelector('header.top-toolbar').getBoundingClientRect().bottom,
+      visibleBottom: Math.min(
+        window.innerHeight,
+        document.querySelector('footer.app-footer').getBoundingClientRect().top,
+      ),
+    };
+  };
+
   for (const viewport of footerViewports) {
     for (const { locale, expected } of footerLocales) {
-      // Volle Locale-Matrix nur an kritischen Breiten; Desktop nur DE.
-      const criticalWidths = new Set([320, 360, 375, 390, 959]);
+      // Volle Locale-Matrix für die schmalsten Breiten und die Aufgabenwahl in einer Zeile.
+      const criticalWidths = new Set([320, 360, 375, 390, 959, 1024, 1280]);
       if (!criticalWidths.has(viewport.width) && locale !== 'de') continue;
 
       const footerContext = await browser.newContext({ viewport });
@@ -915,6 +954,33 @@ async function main() {
         await page.screenshot({
           path: join(ARTIFACT_DIR, `${checkLabel}.png`),
           fullPage: true,
+        });
+        failed += 1;
+      }
+      const tabletRow =
+        viewport.width >= 840 && viewport.width < 1200 && viewport.width > viewport.height;
+      const oneRow = tabletRow || viewport.width >= 1200;
+      const hostCheck = await page.evaluate(inspectHostOptions, tabletRow);
+      const [first, ...rest] = hostCheck.options;
+      const hostOptionsOk =
+        hostCheck.options.length === 3 &&
+        hostCheck.centered &&
+        hostCheck.compact &&
+        hostCheck.options.every(({ height, textFits }) => height >= MIN_TARGET_SIZE && textFits) &&
+        (viewport.label !== 'ipad-mini-landscape' ||
+          (hostCheck.heroGap >= 8 &&
+            hostCheck.options.every(({ bottom }) => bottom <= hostCheck.visibleBottom))) &&
+        rest.every(
+          (option) =>
+            Math.abs(option.width - first.width) < 1 &&
+            (oneRow ? option.top === first.top : option.left === first.left),
+        );
+      if (!hostOptionsOk) {
+        console.error(
+          `  Aufgabenwahl-${locale}-${viewport.width} … FEHLER: ${JSON.stringify(hostCheck)}`,
+        );
+        await page.screenshot({
+          path: join(ARTIFACT_DIR, `aufgabenwahl-${locale}-${viewport.width}.png`),
         });
         failed += 1;
       }

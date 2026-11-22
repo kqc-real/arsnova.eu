@@ -1,18 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { getGeneratedNicknameFallbackList, NICKNAME_LISTS } from './nickname-themes';
+import {
+  areOriginalNicknamesExhausted,
+  getGeneratedNicknameFallbackList,
+  getNicknameList,
+} from './nickname-themes';
 
 describe('getGeneratedNicknameFallbackList', () => {
-  it('schneidet lange Kita-Bases nicht mitten im Wort', () => {
-    const longBases = NICKNAME_LISTS.KINDERGARTEN.filter((name) => `${name} 2`.length > 30);
-    expect(longBases).toContain('Mahagonifarbener Wasserbüffel');
+  it('verwendet nach ausgeschöpfter Tiernamenliste eindeutige, vollständige Reservenamen', () => {
+    const names = getNicknameList('KINDERGARTEN', 'de');
+    const taken = new Set([...names, 'Schwan 2'].map((name) => name.toLowerCase()));
 
-    const generated = getGeneratedNicknameFallbackList('KINDERGARTEN', 'de', new Set(), 200);
+    expect(areOriginalNicknamesExhausted('KINDERGARTEN', 'de', taken)).toBe(true);
+    const generated = getGeneratedNicknameFallbackList('KINDERGARTEN', 'de', taken, 500);
 
-    expect(generated).toContain('Roter Drache 2');
-    expect(generated).not.toContain('Mahagonifarbener Wasserbüffe 2');
-    for (const base of longBases) {
-      expect(generated.some((name) => name.startsWith(`${base.slice(0, -1)} `))).toBe(false);
-    }
+    expect(generated).toHaveLength(500);
+    expect(new Set(generated).size).toBe(500);
+    expect(generated).toContain('Wasserbüffel 2');
+    expect(generated).toContain('Schwan 3');
+    expect(generated).not.toContain('Schwan 2');
     expect(generated.every((name) => name.length <= 30)).toBe(true);
   });
 });

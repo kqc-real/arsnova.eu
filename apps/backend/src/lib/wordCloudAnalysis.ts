@@ -4,7 +4,7 @@ import type {
   WordCloudAnalysisSourceItem,
 } from '@arsnova/shared-types';
 import { joinWordCloudAnalysisSegments, prepareWordCloudAnalysisText } from '@arsnova/shared-types';
-import { deu, eng, fra, spa } from 'stopword';
+import { deu, eng, fra, ita, spa } from 'stopword';
 
 type WordCloudAnalysisEntry = AnalyzeWordCloudOutput['entries'][number];
 type SupportedLocale = AnalyzeWordCloudInput['locale'];
@@ -150,6 +150,7 @@ const GROUPING_RULES_BY_LOCALE: Record<SupportedLocale, readonly GroupingRule[]>
   en: ENGLISH_GROUPING_RULES,
   fr: [],
   es: [],
+  it: [],
 };
 
 /**
@@ -173,6 +174,7 @@ const STOPWORD_ALLOWLIST_BY_LOCALE: Record<SupportedLocale, readonly string[]> =
   en: ['make', 'makes', 'made', 'making', 'now'],
   fr: ['faire'],
   es: [],
+  it: [],
 };
 
 function foldWordCloudStopword(token: string, locale: SupportedLocale): string {
@@ -446,6 +448,7 @@ const STOPWORDS_BY_LOCALE: Record<SupportedLocale, ReadonlySet<string>> = {
     'sujet',
     'sujets',
   ]),
+  it: createWordCloudStopwordLookup('it', ita, []),
   es: createWordCloudStopwordLookup('es', spa, [
     'favor',
     'exactamente',

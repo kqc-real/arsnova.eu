@@ -154,7 +154,7 @@ const en: Messages = {
       },
       {
         label: 'Topic word cloud',
-        text: 'Words and phrases are weighted by the selected sort: net votes, strong support, or controversy.',
+        text: 'Term size can be weighted by net votes, strong support, split votes, or how many questions contain each term.',
       },
       {
         label: 'Moderation compass',
@@ -168,22 +168,22 @@ const en: Messages = {
     moderationActive: 'Pre-moderation on',
     sortMostSupported: 'Net votes',
     sortBest: 'Strong support',
-    sortControversial: 'Controversy',
+    sortControversial: 'Split votes',
     questions: [
       {
-        score: '+18',
+        score: '+11',
+        title: 'How does Q&A differ from free text in the quiz?',
+        meta: '100% in favor · 11 votes',
+      },
+      {
+        score: '+12',
         title: 'When does an estimate fall within an acceptable range?',
-        meta: '15 up · 3 down · strong support',
+        meta: '83.3% in favor · 18 votes',
       },
       {
         score: '+4',
         title: 'Should we really hide results before the discussion?',
-        meta: '9 up · 5 down · controversial',
-      },
-      {
-        score: '+11',
-        title: 'How does Q&A differ from free text in the quiz?',
-        meta: '11 up · 0 down · most supported',
+        meta: '64.3% in favor · 14 votes',
       },
     ],
     wordCloud: 'Q&A word cloud',
@@ -304,6 +304,8 @@ const en: Messages = {
     eyebrow: 'What sets arsnova.eu apart',
     title: 'Everything you need for live audience participation',
     lead: 'Start without an account and use tools to prepare, host, and review live sessions. Open source code lets you examine how the platform works.',
+    peerInstructionDescription:
+      'Participants vote individually, discuss the reasoning behind their answers, and then vote again. Comparing the two rounds shows how the answers changed.',
     items: [
       {
         title: 'Create and host on your phone',
@@ -409,16 +411,16 @@ const en: Messages = {
     pointsCol: 'Points',
     correctCol: 'Correct',
     names: [
-      'Coral cat',
-      'Colorful parrot',
-      'Brown bear',
-      'Olive green mouse',
-      'Light blue swan',
-      'Red dragon',
-      'Pink butterfly',
-      'Brown bear 2',
-      'Red dragon 8',
-      'Sky blue giraffe',
+      'Cat face',
+      'Parrot',
+      'Bear',
+      'Mouse',
+      'Swan',
+      'Dragon',
+      'Butterfly',
+      'Bear 2',
+      'Dragon 8',
+      'Giraffe',
     ],
   },
   structuredQuestionTypes: {

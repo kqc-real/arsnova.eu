@@ -256,3 +256,57 @@ export function resolveQaSummaryConfig(env: NodeJS.ProcessEnv = process.env): Qa
     inferenceToken: resolveQaSummaryInferenceToken(env['QA_SUMMARY_INFERENCE_TOKEN']),
   };
 }
+
+function normalizeRedisInstanceEndpoint(url: URL): string {
+  const defaultPort = url.protocol === 'rediss:' ? '6380' : '6379';
+  return `${url.hostname.trim().toLowerCase()}:${url.port || defaultPort}`;
+}
+
+/**
+ * Verhindert im Replikabetrieb (`SESSION_STATUS_PUBSUB_ENABLED=true`), dass eine
+ * aktivierte Q&A-Moderationszusammenfassung still auf den prozesslokalen
+ * In-Memory-Store zurückfällt oder das persistente Haupt-Redis (`REDIS_URL`) mitnutzt.
+ */
+export function assertQaSummaryReplicaStateConfigured(env: NodeJS.ProcessEnv = process.env): void {
+  if (env['SESSION_STATUS_PUBSUB_ENABLED'] !== 'true') return;
+  if (!isQaSummaryEnabled(env['QA_SUMMARY_ENABLED'])) return;
+
+  const rawStateUrl = env['QA_SUMMARY_STATE_REDIS_URL']?.trim();
+  if (!rawStateUrl) {
+    throw new Error(
+      'QA_SUMMARY_STATE_REDIS_URL ist erforderlich, wenn QA_SUMMARY_ENABLED im Replikabetrieb aktiv ist',
+    );
+  }
+
+  let stateUrl: URL;
+  try {
+    stateUrl = new URL(rawStateUrl);
+  } catch {
+    throw new Error('QA_SUMMARY_STATE_REDIS_URL ist keine gültige Redis-URL');
+  }
+  if (stateUrl.protocol !== 'redis:' && stateUrl.protocol !== 'rediss:') {
+    throw new Error('QA_SUMMARY_STATE_REDIS_URL muss redis:// oder rediss:// verwenden');
+  }
+  if (!stateUrl.hostname) {
+    throw new Error('QA_SUMMARY_STATE_REDIS_URL braucht einen Hostnamen');
+  }
+
+  const rawMainUrl = env['REDIS_URL']?.trim();
+  if (rawMainUrl) {
+    try {
+      const mainUrl = new URL(rawMainUrl);
+      if (
+        (mainUrl.protocol === 'redis:' || mainUrl.protocol === 'rediss:') &&
+        normalizeRedisInstanceEndpoint(mainUrl) === normalizeRedisInstanceEndpoint(stateUrl)
+      ) {
+        throw new Error(
+          'QA_SUMMARY_STATE_REDIS_URL muss auf eine eigene flüchtige Redis-Instanz getrennt von REDIS_URL zeigen',
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('QA_SUMMARY_STATE_REDIS_URL')) {
+        throw error;
+      }
+    }
+  }
+}

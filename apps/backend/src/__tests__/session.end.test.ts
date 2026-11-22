@@ -87,6 +87,7 @@ vi.mock('../lib/hostPairingSessionPurge', () => ({
 }));
 
 import {
+  invalidateRemoteSessionStatusForCode,
   purgeSessionRuntimeArtifacts,
   resetSessionReadCachesForTests,
   sessionRouter,
@@ -503,4 +504,49 @@ describe('session.dismissFinishProjection', () => {
       code: 'INTERNAL_SERVER_ERROR',
     });
   });
+
+  it.each([true, false])(
+    'liest das Ausblenden auf einem Replikat mit Pub/Sub-Signal=%s',
+    async (receiveSignal) => {
+      vi.useFakeTimers();
+      vi.stubEnv('SESSION_STATUS_PUBSUB_ENABLED', 'true');
+      const sessionId = 'f3c612ad-32c1-43d8-8aa4-20a32b1e3d38';
+      let finishProjection = 'leaderboard';
+      const pageState = JSON.stringify({
+        pageIdentity: '::qa:finished:default',
+        page: { context: 'finished-projection', index: 0, count: 1 },
+      });
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: sessionId,
+        type: 'Q_AND_A',
+        status: 'FINISHED',
+        quizId: null,
+        qaEnabled: true,
+        preferredChannel: 'qa',
+        expiresAt: new Date(Date.now() + 60_000),
+        endedAt: new Date(),
+        currentQuestion: null,
+        currentRound: 1,
+        sessionLifecycleRevision: 1,
+      });
+      redisMock.get.mockImplementation(async (key: string) =>
+        key === `session:finishProjection:v2:${sessionId}` ? finishProjection : pageState,
+      );
+      const stream = await caller.onStatusChanged({ code: 'ABC123' });
+      const iterator = stream[Symbol.asyncIterator]();
+      try {
+        expect((await iterator.next()).value).toMatchObject({ finishProjection: 'leaderboard' });
+        // Die andere App hat Redis aktualisiert. Die lokale Writer-Map bleibt unberührt.
+        finishProjection = 'idle';
+        if (receiveSignal) invalidateRemoteSessionStatusForCode('ABC123');
+        const next = iterator.next();
+        await vi.advanceTimersByTimeAsync(receiveSignal ? 0 : 10_000);
+        expect((await next).value).toMatchObject({ finishProjection: 'idle' });
+      } finally {
+        await iterator.return?.();
+        vi.unstubAllEnvs();
+        vi.useRealTimers();
+      }
+    },
+  );
 });

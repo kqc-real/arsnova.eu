@@ -50,6 +50,7 @@ describe('QuizStoreService', () => {
     teamNames: [],
     bonusTokenCount: null,
     readingPhaseEnabled: true,
+    shuffleAnswerOptions: false,
     preset: 'PLAYFUL' as const,
     showLeaderboard: true,
     allowCustomNicknames: true,
@@ -151,6 +152,46 @@ describe('QuizStoreService', () => {
     expect(service.getQuizById('6b442f6f-2f8a-4bad-95da-69f5e9cd2649')?.questions.length).toBe(1);
   });
 
+  it('übernimmt bei alten Quizzen die bisherige Antwortmischung als globale Einstellung', () => {
+    const { shuffleAnswerOptions: _removed, ...legacySettings } = defaultSettings;
+    const quizId = 'ef1e7c61-33b9-4df7-8b8a-77e95a98490c';
+    localStorage.setItem(
+      QUIZ_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: quizId,
+          name: 'Legacy Reihenfolge',
+          description: null,
+          motifImageUrl: null,
+          motifImageCredit: null,
+          createdAt: '2026-03-08T12:00:00.000Z',
+          updatedAt: '2026-03-08T12:00:00.000Z',
+          settings: legacySettings,
+          questions: [
+            {
+              id: '233d7480-afdb-44d4-a13c-0f0bbb70b1ec',
+              text: 'Alte Wahlfrage',
+              type: 'SINGLE_CHOICE',
+              difficulty: 'MEDIUM',
+              order: 0,
+              enabled: true,
+              timer: null,
+              answers: [
+                { id: '37f62e48-7dd6-4794-9d1d-fce7fc788347', text: 'A', isCorrect: true },
+                { id: '82e12ca0-8c59-4cab-9f1b-e081ec533536', text: 'B', isCorrect: false },
+              ],
+            },
+          ],
+        },
+      ]),
+    );
+
+    const service = TestBed.inject(QuizStoreService);
+
+    expect(service.getQuizById(quizId)?.settings.shuffleAnswerOptions).toBe(true);
+    expect(service.getQuizById(quizId)?.questions[0]?.shuffleAnswerOptions).toBe(true);
+  });
+
   it('migriert alte Matching-Paare einmalig auf opake IDs und persistiert sie', () => {
     const quizId = '6b442f6f-2f8a-4bad-95da-69f5e9cd2649';
     const questionId = '9eff562e-51f8-4f72-98a3-2f421ef2b411';
@@ -223,6 +264,7 @@ describe('QuizStoreService', () => {
     expect(quiz?.questions.length).toBe(1);
     expect(quiz?.questions[0]?.type).toBe('SINGLE_CHOICE');
     expect(quiz?.questions[0]?.timer).toBeNull();
+    expect(quiz?.questions[0]?.shuffleAnswerOptions).toBe(false);
     expect(quiz?.questions[0]?.answers.filter((answer) => answer.isCorrect).length).toBe(1);
     expect(service.quizzes()[0]?.questionCount).toBe(1);
   });
@@ -491,6 +533,41 @@ describe('QuizStoreService', () => {
     expect(settings.nicknameTheme).toBe('HIGH_SCHOOL');
     expect(settings.backgroundMusic).toBe('CALM_LOFI');
     expect(service.getQuizById(created.id)?.settings.showLeaderboard).toBe(false);
+  });
+
+  it('wendet die globale Antwortreihenfolge auf alle Wahlfragen an', () => {
+    const service = TestBed.inject(QuizStoreService);
+    const created = service.createQuiz({ name: 'Reihenfolge Quiz' });
+    const question = service.addQuestion(created.id, {
+      text: 'Wahlfrage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      shuffleAnswerOptions: true,
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+
+    expect(question.shuffleAnswerOptions).toBe(false);
+
+    service.updateQuizSettings(created.id, { shuffleAnswerOptions: true });
+
+    expect(service.getQuizById(created.id)?.settings.shuffleAnswerOptions).toBe(true);
+    expect(service.getQuizById(created.id)?.questions[0]?.shuffleAnswerOptions).toBe(true);
+
+    const updated = service.updateQuestion(created.id, question.id, {
+      text: 'Bearbeitete Wahlfrage',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'EASY',
+      shuffleAnswerOptions: false,
+      answers: [
+        { text: 'A', isCorrect: true },
+        { text: 'B', isCorrect: false },
+      ],
+    });
+
+    expect(updated.shuffleAnswerOptions).toBe(true);
   });
 
   it('löscht eine vorhandene Frage und ordnet neu', () => {
@@ -806,6 +883,83 @@ describe('QuizStoreService', () => {
     expect(secondUpload.historyScopeId).toBe(firstUpload.historyScopeId);
   });
 
+  it.each([undefined, true, false])(
+    'bewahrt die Auswertungswahl %s eines gespeicherten SERIOUS-Quiz beim Neuladen und Upload',
+    (enableLearningDebrief) => {
+      const service = TestBed.inject(QuizStoreService);
+      const created = service.createQuiz({
+        name: 'Gespeichertes seriöses Quiz',
+        settings: { preset: 'SERIOUS', enableLearningDebrief: true },
+      });
+      service.addQuestion(created.id, {
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        answers: [
+          { text: '4', isCorrect: true },
+          { text: '3', isCorrect: false },
+        ],
+      });
+      const stored = JSON.parse(localStorage.getItem(QUIZ_STORAGE_KEY)!) as QuizDocument[];
+      const quiz = stored.find((entry) => entry.id === created.id)!;
+      delete quiz.settings.enablePeerInstruction;
+      delete quiz.settings.enableLearningDebrief;
+      if (enableLearningDebrief !== undefined)
+        quiz.settings.enableLearningDebrief = enableLearningDebrief;
+      TestBed.resetTestingModule();
+      localStorage.clear();
+      localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify(stored));
+      TestBed.configureTestingModule({ providers: [provideRouter([])] });
+
+      const reloaded = TestBed.inject(QuizStoreService);
+      expect(reloaded.getQuizById(created.id)?.settings).toMatchObject({
+        preset: 'SERIOUS',
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+      expect(reloaded.getUploadPayload(created.id)).toMatchObject({
+        preset: 'SERIOUS',
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+    },
+  );
+
+  it.each([undefined, true, false])(
+    'bewahrt die Auswertungswahl %s eines importierten SERIOUS-Quiz bis zum nächsten Upload',
+    (enableLearningDebrief) => {
+      const service = TestBed.inject(QuizStoreService);
+      const created = service.createQuiz({
+        name: 'Importiertes seriöses Quiz',
+        settings: { preset: 'SERIOUS', enableLearningDebrief: true },
+      });
+      service.addQuestion(created.id, {
+        text: 'Was ist 2+2?',
+        type: 'SINGLE_CHOICE',
+        difficulty: 'EASY',
+        answers: [
+          { text: '4', isCorrect: true },
+          { text: '3', isCorrect: false },
+        ],
+      });
+      const exported = service.exportQuiz(created.id);
+      delete exported.quiz.enablePeerInstruction;
+      delete exported.quiz.enableLearningDebrief;
+      if (enableLearningDebrief !== undefined)
+        exported.quiz.enableLearningDebrief = enableLearningDebrief;
+
+      const imported = service.importQuiz(JSON.parse(JSON.stringify(exported)));
+      expect(imported.quiz.settings).toMatchObject({
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+      expect(service.getUploadPayload(imported.quiz.id)).toMatchObject({
+        enableLearningDebrief: enableLearningDebrief ?? true,
+        enablePeerInstruction: true,
+      });
+    },
+  );
+
   it('exportiert und importiert ein Quiz schema-konform mit neuer ID', () => {
     const service = TestBed.inject(QuizStoreService);
     const created = service.createQuiz({
@@ -813,6 +967,9 @@ describe('QuizStoreService', () => {
       description: 'Für Export/Import',
       settings: {
         showLeaderboard: false,
+        preset: 'SERIOUS',
+        enableLearningDebrief: true,
+        enablePeerInstruction: false,
         enableRewardEffects: false,
       },
     });
@@ -832,7 +989,13 @@ describe('QuizStoreService', () => {
     const imported = service.importQuiz(exported);
 
     expect(exported.exportVersion).toBeGreaterThanOrEqual(1);
+    expect(exported.quiz.shuffleAnswerOptions).toBe(false);
     expect(imported.quiz.id).not.toBe(created.id);
+    expect(imported.quiz.settings.shuffleAnswerOptions).toBe(false);
+    expect(service.getUploadPayload(imported.quiz.id)).toMatchObject({
+      enableLearningDebrief: true,
+      enablePeerInstruction: false,
+    });
     expect(imported.quiz.name).toBe('Export Quiz');
     expect(imported.quiz.questions[0]?.type).toBe('RATING');
     expect(imported.quiz.questions[0]?.ratingMax).toBe(10);

@@ -37,7 +37,7 @@
 | `npm run spacy:dev:test`                      | Hilfe-/Syntax- und Verdrahtungstests für `scripts/spacy-dev-sidecar.sh`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `npm run engines:test`                        | Node-`engines`-Vertrag: `engine-strict`, Root-`engines` im Lockfile, alle nicht optionalen Pakete ab Mindestversion installierbar (`semver` ist dafür Root-`devDependency`)                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `npm run spacy:macos-dev`                     | macOS: Clean, `build:prod` aller Locales, Host-Sidecar, `start:prod`, `serve:localize:api` auf 4200, Freitext-, Q&A- und Moderationskompass-Seed (Demo-Quiz mit Freitextfrage)                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `npm run spacy:macos-dev:test`                | Hilfe-/Syntax-Tests für `scripts/macos-spacy-wordcloud-dev.sh`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `npm run spacy:macos-dev:test`                | Hilfe, Syntax, Sidecar-Upgrade und Wiederverwendung nach vorübergehender Auslastung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `npm run qa-summary:dev`                      | Lokaler 8.9c-Inferenzhelfer auf `127.0.0.1:8787/summary` (extraktiv; optional Gemini-Key nur im Helfer)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `npm run qa-summary:dev:test`                 | Vertrag-, Loopback- und Gemini-Mock-Tests für `scripts/qa-summary-dev-server.mjs`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `npm run dev:qa-summary`                      | Backend/Frontend, spaCy, Themen-Encoder und lokalen Zusammenfassungshelfer gemeinsam starten; der Starter aktiviert die Zusammenfassung und ihre Loopback-URL automatisch                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -53,10 +53,10 @@
 ### Hervorgehobener KI-Gesamtstart: `npm run dev:ai`
 
 `npm run dev:ai` ist der zentrale Entwicklungsstart für alle KI-Pfade. Er startet
-die App, Q&A-Kategorisierung, Lemmatisierung (`de/en/fr/es`), E5-Themenbildung
-(`de/en`), den lokalen extraktiven Summary-Helfer und aktiviert die privaten
-Qwen-Aufträge für Themenbeschriftung (`de/en`), Zusammenfassung und
-Lernzielvorschläge (`de/en/fr/es/it`). Die Qwen-Runtime selbst muss bereits über
+die App, Q&A-Kategorisierung, Lemmatisierung, E5-Themenbildung und den lokalen
+extraktiven Summary-Helfer. Dazu kommen die privaten Qwen-Aufträge für
+Themenbeschriftung, Zusammenfassung und Lernzielvorschläge. Die Analyseverträge
+unterstützen `de`, `en`, `fr`, `es` und `it`. Die Qwen-Runtime selbst muss bereits über
 die konfigurierte URL beziehungsweise den Maintainer-SSH-Tunnel erreichbar sein.
 
 Ressourcen: E5 ist lokal auf 1 CPU und 2 GiB RAM begrenzt. Der spaCy-Hostprozess
@@ -132,7 +132,10 @@ RUN_PG_QA_MIGRATION_TESTS=1 \
   --run scripts/qa-scale-migration.test.ts
 ```
 
-Die Capability-Suite prüft atomare Teilnahme-Kennungen, Join-Replay,
+Die Capability-Suite prüft atomare Teilnahme-Kennungen, Tiernummern je
+Raum und Tier bei parallelen Beitritten, Join-Replay, den Redis-Join-Puffer
+mit 500 Plätzen und die Nachfüllrate von 125 Plätzen pro Sekunde,
+atomare Schreibgruppen für freie Nicknames mit Replays und Namens-/Client-Konflikten,
 sessiongebundenen Wiederbeitritt, Host-Credential-Rotation, Wiederherstellung
 nach Redis-Verlust und auditierten Widerruf. Die Q&A-Suite prüft die parallelen
 10./11.- und 25.000./25.001.-Grenzen, idempotenten Retry, physisches Delete,
@@ -322,30 +325,28 @@ ist ebenfalls abgeschlossen. Die jüngsten Hotpath-Optimierungen (Coalescing in 
 
 Auslöser: **Push** und **Pull Request** auf `main`.
 
-| Job / Phase                            | Inhalt                                                                                                                                                                                                                           |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **dependency-review**                  | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                                 |
-| **actionlint**                         | Linting/Validierung der GitHub-Workflow-Dateien; zusätzlich operative Python-/Shell-Checks inkl. spaCy-Sidecar-Unittests ohne Modell-Download                                                                                    |
-| **format**                             | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                      |
-| **landing-build**                      | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                        |
-| **build** (Node 22 & 24)               | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                               |
-| **typecheck** (Node 22 & 24, parallel) | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (Library-Build, dann `--noEmit` für Quellen und TypeScript-Tests der Libraries, des Backends und des Frontends)                                           |
-| **lint**                               | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln und blockierendem Voll-Gate für alle inventarisierten Skripte; zusätzlich Negativ-/Mutationstests und deterministisches Changed-Script-Gate             |
-| **audit**                              | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                   |
-| **test**                               | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                  |
-| **pdfua**                              | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                              |
-| **trivy-fs**                           | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                              |
-| **trivy-image**                        | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                      |
-| **lighthouse**                         | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                           |
-| **e2e-chromium**                       | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                                 |
-| **webkit-e2e**                         | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-/Fokus-Regressionen und Smartphone-Teilnahme (Join, Kanäle, Countdown, Vote)                                                                                                    |
-| **e2e**                                | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert; bei Workflow-Abbruch nicht nachträglich rot, bei Job-Timeout eines Browsers weiterhin rot                                                   |
-| **classroom-smokes**                   | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                              |
-| **docker**                             | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002   |
-| **deploy**                             | Nur bei Push auf `main` und `DEPLOY_ENABLED=true`; nach Quality-Gates inkl. `publish-image`; übergibt `DEPLOY_IMAGE`/`DEPLOY_SHA`, checkt `DEPLOY_SHA` per SSH vor `scripts/deploy.sh` aus, dann Digest-Pull (kein Server-Build) |
-| **post-deploy-smoke**                  | Prüft nach erfolgreichem Deploy die Produktionsauslieferung via `scripts/verify-production-serving.mjs`                                                                                                                          |
-
-Matrix: **zwei** unterstützte Versionen (**22** und **24**), `fail-fast: false`.
+| Job / Phase                                                                      | Inhalt                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **dependency-review**                                                            | PR-abhängiger Dependency-Risiko-Check (`fail-on-severity: high`)                                                                                                                                                               |
+| **actionlint**                                                                   | Linting/Validierung der GitHub-Workflow-Dateien; zusätzlich operative Python-/Shell-Checks inkl. spaCy-Sidecar-Unittests ohne Modell-Download                                                                                  |
+| **format**                                                                       | Prettier-Gate für im PR/Push geänderte unterstützte Dateien                                                                                                                                                                    |
+| **landing-build**                                                                | Produktionsbuild der Astro-Landingpage plus axe-Gate für Start, Impressum und Datenschutz                                                                                                                                      |
+| **build** (Node 22 & 24)                                                         | `npm ci` → `prisma validate` → `prisma generate` → `tsc -b apps/backend` → Frontend `tsc --noEmit` → `build:localize` (Frontend, **alle** konfigurierten Locales `de/en/fr/it/es`)                                             |
+| **typecheck** (Node 22 & 24, parallel)                                           | `npm ci` → `prisma validate` → `prisma generate` → `npm run typecheck` (Library-Build, dann `--noEmit` für Quellen und TypeScript-Tests der Libraries, des Backends und des Frontends)                                         |
+| **lint**                                                                         | `npm run lint` (nach build), einschließlich Angular-Template-A11y-Regeln und blockierendem Voll-Gate für alle inventarisierten Skripte; zusätzlich Negativ-/Mutationstests und deterministisches Changed-Script-Gate           |
+| **audit**                                                                        | `npm audit --audit-level=high --omit=dev`, CycloneDX-SBOM als Artefakt (**blockierend ab High für Produktionsabhängigkeiten**)                                                                                                 |
+| **test**                                                                         | `npm run test:coverage` (nach build, inkl. Coverage-Thresholds)                                                                                                                                                                |
+| **pdfua**                                                                        | veraPDF-1.30.2-Gate für die PDF/UA-1-Demoexporte aller fünf Locales                                                                                                                                                            |
+| **trivy-fs**                                                                     | Trivy-Scan des Repository-Dateisystems (HIGH/CRITICAL, blockierend)                                                                                                                                                            |
+| **trivy-image**                                                                  | Docker-Image-Build für Scan + Trivy-Image-Scan (HIGH/CRITICAL, blockierend)                                                                                                                                                    |
+| **lighthouse**                                                                   | Lighthouse Performance gegen Home DE/EN; separater A11y-Lauf gegen Home DE/EN, Quiz-Liste, Hilfe und Datenschutz, inklusive blockierender Einzelaudits                                                                         |
+| **e2e-chromium**                                                                 | Chromium Smoke E2E mit Postgres/Redis, statischen und dynamischen axe-Scans sowie Reflow-/Fokus-/Zielgrößen-Gate                                                                                                               |
+| **webkit-e2e**                                                                   | Expliziter WebKit-Lauf Safari-naher MOTD-Pointer-/Fokus-Regressionen und Smartphone-Teilnahme (Join, Kanäle, Countdown, Vote)                                                                                                  |
+| **e2e**                                                                          | Stabiler Required-Check, der die erfolgreichen Chromium- und WebKit-Jobs aggregiert; bei Workflow-Abbruch nicht nachträglich rot, bei Job-Timeout eines Browsers weiterhin rot                                                 |
+| **classroom-smokes**                                                             | Sechs Unterrichts-Szenario-Smokes (inkl. WS Vote-Progress, Reconnect und Q&A-/Blitzlicht-Fan-out, je 30 TN) gegen lokales Backend; JSON-/JUnit-Reports als Artifact                                                            |
+| **docker**                                                                       | Docker-Image-Build (ohne Push), vollständiger Production-Compose-Start mit Migration/Healthcheck sowie Runtime-Smokes für Container-Härtung/Chromium-Maximalbericht und Yjs-Konvergenz inkl. Offline-Reconnect gegen Port 3002 |
+| **deploy**                                                                       | Bei Push auf `main` und `DEPLOY_ENABLED=true` nach den Quality-Gates. Der per SSH geladene Release-Runner hält die Produktionssperre über Digest-Deploy, Replikatfreigabe, HTTPS-Smoke und gegebenenfalls Rollback.            |
+| Matrix: **zwei** unterstützte Versionen (**22** und **24**), `fail-fast: false`. |
 
 Für die ausführliche, schrittweise Erklärung (inkl. Ablaufdiagramm) siehe [CI-WORKFLOW.md](CI-WORKFLOW.md).
 
@@ -383,6 +384,7 @@ kein `compose build` auf dem Produktionsserver; lokal/CI z. B. wie der Docker-Bu
 
 ```bash
 npm test -w @arsnova/backend -- --run \
+  src/lib/pdfConcurrencyLimiter.test.ts \
   src/lib/pdfWorkerTransport.test.ts \
   src/lib/safeExternalImageFetch.test.ts \
   src/lib/pdfImageNormalizer.test.ts \
@@ -411,7 +413,27 @@ auflösenden Renderer prüft zusätzlich worker-interne Deadline, 504, fatalen
 Healthstatus und Exit-Callback. Produktion darf nicht auf lokales Chromium
 zurückfallen.
 
+Für das [Staging mit zwei Apps](operations/STAGING-COMPOSE.md#gemeinsamer-pdf-export-slot)
+einen freigegebenen Quiz-Bericht mit gültigem Host-Token über App A exportieren.
+Sobald der Socket-Healthcheck des Workers `x-pdf-worker-state: busy` meldet,
+parallel 500 gültige `vote.submit`-Anfragen einer separaten Live-Session über
+Nginx starten und denselben PDF-Export direkt auf App B anfragen. Während die
+Redis-Reservierung besteht, muss B HTTP 429 liefern. Beide Host-WebSockets
+müssen 500 Stimmen melden. Nach der PDF-Antwort von A den Export auf B mit
+HTTP 200 wiederholen. Vote-Latenzen und tatsächliche Überlappung mit dem
+Rendering protokollieren.
+
 ### Optionaler spaCy-Sidecar (Story 1.14b)
+
+Für das [Staging mit zwei Apps](operations/STAGING-COMPOSE.md#gemeinsamer-spacy-sidecar-und-llm-slot)
+`wordCloud.analyze` mit `LEXICAL` und `LEMMA` getrennt auf A und B ausführen.
+Beide Antworten müssen `normalizationApplied: LEMMA` sowie die Modell-ID
+des gemeinsamen Sidecars liefern. Für den LLM-Renntest A unmittelbar nach
+erfolgreicher Runtime-Slot-Sonde und vor dem POST halten. Währenddessen
+einen Summary-Auftrag auf B starten. B muss einen extraktiven Fallback
+mit Grund `busy` liefern, obwohl die Runtime noch einen freien Slot meldet.
+A freigeben, genau einen Inferenz-POST am gemeinsamen Endpunkt nachweisen
+und den Wiederholungsversuch auf B nach Abschluss prüfen.
 
 Story 1.14b ist umgesetzt; der Sidecar bleibt Default aus. Produktdoku: [word-cloud-spacy.md](features/word-cloud-spacy.md).
 
@@ -543,6 +565,8 @@ npm run test -w @arsnova/frontend -- \
 
 Kill-Switch default aus (`QA_NLP_ENABLED=false`). Timeout, Queue-Limit, Konfidenzschwelle, Kalibrierkurve, k-NN-Fallback und Skip-Strategie: [qa-nlp-moderation.md](features/qa-nlp-moderation.md). Queue-Tests decken langsamen Worker, Timeout und Telemetrie (Early-Exit/Fallback/Unclassified) ab. Lokaler k6/Artillery-Hörsaallast 2026-08-19: 500 Joins/WS und 100 Q&A-Submits ohne Queue-Skip; Produktiv-Default bleibt aus.
 
+`eval:qa-nlp` meldet unter `localeHoldout` zusätzlich Macro-F1, Trefferquote und Anteil unsicherer Ergebnisse für jede App-Locale und für gemischtsprachige Fragen. Der Prüfkorpus ist unabhängig vom Trainingssplit.
+
 ### Optionale Moderationszusammenfassung (Story 8.9c)
 
 ```bash
@@ -566,7 +590,37 @@ npm run test -w @arsnova/frontend -- \
 npm run load:issue-456:validate
 ```
 
-Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden und ephemer. V2 handelt `full-context`/`legacy-text` ausdrücklich aus und liefert ohne Modell einen lokalen extraktiven Backend-Fallback; es gibt keinen Cloud-Fallback. `qa.summaryContextPreview` ist hostgeschützt und wird in der UI erst nach ausdrücklicher Aktion geladen. Der lokale Legacy-Helfer bleibt mit `npm run qa-summary:dev` / `npm run qa-summary:dev:test` prüfbar. `npm run load:issue-456:validate` validiert netzwerkfrei das kanonische Demo-Quiz sowie mindestens 250 Teilnahmen mit je zehn sinnvollen Fragen; der echte `npm run load:issue-456:run` ist auf Loopback beschränkt und erwartet einen separat mit `QA_SUMMARY_ENABLED=true` gestarteten Backendprozess. Sein früher Preflight bricht bei deaktiviertem Summary V2 noch vor Joins und Q&A-Last ab. Produktdoku: [qa-summary.md](features/qa-summary.md), [Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md). Ein separater interaktiver Lernziellauf mit dem vollständigen Demo-Quiz erzeugte am 12.10.2026 zehn Entwürfe; er ist kein Nachweis für den 250-Teilnahmen-Runner. Realer Summary-V2-Lauf, vollständige Lernziel-Mess-/Qualitätsdaten und das reichhaltige 4.096-Profil bleiben offen.
+Kill-Switch default aus (`QA_SUMMARY_ENABLED=false`). On-demand, quellengebunden und ephemer. V2 handelt `full-context`/`legacy-text` ausdrücklich aus und liefert ohne Modell einen lokalen extraktiven Backend-Fallback; es gibt keinen Cloud-Fallback. `qa.summaryContextPreview` ist hostgeschützt und wird in der UI erst nach ausdrücklicher Aktion geladen. Der lokale Legacy-Helfer bleibt mit `npm run qa-summary:dev` / `npm run qa-summary:dev:test` prüfbar. `npm run load:issue-456:validate` validiert netzwerkfrei das kanonische Demo-Quiz sowie mindestens 250 Teilnahmen mit je zehn sinnvollen Fragen; der echte `npm run load:issue-456:run` ist auf Loopback beschränkt und erwartet einen separat mit `QA_SUMMARY_ENABLED=true` gestarteten Backendprozess. Sein früher Preflight bricht bei deaktiviertem Summary V2 noch vor Joins und Q&A-Last ab. Produktdoku: [qa-summary.md](features/qa-summary.md), [Slice-8-Abnahme](implementation/ISSUE-456-SLICE-8-ABNAHME.md). Ein separater interaktiver Lernziellauf mit dem vollständigen Demo-Quiz erzeugte am 12.10.2026 zehn Entwürfe; er ist kein Nachweis für den 250-Teilnahmen-Runner. Die kurze Summary-V2-Modellprobe bestand in allen fünf App-Locales. Vollständige Lernziel-Mess- und Qualitätsdaten sowie die Prefill- und RSS-Abnahme des reichhaltigen 8.192-Profils stehen aus.
+
+Im [Zwei-App-Staging](operations/STAGING-COMPOSE.md#gemeinsamer-qa-ergebnisstatus)
+einen Summary-Auftrag auf A starten und mit gültigem Host-Token auf B
+zuerst `pending`, dann das fertige Ergebnis abrufen. Eine parallele
+Anfrage derselben Session auf B muss denselben Fortschritt liefern.
+Am Modellendpunkt genau einen Inferenz-POST zählen. Einen Abruf ohne
+Host-Token abweisen und nach einer Quellenänderung den Abgleich auf
+beiden Apps prüfen.
+
+### Fünfsprachige NLP-Proben
+
+```bash
+node --import tsx apps/backend/scripts/eval-qa-nlp-gatekeeper.ts
+npm run eval:issue-456:slice8:pack
+OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
+  node --env-file=.env --import tsx apps/backend/scripts/eval-qa-summary-locales.ts
+# Optional: Slice-8-Vollkontext- & TTFT-/Prefill-Messung (3 Läufe bei T=0, geheimnisfreies JSON)
+OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 \
+  node --env-file=.env --import tsx apps/backend/scripts/eval-issue-456-slice8-summary.ts --live
+```
+
+Die Klassifikationsprobe wertet 15 synthetische Holdout-Fragen je App-Locale aus.
+Die Mindestquote von 80 % bezieht Enthaltungen ein. Die Modellprobe benötigt
+eine konfigurierte private Qwen-Runtime und verlangt pro Locale eine generative,
+quellengebundene Ausgabe mit zwei vollständigen Überschriften ohne Fallback.
+Messwerte und Grenzen stehen in der [Q&A-Klassifikation](features/qa-nlp-moderation.md)
+und der [Summary-V2-Dokumentation](features/qa-summary.md).
+Der [optionale E5-Modelltest](features/word-cloud-semantic.md) benötigt echte
+ONNX-Gewichte. Der lokale Hörsaallastlauf deckte die Klassifikationsqueue sowie
+spaCy- und Encoder-Aufträge ab. Qwen lief in separaten Einzelproben.
 
 ### Private Open-Weight-LLM-Runtime (Story 8.9d)
 
@@ -665,7 +719,7 @@ Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`, 
 | Befehl (Frontend-Workspace)        | Zweck                                                                                                                       |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `a11y:axe:static`                  | axe für statische Kernrouten/-zustände                                                                                      |
-| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus und mobiles Disclosure                                                     |
+| `a11y:layout`                      | Reflow, Fokus, 24px-Ziele, Skip-Link, Join-Fokus, mobiles Disclosure und lokalisierte Aufgabenwahl auf der Startseite       |
 | `check:viewport`                   | Alias/älterer 320px-Reflow-Smoke                                                                                            |
 | `smoke:host-present-auth`          | Host-/Presenter-Zugriff, Live-Beitritt und nativer Schließdialog nach dem Ansichtswechsel während der Abstimmung            |
 | `smoke:host-pairing-security`      | Story 2.10: Host / Smartphone / Presenter, Missbrauch + Lifecycle + Widerruf                                                |
@@ -678,7 +732,7 @@ Beim allerersten manuellen Cutover muss der Ziel-Commit inline per `git fetch`, 
 | `smoke:numeric-estimate`           | Numerische-Schätzfrage-Flow-Smoke                                                                                           |
 | `smoke:session-question-progress`  | Zwei-Client-Smoke für späteren Start, Vote, Skip und Nachbesprechung                                                        |
 | `e2e:confidence-summary-demo`      | Demo-Quiz: 30 TN + Confidence-Abschluss                                                                                     |
-| `e2e:motd-focus`                   | Desktop-MOTD: Tastatur-/Pointer-Rücksprung und fortgesetzte Tab-Reihe                                                       |
+| `e2e:motd-focus`                   | MOTD-Fokusrücksprung und Tab-Reihenfolge, außerdem Titelzeile und Escape im News-Archiv-Dialog bei 1440 und 320 px          |
 | `smoke:webkit-participant-vote`    | WebKit/Safari-Engine: Smartphone-Teilnahme Join, Kanäle, Countdown, Vote                                                    |
 | `smoke:quiz-sync`                  | Quiz-Sync-Flow-Skript                                                                                                       |
 | `smoke:unified-session`            | Unified-Session-Flow inklusive axe                                                                                          |
@@ -807,6 +861,29 @@ Wichtig für Wiederholungsläufe: `serve:localize:api` serviert den bereits geba
 `dist/browser`. Nach Frontend- oder Script-Änderungen daher vor dem nächsten Smoke-Test erneut
 `npm run build:localize -w @arsnova/frontend` ausführen.
 
+### PWA-Update-Erkennung in bereits geöffneten Fenstern
+
+`npm run test -w @arsnova/frontend -- src/app/core/pwa-update.service.spec.ts src/app/app.component.spec.ts`
+prüft frühe Update-Ereignisse, bereits heruntergeladene Versionen ohne erneutes
+`VERSION_READY`, positive Prüfergebnisse, Hintergrund/Vordergrund, Fensterfokus,
+Offline/Online, parallele Auslöser, Zeitüberschreitung und Aufräumen nach Zerstörung.
+Die bestehenden Banner-Tests sichern MOTD-/Entwurfsschutz und bewussten Reload ab.
+
+`node --test apps/frontend/scripts/pwa-update-build.test.mjs` prüft mit dem installierten
+Angular-Service-Worker-Generator, dass alle fünf Locale-Builds dieselbe jeweilige
+Build-Kennung in HTML (einschließlich Prerender und SSR) und `ngsw.json.appData`
+tragen. Wiederholte Generierung muss stabil bleiben; geänderte Assets müssen die
+Kennung ändern und die endgültigen HTML-Integritätshashes müssen stimmen.
+Der Test läuft vor den Frontend-Tests sowohl bei `npm test` als auch bei
+`npm run test:coverage`, sobald die Angular-Abhängigkeiten installiert sind.
+
+Die Kennung wird beim lokalisierten Produktionsbuild gesetzt. Geöffnete Fenster
+vergleichen sie mit `NO_NEW_VERSION_DETECTED`, das auch eine schon
+heruntergeladene, im Fenster noch nicht geladene Version beschreiben kann.
+Ältere Builds ohne Kennung nutzen weiterhin `VERSION_READY`; die zusätzliche
+Absicherung greift nach dem ersten Laden eines Builds mit Kennung. Es gibt keinen
+automatischen Reload und keine Aktivierung im laufenden Fenster.
+
 `npm run build:localize -w @arsnova/frontend` ist im Repo kein nackter Angular-Build: Nach `ng build --configuration production --localize` folgen noch Post-Build-Schritte für `noscript`, `sitemap.xml`, `manifest.webmanifest`, MOTD-Assets, die lokalisierten `ngsw.json` und die Root-`index.html`.
 
 ### Weitere lokale Flow-Smokes
@@ -842,7 +919,7 @@ Required-Check.
 BASE_URL=http://localhost:4173/de TRPC_URL=http://localhost:3000/trpc SMOKE_ARTIFACT_DIR=/private/tmp/host-qa-feedback-tools npm run smoke:host-qa-feedback-tools -w @arsnova/frontend
 ```
 
-`smoke:host-home-entry` ergänzt die API-basierten Startzustände um echte Startseitenabläufe für #470. Anfangs ist keine Host-Karte sichtbar. Alle vier Blitzlicht-Chips werden nach Auswahl von **Blitzlicht auswählen** in sechs isolierten Sprach-/Preset-/Viewportkontexten angeklickt. Der Test zählt `session.create`-Requests, prüft den aktiven Kanal und Rundentyp serverseitig und verlangt bei `quickFeedback.create` die Bindung an genau die UI-erzeugte Session. Bei 320 CSS-Pixeln prüft der Q&A-Ablauf außerdem Enter und Space auf der Aufgabenwahl, dass der Fokus auf dem aktiven Tab bleibt, und den nächsten Tab zur ersten Aktion der eingeblendeten Karte. Bei 1024 × 768 CSS-Pixeln muss die Zielkarte mit mindestens 8 Pixel Abstand unter der fixierten Appbar beginnen. Hinzu kommen das Pulldown für mehr als zwei offene Q&A-Sessions mit Abbruch, Löschfehler, erfolgreichem Löschen und dem Übergang von drei auf zwei Direktzugänge, EVENT-Beides über Teilnahmeprofil und Zugangskarte (serverseitige INITIAL-Defaults, kein zusätzlicher Q&A-Konfigurationsdialog), Aktivierungsfehler mit Q&A-Teilerfolg und Retry, Abbruch in beiden Schritten, Reload/neuer Tab sowie CLASSROOM über Quizimport, Auswahl, eigenes letztes Quiz und zwei Fragen bis zum Gesamtende. Sessionstarts erfolgen ausschließlich durch die UI; API-Teilnahmen dienen als Identitätsregression beim Formatwechsel und ermöglichen die Quiz-Gesamtauswertung. Screenshots enthalten keine Zugangskarten. Der lokale Zusatzlauf benötigt denselben lokalisierten Build und dieselben Dienste wie die anderen Host-Smokes; kein neuer Required-Check.
+`smoke:host-home-entry` ergänzt die API-basierten Startzustände um echte Startseitenabläufe für #470. Anfangs ist keine Host-Karte sichtbar. Alle vier Blitzlicht-Chips werden nach Auswahl von **Blitzlicht starten** in sechs isolierten Sprach-/Preset-/Viewportkontexten angeklickt. Der Test zählt `session.create`-Requests, prüft den aktiven Kanal und Rundentyp serverseitig und verlangt bei `quickFeedback.create` die Bindung an genau die UI-erzeugte Session. Bei 320 CSS-Pixeln prüft der Q&A-Ablauf außerdem Enter und Space auf der Aufgabenwahl, dass der Fokus auf dem aktiven Tab bleibt, und den nächsten Tab zur ersten Aktion der eingeblendeten Karte. Bei 1024 × 768 CSS-Pixeln muss die Zielkarte mit mindestens 8 Pixel Abstand unter der fixierten Appbar beginnen. Hinzu kommen das Pulldown für mehr als zwei offene Q&A-Sessions mit Abbruch, Löschfehler, erfolgreichem Löschen und dem Übergang von drei auf zwei Direktzugänge, EVENT-Beides über Teilnahmeprofil und Zugangskarte (serverseitige INITIAL-Defaults, kein zusätzlicher Q&A-Konfigurationsdialog), Aktivierungsfehler mit Q&A-Teilerfolg und Retry, Abbruch in beiden Schritten, Reload/neuer Tab sowie CLASSROOM über Quizimport, Auswahl, eigenes letztes Quiz und zwei Fragen bis zum Gesamtende. Sessionstarts erfolgen ausschließlich durch die UI; API-Teilnahmen dienen als Identitätsregression beim Formatwechsel und ermöglichen die Quiz-Gesamtauswertung. Screenshots enthalten keine Zugangskarten. Der lokale Zusatzlauf benötigt denselben lokalisierten Build und dieselben Dienste wie die anderen Host-Smokes; kein neuer Required-Check.
 
 ```bash
 BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc SMOKE_ARTIFACT_DIR=/private/tmp/host-home-entry npm run smoke:host-home-entry -w @arsnova/frontend
@@ -1013,6 +1090,307 @@ Formatierung darf gespeicherte Prüfsummen nicht entwerten.
 Der [Prüfstand](referat-thema-1/1A/archiv/1A-pruefstand.md) nennt aktuelle Werkzeugchecks und den
 unveränderten ursprünglichen Frontend-Wording-Testfehler, ohne einen grünen Gesamtlauf zu behaupten.
 
+### Produktions-Compose mit Replikaten
+
+`node --test scripts/deploy/deploy-by-digest.test.mjs` prüft die aufgelösten
+Compose-Profile, die Nginx-Upstreams und das Deploy-Gate bei aktiven
+Replikaten. Für den isolierten lokalen Lauf den Zustandswechsel
+`single → dual → triple → dual → single` ausführen. Nach jedem Wechsel
+HTTP, tRPC-WebSocket und den DB-Pool prüfen. In beiden Replikamodi einen
+Vote auf A und den vollständigen Host-Fortschritt auf einer anderen App
+prüfen. Yjs muss vor und nach der Umschaltung per Nginx erreichbar sein und
+bei einer Rotation über eine Replika den alten Socket schließen.
+[Produktions-Runbook](operations/PRODUCTION-REPLICAS.md).
+
+### Rollout der Produktions-Sidecars
+
+`node --test scripts/deploy/text-sidecar-rollout.test.mjs scripts/ci/staging-text-analysis.test.mjs`
+prüft den Deploy-Zustand, die unveränderlichen Image-Referenzen, den
+automatischen Restore und die Locale-Verträge. Beim isolierten
+Zielhost-Smoke einen frischen Compose-Projektnamen, separate Volumes und
+die Produktions-Compose-Services mit eigenem internen Netz verwenden.
+
+1. Beide Apps und die bisherigen Sidecars starten. Die Container- und
+   Image-IDs erfassen.
+2. Einen Kandidaten mit aktuellem spaCy und altem Encoder anwenden.
+   Der Vorlauf muss Französisch ablehnen und beide ursprünglichen
+   Image-IDs wiederherstellen.
+3. Beide aktuellen Images anwenden. Alle fünf Locales müssen aus beiden
+   Apps bestätigt sein. Im Statusfile müssen beide geprüften Digests stehen.
+   Die Image-Halter im Zustand `created` müssen das aktuelle Paar und das
+   Rollback-Paar referenzieren.
+4. Dasselbe Paar erneut anwenden. Beide Sidecar-Container und das vorige
+   Rollback-Paar müssen erhalten bleiben.
+5. Einen unterbrochenen Wechsel in Staging nachstellen. `--recover`
+   muss das gespeicherte Paar wiederherstellen. Anschließend muss
+   `--rollback` zu den ursprünglichen Image-IDs zurückkehren.
+6. In jeder Phase prüfen, dass die App-IDs erhalten bleiben und ihre
+   HTTP-Readiness nach dem Wechsel erreichbar ist.
+
+[Sidecar-Runbook](operations/PRODUCTION-TEXT-SIDECARS.md).
+
+### Staging-Compose mit zwei Apps
+
+Das [Staging-Runbook](operations/STAGING-COMPOSE.md) beschreibt den lokalen
+HTTPS-Start, die automatischen Readiness-Gates und den Rückweg auf App A.
+Bei einem Compose-Smoke beide Upstreams für HTTP und tRPC-WebSockets
+bestätigen, eine Sessionänderung und einen Vote über Replikatgrenzen
+beobachten und beim Rollback einen WebSocket erneut verbinden. Das
+Routing nach einem Nginx-Neustart prüfen und B anschließend wieder
+über `up` aufnehmen. Der [Yjs-Abschnitt](operations/STAGING-COMPOSE.md#yjs-relay-und-token-rotation)
+beschreibt den Sync über WSS, den Widerruf alter Tokens und den
+Reconnect einschließlich Offline-Änderungen nach einem Relay-Neustart.
+
+### Gemischtes Lastprofil mit dem Demo-Quiz in fünf Sprachen
+
+Das 45-Minuten-Profil nutzt zwei Staging-Apps mit je 30 DB-Verbindungen,
+Nginx und Redis Pub/Sub. Es umfasst 20 Räume, 230 Teilnahmen und 730
+Quizstimmen in 65 Runden. Die Räume
+starten je Sprache gestaffelt im angegebenen Minutenfenster und bleiben
+jeweils bis zu zwölf Minuten aktiv. Damit überlappen höchstens zwei
+Sprachgruppen. Die Startfenster sind Annahmen für den Lasttest.
+
+| Locale | Startminute | Räume und Teilnahmen                                |
+| ------ | ----------- | --------------------------------------------------- |
+| `de`   | 0–1         | Quiz mit Q&A × 20, drei Quizräume × 6               |
+| `en`   | 8–9         | Q&A × 20, zwei Quizräume × 6, Beitritt × 6          |
+| `fr`   | 16–17       | Q&A × 20, zwei Quizräume × 6, Beitritt × 6          |
+| `es`   | 24–25       | Q&A × 20, zwei Quizräume × 6, Beitritt × 6          |
+| `it`   | 32–33       | Quiz mit Q&A × 60, zwei Quizräume × 6, Beitritt × 6 |
+
+Die Quizräume verwenden die jeweilige Fassung
+`apps/frontend/src/assets/demo/quiz-demo-showcase.<locale>.json`.
+Für dieses Profil fünf Originalfragen aus der Demo auswählen
+(`order` 0, 1, 3, 4 und 5). Bei der Übernahme ihre relative Reihenfolge
+und Antwortdaten beibehalten und `order` lückenlos neu vergeben. Die
+Abstimmungen starten innerhalb eines Raums in kurzen Wellen, zwischen
+Räumen versetzt. Der vorhandene Runner
+`scripts/load/demo-quiz-classroom-30.mjs` lädt über
+`QUIZ_CONTENT_LOCALE` das vollständige 13-Fragen-Demo-Quiz für den
+separaten Einraumtest.
+
+Pro Sprache den Freitext der Demo-Quiz-Frage zum Lernen in einem
+Quizraum auswerten, in `de` und `it` im kombinierten Raum. Pro
+Sprache im Q&A-Raum zusätzlich sechs sichtbare Fragen zum Demo-Quiz
+und sechs Bewertungen erzeugen. Für Freitext und Q&A synthetische
+Beiträge in der jeweiligen Sprache mit mehreren paraphrasierten
+Beiträgen je Thema verwenden. Geeignete Themen sind Lernstrategien
+für Freitext sowie Timer, Fragetypen und Ergebnisansicht für Q&A.
+
+#### Zehn Aufrufe des Moderationskompasses
+
+Je Sprache den Kompass einmal im Q&A-Kanal nach Eingang der sechs
+sichtbaren Fragen und einmal in einem separaten Quizraum nach Freigabe
+eines Ergebnisses öffnen. Für `de` und `it` den ersten Aufruf im Q&A-Kanal
+des kombinierten Raums ausführen. Die Minuten sind Richtwerte ab Laufstart.
+Bei später verfügbaren Signalen im selben Raum auf die jeweilige Phase
+warten. Insgesamt zehn verschiedene Sessions verwenden.
+
+| Locale | Minute im Q&A-Kanal | Minute im separaten Quizraum |
+| ------ | ------------------- | ---------------------------- |
+| `de`   | 3                   | 6                            |
+| `en`   | 11                  | 14                           |
+| `fr`   | 19                  | 22                           |
+| `es`   | 27                  | 30                           |
+| `it`   | 35                  | 38                           |
+
+Den Host-Dialog im Browser über `host-moderation-compass` öffnen. Zeit
+vom Klick bis zum sichtbaren Dialog, Karten und gültige Quellen der
+jeweiligen Session erfassen. Andere Räume bleiben währenddessen aktiv.
+Die Karten nutzen vorhandene Host-Signale. Die Öffnung liest den
+Zusammenfassungsstatus und startet selbst keine Inferenz. In den fünf
+Q&A-Räumen den unten vorgesehenen Zusammenfassungsauftrag ausdrücklich
+im selben Dialog starten. Keine zusätzlichen Zusammenfassungen für die
+fünf Quizräume anfordern.
+
+#### Analyseaufträge pro Sprache
+
+| Pfad                       | Auslösung                                                                                                                                   | Nachweis                                                                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Freitext-Wortwolke         | Die Antworten per `session.getLiveFreetext` lesen und per `wordCloud.analyze` mit `LEXICAL` und `LEMMA` auswerten                           | `normalizationApplied: LEMMA` und Modellkennung der Locale                                                                                                              |
+| Q&A-Wortwolke              | `wordCloud.analyzeQa` mit `ALL_ELIGIBLE`, `LEXICAL` und `LEMMA` ausführen                                                                   | Sichtbarer Korpus der Session und angewandte Glättung                                                                                                                   |
+| Themen in Freitext und Q&A | Beide Wortwolken mit `SEMANTIC` und `normalization: NONE` ausführen                                                                         | Encoder-Ergebnis und mindestens ein per LLM benanntes Thema mit `labelOrigin: model`. Einen aktuellen Runtime-Aufruf über Metadaten belegen                             |
+| Q&A-Zusammenfassung        | Nach der Q&A-Themenanalyse im Kompass über `qa.requestSummary` via Nginx starten und `qa.summaryRuntime` mit Host-Berechtigung auf B prüfen | Statusübergang bis zum Ergebnis mit passender Locale und gültigen Quellen. Für den Modellnachweis `execution.effectiveMode: full-context` und den Runtime-Aufruf prüfen |
+
+Pro Sprache zwei spaCy-Aufrufe, zwei Themenanalysen mit Label-Auftrag und
+eine Zusammenfassung einplanen. Die Host-Aktionen innerhalb desselben
+Raums nacheinander ausführen. Andere Räume stimmen während der Analysen
+weiter ab. Cache-Treffer und Fallbacks im Bericht ausweisen. Für jeden
+der drei LLM-Pfade pro Sprache mindestens einen frischen Modelllauf
+bestätigen.
+
+In den kombinierten Räumen bei laufender Zusammenfassung den nächsten
+Quiz-Fragenwechsel bis zur fertigen Zusammenfassung verschieben. So bleibt
+der autorisierte Kontext während der Inferenz stabil. Die Wartezeit
+separat erfassen.
+
+#### Lernzielableitung aus dem Demo-Quiz
+
+Pro Lastlauf einen Lernzielauftrag einplanen, optional einen zweiten in
+einer anderen noch aktiven Demo-Session. Im Standardablauf den ersten
+Auftrag in einem separaten `de`-Quizraum auf A starten, den zweiten
+bei freiem Slot in einem `it`-Quizraum auf B. Die gewählten Locales in
+Folgeläufen wechseln. Je Auftrag eine bewertbare Demo-Frage (`order` 3
+in der Quelldatei) mit ihrer Session-Frage-ID und der Raum-Locale
+verwenden. Vor `session.deriveLearningObjectives` als Host die aktuelle
+`learningContextRevision` über `session.getLearningObjectives` lesen und
+für die Ableitung eine frische `operationId` verwenden.
+
+Für den Konflikttest während der ersten Ableitung, sobald A den
+Redis-Slot nachweislich hält, einen zusätzlichen Q&A-Themenauftrag aus
+dem anderen Raum über B starten. Die reguläre Themenanalyse der Sprache
+separat bei freiem Slot ausführen. Im Konflikt genau einen Inferenz-POST
+und für B `labelOrigin: extractive` prüfen.
+
+Für jeden Lernzielauftrag Dauer und Runtime-Aufrufe erfassen. Bei
+`status: completed` mit `appliedCount > 0` über die jeweils andere App
+die gespeicherten Entwürfe (`origin.kind: model-derived`,
+`confirmation.state: draft`), die Referenz zur Demo-Frage und die um eins
+erhöhte Revision prüfen. Bei `busy` unveränderte Lernziele und Revision
+prüfen und das Ergebnis als belegten Slot erfassen.
+
+Für den Lauf `STAGING_TEXT_ANALYSIS=true` und die versionierten Sidecar-Images
+verwenden. Der Staging-Wrapper bestätigt vor der Nginx-Aktivierung die
+Lemmatisierung und den Encoder-Zugriff in allen fünf Sprachen aus beiden
+Apps. Für Modell-Aufträge den privaten LLM-Endpunkt einrichten und
+`STAGING_LLM_ENABLED=true` sowie `STAGING_QA_SUMMARY_ENABLED=true` setzen.
+[Staging](operations/STAGING-COMPOSE.md#optionaler-aufbau-für-die-textanalyse),
+[LLM-Slot](features/open-weight-llm-runtime.md#laufzeitvertrag).
+
+Im Bericht Join- und Vote-p95, vollständigen Stimmenstand am Host,
+WebSocket-Fehler und CPU/RAM der Staging-Dienste festhalten. Für die
+Analyseaufträge pro Locale Dauer, angewandten Modus, Runtime-Aufrufe,
+Cache-Treffer und Fallback-Grund erfassen. Für die Zusammenfassung
+Aufnahmezeit und Zeit bis zum Ergebnis getrennt messen. Der Hörsaaltest
+mit 1 × 500 und der Stresstest mit 30 × 30 ergänzen dieses Mischprofil.
+
+#### Zielhostmessung mit den aktualisierten Sidecars
+
+Am 21. November 2026 lief das Profil für 45 Minuten im isolierten Staging
+auf 8 vCPUs und 15,22 GiB RAM. Beide Apps nutzten `679b89344a3d` und je
+30 DB-Verbindungen. Qwen3-4B-Instruct-2507 (Q4_K_M) lief in einer separaten
+Runtime mit vier Threads auf dem privaten Modellhost.
+
+| Messgröße                                  | Vorheriger Lauf | Aktualisierte Images |
+| ------------------------------------------ | --------------: | -------------------: |
+| Join p95                                   |        493,8 ms |             475,6 ms |
+| Quiz-Vote p95                              |        107,3 ms |             102,5 ms |
+| Host-WebSocket p95 ab letzter Vote-Antwort |        148,5 ms |             149,0 ms |
+| Zielhost-CPU p95 / Spitze                  |   25,3 / 76,4 % |        24,2 / 73,3 % |
+| Zielhost-RAM-Spitze                        |        7,06 GiB |             7,26 GiB |
+
+PostgreSQL bestätigte 20 Sessions, 230 Teilnahmen, 730 Quizstimmen,
+30 Q&A-Fragen und 30 Q&A-Bewertungen. Alle 65 vollständigen Stimmenstände
+kamen am Host-WebSocket an. Die zehn Kompassaufrufe dauerten 87–143 ms.
+Alle zehn Lemmatisierungen, alle zehn Themenanalysen mit generativen Labels
+und alle fünf Vollkontext-Zusammenfassungen mit gültigen Quellen gelangen.
+Beide Lernzielaufträge speicherten je einen auf der anderen App lesbaren
+Entwurf. Der deutsche Quizraum wartete 9,6 s mit dem nächsten Fragenwechsel.
+Die Zielhostwerte enthalten die übrige Hostlast. Der vorherige Lauf nutzte
+einen Encoder für Deutsch und Englisch sowie spaCy ohne italienische
+Lookup-Tabelle. Die beiden Läufe belegen die beobachteten Werte je Aufbau.
+
+### Gebündelte Joins und Votes im Replikabetrieb
+
+Für den Replikabetrieb laufen die Choice-Vote-Regressionen mit PostgreSQL.
+Sie prüfen gebündelte Tokenprüfung, idempotente Vote-IDs, Antwortoptionen
+und die Outbox für Runde 1. Ein paralleler Host-Lock betrifft nur den
+jeweiligen Raum. Die anderen Räume im Batch können weiter speichern.
+
+```bash
+RUN_PG_SESSION_RACE_TESTS=1 npm run test -w @arsnova/backend -- \
+  src/__tests__/session.finalization-race.pg.test.ts
+```
+
+Der Zielhost-Vergleich verwendet insgesamt 60 DB-Verbindungen pro
+Aufbau, frische Daten und dieselben 500er- und 30 × 30-Profile.
+Bei der Profilierung Nginx- und Node-Zeitmarken pro Request korrelieren,
+damit die Zeit bis zum HTTP-Handler von der DB-Zeit im Handler getrennt
+bleibt. Bei einem Transportvergleich dieselbe TLS-Zertifikatsart und
+dieselbe CPU-Zuteilung für beide Aufbauten verwenden.
+
+### Kaltstart bei 500 gleichzeitigen Joins
+
+Der erste 500er-Join beginnt nach der Readiness frisch erstellter
+App-Container. Vor diesem Lauf keine Probe-Joins ausführen. Das
+Hörsaalprofil startet die 500 HTTP-Requests gemeinsam und öffnet nach
+jeder Join-Antwort den Teilnehmer-WebSocket. Für den Vergleich TLS,
+CPU-Zuteilung, Compose-Topologie und DNS-Verhalten des Lastgenerators
+gleich halten. Bei einem gesonderten Test mit voraufgelöstem Hostnamen
+weiterhin TLS mit Hostnamen prüfen und die Messreihe separat ausweisen.
+
+Die Join-Migration bündelt Teilnehmernummern, Inserts und Revision. Mit
+PostgreSQL und Redis die Nummern, den ersten Join-Zeitstempel, die
+Teilnehmerrevision, Konflikte innerhalb einer Gruppe und die
+Replay-Capabilities prüfen.
+
+```bash
+RUN_PG_CAPABILITY_TESTS=1 npm run test -w @arsnova/backend -- \
+  src/__tests__/session.capabilities.pg.test.ts
+```
+
+### Live-Signale über Redis Pub/Sub
+
+Der gezielte Backend-Test für diesen optionalen Statuspfad prüft eigene und
+fremde Signale, Redis-Fehler, Commit-Reihenfolge sowie das Nachlesen über den
+bestehenden Fallback.
+
+```bash
+npm run test -w @arsnova/backend -- src/lib/sessionStatusPubSub.test.ts src/__tests__/session.enable-channels.test.ts src/__tests__/session.current-question-host.test.ts
+```
+
+Für die Staging-Abnahme `SESSION_STATUS_PUBSUB_ENABLED=true` auf beiden Apps
+setzen. Den Status über App A ändern und `session.onStatusChanged` auf B
+beobachten. Bei unterbrochenem Subscriber muss der nächste reguläre
+Lese-Fallback den aktuellen Zustand liefern. Nach Wiederanbindung einen
+weiteren Wechsel über A auslösen und die direkte Zustellung auf B nachweisen.
+
+Im Replikabetrieb teilen die Apps auch die Werte hinter den
+Presenter-Signalen. Der Redis-Integrationstest nutzt zwei unabhängige
+Client-Instanzen und prüft Seitenwechsel, Q&A-Filter, Emoji-Ersetzungen
+sowie das Löschen und Abweisen verspäteter Writes.
+
+```bash
+RUN_REDIS_SESSION_REPLICA_TESTS=1 REDIS_URL=redis://127.0.0.1:6379 \
+  npm run test -w @arsnova/backend -- src/lib/sessionReplicaState.redis.test.ts src/lib/trpcWebSocketClusterBudget.redis.test.ts
+```
+
+Für die Abnahme mit zwei Prozessen die Presenter-Fläche auf A ändern,
+das Status-Abo auf B beobachten und denselben Seitenkontext für je einen
+Seitenschritt an A und B senden. Eine Reaktion auf A setzen, auf B lesen,
+dort mit demselben Teilnahmetoken ersetzen und auf A die neue Verteilung
+bei unveränderter Gesamtzahl prüfen.
+
+Für die Abschlussprojektion eine Quiz-Session auf A beenden und die
+Rangliste am Status-Abo auf B abwarten. Die Rangliste auf A ausblenden.
+B muss nach dem Redis-Signal auf `idle` wechseln. Beim zweiten Durchgang
+nur das Publish der Statusnachricht unterbrechen. B muss die bestätigte
+Änderung beim nächsten Zehn-Sekunden-Fallback aus Redis übernehmen.
+
+Für den Vote-Fortschritt `session.onHostVoteProgressChanged` mit einem
+gültigen Host-Token auf B öffnen. Für dieselbe Session parallel auf A und
+B abstimmen, danach eine weitere Stimme nach Veröffentlichung des ersten
+Signals senden. Die Redis-Nachrichten auf
+`arsnova:session:vote-progress:v1` zählen. Die erste Gruppe wird
+instanzübergreifend gebündelt und die spätere Stimme aktualisiert den Host
+erneut vor dem Polling. Eine idempotente Wiederholung erzeugt keinen neuen
+Vote und kein neues Signal. Bei unterbrochenem Subscriber muss das Host-Abo
+nach Ablauf des Aggregatcaches über den regulären Lese-Fallback aufholen.
+Für das Vote-Rate-Limit zwei gleichzeitige Anfragen derselben Teilnahme-ID
+an getrennte Apps senden. Beim Standardwert wird genau eine zugelassen.
+Jede Teilnahme-ID hat auch hinter derselben NAT ein eigenes Budget.
+Mit dem Limit zwei müssen drei gleichzeitige Anfragen für dieselbe ID
+genau zwei Zulassungen und eine Ablehnung mit einer Sekunde Wartezeit
+ergeben. Nach Ablauf des Fensters ist dieselbe ID wieder zulässig.
+
+Für Join und Q&A die geschützten Host-Abos `session.onParticipantJoined`
+und `qa.onQuestionsUpdated` auf B öffnen und den jeweiligen
+Ausgangssnapshot abwarten. Danach auf A einen Join und eine neue Frage
+auslösen. B muss die aktuelle Teilnehmerzahl beziehungsweise Q&A-Revision
+vor der nächsten periodischen Abfrage senden. Die Frage anschließend mit
+gültigem Host-Token über `qa.list` auf B lesen.
+[Staging-Messung](operations/STAGING-COMPOSE.md#lokaler-test-von-a-nach-b)
+
 ### Artillery-Lasttest (Realtime, bis 500 TN)
 
 Unified Live-Session: Join-Welle, Quiz-Vote, Q&A (20 %), Blitzlicht, WebSocket-Status/Host-Progress, Ergebnis-Fan-out.
@@ -1045,6 +1423,10 @@ SESSION_CODE=AB12CD PARTICIPANTS=500 npm run load:artillery:500
 ```
 
 Skripte: [`scripts/load/run-artillery-500.mjs`](../scripts/load/run-artillery-500.mjs), [`scripts/load/artillery/500-live-session.yml`](../scripts/load/artillery/500-live-session.yml). CI-Job `artillery-500` (Schedule/Manuell, Standard 100 TN auf Runner).
+
+Der [lokale 500er-Vergleich mit kaltem Cache](PERFORMANCE-TESTING.md#vote-countdown-mit-500-gleichzeitigen-stimmen-und-kaltem-cache-2026-11-16)
+ist eine separate Messreihe mit echten Countdown-Bildabrufen, einer
+gleichzeitigen Stimmwelle und A/A-Kontrollläufen zur Einordnung der Latenzstreuung.
 
 ### Artillery-Reconnect-Welle (bis 500 TN)
 
@@ -1244,6 +1626,8 @@ BASE_URL=http://localhost:4200 TRPC_URL=http://localhost:3000/trpc \
 ```
 
 Die Skripte erzeugen ausschließlich Test-Sessions auf der angegebenen Instanz.
+Der Browser und die Test-API müssen über HTTP und tRPC-WebSocket dieselbe
+Backend-Instanz erreichen, damit Projektionsseiten denselben Kontext verwenden.
 Nicht gegen Produktion ausführen. Sie prüfen 720p, 1080p und 1920 × 1200 in beiden
 Presets. Das erste prüft den vollständigen Text einschließlich Code, die
 Navigation per Host-Befehl und Presenter-Tastaturbedienung sowie die
@@ -1252,6 +1636,15 @@ es acht gleichzeitig sichtbare Antwortoptionen in Abstimmung und Ergebnisansicht
 einschließlich Schriftgröße, Ergebnisbalken und Korrektheitsmarkierung. Das zweite prüft
 Lobby 0/10/200, Schätzverteilung mit Statistik, Freitext-Wortwolke, angeheftete
 Q&A-Frage mit Warteschlange, verborgenes/freigegebenes Blitzlicht und Rangliste.
+Für Schätzfragen liest es die sichtbaren Projektionsseiten über die
+Seitenanzeige im Quiz-Footer aus. Es prüft dabei auch die Stichprobengröße
+der Statistik, die bei wenig Platz auf einer späteren Seite steht.
+Der Fall `quiz-history-live-vote` prüft die Pfeiltasten für den Ergebnisrückblick
+und die Rückkehr zur Live-Ansicht. Während der Presenter ein früheres Ergebnis
+zeigt, nimmt das Backend eine Stimme für die unveränderte Live-Frage an. Der
+Komponenten-Regressionsfall deckt zusätzlich dieselben eingeblendeten Symbole,
+die Host-Seitensteuerung und den lokalen Host-Rückblick bei unveränderter
+laufender Abstimmung ab.
 Screenshots liegen unter `tmp/projection-pages` bzw. `tmp/presenter-scenarios`
 (im Arbeitsverzeichnis); `SMOKE_ARTIFACT_DIR` überschreibt den Pfad.
 `PROJECTION_DELAYED_MEDIA=1` hält drei Bilder im Fragetext bis nach der ersten

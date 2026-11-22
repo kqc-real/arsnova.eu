@@ -235,6 +235,14 @@ Gegenprüfung auf dem Host:
 ss -Htan state established '( sport = :3001 or sport = :3002 )' | wc -l
 ```
 
+Im Replikabetrieb gibt `./scripts/prod-replicas.sh status` den Nginx-Modus
+und die Container aus. Für die Host-Stichprobe mit `ss` die aktiven
+tRPC-Ports `3001`, `13101` und gegebenenfalls `13301` berücksichtigen.
+Yjs verwendet in diesem Modus `13202`. CPU, RSS und Event-Loop-Lag je App
+sowie PostgreSQL-Poolwartezeit und Redis-Latenz zusammen ansehen. Den
+HTTP- und WebSocket-Upstream bei einseitiger Auslastung getrennt prüfen.
+[Produktions-Replikabetrieb](PRODUCTION-REPLICAS.md).
+
 - Kurzzeitige Reconnect-Wellen nach einem Deployment sind erwartbar.
 - Bei anhaltend hohen Verbindungen `serviceStatus`, CPU, Speicher und
   Reconnect-Lasttest zusammen bewerten.

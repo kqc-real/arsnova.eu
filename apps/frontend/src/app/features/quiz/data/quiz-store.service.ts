@@ -161,6 +161,8 @@ export interface QuizQuestion {
 
 export interface QuizSettings {
   showLeaderboard: boolean;
+  enableLearningDebrief?: boolean;
+  enablePeerInstruction?: boolean;
   allowCustomNicknames: boolean;
   defaultTimer: number | null;
   timerScaleByDifficulty?: boolean;
@@ -179,6 +181,8 @@ export interface QuizSettings {
   nicknameTheme: NicknameTheme;
   bonusTokenCount: number | null;
   readingPhaseEnabled: boolean;
+  /** Global für Single Choice, Multiple Choice und Umfrage. */
+  shuffleAnswerOptions: boolean;
   preset: QuizPreset;
 }
 
@@ -650,6 +654,8 @@ const QuizMetadataSchema = CreateQuizInputSchema.pick({
 
 const QuizSettingsSchema = CreateQuizInputSchema.pick({
   showLeaderboard: true,
+  enableLearningDebrief: true,
+  enablePeerInstruction: true,
   allowCustomNicknames: true,
   defaultTimer: true,
   timerScaleByDifficulty: true,
@@ -668,6 +674,7 @@ const QuizSettingsSchema = CreateQuizInputSchema.pick({
   nicknameTheme: true,
   bonusTokenCount: true,
   readingPhaseEnabled: true,
+  shuffleAnswerOptions: true,
   preset: true,
 });
 
@@ -1866,6 +1873,14 @@ export class QuizStoreService implements OnDestroy {
           ? {
               ...quiz,
               settings: nextSettings,
+              questions: quiz.questions.map((question) =>
+                questionShufflesParticipantChoiceAnswers(question.type)
+                  ? {
+                      ...question,
+                      shuffleAnswerOptions: nextSettings.shuffleAnswerOptions,
+                    }
+                  : question,
+              ),
               updatedAt,
               ...this.currentQuizUpdateSource(),
             }
@@ -2021,6 +2036,8 @@ export class QuizStoreService implements OnDestroy {
         ...(document.motifImageUrl ? { motifImageUrl: document.motifImageUrl } : {}),
         ...(document.motifImageCredit ? { motifImageCredit: document.motifImageCredit } : {}),
         showLeaderboard: document.settings.showLeaderboard,
+        enableLearningDebrief: document.settings.enableLearningDebrief,
+        enablePeerInstruction: document.settings.enablePeerInstruction,
         allowCustomNicknames: document.settings.allowCustomNicknames,
         defaultTimer: document.settings.defaultTimer,
         timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
@@ -2039,6 +2056,7 @@ export class QuizStoreService implements OnDestroy {
         nicknameTheme: document.settings.nicknameTheme,
         bonusTokenCount: document.settings.bonusTokenCount,
         readingPhaseEnabled: document.settings.readingPhaseEnabled,
+        shuffleAnswerOptions: document.settings.shuffleAnswerOptions,
         learningObjectives: this.getLearningObjectiveBundle(document.id),
         questions: document.questions.map((question) => {
           const shortTextSettings = resolveQuestionShortTextSettings(question);
@@ -2261,6 +2279,8 @@ export class QuizStoreService implements OnDestroy {
       motifImageUrl: normalizeMotifImageUrlInput(document.motifImageUrl) ?? null,
       motifImageCredit: normalizeMotifImageCreditInput(document.motifImageCredit) ?? null,
       showLeaderboard: document.settings.showLeaderboard,
+      enableLearningDebrief: document.settings.enableLearningDebrief,
+      enablePeerInstruction: document.settings.enablePeerInstruction,
       allowCustomNicknames: document.settings.allowCustomNicknames,
       defaultTimer: document.settings.defaultTimer,
       timerScaleByDifficulty: document.settings.timerScaleByDifficulty ?? true,
@@ -2279,6 +2299,7 @@ export class QuizStoreService implements OnDestroy {
       nicknameTheme: document.settings.nicknameTheme,
       bonusTokenCount: document.settings.bonusTokenCount ?? undefined,
       readingPhaseEnabled: document.settings.readingPhaseEnabled,
+      shuffleAnswerOptions: document.settings.shuffleAnswerOptions,
       preset: document.settings.preset,
       ...(uploadBundle ? { learningObjectives: uploadBundle } : {}),
       questions: activeQuestions.map((q, index) => ({
@@ -2419,6 +2440,13 @@ export class QuizStoreService implements OnDestroy {
     const now = new Date().toISOString();
     const importedQuizId = overrideId ?? generateUuid();
     const importedQuestionIdMap = new Map<string, string>();
+    const importedChoiceQuestions = quizData.questions.filter((question) =>
+      questionShufflesParticipantChoiceAnswers(question.type),
+    );
+    const importedShuffleAnswerOptions =
+      quizData.shuffleAnswerOptions ??
+      (importedChoiceQuestions.length > 0 &&
+        importedChoiceQuestions.every((question) => question.shuffleAnswerOptions ?? true));
     const imported: QuizDocument = {
       id: importedQuizId,
       name: metadata.data.name,
@@ -2430,6 +2458,8 @@ export class QuizStoreService implements OnDestroy {
       ...this.currentQuizUpdateSource(),
       settings: parseQuizSettings({
         showLeaderboard: quizData.showLeaderboard,
+        enableLearningDebrief: quizData.enableLearningDebrief,
+        enablePeerInstruction: quizData.enablePeerInstruction,
         allowCustomNicknames: quizData.allowCustomNicknames,
         defaultTimer: quizData.defaultTimer ?? null,
         timerScaleByDifficulty: quizData.timerScaleByDifficulty ?? true,
@@ -2448,6 +2478,7 @@ export class QuizStoreService implements OnDestroy {
         nicknameTheme: quizData.nicknameTheme,
         bonusTokenCount: quizData.bonusTokenCount ?? null,
         readingPhaseEnabled: quizData.readingPhaseEnabled ?? true,
+        shuffleAnswerOptions: importedShuffleAnswerOptions,
         preset: ((quizData as Record<string, unknown>)['preset'] as QuizPreset) ?? 'PLAYFUL',
       }),
       questions: [...quizData.questions]
@@ -2510,7 +2541,7 @@ export class QuizStoreService implements OnDestroy {
             numericMax: isNumericEstimate ? (question.numericMax ?? null) : null,
             numericTwoRounds: isNumericEstimate ? (question.numericTwoRounds ?? false) : false,
             shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(question.type)
-              ? (question.shuffleAnswerOptions ?? true)
+              ? importedShuffleAnswerOptions
               : undefined,
             matchingPairs: isMatching ? (question.matchingPairs ?? undefined) : undefined,
             matchingShuffleRight: isMatching ? (question.matchingShuffleRight ?? true) : undefined,
@@ -2598,7 +2629,7 @@ export class QuizStoreService implements OnDestroy {
       numericMax: parsed.numericMax,
       numericTwoRounds: parsed.numericTwoRounds,
       shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(parsed.type)
-        ? (parsed.shuffleAnswerOptions ?? true)
+        ? document.settings.shuffleAnswerOptions
         : undefined,
       matchingPairs: parsed.type === 'MATCHING' ? (parsed.matchingPairs ?? undefined) : undefined,
       matchingShuffleRight:
@@ -2677,7 +2708,7 @@ export class QuizStoreService implements OnDestroy {
       numericMax: parsed.numericMax,
       numericTwoRounds: parsed.numericTwoRounds,
       shuffleAnswerOptions: questionShufflesParticipantChoiceAnswers(parsed.type)
-        ? (parsed.shuffleAnswerOptions ?? true)
+        ? document.settings.shuffleAnswerOptions
         : undefined,
       matchingPairs: parsed.type === 'MATCHING' ? (parsed.matchingPairs ?? undefined) : undefined,
       matchingShuffleRight:
@@ -5268,6 +5299,20 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
     (UUID_PATTERN.test(rawLastServerAccessProof) || /^[a-f0-9]{64}$/.test(rawLastServerAccessProof))
       ? rawLastServerAccessProof
       : null;
+  const storedSettings = candidate['settings'];
+  const settings = normalizeStoredQuizSettings(storedSettings);
+  if (
+    !storedSettings ||
+    typeof storedSettings !== 'object' ||
+    typeof (storedSettings as Record<string, unknown>)['shuffleAnswerOptions'] !== 'boolean'
+  ) {
+    const choiceQuestions = questions.filter((question) =>
+      questionShufflesParticipantChoiceAnswers(question.type),
+    );
+    settings.shuffleAnswerOptions =
+      choiceQuestions.length > 0 &&
+      choiceQuestions.every((question) => question.shuffleAnswerOptions ?? true);
+  }
 
   return {
     id,
@@ -5282,7 +5327,7 @@ function normalizeStoredQuiz(value: unknown): QuizDocument | null {
     updatedByBrowserLabel: readStringOrNull(candidate['updatedByBrowserLabel']) ?? null,
     lastServerQuizId,
     lastServerQuizAccessProof,
-    settings: normalizeStoredQuizSettings(candidate['settings']),
+    settings,
     questions,
   };
 }
@@ -5322,6 +5367,8 @@ function normalizeStoredQuizzes(value: unknown): QuizDocument[] {
 function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
   const parsed = QuizSettingsSchema.safeParse({
     showLeaderboard: input.showLeaderboard,
+    enableLearningDebrief: input.enableLearningDebrief,
+    enablePeerInstruction: input.enablePeerInstruction,
     allowCustomNicknames: input.allowCustomNicknames,
     defaultTimer: input.defaultTimer ?? null,
     timerScaleByDifficulty: input.timerScaleByDifficulty ?? true,
@@ -5340,6 +5387,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     nicknameTheme: input.nicknameTheme,
     bonusTokenCount: input.bonusTokenCount ?? null,
     readingPhaseEnabled: input.readingPhaseEnabled,
+    shuffleAnswerOptions: input.shuffleAnswerOptions ?? false,
     preset: input.preset,
   });
 
@@ -5350,6 +5398,8 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
 
   return {
     showLeaderboard: parsed.data.showLeaderboard,
+    enableLearningDebrief: parsed.data.enableLearningDebrief ?? true,
+    enablePeerInstruction: parsed.data.enablePeerInstruction ?? true,
     allowCustomNicknames: parsed.data.allowCustomNicknames,
     defaultTimer: parsed.data.defaultTimer ?? null,
     timerScaleByDifficulty: parsed.data.timerScaleByDifficulty ?? true,
@@ -5368,6 +5418,7 @@ function parseQuizSettings(input: Partial<QuizSettings>): QuizSettings {
     nicknameTheme: parsed.data.nicknameTheme,
     bonusTokenCount: parsed.data.bonusTokenCount ?? null,
     readingPhaseEnabled: parsed.data.readingPhaseEnabled ?? true,
+    shuffleAnswerOptions: parsed.data.shuffleAnswerOptions ?? false,
     preset: parsed.data.preset ?? 'PLAYFUL',
   };
 }
@@ -5382,6 +5433,8 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
   try {
     return parseQuizSettings({
       showLeaderboard: readBoolean(candidate['showLeaderboard']),
+      enableLearningDebrief: readBoolean(candidate['enableLearningDebrief']),
+      enablePeerInstruction: readBoolean(candidate['enablePeerInstruction']),
       allowCustomNicknames: readBoolean(candidate['allowCustomNicknames']),
       defaultTimer: readNumberOrNull(candidate['defaultTimer']),
       timerScaleByDifficulty: readBoolean(candidate['timerScaleByDifficulty']),
@@ -5410,6 +5463,7 @@ function normalizeStoredQuizSettings(value: unknown): QuizSettings {
       })(),
       bonusTokenCount: readNumberOrNull(candidate['bonusTokenCount']),
       readingPhaseEnabled: readBoolean(candidate['readingPhaseEnabled']),
+      shuffleAnswerOptions: readBoolean(candidate['shuffleAnswerOptions']),
       preset:
         typeof candidate['preset'] === 'string' ? (candidate['preset'] as QuizPreset) : undefined,
     });

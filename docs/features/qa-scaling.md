@@ -55,8 +55,7 @@ dieselben Score-Spalten in jeder Sortierung, damit Kompass und Export nicht
 von `BEST` oder `CONTROVERSIAL` abhängen. Host-Seiten können zusätzlich `search` (Text, `ILIKE`) und
 `authorNickname` (exakter Session-Nickname) in derselben Abfrage
 einschränken; `authorNickname` gilt nur mit `moderatorView`. Änderungen an
-Frage, Status, Vote oder der für Kontroversität maßgeblichen Teilnahmezahl
-verhindern das Mischen verschiedener Ranglistenstände.
+Frage, Status oder Stimmen verhindern das Mischen verschiedener Ranglistenstände. Kontroversität verwendet den festen Zuschlag 4 und die Stimmen pro Frage. Beitritte allein ändern die Ranglistenrevision nicht.
 
 `qa.onQuestionsUpdated` ist eine inhaltslose Invalidierung. Schreibende
 Q&A-Mutationen und Kanalwechsel wecken Subscriber über ein

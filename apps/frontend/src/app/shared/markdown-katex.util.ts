@@ -39,6 +39,8 @@ export interface MarkdownRenderOptions {
    * damit „2. Schritt“ nicht als einzeilige `<ol>` mit Anzeige „1.“ landet.
    */
   escapeListMarkers?: boolean;
+  /** Ermöglicht das Scrollen breiter Blockformeln per Tastatur. */
+  focusableDisplayMath?: boolean;
 }
 
 const MARKDOWN_EMOJI_SHORTCODES = new Map(Object.entries(MARKDOWN_EMOJI_SHORTCODE_MAP));
@@ -126,15 +128,21 @@ export function renderMarkdownWithKatex(
   const renderExpression = (expression: string, displayMode: boolean): string => {
     const normalized = normalizeMathExpressionBeforeKatex(expression);
     try {
+      const html = katex.renderToString(normalized, {
+        displayMode,
+        throwOnError: true,
+        strict: 'warn',
+        trust: false,
+        maxExpand: 1000,
+        maxSize: 20,
+      });
       return storeRenderedMath(
-        katex.renderToString(normalized, {
-          displayMode,
-          throwOnError: true,
-          strict: 'warn',
-          trust: false,
-          maxExpand: 1000,
-          maxSize: 20,
-        }),
+        displayMode && options?.focusableDisplayMath
+          ? html.replace(
+              '<span class="katex-display">',
+              '<span class="katex-display" tabindex="0">',
+            )
+          : html,
       );
     } catch (error) {
       const message = error instanceof Error ? error.message : $localize`Ungültige KaTeX-Syntax.`;
@@ -684,6 +692,7 @@ function sanitizeMarkdownHtml(html: string): string {
         'role',
         'disabled',
         'focusable',
+        'tabindex',
         'viewBox',
         // KaTeX rendert Wurzelzeichen als SVG; ohne diese Geometrieattribute verschwindet das Radical.
         'width',

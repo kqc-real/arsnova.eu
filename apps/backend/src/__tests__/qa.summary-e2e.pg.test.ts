@@ -274,10 +274,10 @@ describe.skipIf(!RUN_PG)(
     async function waitForStoredJobResult(sessionId: string): Promise<QaSummaryResultV2> {
       const started = performance.now();
       for (;;) {
-        const stored = getQaSummaryRuntime(sessionId).result;
+        const stored = (await getQaSummaryRuntime(sessionId)).result;
         if (stored && stored.status !== 'pending') {
           await waitForQaSummaryIdleForTests(TERMINAL_WAIT_MS);
-          return getQaSummaryRuntime(sessionId).result!;
+          return (await getQaSummaryRuntime(sessionId)).result!;
         }
         if (performance.now() - started > TERMINAL_WAIT_MS) {
           throw new Error(`Job blieb ${TERMINAL_WAIT_MS} ms lang ${stored?.status ?? 'leer'}`);
@@ -889,7 +889,7 @@ describe.skipIf(!RUN_PG)(
       // Danach ist nichts liegen geblieben, und für Session 3 lief kein Job-Kontextaufbau.
       expect(getQaSummaryQueueMetrics()).toMatchObject({ queueLength: 0, running: 0 });
       expect(prepares.get(rooms[2].sessionId)).toBe(1);
-      expect(getQaSummaryRuntime(rooms[2].sessionId).result?.execution.fallback?.reason).toBe(
+      expect((await getQaSummaryRuntime(rooms[2].sessionId)).result?.execution.fallback?.reason).toBe(
         'queue_full',
       );
     }, 120_000);

@@ -15,9 +15,9 @@ const { qaTelemetryMocks, redisMock, state } = vi.hoisted(() => {
       const args = parameters.slice(keyCount);
       if (script.includes('session_runtime_data_purge_v1')) {
         state.events.push('EVAL purge');
-        const [fenceKey, presenceKey] = keys;
+        const [fenceKey, ...runtimeKeys] = keys;
         state.values.set(fenceKey!, '1');
-        return state.values.delete(presenceKey!) ? 1 : 0;
+        return runtimeKeys.filter((key) => state.values.delete(key)).length;
       }
       if (script.includes('participant_presence_touch_v2')) {
         state.events.push('EVAL presence');

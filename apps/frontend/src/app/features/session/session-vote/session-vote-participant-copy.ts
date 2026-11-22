@@ -262,16 +262,9 @@ export function voteLastQuestionBadge(playful: boolean): string {
 
 export function voteReadingTitle(playful: boolean): string {
   if (playful) {
-    return $localize`:@@sessionVote.readingTitlePlayful:Erst lesen, dann abstimmen`;
+    return $localize`:@@sessionVote.readingTitlePlayful:Erst lesen, dann antworten`;
   }
   return $localize`:@@sessionVote.readingTitleSerious:Lesephase`;
-}
-
-export function voteReadingHint(playful: boolean): string {
-  if (playful) {
-    return $localize`:@@sessionVote.readingHintPlayful:Nimm dir einen Moment – die Antwortoptionen kommen gleich.`;
-  }
-  return $localize`:@@sessionVote.readingHintSerious:Lies die Frage in Ruhe – die Antwortoptionen folgen gleich.`;
 }
 
 export function voteReadingReadyCta(playful: boolean): string {

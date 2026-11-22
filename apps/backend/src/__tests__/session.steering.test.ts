@@ -1742,6 +1742,28 @@ describe('session peer-instruction steering gates', () => {
     );
   });
 
+  it('blockiert Diskussion und Runde zwei bei ausgeschalteter Peer Instruction', async () => {
+    const session = {
+      id: SESSION_ID,
+      currentQuestion: 0,
+      currentRound: 1,
+      quiz: {
+        enablePeerInstruction: false,
+        questions: [{ type: 'SINGLE_CHOICE' }],
+      },
+    };
+    prismaMock.session.findUnique.mockResolvedValue({ ...session, status: 'ACTIVE' });
+    await expect(caller.startDiscussion({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+    prismaMock.session.findUnique.mockResolvedValue({ ...session, status: 'DISCUSSION' });
+    await expect(caller.startSecondRound({ code: CODE })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    });
+    expect(prismaMock.session.update).not.toHaveBeenCalled();
+    expect(prismaMock.vote.findMany).not.toHaveBeenCalled();
+  });
+
   it.each(['MATCHING', 'ORDERING', 'CATEGORIZATION'] as const)(
     'erlaubt den produktiven Diskussions- und Runde-2-Pfad für %s',
     async (type) => {
@@ -1919,6 +1941,7 @@ describe('session peer-instruction steering gates', () => {
         currentQuestion: 0,
         currentRound: 1,
         quiz: {
+          enablePeerInstruction: false,
           questions: [{ type: 'NUMERIC_ESTIMATE', numericTwoRounds: true }],
         },
       });

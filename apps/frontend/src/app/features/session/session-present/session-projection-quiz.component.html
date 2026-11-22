@@ -4,7 +4,7 @@
   <app-projection-pages
     [hidden]="showLeaderboardPage()"
     [class.projection-pages--with-reactions]="showEmojiReactions()"
-    [pageContext]="pageContext()"
+    [pageContext]="projectionPageContext()"
     [pageIndex]="contentPageIndex()"
     (pageCount)="onContentPageCount($event)"
   >
@@ -17,6 +17,9 @@
       [class.session-projection-quiz--code]="hasQuestionCode()"
       [class.session-projection-quiz--with-visual]="!!questionVisual()"
       [class.session-projection-quiz--results]="isResults()"
+      [class.session-projection-quiz--rating-overview]="
+        q.type === 'RATING' && (isResults() || showLiveRatingDistribution())
+      "
       [class.session-projection-quiz--discussion]="isDiscussion()"
       [class.session-projection-quiz--dense-answers]="hasDenseAnswerCopy()"
     >
@@ -139,9 +142,7 @@
                 <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"
                   >menu_book</mat-icon
                 >
-                <span i18n="@@sessionPresent.quizReadingHint"
-                  >Lesephase – Antwortoptionen folgen gleich.</span
-                >
+                <span>{{ readingHint() }}</span>
               </p>
             }
           </div>
@@ -161,12 +162,14 @@
                 <mat-icon class="session-projection-quiz__reading-icon" aria-hidden="true"
                   >menu_book</mat-icon
                 >
-                <span i18n="@@sessionPresent.quizReadingHint"
-                  >Lesephase – Antwortoptionen folgen gleich.</span
-                >
+                <span>{{ readingHint() }}</span>
               </p>
             } @else if (q.type === 'RATING') {
-              <div class="session-projection-quiz__rating">
+              <div
+                class="session-projection-quiz__rating"
+                [class.session-projection-quiz__rating--with-statistics]="showRatingStatistics()"
+                [class.session-projection-quiz__rating--dense]="ratingValues().length > 5"
+              >
                 @if (q.ratingLabelMin || q.ratingLabelMax) {
                   <p class="session-projection-quiz__rating-labels">
                     <mat-icon
@@ -190,27 +193,57 @@
                     >
                   </p>
                 }
-                @for (value of ratingValues(); track value) {
-                  <div class="session-projection-quiz__bar">
-                    <span>{{ value }}</span>
-                    <div class="session-projection-quiz__bar-track">
-                      <div
-                        class="session-projection-quiz__bar-fill"
-                        [style.width.%]="isResults() ? ratingBarPercent(value) : 0"
-                      ></div>
+                @if (isResults() || showLiveRatingDistribution()) {
+                  @for (value of ratingValues(); track value) {
+                    <div class="session-projection-quiz__bar">
+                      <span>{{ value }}</span>
+                      <div class="session-projection-quiz__bar-track">
+                        <div
+                          class="session-projection-quiz__bar-fill"
+                          [style.width.%]="ratingBarPercent(value)"
+                        ></div>
+                      </div>
+                      <span>{{ ratingCount(value) }}</span>
                     </div>
-                    <span>{{ isResults() ? ratingCount(value) : '·' }}</span>
+                  }
+                  @if (showRatingStatistics()) {
+                    <dl class="session-projection-quiz__rating-statistics" aria-live="polite">
+                      <div>
+                        <dt i18n="@@sessionPresent.quickFeedbackVotes">Stimmen</dt>
+                        <dd>{{ displayedRatingCount() }}</dd>
+                      </div>
+                      <div>
+                        <dt i18n="@@sessionReport.numericComparisonMean">Mittelwert</dt>
+                        <dd>{{ formatRatingStatistic(displayedRatingAverage()) }}</dd>
+                      </div>
+                      <div>
+                        <dt i18n="@@sessionReport.numericComparisonMedian">Median</dt>
+                        <dd>{{ formatRatingStatistic(displayedRatingMedian()) }}</dd>
+                      </div>
+                      <div>
+                        <dt i18n="@@sessionReport.numericComparisonStdDev">Standardabweichung</dt>
+                        <dd>{{ formatRatingStatistic(displayedRatingStdDev()) }}</dd>
+                      </div>
+                    </dl>
+                  }
+                } @else {
+                  <div
+                    class="session-projection-quiz__rating-scale"
+                    role="list"
+                    i18n-aria-label="@@sessionHost.ratingScaleAria"
+                    aria-label="Bewertungsskala"
+                  >
+                    @for (value of ratingValues(); track value) {
+                      <span class="session-projection-quiz__rating-scale-value" role="listitem">{{
+                        value
+                      }}</span>
+                    }
                   </div>
-                }
-                @if (isResults() && q.ratingAvg != null) {
-                  <p class="session-projection-quiz__stat">∅ {{ q.ratingAvg | number: '1.1-1' }}</p>
-                }
-                @if (!isResults()) {
                   <p
                     class="session-projection-quiz__waiting"
                     i18n="@@sessionPresent.quizRatingWaiting"
                   >
-                    Die Verteilung erscheint mit dem Ergebnis.
+                    Auf der nächsten Seite siehst du die Verteilung live.
                   </p>
                 }
               </div>
@@ -322,7 +355,7 @@
                       <li>{{ modeLabel }}</li>
                     }
                     @if (numericMaxDecimalPlacesHint(); as maxPlacesHint) {
-                      <li class="session-projection-quiz__numeric-facts-stack">
+                      <li>
                         <span i18n="@@sessionPresent.numericFormatDecimalLead"
                           >Komma oder Punkt möglich,</span
                         >
@@ -596,12 +629,16 @@
                           class="markdown-body"
                           [innerHTML]="renderAnswerMarkdown(answer.text)"
                         ></span>
-                        @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                          <mat-icon
-                            class="session-projection-quiz__answer-correct-icon"
-                            aria-hidden="true"
-                            >check_circle</mat-icon
+                        @if (revealCorrectness() && q.type !== 'SURVEY') {
+                          <span
+                            class="session-projection-quiz__answer-result-icon"
+                            [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                            [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                           >
+                            <mat-icon aria-hidden="true">{{
+                              answer.isCorrect ? 'check_circle' : 'cancel'
+                            }}</mat-icon>
+                          </span>
                         }
                       </div>
                       <div class="session-projection-quiz__round-bars">
@@ -706,12 +743,16 @@
                         class="markdown-body"
                         [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
-                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                        <mat-icon
-                          class="session-projection-quiz__answer-correct-icon"
-                          aria-hidden="true"
-                          >check_circle</mat-icon
+                      @if (revealCorrectness() && q.type !== 'SURVEY') {
+                        <span
+                          class="session-projection-quiz__answer-result-icon"
+                          [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                          [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                         >
+                          <mat-icon aria-hidden="true">{{
+                            answer.isCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                        </span>
                       }
                     </div>
                     <div class="session-projection-quiz__bar-track">
@@ -755,12 +796,16 @@
                         class="markdown-body"
                         [innerHTML]="renderAnswerMarkdown(answer.text)"
                       ></span>
-                      @if (revealCorrectness() && answer.isCorrect && q.type !== 'SURVEY') {
-                        <mat-icon
-                          class="session-projection-quiz__answer-correct-icon"
-                          aria-hidden="true"
-                          >check_circle</mat-icon
+                      @if (revealCorrectness() && q.type !== 'SURVEY') {
+                        <span
+                          class="session-projection-quiz__answer-result-icon"
+                          [class.session-projection-quiz__answer-correct-icon]="answer.isCorrect"
+                          [class.session-projection-quiz__answer-wrong-icon]="!answer.isCorrect"
                         >
+                          <mat-icon aria-hidden="true">{{
+                            answer.isCorrect ? 'check_circle' : 'cancel'
+                          }}</mat-icon>
+                        </span>
                       }
                     </div>
                   </li>
@@ -810,50 +855,49 @@
                 </p>
               }
               <ol class="session-projection-quiz__leaderboard-list">
-                @for (
-                  entry of leaderboard().slice(0, leaderboardPreviewLimit);
-                  track entry.rank + ':' + entry.nickname
-                ) {
+                @for (entry of leaderboardPreview(); track entry.rank + ':' + entry.nickname) {
                   <li
                     class="session-projection-quiz__leaderboard-item"
-                    [class.session-projection-quiz__leaderboard-item--lead]="entry.rank === 1"
+                    [class.session-projection-quiz__leaderboard-item--lead]="entry.place === 1"
                   >
                     <div class="session-projection-quiz__leaderboard-row">
                       <strong class="session-projection-quiz__leaderboard-rank">
-                        @if (entry.rank === 1) {
+                        @if (entry.place === 1) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
                             aria-hidden="true"
                             >🥇</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 2) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 2) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--silver"
                             aria-hidden="true"
                             >🥈</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 3) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 3) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--bronze"
                             aria-hidden="true"
                             >🥉</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
+                          <span class="sr-only">{{ entry.place }}</span>
                         } @else {
-                          {{ entry.rank }}
+                          {{ entry.place }}
                         }
                       </strong>
-                      @if (leaderboardNicknameEmoji(entry.nickname); as emoji) {
-                        <span
+                      @let emoji =
+                        leaderboardNicknameEmoji(entry.nickname, entry.kindergartenAnimalId);
+                      @if (emoji) {
+                        <img
                           class="session-projection-quiz__leaderboard-emoji"
-                          aria-hidden="true"
-                          >{{ emoji }}</span
-                        >
+                          [src]="animalIconUrl(emoji)"
+                          alt=""
+                        />
                       }
                       <span class="session-projection-quiz__leaderboard-name">{{
-                        entry.nickname
+                        scoreboardNickname(entry.nickname, emoji)
                       }}</span>
                       @if (entry.teamName) {
                         <span
@@ -901,39 +945,43 @@
                 </p>
               }
               <ol class="session-projection-quiz__leaderboard-list">
-                @for (
-                  entry of teamLeaderboard().slice(0, leaderboardPreviewLimit);
-                  track entry.rank + ':' + entry.teamName
-                ) {
+                @for (entry of teamLeaderboardPreview(); track entry.rank + ':' + entry.teamName) {
                   <li
                     class="session-projection-quiz__leaderboard-item"
-                    [class.session-projection-quiz__leaderboard-item--lead]="entry.rank === 1"
+                    [class.session-projection-quiz__leaderboard-item--lead]="
+                      teamScoreboardHasPoints() && entry.place === 1
+                    "
                   >
                     <div class="session-projection-quiz__leaderboard-row">
-                      <strong class="session-projection-quiz__leaderboard-rank">
-                        @if (entry.rank === 1) {
+                      <strong
+                        class="session-projection-quiz__leaderboard-rank"
+                        [attr.aria-hidden]="teamScoreboardHasPoints() ? null : 'true'"
+                      >
+                        @if (!teamScoreboardHasPoints()) {
+                          —
+                        } @else if (entry.place === 1) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--gold"
                             aria-hidden="true"
                             >🥇</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 2) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 2) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--silver"
                             aria-hidden="true"
                             >🥈</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
-                        } @else if (entry.rank === 3) {
+                          <span class="sr-only">{{ entry.place }}</span>
+                        } @else if (entry.place === 3) {
                           <span
                             class="session-projection-quiz__leaderboard-medal session-projection-quiz__leaderboard-medal--bronze"
                             aria-hidden="true"
                             >🥉</span
                           >
-                          <span class="sr-only">{{ entry.rank }}</span>
+                          <span class="sr-only">{{ entry.place }}</span>
                         } @else {
-                          {{ entry.rank }}
+                          {{ entry.place }}
                         }
                       </strong>
                       @if (teamNameEmoji(entry.teamName); as teamEmoji) {

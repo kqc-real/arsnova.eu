@@ -54,7 +54,12 @@
   flex: 0 0 auto;
 }
 
-.qa-word-cloud-dialog__size {
+.qa-word-cloud-dialog__size-field {
+  width: min(100%, 18rem);
+  min-width: 0;
+}
+
+.qa-word-cloud-dialog__language {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
@@ -70,7 +75,7 @@
   backdrop-filter: blur(14px) saturate(1.2);
 }
 
-.qa-word-cloud-dialog__size-label {
+.qa-word-cloud-dialog__language-label {
   flex: 0 0 auto;
   padding-block: 0.2rem;
   font: var(--mat-sys-label-medium);
@@ -79,7 +84,7 @@
   white-space: nowrap;
 }
 
-.qa-word-cloud-dialog__size-select {
+.qa-word-cloud-dialog__language-select {
   box-sizing: border-box;
   min-height: 2.2rem;
   width: auto;
@@ -94,7 +99,7 @@
   field-sizing: content;
 }
 
-.qa-word-cloud-dialog__size-select:focus-visible {
+.qa-word-cloud-dialog__language-select:focus-visible {
   outline: 2px solid var(--mat-sys-primary);
   outline-offset: 2px;
 }
@@ -351,7 +356,7 @@
 
   .qa-word-cloud-dialog__analysis-toggle,
   .qa-word-cloud-dialog__smooth-cluster,
-  .qa-word-cloud-dialog__size,
+  .qa-word-cloud-dialog__language,
   .qa-word-cloud-dialog__smooth,
   .qa-word-cloud-dialog__refresh {
     width: fit-content;
@@ -359,7 +364,7 @@
     flex: 0 1 auto;
   }
 
-  .qa-word-cloud-dialog__size-select {
+  .qa-word-cloud-dialog__language-select {
     flex: 0 1 auto;
     max-width: min(100%, 22rem);
   }

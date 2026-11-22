@@ -154,7 +154,7 @@ const de: Messages = {
       },
       {
         label: 'Themen-Wortwolke',
-        text: 'Wörter und Phrasen werden nach Unterstützung, Zustimmung oder Kontroverse gewichtet.',
+        text: 'Die Wortgröße lässt sich nach Stimmensaldo, klarer Zustimmung, geteilten Stimmen oder nach dem Vorkommen in Fragen gewichten.',
       },
       {
         label: 'Moderationskompass',
@@ -167,27 +167,27 @@ const de: Messages = {
     demoTitle: 'Fragen zur Veranstaltung',
     moderationActive: 'Vorab-Moderation aktiv',
     sortMostSupported: 'Stimmensaldo',
-    sortBest: 'Beste Fragen',
-    sortControversial: 'Kontroverse',
+    sortBest: 'Klare Zustimmung',
+    sortControversial: 'Geteilte Stimmen',
     questions: [
       {
-        score: '+18',
+        score: '+11',
+        title: 'Wie unterscheidet sich Q&A von Freitext im Quiz?',
+        meta: '100 % dafür · 11 Stimmen',
+      },
+      {
+        score: '+12',
         title: 'Wann ist eine Schätzung fachlich noch plausibel?',
-        meta: '15 positiv · 3 negativ · beste Frage',
+        meta: '83,3 % dafür · 18 Stimmen',
       },
       {
         score: '+4',
         title: 'Sollten wir Ergebnisse vor der Diskussion wirklich ausblenden?',
-        meta: '9 positiv · 5 negativ · umstritten',
-      },
-      {
-        score: '+11',
-        title: 'Wie unterscheidet sich Q&A von Freitext im Quiz?',
-        meta: '11 positiv · 0 negativ · meist unterstützt',
+        meta: '64,3 % dafür · 14 Stimmen',
       },
     ],
     wordCloud: 'Q&A-Wortwolke',
-    wordCloudHint: 'Gewichtet nach positiver Zustimmung und Kontroverse.',
+    wordCloudHint: 'Die Wortgröße folgt der Gewichtung der Fragen.',
     frozenLive: 'Live-Aktualisierung pausiert',
     terms: [
       { label: 'Toleranzband', className: 'text-3xl text-landing-primary' },
@@ -304,6 +304,8 @@ const de: Messages = {
     eyebrow: 'Was arsnova.eu auszeichnet',
     title: 'Gebaut für Live-Interaktion statt nur für Abstimmungsfolien',
     lead: 'arsnova.eu verbindet schnellen Einstieg, didaktische Stärke und einen transparenten technischen Unterbau. So bleibt die Plattform im Alltag einfach, ohne in den Möglichkeiten klein zu werden.',
+    peerInstructionDescription:
+      'Die Teilnehmenden stimmen zuerst einzeln ab, diskutieren ihre Begründungen und stimmen danach erneut ab. Der Vergleich der beiden Runden zeigt, wie sich die Antworten verändert haben.',
     items: [
       {
         title: 'Erstellen und hosten zuerst fürs Handy',
@@ -409,16 +411,16 @@ const de: Messages = {
     pointsCol: 'Punkte',
     correctCol: 'Richtig',
     names: [
-      'Korallenfarbene Katze',
-      'Bunter Papagei',
-      'Brauner Bär',
-      'Olivgrüne Maus',
-      'Hellblauer Schwan',
-      'Roter Drache',
-      'Rosa Schmetterling',
-      'Brauner Bär 2',
-      'Roter Drache 8',
-      'Himmelblaue Giraffe',
+      'Katzengesicht',
+      'Papagei',
+      'Bär',
+      'Maus',
+      'Schwan',
+      'Drache',
+      'Schmetterling',
+      'Bär 2',
+      'Drache 8',
+      'Giraffe',
     ],
   },
   structuredQuestionTypes: {

@@ -85,13 +85,13 @@ Von der Startseite aus können Hosts direkt:
 - gespeicherte **Host-Zugänge** wieder öffnen (Live-Karte, höchstens 8 von 32 Capabilities; ab 3 offenen Sessions werden offene und geschlossene Zugänge gemeinsam im Pulldown gebündelt)
 - ohne gespeicherte Capability über **Host-Zugang wiederherstellen** nach `/host-recovery`
 
-Die Aufgabenwahl **Was hast du heute vor?** steht unmittelbar über einem gemeinsamen Kartenbereich. **Quiz erstellen & verwalten**, **Q&A-Forum erstellen & verwalten** (in der Zeile **Q&A erstellen & verwalten**) und **Blitzlicht auswählen** blenden jeweils nur die zugehörige Karte ein. Anfangs ist keine Karte sichtbar; ein erneuter Klick auf die aktive Auswahl lässt sie offen. Die Auswahl wird nicht gespeichert, verschiebt den Fokus nicht in die Karte und scrollt die Karte sanft in den sichtbaren Bereich. Der Wechsel blendet die Karten über. Die Auswahlbuttons bleiben beim Wechsel stehen und haben keine Füllfläche. Teilnahme bleibt immer sichtbar. In der Q&A-Karte bleiben **Fragen sammeln**, **Beides** und vorhandene Q&A-Zugänge. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
+Die Aufgabenwahl **Was möchtest du tun?** steht unmittelbar über einem gemeinsamen Kartenbereich. **Quiz auswählen**, **Q&A-Forum eröffnen** und **Blitzlicht starten** blenden jeweils nur die zugehörige Karte ein. Anfangs ist keine Karte sichtbar; ein erneuter Klick auf die aktive Auswahl lässt sie offen. Die Auswahl wird nicht gespeichert, verschiebt den Fokus nicht in die Karte und scrollt die Karte sanft in den sichtbaren Bereich. Der Wechsel blendet die Karten über. Die Auswahlbuttons bleiben beim Wechsel stehen und haben keine Füllfläche. Teilnahme bleibt immer sichtbar. In der Q&A-Karte bleiben **Fragen sammeln**, **Beides** und vorhandene Q&A-Zugänge. Die Quiz-Sammlung priorisiert für Kurs- und Direktstarts **Starten** neben **Bearbeiten**; weitere Kartenaktionen bleiben in den bestehenden Menüs.
 
 Der direkte Q&A-Start und **Beides** führen durch zwei bestehende Schritte: Teilnahmeprofil auf der Startseite, danach Bestätigung der Host-Zugangskarte. Die Session übernimmt die Q&A-Initialwerte bereits beim Anlegen; ein zusätzlicher Q&A-Konfigurationsdialog gehört nicht zu diesem Einstieg. Frist und Vormoderation bleiben über **Q&A-Einstellungen** erreichbar. Erst nach Bestätigung der Zugangskarte und erfolgreichem Q&A-Start wird bei **Beides** Blitzlicht unter demselben Sessioncode hinzugefügt; die Fragenwand bleibt der priorisierte Einstieg. Schlägt nur das Hinzufügen von Blitzlicht fehl, bleibt Q&A offen und **Blitzlicht hinzufügen** wiederholt den fehlenden Schritt in derselben Session.
 
-Abbruch des Teilnahmeprofils erzeugt keine Session. Abbruch der Zugangskarte erhält dagegen die bereits angelegte Session in der Lobby und merkt die Karte sowie den Beides-Folgeschritt für später vor; Blitzlicht wird noch nicht aktiviert. Die Session wird dadurch nicht beendet. Der separate Q&A-Konfigurationsdialog wird bei noch unkonfiguriertem Q&A, beim entsprechenden **Format hinzufügen** und in den späteren Einstellungen verwendet; dessen Abbruchregeln sind davon getrennt.
+Abbruch des Teilnahmeprofils erzeugt keine Session. Abbruch der Zugangskarte erhält dagegen die bereits angelegte Session in der Lobby und merkt die Karte sowie den Beides-Folgeschritt für später vor; Blitzlicht wird noch nicht aktiviert. Die Session wird dadurch nicht beendet. Der separate Q&A-Konfigurationsdialog wird bei noch unkonfiguriertem Q&A, beim Hinzufügen von Q&A über **Session erweitern** und in den späteren Einstellungen verwendet; dessen Abbruchregeln sind davon getrennt.
 
-Die App merkt sich nur eine ausdrücklich gewählte Aufgabe als lokale Präferenz. Für neu gestartete Sessions wird die Aufgabe pro Code im aktuellen Tab gespeichert; ohne vorherige Wahl gilt der direkte Kartenstart als Schnellstart. Ein direkter Host-Link oder eine Wiederherstellung ohne diesen Eintrag übernimmt keine globale Präferenz und erhält keine zusätzlichen Rechte. Die Host-Kanalnavigation folgt dem bestätigten Sessionzustand. Die Quiz-Host-Ansicht ist nach Phasen geordnet: ein dominanter nächster Schritt, sichtbare Peer-Instruction-Alternativen, die direkte Präsentationsaktion, Ton in der oberen Host-Leiste sowie **Weitere Aktionen** für Darstellung, Feedback, Auslassen, voriges Ergebnis und Session-Ende. Persönliche Timer und Nachteilsausgleich bleiben an den Phasenaktionen sichtbar. Nach Quizabschluss steht der Nachbesprechungsplan im Vordergrund; PDF-Varianten und CSV liegen unter **Exportieren**, weitere offene Formate bleiben erreichbar, ebenso ein nächstes Quiz, soweit nach bestehendem Kanalzustand zulässig. Im Q&A-Host bündelt **Auswertung & Werkzeuge** die Zusatzfunktionen: Suche, alle vier Sortierungen, Filter, Teilnahmeverzeichnis, CSV und Wortwolke sind aufklappbar. Aktive Filter bleiben davor sichtbar und einzeln lösbar. Bei Vorabmoderation führt **Fragen prüfen** mit dem sitzungsweiten Pending-Zähler zur gesamten Warteschlange. Im sessiongebundenen Blitzlicht stehen Ergebnis/Tempo-Trend, Beteiligung und **Stopp/Fortsetzen** vor den **Rundeneinstellungen** mit Formatwechsel, Vergleichsrunde, Zurücksetzen und Live-Ergebnis-Anzeige.
+Die App merkt sich nur eine ausdrücklich gewählte Aufgabe als lokale Präferenz. Für neu gestartete Sessions wird die Aufgabe pro Code im aktuellen Tab gespeichert; ohne vorherige Wahl gilt der direkte Kartenstart als Schnellstart. Ein direkter Host-Link oder eine Wiederherstellung ohne diesen Eintrag übernimmt keine globale Präferenz und erhält keine zusätzlichen Rechte. Die Host-Kanalnavigation folgt dem bestätigten Sessionzustand. Die Quiz-Host-Ansicht ist nach Phasen geordnet: ein dominanter nächster Schritt, sichtbare Peer-Instruction-Alternativen, die direkte Präsentationsaktion, Ton in der oberen Host-Leiste sowie **Weitere Aktionen** für Smartphone-Fernbedienung, Darstellung, Feedback und Session-Ende. **Frage auslassen** und **Vorheriges Ergebnis** bleiben als direkte Aktionen sichtbar. Persönliche Timer und Nachteilsausgleich bleiben an den Phasenaktionen sichtbar. Nach Quizabschluss steht der Nachbesprechungsplan im Vordergrund; PDF-Varianten und CSV liegen unter **Exportieren**, weitere offene Formate bleiben erreichbar, ebenso ein nächstes Quiz, soweit nach bestehendem Kanalzustand zulässig. Im Q&A-Host bündelt **Auswertung & Werkzeuge** die Zusatzfunktionen: Suche, alle vier Sortierungen, Filter, Teilnahmeverzeichnis, CSV und Wortwolke sind aufklappbar. Aktive Filter bleiben davor sichtbar und einzeln lösbar. Bei Vorabmoderation führt **Fragen prüfen** mit dem sitzungsweiten Pending-Zähler zur gesamten Warteschlange. Im sessiongebundenen Blitzlicht stehen Ergebnis/Tempo-Trend, Beteiligung und **Stopp/Fortsetzen** vor den **Blitzlicht-Einstellungen** für Formatwechsel und Live-Ergebnis-Anzeige. Vergleichsrunde und Zurücksetzen sind direkt erreichbar.
 
 Die [Szenario- und Zustandsmatrix der Host-Führung](ui/HOST-FUEHRUNG.md) beschreibt die direkten und neutralen Einstiege, Zusatzaktionen und Nachweisgrenzen. Ungültige oder verweigerte Speicherung der Aufgabenpräferenz blockiert diese Auswahl nicht; sie ist unabhängig von den Presets Seriös und Spielerisch.
 
@@ -165,6 +165,13 @@ Jedes Quiz kann folgende Metadaten besitzen:
 - optionales Motivbild per URL oder Asset-Pfad inkl. optionalem Bildnachweis
 
 Die Beschreibung und Fragetexte unterstützen **Markdown** und **KaTeX**.
+Im Quiz-Editor ist **Titel & Beschreibung** bei langen Beschreibungen zunächst
+eingeklappt. Zum Bearbeiten lässt sich der Bereich jederzeit öffnen.
+Die Reihenfolge der Antwortoptionen wird einmal global in den Quiz-Einstellungen
+festgelegt. Standardmäßig bleibt die im Editor verfasste Reihenfolge auf den
+Geräten der Teilnehmenden erhalten; optional lassen sich die Optionen für alle
+Single-Choice-, Multiple-Choice- und Umfragefragen mischen. Host und Präsentation
+verwenden weiterhin die Autorenreihenfolge.
 
 ### 3.4 Unterstützte Fragetypen
 
@@ -308,7 +315,7 @@ In der Lobby sind verfügbar:
 - Anzeige aktiver Teilnehmer bzw. Presence
 - Umschalten in einen immersiven Hostmodus
 - Vollbildunterstützung (expliziter Schalter; beim Session-Start auf Android-Chrome kein automatisches Vollbild, weil Chrome sonst einen Systemhinweis über die Bedienung legt)
-- Die Host-Leiste **Präsentation starten** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation starten**. **Mit Smartphone steuern** steht eingeklappt; darin **Smartphone verbinden**. Die Präsentationsansicht öffnet sich im selben Browser-Tab. **Zurück zum Host** und **Escape** aus dem Vollbild wechseln dort wieder zur Steuerung der laufenden Session. Die Aktion **Präsentation starten** fordert direkt das Browser-Vollbild an. Auch **Zur Präsentationsansicht wechseln** fordert das Vollbild an. Im Fenstermodus bleibt die Projektion bedienbar. Wenn der Browser Vollbild unterstützt, kann es dort über **Vollbild** aktiviert werden. Die Verbindung wird immer auf dem Host-Bildschirm bestätigt; nach Kopplung startet die Presenter-Ansicht ohne zweiten Laptop-Klick. Co-Host über **Weiteres Gerät verbinden**. Freigabe als Ja/Nein (**Ja, Gerät verbinden** / **Nein, ablehnen**) mit Zeichenabgleich. Der Original-Host verwaltet Geräte kompakt (Status, **Verbindung trennen**); Widerruf beendet Host-Rechte sofort. Das getrennte Gerät kann die Veranstaltung verlassen, ohne sie für alle zu beenden. Pairing liegt nur in diesem Dialog, nicht in der Host-Leiste. QR, Freigabe, Geräteverwaltung und Secrets bleiben auf `/host`, nie auf `/present`. Das gekoppelte Gerät steuert die laufende Veranstaltung (Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden), nicht die Quiz-Sammlung — und gibt der Lehrkraft volle Bewegungsfreiheit im Raum.
+- Die Host-Leiste **Präsentation starten** öffnet zuerst den Dialog **Präsentation starten**: Primäraktion **Präsentation starten**. **Mit Smartphone steuern** steht eingeklappt; darin **Smartphone verbinden**. Die Präsentationsansicht öffnet sich im selben Browser-Tab. **Zurück zum Host** und **Escape** aus dem Vollbild wechseln dort wieder zur Steuerung der laufenden Session. Die Aktion **Präsentation starten** fordert direkt das Browser-Vollbild an. Auch **Zur Präsentationsansicht wechseln** fordert das Vollbild an. Im Fenstermodus bleibt die Projektion bedienbar. Wenn der Browser Vollbild unterstützt, kann es dort über **Vollbild** aktiviert werden. Die Smartphone-Fernbedienung bleibt nach dem Präsentationsstart im Host unter **Weitere Aktionen** erreichbar; im Presenter gibt es dafür kein selten benötigtes Zusatzmenü. Die Verbindung wird auf dem projizierten Bildschirm bestätigt; nach Kopplung startet beziehungsweise steuert das Smartphone die laufende Session. Co-Host über **Weiteres Gerät verbinden**. Freigabe als Ja/Nein (**Ja, Gerät verbinden** / **Nein, ablehnen**) mit Zeichenabgleich. Der Original-Host verwaltet Geräte kompakt (Status, **Verbindung trennen**); Widerruf beendet Host-Rechte sofort. Das getrennte Gerät kann die Veranstaltung verlassen, ohne sie für alle zu beenden. Das gekoppelte Gerät steuert die laufende Veranstaltung (Fragen, Ergebnisse, Q&A, Blitzlicht, Session beenden), nicht die Quiz-Sammlung — und gibt der Lehrkraft volle Bewegungsfreiheit im Raum.
 
 #### Quiz-Steuerung
 
@@ -340,12 +347,15 @@ Der Host sieht zusätzlich:
 - Live-Freitextdaten
 - Freitext-Wortwolke mit Document-Frequency-Termgewichtung, Einfrieren/Live-Fortsetzen sowie CSV-/PNG-Export
 - Wörter der Quiz-Freitextwolke lassen sich im Host über die zugehörigen Antworten und auf der Bühne mit Host-Berechtigung ausblenden. Unter **Weitere Aktionen** → **Ausgeblendete Wörter** blendet der Host sie einzeln wieder ein. Die Auswahl gilt pro Session und Frage. Die Wolke ordnet sich danach neu. Ausgeblendete Wörter entfallen auch als eigene Zeilen im Wortwolken-CSV.
-- Q&A-Wortwolke mit Host-Sortiermodi (`Meist unterstuetzt`, `Beste Fragen`, `Umstritten`), Document-Frequency-Termgewichtung, geschuetzten technischen Begriffen, Quellenanzahl im Tooltip, Freeze im Dialog und Vollansicht mit Sortiertoggle
+- Q&A-Wortwolke mit Host-Sortiermodi (`Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen`), Document-Frequency-Termgewichtung, geschuetzten technischen Begriffen, Quellenanzahl im Tooltip, Freeze im Dialog und Vollansicht mit Sortiertoggle
 - Q&A-Fragenliste
 - Blitzlicht-Ergebnisse
 - Emoji-Reaktionen
 - Rangliste
 - Team-Rangliste
+- In der Presenter-Ergebnisansicht sind richtige Antwortoptionen grün und falsche rot
+  hinterlegt; wie in der Host-Ansicht kennzeichnet zusätzlich ein Häkchen- bzw.
+  Kreuz-Icon auf farbigem Hintergrund die Auswertung.
 - Presenter-Reihenfolge: In jeder Ergebnisphase folgt die Rangliste als eigene letzte
   Projektionsseite auf alle fachlichen Ergebnisfolien; das Abschluss-Leaderboard ist
   nach dem Sessionende die terminale Präsentationsseite.
@@ -369,8 +379,9 @@ Der Host sieht zusätzlich:
   Kategorien in der Karte **Häufige Themen**, Gatekeeper, Seed-Kalibrierung,
   k-NN-Fallback, lokaler Hörsaallast). **8.9c** hat Summary V2,
   hostautorisierten Kontext, Hostvorschau, private Runtimeübergabe und lokalen
-  extraktiven Backend-Fallback; Kill-Switch default aus. Reale Consumer-/CPU-Abnahme
-  und reichhaltiges 4.096-Profil bleiben offen. Kanonisch: [moderation-compass.md](features/moderation-compass.md),
+  extraktiven Backend-Fallback. Klassifikation und Zusammenfassung unterstützen alle
+  fünf App-Locales. Die kurze Modellprobe bestand ohne Fallback im 90-Sekunden-Limit.
+  Die formale CPU-/Prefill-/RSS-Abnahme des reichhaltigen 8.192-Profils bleibt offen. Kanonisch: [moderation-compass.md](features/moderation-compass.md),
   [qa-nlp-moderation.md](features/qa-nlp-moderation.md),
   [qa-summary.md](features/qa-summary.md).
 - Verteilungsmatrizen und typische Fehler für Zuordnung, Reihenfolge und Kategorisierung nach der
@@ -391,9 +402,17 @@ Für diese Kanäle kann der Host:
 - einen bevorzugten Live-Kanal setzen
 - zwischen aktivierten Formaten über Tabs wechseln; bei nur einem Format entfällt die Tab-Leiste
 
-**Format hinzufügen** bietet ausschließlich noch nicht aktivierte Formate an. Quiz verwendet die bestehende Quiz-Auswahl, Q&A die vorhandene Ersteinrichtung und Blitzlicht den direkten Aktivierungspfad. Erst nach Serverbestätigung erscheinen der neue Tab und dessen Arbeitsfläche. Abbruch oder fehlgeschlagene Aktivierung erhält den bisherigen Kanal; der Fokus kehrt zum Hinzufügen-Button zurück. Geschlossene aktivierte Formate bleiben als **Zu** sichtbar und können über ihre vorhandenen Kanalaktionen wieder geöffnet werden. Reload und Wiederverbindung stellen die Navigation aus bestätigten Sessiondaten her. Nach Quizabschluss bleiben weitere offene Kanäle und **Nächstes Quiz in diesem Raum** gemäß dem bestehenden Session-Lifecycle erreichbar; das ausdrückliche Session-Ende bleibt davon getrennt.
+**Session erweitern** bietet ausschließlich noch nicht aktivierte Formate an. Quiz verwendet die bestehende Quiz-Auswahl, Q&A die vorhandene Ersteinrichtung und Blitzlicht den direkten Aktivierungspfad. Erst nach Serverbestätigung erscheinen der neue Tab und dessen Arbeitsfläche. Abbruch oder fehlgeschlagene Aktivierung erhält den bisherigen Kanal; der Fokus kehrt zum Hinzufügen-Button zurück. Geschlossene aktivierte Formate bleiben als **Zu** sichtbar und können über ihre vorhandenen Kanalaktionen wieder geöffnet werden. Reload und Wiederverbindung stellen die Navigation aus bestätigten Sessiondaten her. Nach Quizabschluss bleiben weitere offene Kanäle und **Nächstes Quiz in diesem Raum** gemäß dem bestehenden Session-Lifecycle erreichbar; das ausdrückliche Session-Ende bleibt davon getrennt.
 
 #### Quizabschluss, Fragenwand und Sessionende
+
+In den globalen Quiz-Einstellungen unter **Spiel & Auswertung** legst du fest, ob nach Quizende eine **Lernstandsauswertung mit Nachbesprechungsplan** verfügbar ist. Das Preset **Spielerisch** schaltet sie ein, **Seriös** schaltet sie aus. Du kannst den Wert pro Quiz ändern. Rangliste und CSV-Ergebnisexport sind unabhängig davon verfügbar.
+
+Mit **Peer Instruction nutzen** kannst du die automatische Diskussionsempfehlung und die zugehörige zweite Abstimmungsrunde für das ganze Quiz abschalten, etwa für ein Online-Quiz. Die Einstellung ist standardmäßig aktiv. Für Schätzfragen gilt weiterhin ihre eigene Zwei-Runden-Einstellung.
+
+Der Textlink unter dem Schalter führt direkt zur Erklärung auf der Infoseite. [So funktioniert Peer Instruction](https://info.arsnova.eu/de/#peer-instruction)
+
+**Lernstand der Gruppe** zeigt in der Host-Abschlussansicht oberhalb der Rangliste den Median und die Verteilung der vollständig richtigen Antworten pro Person. Bezugsgröße sind alle durchgeführten bewertbaren Fragen. Teilnehmende mit mindestens einer gewerteten Antwort gehen auch mit null richtigen Antworten in die Verteilung ein. Teilnehmende ohne gewertete Antwort werden separat gezählt. Für die Nachbesprechung erscheinen bis zu drei Fragen mit der niedrigsten Lösungsquote unter zwei Dritteln der abgegebenen gewerteten Antworten, ergänzt um bestätigte Lernziele, die der jeweiligen Frage zugeordnet sind. Der Host sieht den vollständigen Text dieser Fragen mit Markdown und KaTeX. Die Auswertung nutzt bei Peer Instruction die gewertete Runde und ist auch bei ausgeschalteter Rangliste verfügbar.
 
 **Quiz beendet** kennzeichnet die Gesamtauswertung, wenn danach noch weitere Formate verfügbar bleiben. **Session beendet** bleibt der Titel bei tatsächlichem Host-Ende oder wenn keine solchen Formate mehr verbleiben. Quizabschluss allein schließt eine weiterhin offene Fragenwand oder ein offenes Blitzlicht nicht.
 
@@ -558,7 +577,7 @@ Der Q&A-Kanal kann:
 
 Q&A erscheint:
 
-- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Meist unterstuetzt` / `Beste Fragen` / `Umstritten`, Bewertungsmetriken (`Zustimmung` bzw. `Geteilte Reaktionen`) und sortierabhaengiger Q&A-Wortwolke
+- in der Host-Ansicht als Moderations- und Steuerbereich inklusive Sortiermodi `Stimmensaldo` / `Klare Zustimmung` / `Geteilte Stimmen`, Bewertungsanzeigen (Dafür-Anteil mit Stimmenzahl bzw. Dafür- und Dagegen-Stimmen) und sortierabhaengiger Q&A-Wortwolke
 - in der Present-Ansicht als sichtbare Fragenliste, Pin-Highlight und reduzierte Q&A-Wortwolke aus denselben gewichteten Termen
 - in der Vote-Ansicht als Einreichungs- und Abstimmungsoberfläche
 
@@ -671,14 +690,23 @@ Der Ablauf ist jeweils:
 - Vergleich der Ergebnisse
 - effektive Rundenwertung für Score, Leaderboard, Bonuscodes und Exporte
 
-Während Lese- und Abstimmungsphase kann der Host eine Frage über die sichtbare Aktion
-**Frage auslassen** aus dem laufenden Durchlauf entfernen. Eine Bestätigung weist darauf
+Während Lese- und Abstimmungsphase kann die Lehrkraft im Host oder Presenter eine Frage
+über die sichtbare Aktion **Frage auslassen** oder die Taste **S** aus dem laufenden
+Durchlauf entfernen. Eine Bestätigung mit Fokus auf **Frage auslassen** weist darauf
 hin, dass die Frage und bereits abgegebene Antworten nicht ausgewertet werden. Gibt es
 keine Folgefrage, nennt die Bestätigung, dass die Session danach endet. Sonst startet
 atomar die nächste Frage.
 Ausgelassene und nie geöffnete Fragen zählen nicht für Score, Ranglisten,
 Selbsteinschätzung, Bonuscodes, Nachbesprechung, PDF oder CSV. Geöffnete Fragen ohne
 Antworten bleiben als durchgeführte Fragen erhalten.
+
+Nach dem Start der ersten Frage bietet der Host auf Tablet- und Desktop-Viewports einmalig
+die Präsentationsansicht für den Beamer an, sofern sie in diesem Tab noch nicht gestartet
+oder abgelehnt wurde. **Präsentationsansicht öffnen** erhält den Fokus; **Im Host bleiben**
+schließt den Hinweis und führt den Fokus zum primären CTA der laufenden Quizphase. Solange
+das Startangebot sichtbar ist, entfällt der reguläre Presenter-Einstieg unter dem Quizinhalt.
+Der CTA des Startangebots öffnet den Presenter direkt; nur der reguläre Einstieg verwendet
+weiterhin den Presenter-Startdialog mit seinen zusätzlichen Optionen.
 
 Aus **Ergebnisse** oder **Diskussion** kann der Host **Letztes Ergebnis** nutzen, um die
 vorherige durchgeführte Frage ohne neue Abstimmung erneut anzuzeigen. Das gilt auch für
@@ -903,7 +931,7 @@ Die App ist als Progressive Web App ausgelegt und unterstützt:
 
 - Installationshinweise
 - Service Worker
-- Update-Banner (»Neue Version bereit«; auf der Startseite unsichtbar, solange eine MOTD entschieden wird oder offen ist)
+- Update-Banner (»Neue Version bereit«): Prüfung alle fünf Minuten bei sichtbarer App sowie bei Rückkehr, Fensterfokus und erneuter Verbindung; Build-Abgleich erkennt auch bereits heruntergeladene Versionen nach verpasster Benachrichtigung. Der Hinweis wartet bei offenen MOTD-Meldungen oder ungespeicherten Eingaben; aktualisiert wird erst nach bewusstem Neuladen.
 - Manifest
 - App-Icons und Screenshots
 

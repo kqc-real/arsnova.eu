@@ -18,7 +18,11 @@ import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { prisma } from '../db';
 import { logger } from '../lib/logger';
-import { buildQaRankingMetricOrderSql, buildQaRankingScoreSelectSql } from '../lib/qaRankingSql';
+import {
+  buildQaRankingMetricOrderSql,
+  buildQaRankingScoreSelectSql,
+  qaRankingCorpusRevision,
+} from '../lib/qaRankingSql';
 import {
   recordLatestQaSemanticTopicSnapshot,
   type QaSemanticTopicSnapshot,
@@ -419,13 +423,7 @@ export const wordCloudRouter = router({
       if (!session) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
       }
-      const participantCount =
-        input.metric === 'CONTROVERSIAL'
-          ? await prisma.participant.count({ where: { sessionId: session.id } })
-          : 0;
-      const corpusRevision = `${session.qaRankingRevision}:${
-        input.metric === 'CONTROVERSIAL' ? participantCount : ''
-      }`;
+      const corpusRevision = qaRankingCorpusRevision(session.qaRankingRevision, input.metric);
       const statusFilter =
         input.filter === 'PINNED_ONLY'
           ? Prisma.sql`question."status" = 'PINNED'`
@@ -435,7 +433,7 @@ export const wordCloudRouter = router({
         input.metric === 'TIME'
           ? Prisma.empty
           : Prisma.sql`ranked.status_tie ASC, ranked."createdAt" ASC,`;
-      const scoreSelect = buildQaRankingScoreSelectSql(participantCount);
+      const scoreSelect = buildQaRankingScoreSelectSql();
       type CorpusRow = {
         id: string;
         text: string;
@@ -478,14 +476,7 @@ export const wordCloudRouter = router({
         where: { id: session.id },
         select: { qaRankingRevision: true },
       });
-      const currentParticipantCount =
-        input.metric === 'CONTROVERSIAL'
-          ? await prisma.participant.count({ where: { sessionId: session.id } })
-          : participantCount;
-      if (
-        current?.qaRankingRevision !== session.qaRankingRevision ||
-        currentParticipantCount !== participantCount
-      ) {
+      if (current?.qaRankingRevision !== session.qaRankingRevision) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Der Q&A-Korpus hat sich geändert. Starte die Analyse bitte erneut.',

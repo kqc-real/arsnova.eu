@@ -5,6 +5,7 @@
  * Query-Transport: ?s=<token> (nie in App-/Access-Logs ausgeben).
  */
 import { createHmac, createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { getRedis } from '../redis';
 
 export const YJS_SHARE_TOKEN_VERSION = 1 as const;
@@ -22,6 +23,8 @@ const TOKEN_RE =
 
 const REDIS_KEY_PREFIX = 'yjs:share:v1:';
 const REDIS_EXPIRY_INDEX_KEY = 'yjs:share:v1:_expires';
+export const YJS_SHARE_ROTATION_CHANNEL = 'yjs:share:rotation:v1';
+const RELAY_ACK_TIMEOUT_MS = 5_000;
 
 const CREATE_SHARE_SCRIPT = `
 local key = KEYS[1]
@@ -50,6 +53,7 @@ local expiryIndexKey = KEYS[2]
 local capabilityHash = ARGV[1]
 local ttl = tonumber(ARGV[2])
 local expiresAtMs = tonumber(ARGV[3])
+local relayFence = ARGV[4]
 if redis.call('EXISTS', key) == 0 then
   return {0, 'NOT_REGISTERED'}
 end
@@ -61,11 +65,35 @@ end
 if existingHash ~= capabilityHash then
   return {0, 'CAPABILITY_MISMATCH'}
 end
+if relayFence and redis.call('HGET', key, 'rotationPending') == tostring(generation) then
+  -- Auch ein Retry über eine andere App muss einen eigenen AOF-Schreiboffset erhalten.
+  redis.call('HSET', key, 'rotationFence', relayFence)
+  return {1, 'OK', generation}
+end
 local nextGeneration = generation + 1
 redis.call('HSET', key, 'generation', tostring(nextGeneration))
+if relayFence then
+  redis.call('HSET', key, 'rotationPending', tostring(nextGeneration), 'rotationFence', relayFence)
+else
+  redis.call('HDEL', key, 'rotationPending', 'rotationFence')
+end
 redis.call('EXPIRE', key, ttl)
 redis.call('ZADD', expiryIndexKey, expiresAtMs, key)
 return {1, 'OK', nextGeneration}
+`;
+
+const ACK_RELAY_ROTATION_SCRIPT = `
+if redis.call('HGET', KEYS[1], 'rotationPending') == ARGV[1] then
+  redis.call('HSET', KEYS[1], 'rotationAcknowledged', ARGV[1])
+end
+`;
+
+const CONFIRM_RELAY_ROTATION_SCRIPT = `
+local generation = ARGV[1]
+if redis.call('HGET', KEYS[1], 'generation') ~= generation then return -1 end
+if redis.call('HGET', KEYS[1], 'rotationAcknowledged') ~= generation then return 0 end
+redis.call('HDEL', KEYS[1], 'rotationPending', 'rotationFence')
+return 1
 `;
 
 export type YjsShareMetadata = {
@@ -77,6 +105,38 @@ export type YjsShareRotationEvent = {
   roomId: string;
   generation: number;
 };
+
+export function usesExternalYjsRelay(): boolean {
+  return process.env['YJS_RELAY_MODE'] === 'external';
+}
+
+export function parseYjsShareRotationEvent(message: string): YjsShareRotationEvent | null {
+  const match = /^([0-9a-f-]{36}):([1-9][0-9]{0,9})$/.exec(message);
+  const roomId = match?.[1] && normalizeYjsRoomUuid(match[1]);
+  return roomId ? { roomId, generation: Number(match[2]) } : null;
+}
+
+export async function acknowledgeYjsRelayRotation(event: YjsShareRotationEvent): Promise<void> {
+  await getRedis().eval(ACK_RELAY_ROTATION_SCRIPT, 1, redisKey(event.roomId), event.generation);
+}
+
+async function awaitYjsRelayRotation(event: YjsShareRotationEvent): Promise<void> {
+  const redis = getRedis();
+  const deadline = Date.now() + RELAY_ACK_TIMEOUT_MS;
+  while (Date.now() < deadline && redis.status === 'ready') {
+    const confirmed = await redis.eval(
+      CONFIRM_RELAY_ROTATION_SCRIPT,
+      1,
+      redisKey(event.roomId),
+      event.generation,
+    );
+    if (confirmed === 1) return;
+    if (confirmed === -1) break;
+    await redis.publish(YJS_SHARE_ROTATION_CHANNEL, `${event.roomId}:${event.generation}`);
+    await delay(200);
+  }
+  throw new Error('RELAY_UNAVAILABLE');
+}
 
 const rotationListeners = new Set<(event: YjsShareRotationEvent) => void>();
 
@@ -307,6 +367,7 @@ export async function rotateYjsShare(input: {
   }
   const capabilityHash = hashYjsRotationCapability(input.rotationCapability);
   const redis = getRedis();
+  const externalRelay = usesExternalYjsRelay();
   const expiresAtMs = Date.now() + YJS_SHARE_METADATA_TTL_SECONDS * 1000;
   const result = (await redis.eval(
     ROTATE_SHARE_SCRIPT,
@@ -316,14 +377,16 @@ export async function rotateYjsShare(input: {
     capabilityHash,
     String(YJS_SHARE_METADATA_TTL_SECONDS),
     String(expiresAtMs),
+    ...(externalRelay ? [randomUUID()] : []),
   )) as [number, string, number?];
 
   if (!result || result[0] !== 1) {
     throw new Error(result?.[1] ?? 'UNKNOWN');
   }
   const generation = Number(result[2]);
-  notifyYjsShareRotated({ roomId, generation });
+  if (!externalRelay) notifyYjsShareRotated({ roomId, generation });
   await awaitYjsShareDurability();
+  if (externalRelay) await awaitYjsRelayRotation({ roomId, generation });
   return {
     shareToken: signYjsShareToken(roomId, generation),
     generation,

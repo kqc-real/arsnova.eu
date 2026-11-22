@@ -30,7 +30,7 @@ const DESKTOP = { width: 1440, height: 1000 };
 const MOBILE = { width: 430, height: 932 };
 const VOTE_RATE_LIMIT_HEADROOM_MS = 1_100;
 const START_QUESTION_RE = /erste frage starten|start first question/i;
-const RELEASE_ANSWERS_RE = /antwortoptionen freigeben|release answer options/i;
+const RELEASE_ANSWERS_RE = /antwortphase starten|start accepting answers/i;
 const REVEAL_RESULTS_RE = /ergebnis(?: trotzdem)? zeigen|show results/i;
 const END_SESSION_RE = /session beenden|end session/i;
 const CONFIRM_END_RE = /gesamte session beenden|end (?:the )?session/i;
@@ -360,16 +360,14 @@ async function main() {
     await waitForHostVote(host);
     logStep('Teilnehmer stimmt auf Frage 2 ab und Host sieht die Stimme');
 
-    const moreActions = host.getByTestId('host-more-actions');
-    await moreActions.click();
-    const skipButton = host.getByRole('menuitem', {
+    const skipButton = host.getByRole('button', {
       name: 'Aktuelle Frage auslassen',
       exact: true,
     });
     await skipButton.waitFor({ state: 'visible', timeout: 10_000 });
     ensure(
-      (await skipButton.getAttribute('role')) === 'menuitem',
-      'Die Skip-Aktion ist nicht im Menü Weitere Aktionen erreichbar.',
+      (await skipButton.getAttribute('aria-keyshortcuts')) === 'S',
+      'Die direkte Skip-Aktion weist den fokussierten S-Shortcut nicht aus.',
     );
     await skipButton.click();
     const dialog = host.locator('.cdk-overlay-container').first();

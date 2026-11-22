@@ -19,8 +19,9 @@ describe('qa-sort-help.content', () => {
     }
   });
 
-  it('completes Italian CONTROVERSIAL plain-language section', () => {
-    expect(QA_SORT_HELP_COPY.CONTROVERSIAL.it.markdown).toContain('In parole semplici');
-    expect(QA_SORT_HELP_COPY.CONTROVERSIAL.it.markdown).toContain('10 favorevoli, 10 contrari');
+  it('describes the current Italian CONTROVERSIAL formula and examples', () => {
+    expect(QA_SORT_HELP_COPY.CONTROVERSIAL.it.markdown).toContain('Aggiungere 4 al denominatore');
+    expect(QA_SORT_HELP_COPY.CONTROVERSIAL.it.markdown).toContain('almeno 6 voti');
+    expect(QA_SORT_HELP_COPY.CONTROVERSIAL.it.markdown).toContain('10 a favore, 10 contro | 0,83');
   });
 });

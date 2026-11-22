@@ -139,7 +139,7 @@ export const MODERATION_PROMPT_DEFINITION_SET_V1 = {
       key: 'controversy-score',
       label: 'Kontroversität',
       meaning:
-        'Gedämpftes Maß für das Gleichgewicht positiver und negativer Stimmen auf Basis der explizit angegebenen Raumbezugsgröße.',
+        'Maß für das Gleichgewicht positiver und negativer Stimmen pro Frage. Die Berechnungsversion gibt an, wie kleine Stimmzahlen gedämpft werden.',
       caveat: 'Der Wert misst Uneinigkeit, nicht Wichtigkeit oder Qualität.',
     },
     {
@@ -351,8 +351,12 @@ const MODERATION_QA_RANKING_WILSON_Z = 1.96;
 const MODERATION_QA_RANKING_WILSON_Z_SQUARED =
   MODERATION_QA_RANKING_WILSON_Z * MODERATION_QA_RANKING_WILSON_Z;
 
+export const QA_RANKING_VERSION = 'qa-ranking-v2';
+export const QA_CONTROVERSY_DAMPING = 4;
+export const QA_CONTROVERSY_MIN_VOTES = 6;
+
 /**
- * PostgreSQL and JavaScript both evaluate qa-ranking-v1 with binary64 values.
+ * PostgreSQL and JavaScript both evaluate the Q&A ranking with binary64 values.
  * The epsilon permits only their final rounding difference, not rounded or
  * independently supplied score values.
  */
@@ -388,6 +392,14 @@ export function calculateModerationQaControversyScoreV1(input: {
 
   const damping = Math.max(1, Math.ceil(input.participantBasis * 0.1));
   return Math.min(1, (2 * Math.min(input.positive, input.negative)) / (total + damping));
+}
+
+export function calculateQaControversyScore(input: {
+  readonly positive: number;
+  readonly negative: number;
+}): number {
+  const { positive, negative } = input;
+  return (2 * Math.min(positive, negative)) / (positive + negative + QA_CONTROVERSY_DAMPING);
 }
 
 function matchesModerationQaRankingScore(actual: number, expected: number): boolean {
@@ -587,12 +599,20 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
   z
     .object({
       state: z.literal('available'),
-      participantBasis: ModerationParticipantBasisSchema,
+      rankingVersion: z.literal(QA_RANKING_VERSION).optional(),
+      participantBasis: ModerationParticipantBasisSchema.optional(),
       corpus: ModerationCorpusCountsSchema,
       items: z.array(ModerationPromptQuestionSchema).max(200),
     })
     .strict()
     .superRefine((value, ctx) => {
+      if (value.rankingVersion === undefined && value.participantBasis === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['participantBasis'],
+          message: 'qa-ranking-v1 benötigt eine Angabe zur Teilnehmerbasis.',
+        });
+      }
       if (value.corpus.represented !== value.items.length) {
         ctx.addIssue({
           code: 'custom',
@@ -616,7 +636,8 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
           });
         }
 
-        if (value.participantBasis.state === 'unavailable') {
+        const participantBasis = value.participantBasis;
+        if (value.rankingVersion === undefined && participantBasis?.state !== 'available') {
           if (question.votes.controversyScore.state === 'available') {
             ctx.addIssue({
               code: 'custom',
@@ -628,7 +649,11 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
           return;
         }
 
-        if (question.votes.total > value.participantBasis.value) {
+        if (
+          value.rankingVersion === undefined &&
+          participantBasis?.state === 'available' &&
+          question.votes.total > participantBasis.value
+        ) {
           ctx.addIssue({
             code: 'custom',
             path: ['items', questionIndex, 'votes', 'total'],
@@ -636,10 +661,13 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
           });
         }
 
-        const expectedControversyScore = calculateModerationQaControversyScoreV1({
-          ...question.votes,
-          participantBasis: value.participantBasis.value,
-        });
+        const expectedControversyScore =
+          value.rankingVersion === undefined && participantBasis?.state === 'available'
+            ? calculateModerationQaControversyScoreV1({
+                ...question.votes,
+                participantBasis: participantBasis.value,
+              })
+            : calculateQaControversyScore(question.votes);
         if (
           question.votes.controversyScore.state === 'available' &&
           !matchesModerationQaRankingScore(
@@ -650,8 +678,7 @@ export const ModerationQuestionsSectionSchema = z.discriminatedUnion('state', [
           ctx.addIssue({
             code: 'custom',
             path: ['items', questionIndex, 'votes', 'controversyScore'],
-            message:
-              'Ein verfügbarer Kontroversitätswert muss der qa-ranking-v1-Berechnung aus Stimmen und Teilnehmerbasis entsprechen.',
+            message: `Ein verfügbarer Kontroversitätswert muss der ${value.rankingVersion ?? 'qa-ranking-v1'}-Berechnung entsprechen.`,
           });
         }
       });
@@ -2090,7 +2117,7 @@ const ModerationPromptWeightingSchema = z.discriminatedUnion('kind', [
   z
     .object({
       kind: z.literal('qa-ranking'),
-      version: z.literal('qa-ranking-v1'),
+      version: z.enum(['qa-ranking-v1', QA_RANKING_VERSION]),
       sortMode: QaQuestionSortModeEnum,
     })
     .strict(),

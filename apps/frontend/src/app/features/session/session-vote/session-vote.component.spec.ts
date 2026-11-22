@@ -10,6 +10,7 @@ import type { QaQuestionDTO } from '@arsnova/shared-types';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { VOTE_FINGER_PRELOAD_INTERVAL_MS } from '../../../shared/countdown-fingers/countdown-fingers-preload';
 import {
   flushComponentAfterStable,
   flushMacroTask,
@@ -1055,13 +1056,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     component['startCountdownFromSessionTimer'](30, activeAt);
     expect(component.countdownSeconds()).toBe(0);
-    expect(component.showFingerCountdown()).toBe(true);
+    expect(component.prepareFingerCountdown()).toBe(true);
 
     component['startCountdownFromSessionTimer'](30, activeAt);
     component['startCountdownFromSessionTimer'](30, activeAt);
 
     expect(component.countdownSeconds()).toBe(0);
-    expect(component.showFingerCountdown()).toBe(true);
+    expect(component.prepareFingerCountdown()).toBe(true);
     fixture.destroy();
   });
 
@@ -1118,10 +1119,49 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.liveScorePreviewInOvertime()).toBe(true);
     expect(component.liveScorePreviewCaption()).toBe('Nachlaufzeit · richtige Antwort');
     expect(component.liveScorePreviewFormattedPoints()).toBe('200');
+    component.countdownSeconds.set(11);
     fixture.detectChanges();
-    const floatingPreview = fixture.nativeElement.querySelector(
-      '.vote-countdown-floating .vote-score-preview',
-    ) as HTMLElement | null;
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-countdown')?.textContent?.trim()).toBe('11');
+    expect(host.querySelector('app-countdown-fingers')).toBeNull();
+
+    vi.useFakeTimers();
+    component.countdownSeconds.set(9);
+    fixture.detectChanges();
+    const fingerHost = host.querySelector('app-countdown-fingers') as HTMLElement;
+    const firstImage = fingerHost.querySelector('img[src$="_5.webp"]') as HTMLImageElement;
+    vi.advanceTimersByTime(VOTE_FINGER_PRELOAD_INTERVAL_MS);
+    fixture.detectChanges();
+    const nextImage = fingerHost.querySelector('img[src$="_4.webp"]') as HTMLImageElement;
+    firstImage.dispatchEvent(new Event('load'));
+    nextImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    expect(fingerHost.querySelector('[role="img"]')).toBeNull();
+
+    component.countdownSeconds.set(5);
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    expect(fingerHost.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe(
+      '5 Sekunden, durch Finger dargestellt',
+    );
+
+    component.countdownSeconds.set(4);
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    expect(fingerHost.querySelector('img:not([hidden])')).toBe(nextImage);
+
+    nextImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    const voteStyles = readFileSync(
+      resolve(process.cwd(), 'src/app/features/session/session-vote/session-vote.component.scss'),
+      'utf8',
+    );
+    expect(voteStyles).toMatch(
+      /:has\(app-countdown-fingers\.countdown-fingers-host--loaded\)[\s\S]*?\.vote-countdown\s*\{[\s\S]*?display:\s*none/,
+    );
+    const floatingPreview = host.querySelector('.vote-countdown-floating .vote-score-preview');
     expect(floatingPreview?.querySelector('.vote-score-preview__label')?.textContent).toContain(
       'Nachlaufzeit · richtige Antwort',
     );
@@ -1400,7 +1440,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     currentQuestionQueryMock.mockResolvedValue({
       id: 'aaaaaaaa-1111-4111-8111-111111111111',
       text: 'Lies zuerst die Frage.',
-      type: 'SINGLE_CHOICE',
+      type: 'NUMERIC_ESTIMATE',
       difficulty: 'MEDIUM' as const,
       order: 0,
       participantReady: false,
@@ -1421,6 +1461,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       button = (fixture.nativeElement as HTMLElement).querySelector('.vote-reading-banner__cta');
     }
     expect(button).toBeTruthy();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.vote-reading-banner__hint')
+        ?.textContent,
+    ).toContain('Gleich gibst du deinen Schätzwert ein.');
 
     button?.click();
     let textContent = '';
@@ -2558,6 +2602,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     )?.answers?.[0];
     expect(firstAfterActive?.isCorrect).toBeUndefined();
 
+    inst.selectedAnswerIds.set(new Set(['a2']));
+    inst.voteSent.set(true);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.vote-answer__own')).toBeNull();
+
     currentQuestionQueryMock.mockResolvedValue(revealedQ);
     inst.status.set('RESULTS');
     await (inst as unknown as { refreshQuestion: () => Promise<void> }).refreshQuestion();
@@ -2567,8 +2617,70 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       inst.currentQuestion() as { answers?: Array<{ isCorrect: boolean }> } | null
     )?.answers?.[0] as { isCorrect: boolean };
     expect(firstAfterResults.isCorrect).toBe(true);
+    const correctAnswer = host.querySelector('.vote-answer--correct');
+    const submittedAnswer = host.querySelector('.vote-answer--wrong');
+    const label = submittedAnswer?.querySelector('.vote-answer__own');
+    expect(correctAnswer).not.toBeNull();
+    expect(correctAnswer?.querySelector('.vote-answer__own')).toBeNull();
+    expect(label?.textContent?.trim()).toBe('Deine Antwort');
+    expect(submittedAnswer?.getAttribute('aria-describedby')).toBe(label?.id);
     fixture.destroy();
   });
+
+  it.each([
+    { sent: true, expectedChoices: ['A: Eins', 'C: Drei'] },
+    { sent: false, expectedChoices: [] },
+  ])(
+    'markiert nach Neuladen nur abgegebene Multiple-Choice-Optionen (sent=$sent)',
+    async ({ sent, expectedChoices }) => {
+      const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+      localStorage.setItem(
+        `arsnova-vote-response-ABC123-11111111-1111-4111-8111-111111111111-${questionId}-1`,
+        JSON.stringify({ answerIds: ['a1', 'a3'], sent, updatedAt: MOCK_SERVER_TIME }),
+      );
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'RESULTS',
+        quizName: 'Q',
+        title: null,
+        participantCount: 2,
+        preset: 'SERIOUS',
+      });
+      currentQuestionQueryMock.mockResolvedValue({
+        id: questionId,
+        text: 'Welche Zahlen sind ungerade?',
+        type: 'MULTIPLE_CHOICE',
+        order: 0,
+        totalQuestions: 1,
+        answers: [
+          { id: 'a1', text: 'Eins', isCorrect: true, voteCount: 1, votePercentage: 100 },
+          { id: 'a2', text: 'Zwei', isCorrect: false, voteCount: 0, votePercentage: 0 },
+          { id: 'a3', text: 'Drei', isCorrect: true, voteCount: 1, votePercentage: 100 },
+          { id: 'a4', text: 'Fünf', isCorrect: true, voteCount: 0, votePercentage: 0 },
+        ],
+        totalVotes: 1,
+      });
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelectorAll('.vote-answer')).toHaveLength(4);
+      const labels = Array.from(host.querySelectorAll('.vote-answer__own'));
+      expect(labels.map((label) => label.closest('button')?.getAttribute('aria-label'))).toEqual(
+        expectedChoices,
+      );
+      for (const label of labels) {
+        expect(label.closest('button')?.classList.contains('vote-answer--correct')).toBe(true);
+        expect(label.closest('button')?.getAttribute('aria-describedby')).toBe(label.id);
+      }
+      fixture.destroy();
+    },
+  );
 
   it('markiert Umfrage-Antworten in der Ergebnisansicht nicht als falsch', async () => {
     getInfoQueryMock.mockResolvedValue({
@@ -2790,7 +2902,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt den Sicherheitsgrad erst nach gewählter Antwort und sendet ihn mit', async () => {
+  it('erklärt den gesperrten Sende-Button bis zur Selbsteinschätzung und sendet diese mit', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -2834,18 +2946,35 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
 
     const component = fixture.componentInstance;
-    expect(component.showConfidencePrompt()).toBe(false);
-    expect(fixture.nativeElement.querySelector('.vote-confidence')).toBeNull();
+    const host = fixture.nativeElement as HTMLElement;
+    const submit = host.querySelector<HTMLButtonElement>('#vote-submit')!;
+    const hint = () => host.querySelector('#vote-confidence-submit-hint');
+    expect(host.querySelector('.vote-confidence')).toBeNull();
+    expect(hint()).toBeNull();
+    expect(submit.disabled).toBe(true);
 
     component.toggleAnswer('a1');
     fixture.detectChanges();
 
-    expect(component.showConfidencePrompt()).toBe(true);
-    expect(fixture.nativeElement.querySelector('.vote-confidence')).not.toBeNull();
-    expect(component.voteSubmitDisabled()).toBe(true);
+    expect(host.querySelector('.vote-confidence')).not.toBeNull();
+    expect(hint()?.textContent?.trim()).toBe(
+      'Gib deine Selbsteinschätzung an, bevor du absendest.',
+    );
+    expect(hint()?.closest('[role="status"]')).not.toBeNull();
+    expect(submit.getAttribute('aria-describedby')).toBe(hint()?.id);
+    expect(submit.disabled).toBe(true);
+
+    component.voteClosed.set(true);
+    fixture.detectChanges();
+    expect(hint()).toBeNull();
+    expect(submit.disabled).toBe(true);
+    component.voteClosed.set(false);
+    fixture.detectChanges();
 
     component.selectConfidence(4);
-    expect(component.voteSubmitDisabled()).toBe(false);
+    expect(hint()).toBeNull();
+    expect(submit.hasAttribute('aria-describedby')).toBe(false);
+    expect(submit.disabled).toBe(false);
 
     await component.submitVote();
 
@@ -4718,6 +4847,68 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     reloadFixture.destroy();
   });
 
+  it('zeigt Gewinner und Rangliste mit der gewählten Noto-Grafik', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      serverTime: MOCK_SERVER_TIME,
+      code: 'ABC123',
+      type: 'QUIZ',
+      status: 'FINISHED',
+      quizName: 'Tier-Quiz',
+      title: null,
+      participantCount: 2,
+      quizStarted: true,
+      hostEnded: false,
+      expiresAt: '2099-01-01T00:00:00.000Z',
+      nicknameTheme: 'KINDERGARTEN',
+      showLeaderboard: true,
+    });
+    currentQuestionQueryMock.mockResolvedValue(null);
+    const entries = [
+      {
+        rank: 1,
+        nickname: 'Wal 1',
+        kindergartenAnimalId: 34,
+        totalScore: 20,
+        correctCount: 2,
+        totalQuestions: 2,
+        totalResponseTimeMs: 200,
+      },
+      {
+        rank: 2,
+        nickname: 'Wal 2',
+        kindergartenAnimalId: 6,
+        totalScore: 10,
+        correctCount: 1,
+        totalQuestions: 2,
+        totalResponseTimeMs: 300,
+      },
+    ];
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 80);
+    fixture.componentInstance.showSessionEndGate.set(false);
+    fixture.componentInstance.personalLeaderboard.set(entries);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('img.vote-finished-winner__emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f433\.svg$/,
+    );
+    const images = host.querySelectorAll('img.vote-finished-leaderboard__emoji');
+    expect(Array.from(images, (img) => img.getAttribute('src')?.split('/').at(-1))).toEqual([
+      'emoji_u1f433.svg',
+      'emoji_u1f40b.svg',
+    ]);
+    expect(host.querySelector('.vote-finished-winner__name')?.textContent?.trim()).toBe('Wal');
+    expect(
+      Array.from(host.querySelectorAll('.vote-finished-leaderboard__name'), (label) =>
+        label.textContent?.trim(),
+      ),
+    ).toEqual(['Wal', 'Wal 2']);
+  });
+
   it('zeigt im Session-End-Gate Bonus und Startseite im Aktionsanker; Bewertung absenden in der Karte', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
@@ -4874,7 +5065,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       host.querySelector('.vote-page__bottom-actions .session-qa-form__submit'),
     ).not.toBeNull();
     expect(host.querySelector('.session-qa-form__identity')).toBeNull();
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🐉');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f409\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Roter Drache 2',
     );
@@ -5045,10 +5238,10 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Stimmensaldo');
     expect(text).toContain('Klare Zustimmung');
-    expect(text).toContain('Kontroverse');
+    expect(text).toContain('Geteilte Stimmen');
     expect(text).toContain('Zeit');
     expect(text).toContain('Fragen durchsuchen');
-    expect(text).toContain('viel Zustimmung und genug Stimmen');
+    expect(text).toContain('der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen');
     expect(fixture.componentInstance.qaSortMode()).toBe('BEST');
     expect(qaQuestionsUpdatedSubscribeMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -5247,6 +5440,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         expect.objectContaining({
           data: { kind: 'CONTROVERSIAL' },
           panelClass: 'qa-sort-help-dialog-panel',
+          role: 'dialog',
         }),
       );
       dialogOpen.mockRestore();
@@ -5354,7 +5548,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
 
     expect(
-      fixture.componentInstance.qaAuthorKindergartenBadgeLabel({
+      fixture.componentInstance.qaAuthorKindergartenBadge({
         passagesRedacted: false,
         id: 'question-1',
         text: 'Wie viel Stoff ist klausurrelevant?',
@@ -5366,7 +5560,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         isOwn: false,
         hasUpvoted: false,
       }),
-    ).toBe('🐉 2');
+    ).toEqual({ emoji: '🐉', sequence: '2' });
     fixture.destroy();
   });
 
@@ -5513,7 +5707,6 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(fixture.componentInstance.playerKindergartenEmoji()).toBe('🦫');
     expect(fixture.componentInstance.playerKindergartenSequence()).toBe('6');
-    expect(fixture.componentInstance.playerKindergartenBadgeLabel()).toBe('🦫 6');
     expect(fixture.componentInstance.kitaIdentityHeroEmoji()).toBe('🦫');
 
     fixture.componentInstance.status.set('ACTIVE');
@@ -5563,7 +5756,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(host.querySelector('.vote-player-badge')).toBeNull();
     expect(host.querySelector('.vote-player-badge__self-prefix')).toBeNull();
     expect(host.querySelector('.vote-lobby__kita-hero')).not.toBeNull();
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🐃');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f403\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Mahagonifarbener Wasserbüffe 3',
     );
@@ -5604,7 +5799,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🦫');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f9ab\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Tannengrüner Biber 6',
     );
@@ -5666,7 +5863,9 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.querySelector('.vote-lobby__kita-emoji')?.textContent?.trim()).toBe('🦫');
+    expect(host.querySelector('img.vote-lobby__kita-emoji')?.getAttribute('src')).toMatch(
+      /emoji_u1f9ab\.svg$/,
+    );
     expect(host.querySelector('.vote-lobby__kita-nick')?.textContent?.trim()).toBe(
       'Tannengrüner Biber 6',
     );
@@ -5707,13 +5906,13 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     });
     currentQuestionQueryMock.mockResolvedValue(null);
     getParticipantNicknamesQueryMock.mockResolvedValue({
-      nicknames: [...NICKNAME_LISTS.KINDERGARTEN, 'Roter Drache 2'],
+      nicknames: [...NICKNAME_LISTS.KINDERGARTEN, 'Drache 2'],
       participantCount: NICKNAME_LISTS.KINDERGARTEN.length + 1,
     });
     joinMutateMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '33333333-3333-4333-8333-333333333333',
-      participantNickname: 'Grüner Frosch 2',
+      participantNickname: 'Delfin 2',
       rejoinToken: 'participant-capability-abcdefghijklmnopqrstuvwxyz',
     });
 
@@ -5730,7 +5929,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
 
     expect(joinMutateMock).toHaveBeenCalledWith({
       code: 'ABC123',
-      nickname: 'Grüner Frosch',
+      nickname: 'Delfin',
       anonymousClientId: expect.stringMatching(
         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
       ),
@@ -5739,7 +5938,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       productFeedbackClaimToken: undefined,
     });
     expect(getParticipantNicknamesQueryMock).not.toHaveBeenCalled();
-    expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Grüner Frosch 2');
+    expect(localStorage.getItem('arsnova-nickname-ABC123')).toBe('Delfin 2');
     expect(qaSubmitMutateMock).toHaveBeenCalledWith({
       sessionId: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       participantId: '33333333-3333-4333-8333-333333333333',
@@ -5850,6 +6049,8 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       'Positivbewertung zurücknehmen',
     );
     const badges = host.querySelectorAll('.session-qa-card__author-icon');
+    expect(badges[0]?.querySelector('img')?.getAttribute('src')).toMatch(/emoji_u1f409\.svg$/);
+    expect(badges[0]?.textContent?.trim()).toBe('2');
     (badges[0] as HTMLButtonElement).click();
     fixture.detectChanges();
 
@@ -8719,7 +8920,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt Zustimmung und Umstritten-Labels in der Teilnehmer-Q&A-Liste', async () => {
+  it('zeigt Stimmenanteile und Kennzeichnungen für geteilte Stimmen in der Teilnehmer-Q&A-Liste', async () => {
     getInfoQueryMock.mockResolvedValue({
       id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
       serverTime: MOCK_SERVER_TIME,
@@ -8785,8 +8986,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     const bestCard = fixture.nativeElement.querySelector(
       '.session-qa-card[data-qa-id="11111111-1111-4111-8111-111111111111"]',
     ) as HTMLElement | null;
-    expect(bestCard?.textContent).toContain('Zustimmung');
-    expect(bestCard?.textContent).toContain('72 %');
+    expect(bestCard?.textContent).toMatch(/88[,.]9\s?% dafür · 9 Stimmen/);
     expect(bestCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
     expect(bestCard?.querySelector('.session-qa-card__badge--controversy-pending')).toBeNull();
     expect(bestCard?.querySelector('.session-qa-card__badge--controversy-onesided')).toBeNull();
@@ -8795,7 +8995,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       '.session-qa-card[data-qa-id="22222222-2222-4222-8222-222222222222"]',
     ) as HTMLElement | null;
     expect(controversialCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
-    expect(controversialCard?.textContent).toContain('Zustimmung');
+    expect(controversialCard?.textContent).toMatch(/50\s?% dafür · 10 Stimmen/);
 
     (
       component as unknown as {
@@ -8804,11 +9004,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ).applyQaQuestionsSnapshot([
       {
         id: '33333333-3333-4333-8333-333333333333',
-        text: 'Unter T trotz Score',
+        text: 'Ausgeglichen bei vier Stimmen',
         upvoteCount: 0,
         positiveVoteCount: 2,
         negativeVoteCount: 2,
-        controversyScore: 0.8,
+        controversyScore: 0.5,
         isControversial: false,
         controversyInsufficientVotes: true,
         status: 'ACTIVE',
@@ -8820,11 +9020,11 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       },
       {
         id: '44444444-4444-4444-8444-444444444444',
-        text: 'Schwache Kontroverse über T',
+        text: 'Schwache Kontroverse bei zwanzig Stimmen',
         upvoteCount: 16,
         positiveVoteCount: 18,
         negativeVoteCount: 2,
-        controversyScore: 0.13,
+        controversyScore: 4 / 24,
         isControversial: false,
         controversyInsufficientVotes: false,
         status: 'ACTIVE',
@@ -8857,7 +9057,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
         positiveVoteCount: 5,
         negativeVoteCount: 5,
         bestScore: 0.35,
-        controversyScore: 0.81,
+        controversyScore: 5 / 7,
         isControversial: true,
         controversyInsufficientVotes: false,
         status: 'ACTIVE',
@@ -8870,15 +9070,15 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ]);
     component.qaSortMode.set('CONTROVERSIAL');
     fixture.detectChanges();
-    const underTCard = fixture.nativeElement.querySelector(
+    const fewVotesCard = fixture.nativeElement.querySelector(
       '.session-qa-card[data-qa-id="33333333-3333-4333-8333-333333333333"]',
     ) as HTMLElement | null;
-    expect(underTCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
+    expect(fewVotesCard?.querySelector('.session-qa-card__badge--controversial')).toBeNull();
     expect(
-      underTCard?.querySelector('.session-qa-card__badge--controversy-pending')?.textContent,
+      fewVotesCard?.querySelector('.session-qa-card__badge--controversy-pending')?.textContent,
     ).toContain('Zu wenige Stimmen');
     expect(
-      underTCard
+      fewVotesCard
         ?.querySelector('.session-qa-card__badge--controversy-pending')
         ?.getAttribute('aria-label'),
     ).toContain('belastbare Einordnung');
@@ -8904,12 +9104,14 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     ) as HTMLElement | null;
     expect(
       polarCard?.querySelector('.session-qa-card__badge--controversial')?.textContent,
-    ).toContain('Umstritten');
+    ).toContain('Geteilte Stimmen');
 
-    expect(underTCard?.textContent).not.toContain('Geteilte Reaktionen');
-    expect(onesidedCard?.textContent).not.toContain('Geteilte Reaktionen');
-    expect(weakCard?.textContent).not.toContain('Geteilte Reaktionen');
-    expect(polarCard?.textContent).toContain('Geteilte Reaktionen');
+    expect(polarCard?.textContent).not.toContain('71 %');
+    expect(component.qaSortHint()).toContain('Bei gleicher Stimmenzahl');
+    expect(polarCard?.querySelector('.session-qa-card__vote-stat--up')?.textContent).toContain('5');
+    expect(polarCard?.querySelector('.session-qa-card__vote-stat--down')?.textContent).toContain(
+      '5',
+    );
     fixture.destroy();
   });
 

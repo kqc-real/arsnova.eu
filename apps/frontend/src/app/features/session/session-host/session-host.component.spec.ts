@@ -16,6 +16,7 @@ import type {
   QaQuestionsInvalidationDTO,
   QaQuestionsListDTO,
   QaSummaryRuntimeCompatibleDTO,
+  QuickFeedbackResult,
   SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
@@ -33,6 +34,7 @@ import {
 } from '../../../core/host-recovery-access';
 import { ConfirmLeaveDialogComponent } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { PresentationStartDialogComponent } from '../host-pairing/presentation-start-dialog.component';
+import { HostPairingDialogComponent } from '../host-pairing/host-pairing-dialog.component';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import { SessionTokenStorageService } from '../session-present/session-token-storage.service';
 import { ThemePresetService } from '../../../core/theme-preset.service';
@@ -92,6 +94,7 @@ function hostLearningObjective(
 function exitAnchorButtonLabel(button: Element): string {
   return (button.textContent ?? '')
     .replace(/^(logout|groups|stop|replay|home|more_horiz|skip_next)/, '')
+    .replace(/[←→↑↓]$/, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -191,9 +194,11 @@ const {
   getLiveFreetextQueryMock,
   setFreetextWordCloudEntryVisibilityMock,
   getCurrentQuestionForHostQueryMock,
+  getPresenterQuizResultQueryMock,
   getHostVoteProgressQueryMock,
   getLeaderboardQueryMock,
-  getTeamLeaderboardQueryMock,
+  getLearningOverviewQueryMock,
+  getHostTeamLeaderboardQueryMock,
   getExportDataQueryMock,
   getSessionConfidenceSummaryQueryMock,
   wordCloudAnalyzeQueryMock,
@@ -261,9 +266,11 @@ const {
   getLiveFreetextQueryMock: vi.fn(),
   setFreetextWordCloudEntryVisibilityMock: vi.fn(),
   getCurrentQuestionForHostQueryMock: vi.fn(),
+  getPresenterQuizResultQueryMock: vi.fn(),
   getHostVoteProgressQueryMock: vi.fn(),
   getLeaderboardQueryMock: vi.fn(),
-  getTeamLeaderboardQueryMock: vi.fn(),
+  getLearningOverviewQueryMock: vi.fn(),
+  getHostTeamLeaderboardQueryMock: vi.fn(),
   getExportDataQueryMock: vi.fn(),
   getSessionConfidenceSummaryQueryMock: vi.fn(),
   wordCloudAnalyzeQueryMock: vi.fn(),
@@ -355,9 +362,11 @@ vi.mock('../../../core/trpc.client', () => ({
       getLiveFreetext: { query: getLiveFreetextQueryMock },
       setFreetextWordCloudEntryVisibility: { mutate: setFreetextWordCloudEntryVisibilityMock },
       getCurrentQuestionForHost: { query: getCurrentQuestionForHostQueryMock },
+      getPresenterQuizResult: { query: getPresenterQuizResultQueryMock },
       getHostVoteProgress: { query: getHostVoteProgressQueryMock },
       getLeaderboard: { query: getLeaderboardQueryMock },
-      getTeamLeaderboard: { query: getTeamLeaderboardQueryMock },
+      getLearningOverview: { query: getLearningOverviewQueryMock },
+      getHostTeamLeaderboard: { query: getHostTeamLeaderboardQueryMock },
       getExportData: { query: getExportDataQueryMock },
       getSessionConfidenceSummary: { query: getSessionConfidenceSummaryQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
@@ -713,7 +722,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue(null);
     getHostVoteProgressQueryMock.mockResolvedValue(null);
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    getLearningOverviewQueryMock.mockResolvedValue({
+      questionCount: 0,
+      respondentCount: 0,
+      noResponseCount: 0,
+      medianCorrectCount: null,
+      distribution: [0, 0, 0, 0],
+      reviewQuestions: [],
+    });
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([]);
     qaListQueryMock.mockResolvedValue([]);
     // Default: kein Snapshot → Host fällt auf Forum-Liste zurück (Tests setzen oft nur qaQuestions).
     qaPresentProjectionQueryMock.mockRejectedValue(new Error('presentProjection not stubbed'));
@@ -782,7 +799,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     setPresenterSurfaceMutateMock.mockImplementation(
       async (input: {
         surface?: 'default' | 'qaWordCloud' | 'freetextWordCloud' | 'ended';
-        page?: { context: string; index?: number; count?: number; delta?: number };
+        page?: {
+          context: string;
+          index?: number;
+          count?: number;
+          delta?: number;
+          sectionStarts?: number[];
+        };
       }) => {
         if (input.page) {
           const count = input.page.count ?? 1;
@@ -791,7 +814,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           const index = Math.max(0, Math.min(count - 1, rawIndex));
           return {
             presenterSurface: input.surface ?? 'default',
-            presenterPage: { context: input.page.context, index, count },
+            presenterPage: {
+              context: input.page.context,
+              index,
+              count,
+              ...(input.page.sectionStarts ? { sectionStarts: input.page.sectionStarts } : {}),
+            },
           };
         }
         return {
@@ -851,7 +879,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       quickFeedback: { enabled: true, open: true },
     });
     quickFeedbackHostResultsQueryMock.mockResolvedValue({ totalVotes: 0, options: [] });
-    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true });
+    quickFeedbackToggleLockMutateMock.mockResolvedValue({ locked: true, lockVersion: 1 });
     wordCloudAnalyzeQueryMock.mockResolvedValue({
       mode: 'THEME',
       locale: 'de',
@@ -1893,7 +1921,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('hält in einer reinen Q&A-Lobby die Zugangskarte über dem Beitritts-Overlay und bietet Format hinzufügen an', async () => {
+  it('hält in einer reinen Q&A-Lobby die Zugangskarte über dem Beitritts-Overlay und bietet »Session erweitern« an', async () => {
     persistInitialHostRecovery({
       code: 'ABC123',
       recoveryCard: {
@@ -2819,7 +2847,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     expect(list).not.toBeNull();
-    expect(icons.map((icon) => icon.textContent?.trim())).toEqual(['🦎', '🐬']);
+    expect(
+      icons.map((icon) => icon.querySelector('img')?.getAttribute('src')?.split('/').at(-1)),
+    ).toEqual(['emoji_u1f98e.svg', 'emoji_u1f42c.svg']);
     expect(srOnlyLabels).toEqual(['Mintgrüne Eidechse', 'Lila Delfin']);
     fixture.destroy();
   });
@@ -2863,9 +2893,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
         '.session-lobby__nick-emoji--host-lobby',
       ),
-      (el) => (el.textContent ?? '').trim(),
+      (el) => el.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
     );
-    expect(icons).toEqual(['🦎', '🐬']);
+    expect(icons).toEqual(['emoji_u1f98e.svg', 'emoji_u1f42c.svg']);
     fixture.destroy();
   });
 
@@ -3194,8 +3224,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt bei Rating-Fragen auf dem Host die komplette Skala', async () => {
-    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+  it('synchronisiert Bewertungsskala und Live-Verteilung mit der Presenter-Seite', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterPage: { context: 'quiz-rating', index: 0, count: 1 },
+    });
+    getParticipantsQueryMock.mockResolvedValue({ participantCount: 4, participants: [] });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
         opts.onData({ status: 'ACTIVE', currentQuestion: 6 });
@@ -3239,6 +3274,189 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ).map((node) => node.textContent?.trim());
 
     expect(scaleValues).toEqual(['1', '2', '3', '4', '5']);
+    await vi.waitUntil(() => fixture.componentInstance.session()?.presenterPage?.count === 2, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.componentInstance.session.update((session) => ({
+      ...session!,
+      presenterPage: {
+        context: 'quiz-rating',
+        index: 0,
+        count: 5,
+        sectionStarts: [0, 3],
+      },
+    }));
+    fixture.detectChanges();
+
+    const liveButton = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '.session-host__rating-pages button[aria-keyshortcuts="ArrowDown"]',
+    );
+    expect(liveButton).not.toBeNull();
+    liveButton!.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        page: { context: 'quiz-rating', index: 3, count: 5 },
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(fixture.componentInstance.ratingProjectionPageIndex()).toBe(1);
+    expect(
+      fixture.nativeElement.querySelectorAll('.session-host__rating-scale-value'),
+    ).toHaveLength(0);
+
+    fixture.componentInstance.hostVoteProgress.set({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 6,
+      round: 1,
+      totalVotes: 3,
+      ratingDistribution: { '1': 1, '5': 2 },
+      ratingAvg: 3.7,
+      ratingMedian: 5,
+      ratingStdDev: 1.9,
+    });
+    fixture.detectChanges();
+
+    const bars = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+      '.session-host__rating-bar-fill',
+    );
+    expect(bars).toHaveLength(5);
+    expect(bars[0]?.style.width).toBe('33%');
+    expect(bars[4]?.style.width).toBe('67%');
+    expect(fixture.nativeElement.querySelector('.session-host__rating-statistics')).toBeNull();
+
+    fixture.componentInstance.hostVoteProgress.set({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      questionOrder: 6,
+      round: 1,
+      totalVotes: 4,
+      ratingDistribution: { '1': 1, '5': 3 },
+      ratingAvg: 4,
+      ratingMedian: 5,
+      ratingStdDev: 1.7,
+    });
+    fixture.componentInstance.countdownEnded.set(true);
+    fixture.detectChanges();
+    const statistics = fixture.nativeElement.querySelector(
+      '.session-host__rating-statistics',
+    ) as HTMLElement | null;
+    expect(statistics?.textContent).toContain('Stimmen');
+    expect(statistics?.textContent).toContain('Mittelwert');
+    expect(statistics?.textContent).toContain('Median');
+    expect(statistics?.textContent).toContain('Standardabweichung');
+    expect(statistics?.textContent).toMatch(/1[,.]7/);
+    expect(revealResultsMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('wiederholt abgelehnte Rating- und Q&A-Seitensynchronisierungen erst nach einem neuen Session-Snapshot', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      presenterPage: { context: 'quiz-rating', index: 0, count: 1 },
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 0 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Wie sicher fühlst du dich?',
+      type: 'RATING',
+      timer: 30,
+      answers: [],
+      ratingMin: 1,
+      ratingMax: 5,
+      ratingLabelMin: 'Unsicher',
+      ratingLabelMax: 'Sicher',
+      currentRound: 1,
+      ratingCount: 0,
+      totalVotes: 0,
+    });
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 1);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(1);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(1);
+
+    const session = fixture.componentInstance.session();
+    expect(session).not.toBeNull();
+    fixture.componentInstance.session.set({
+      ...session!,
+      presenterPage: { ...session!.presenterPage! },
+    });
+    fixture.detectChanges();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 2);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(2);
+
+    const qaQuestions = [
+      {
+        id: 'qa-1',
+        text: 'Erste Frage',
+        upvoteCount: 3,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-11-15T09:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+      {
+        id: 'qa-2',
+        text: 'Zweite Frage',
+        upvoteCount: 2,
+        status: 'ACTIVE' as const,
+        createdAt: '2026-11-15T09:01:00.000Z',
+        myVote: null,
+        isOwn: false,
+        passagesRedacted: false,
+        hasUpvoted: false,
+      },
+    ];
+    seedQaPresenterStage(fixture.componentInstance, qaQuestions);
+    setPresenterSurfaceMutateMock.mockRejectedValueOnce(new Error('offline'));
+    fixture.componentInstance.activeChannel.set('qa');
+    fixture.componentInstance.session.set({
+      ...fixture.componentInstance.session()!,
+      preferredChannel: 'qa',
+      presenterPage: { context: 'qa-questions', index: 0, count: 1 },
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: true, open: true, title: 'Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    });
+    fixture.detectChanges();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 3);
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(3);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(1);
+
+    const qaSession = fixture.componentInstance.session()!;
+    fixture.componentInstance.session.set({
+      ...qaSession,
+      presenterPage: { ...qaSession.presenterPage! },
+    });
+    fixture.detectChanges();
+
+    await vi.waitUntil(() => setPresenterSurfaceMutateMock.mock.calls.length === 4);
+    expect(fixture.componentInstance.session()?.presenterPage?.count).toBe(2);
     fixture.destroy();
   });
 
@@ -3397,6 +3615,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       PresentationStartDialogComponent,
       expect.objectContaining({
+        autoFocus: '.presentation-start-dialog__primary',
         panelClass: 'presentation-start-dialog-panel',
         backdropClass: 'presentation-start-dialog-backdrop',
         data: expect.objectContaining({
@@ -3406,6 +3625,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       }),
     );
     expect(fixture.nativeElement.querySelector('[data-testid="connect-smartphone"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('öffnet den Presenter aus dem Startangebot direkt ohne zweiten Dialog', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    dialogOpenMock.mockClear();
+
+    await component.openPresenterViewFromStartOffer();
+
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledExactlyOnceWith('/session/ABC123/present');
+    expect(component.presenterNavigationPending()).toBe(false);
     fixture.destroy();
   });
 
@@ -3565,7 +3800,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('bietet die Presenter-Ansicht in einem reinen aktiven Blitzlicht-Kanal an', async () => {
+  it('setzt die Presenter-Ansicht im aktiven Blitzlicht in die Aktionszeile', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -3581,12 +3816,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
+    const feedbackResult = {
+      type: 'MOOD' as const,
+      locked: false,
+      totalVotes: 0,
+      distribution: { POSITIVE: 0, NEUTRAL: 0, NEGATIVE: 0 },
+    };
+    fixture.componentInstance.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
+    feedbackHost.result.set(feedbackResult);
+    feedbackHost.hostResultChange.emit(feedbackResult);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.activeChannel()).toBe('quickFeedback');
+    expect(fixture.componentInstance.showHostViewControls()).toBe(true);
+    expect(fixture.componentInstance.projectionControlsOffered()).toBe(true);
+    const primary = fixture.nativeElement.querySelector('.feedback-host__round-primary');
+    expect(primary).not.toBeNull();
+    const presenter = fixture.nativeElement.querySelector(
+      '[data-testid="open-presenter-view"]',
+    ) as HTMLButtonElement | null;
+    expect(presenter).not.toBeNull();
+    expect(primary?.contains(presenter)).toBe(true);
+    expect(presenter?.textContent).toContain('Präsentationsansicht');
+    expect(presenter?.getAttribute('aria-label')).toBe('Präsentationsansicht öffnen');
     expect(
-      fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]'),
-    ).not.toBeNull();
+      fixture.nativeElement.querySelector(
+        '.session-host__view-controls [data-testid="open-presenter-view"]',
+      ),
+    ).toBeNull();
     fixture.destroy();
   });
 
@@ -3926,7 +4186,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     vi.unstubAllGlobals();
   });
 
-  it('zeigt bei einem aktivierten Kanal keine Tabs und inaktive Formate nur im Hinzufügen-Menü', async () => {
+  it('zeigt bei einem aktivierten Kanal keine Tabs und inaktive Formate nur im Menü »Session erweitern«', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       channels: {
@@ -3947,11 +4207,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.showChannelTabs()).toBe(false);
     expect(host.querySelector('.session-channel-tabs')).toBeNull();
     const trigger = host.querySelector<HTMLButtonElement>('[data-testid="add-channel-trigger"]');
-    expect(trigger?.textContent).toContain('Format hinzufügen');
+    expect(trigger?.textContent).toContain('Session erweitern');
     trigger!.click();
     fixture.detectChanges();
     await fixture.whenStable();
 
+    const addMenu = document.querySelector('[role="menu"].session-host__add-channel-menu');
+    expect(addMenu).not.toBeNull();
     expect(document.querySelector('[data-testid="add-channel-quiz"]')).toBeNull();
     expect(document.querySelector('[data-testid="add-channel-qa"]')?.textContent).toContain('Q&A');
     expect(
@@ -4122,6 +4384,44 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       fixture.nativeElement.querySelector('[data-testid="add-channel-trigger"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('führt beim Quizabschluss den Fokus vom Präsentationsbutton zur Abschlussüberschrift', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const presenter = host.querySelector<HTMLButtonElement>('[data-testid="open-presenter-view"]');
+    expect(presenter).not.toBeNull();
+    presenter!.focus();
+    expect(document.activeElement).toBe(presenter);
+
+    const component = fixture.componentInstance;
+    component.statusUpdate.set({ status: 'FINISHED', currentQuestion: null });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const heading = host.querySelector('#session-finished-heading');
+    expect(heading?.textContent?.trim()).toBe('Quiz beendet');
+    expect(host.querySelector('.session-host__quiz-tools')).toBeNull();
+    expect(document.activeElement).toBe(heading);
+
+    component.activeChannel.set('quickFeedback');
+    fixture.detectChanges();
+    expect(host.querySelector('[data-testid="open-presenter-view"]')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -4178,6 +4478,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       const host = fixture.nativeElement as HTMLElement;
       const heading = host.querySelector<HTMLHeadingElement>('h1#session-finished-heading');
       expect(heading).not.toBeNull();
+      expect(host.querySelector('[data-testid="open-presenter-view"]')).toBeNull();
       expect(heading?.textContent?.trim()).toBe(title);
       expect(heading?.tabIndex).toBe(-1);
       expect(heading?.classList.contains('app-content-focus-target')).toBe(true);
@@ -4976,7 +5277,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('fügt den Q&A-Tab nach bestätigter Einrichtung über Format hinzufügen hinzu', async () => {
+  it('fügt den Q&A-Tab nach bestätigter Einrichtung über »Session erweitern« hinzu', async () => {
     getLifecycleForHostQueryMock.mockResolvedValue({ ...defaultLifecycle });
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -5894,7 +6195,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('öffnet über Format hinzufügen die Sammlung, lädt das Quiz hoch und hängt es an die Session', async () => {
+  it('öffnet über »Session erweitern« die Sammlung, lädt das Quiz hoch und hängt es an die Session', async () => {
     getInfoQueryMock
       .mockResolvedValueOnce({
         ...defaultSession,
@@ -8565,7 +8866,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt fuer eine einzelne italienische Nonsense-Antwort den lokalen Themen-Fallback', async () => {
+  it('zeigt fuer eine einzelne italienische Nonsense-Antwort den Themen-Fallback des Backends', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -8584,6 +8885,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       responses: ['asdfgh'],
     });
 
+    wordCloudAnalyzeQueryMock.mockResolvedValue(
+      wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        locale: 'it',
+        status: 'fallback',
+        fallbackUsed: true,
+        entries: [],
+      }),
+    );
     const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -8597,18 +8907,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await component.setFreetextWordCloudMode('SEMANTIC');
     fixture.detectChanges();
 
-    expect(component.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
-    expect(component.freetextWordCloudSemanticHint()).toBe(
-      'Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.',
+    expect(component.qaWordCloudAnalysisLocale()).toBe('it');
+    await vi.waitUntil(() => component.freetextWordCloudSemanticAnalysisResult() !== null, {
+      timeout: 5000,
+      interval: 25,
+    });
+    fixture.detectChanges();
+    expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('fallback');
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'SEMANTIC', locale: 'it', channel: 'FREETEXT' }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
-    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
-    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
-    expect(
-      wordCloudAnalyzeQueryMock.mock.calls.some(
-        (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
-      ),
-    ).toBe(false);
     expect(fixture.nativeElement.textContent).toContain(
       'Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.',
     );
@@ -10033,9 +10342,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('laesst die italienische Host-UI ohne Wolkensprache, bis der Host eine waehlt', () => {
+  it('verwendet Italienisch standardmäßig als Wolkensprache', () => {
     const fixture = setup([{ provide: LOCALE_ID, useValue: 'it' }]);
-    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
+    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('it');
     fixture.destroy();
   });
 
@@ -10053,7 +10362,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('laesst Freitext lokal, wenn die Glaettung nicht verfuegbar ist', async () => {
+  it('glättet italienischen Freitext und analysiert einen Sprachwechsel erneut', async () => {
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
       order: 5,
@@ -10080,13 +10389,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     const component = fixture.componentInstance;
-    expect(component.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(component.freetextWordCloudSmoothingDisabled()).toBe(true);
-    expect(component.freetextWordCloudSmoothingHint()).toBe('Wähle die Sprache der Beiträge');
-    expect(component.displayedFreetextVisibleTerms()?.length).toBeGreaterThan(0);
+    expect(component.qaWordCloudAnalysisLocale()).toBe('it');
+    expect(component.freetextWordCloudSmoothingDisabled()).toBe(false);
+
+    wordCloudAnalyzeQueryMock.mockResolvedValueOnce(
+      wordCloudAnalyzeResult({
+        mode: 'LEXICAL',
+        locale: 'it',
+        normalization: 'LEMMA',
+        normalizationApplied: 'LEMMA',
+        modelId: 'it_lemma_lookup@1.0.5',
+      }),
+    );
     await component.toggleFreetextWordCloudSmoothing();
-    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
-    expect(component.displayedFreetextAnalysisEntries()).toBeNull();
 
     wordCloudAnalyzeQueryMock.mockResolvedValue(
       wordCloudAnalyzeResult({
@@ -10117,6 +10432,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       interval: 25,
     });
     expect(lemmaAnalyzeCalls()).toEqual([
+      [expect.objectContaining({ locale: 'it', normalization: 'LEMMA' })],
       [expect.objectContaining({ locale: 'es', normalization: 'LEMMA' })],
     ]);
     fixture.destroy();
@@ -10250,11 +10566,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
     const data = config['data'] as {
       title: () => string;
+      tooltipMetricLabel: () => string | null;
       weightingHint: () => string | null;
       terms: () => Array<{ key: string }> | null;
     };
     expect(data.title()).toBe('Q&A-Wortwolke');
-    expect(data.weightingHint()).toContain('viel Zustimmung');
+    expect(data.tooltipMetricLabel()).toBe('Klare Zustimmung');
+    expect(data.weightingHint()).toContain('ein höherer Dafür-Anteil tendenziell stärker');
     expect(data.terms()).toBeNull();
     await vi.waitUntil(() => wordCloudAnalyzeQueryMock.mock.calls.length >= 1, {
       timeout: 5000,
@@ -10354,7 +10672,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       '.session-qa-card__author-icon',
     ) as HTMLElement | null;
 
-    expect(badge?.textContent?.trim()).toBe('🐉 2');
+    expect(badge?.querySelector('img')?.getAttribute('src')).toMatch(/emoji_u1f409\.svg$/);
+    expect(badge?.textContent?.trim()).toBe('2');
     expect(badge?.getAttribute('title')).toBe('Roter Drache 2');
     fixture.destroy();
   });
@@ -11624,7 +11943,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.any(Object),
     );
     expect(component.qaSortMode()).toBe('BEST');
-    expect(fixture.nativeElement.textContent ?? '').toContain('Zustimmung 71 %');
+    expect(fixture.nativeElement.textContent ?? '').toMatch(/83[,.]3\s?% dafür · 6 Stimmen/);
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(21);
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
 
@@ -11635,6 +11954,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: { kind: 'BEST' },
         panelClass: 'qa-sort-help-dialog-panel',
+        role: 'dialog',
       }),
     );
     dialogOpenMock.mockClear();
@@ -11644,11 +11964,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect.objectContaining({
         data: { kind: 'CONTROVERSIAL' },
         panelClass: 'qa-sort-help-dialog-panel',
+        role: 'dialog',
       }),
     );
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
     expect(fixture.nativeElement.textContent ?? '').toContain(
-      'Zeigt Fragen mit viel Zustimmung und genug Stimmen zuerst. Hervorgehobene Fragen erscheinen zuerst und sind markiert.',
+      'Für die Reihenfolge zählen der Anteil der Dafür-Stimmen und die Gesamtzahl der Stimmen. Bei gleichem Dafür-Anteil geben mehr Stimmen dem Ergebnis mehr Gewicht. Hervorgehobene Fragen stehen zuerst.',
     );
     expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
     expect(setQaPresenterSortModeMutateMock).toHaveBeenCalledWith({
@@ -13131,9 +13452,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const text = fixture.nativeElement.textContent ?? '';
     expect(component.qaWordCloudQuestionWeight(component.qaQuestions()[0]!)).toBe(27);
+    expect(component.qaSortHint()).toContain('Bei gleicher Stimmenzahl');
     expect(component.qaWordCloudTitle()).toBe('Q&A-Wortwolke');
     expect(component.qaWordCloudInfo()).toBe('1 sichtbare Frage');
-    expect(text).toContain('Kontroverse');
+    expect(text).toContain('Geteilte Stimmen');
     expect(text).toContain('Zeit');
     expect(text).not.toContain('8 positiv · 8 negativ');
     const voteStats = fixture.nativeElement.querySelectorAll('.session-qa-card__vote-stat');
@@ -13143,8 +13465,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(voteStats[1]?.classList.contains('session-qa-card__vote-stat--down')).toBe(true);
     expect(voteStats[1]?.textContent).toContain('8');
     expect(voteStats[1]?.querySelector('mat-icon')?.textContent?.trim()).toBe('thumb_down');
-    expect(text).toContain('Umstritten');
-    expect(text).toContain('Geteilte Reaktionen 80 %');
+    expect(text).toContain('Geteilte Stimmen');
+    expect(text).not.toContain('80 %');
     fixture.destroy();
   });
 
@@ -13321,8 +13643,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(data.themeModeAvailable()).toBe(true);
       expect(data.sortMode()).toBe('CONTROVERSIAL');
       expect(data.title()).toBe('Q&A-Wortwolke');
-      expect(data.tooltipMetricLabel()).toBe('Kontroverse');
-      expect(data.weightingHint()).toContain('Dafür- und Dagegen-Stimmen');
+      expect(data.tooltipMetricLabel()).toBe('Geteilte Stimmen');
+      expect(data.weightingHint()).toContain('eine ausgewogenere Verteilung tendenziell stärker');
       expect(data.presenterViewActionLabel()).toBe('Präsentationsansicht öffnen');
     } finally {
       if (previousDescriptor) {
@@ -13735,7 +14057,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt auf Italienisch einen lokalen Q&A-Seitenausschnitt', async () => {
+  it('fordert italienische Lemmatisierung für die Q&A-Wortwolke an', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -13767,86 +14089,23 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       interval: 25,
     });
 
-    hostTestAccess(fixture.componentInstance).qaHostStatusCounts.set({
-      active: 1,
-      pinned: 0,
-      pending: 3,
-      archived: 4,
-    });
-    fixture.componentInstance.qaListTotalCount.set(8);
-    expect(fixture.componentInstance.qaWordCloudAnalyzedCount()).toBe(1);
-    expect(fixture.componentInstance.qaWordCloudEligibleCount()).toBe(1);
-
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
-    await fixture.componentInstance.openQaWordCloudDialog();
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBeNull();
-    expect(fixture.componentInstance.qaWordCloudEffectiveAnalysisVariant()).toBe('THEME');
-    expect(fixture.componentInstance.qaWordCloudTerms().length).toBeGreaterThan(0);
-    expect(fixture.componentInstance.qaWordCloudSmoothingDisabled()).toBe(true);
-    expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBe(
-      'Wähle die Sprache der Beiträge',
-    );
-    await fixture.componentInstance.toggleQaWordCloudSmoothing();
-    expect(wordCloudAnalyzeQueryMock).not.toHaveBeenCalled();
-
-    const [, config] = dialogOpenMock.mock.calls[0] as [unknown, Record<string, unknown>];
-    const data = config['data'] as {
-      analysisVariant: () => string;
-      themeModeAvailable: () => boolean;
-      themeFallbackHint: () => string | null;
-      terms: () => Array<{ key: string }> | null;
-    };
-    expect(data.analysisVariant()).toBe('THEME');
-    expect(data.themeModeAvailable()).toBe(true);
-    expect(data.themeFallbackHint()).toBeNull();
-    expect(data.terms()?.length).toBeGreaterThan(0);
-    expect(Object.prototype.hasOwnProperty.call(config['data'], 'lemmaLocale')).toBe(false);
-
     wordCloudAnalyzeQueryMock.mockImplementation(
-      async (input: { normalization?: string; locale?: string }) =>
+      async (input: { mode: 'LEXICAL' | 'THEME'; normalization?: string }) =>
         wordCloudAnalyzeResult({
-          mode: input.normalization === 'LEMMA' ? 'LEXICAL' : 'THEME',
-          locale: input.locale ?? 'fr',
-          metric: 'TOP',
+          mode: input.mode,
+          locale: 'it',
           normalization: input.normalization === 'LEMMA' ? 'LEMMA' : 'NONE',
           normalizationApplied: input.normalization === 'LEMMA' ? 'LEMMA' : 'NONE',
-          modelId: 'fr_core_news_sm@3.8.0',
-          entries: [
-            {
-              key: 'domande',
-              label: 'domande',
-              count: 1,
-              basisLabel: 'domande',
-              members: [],
-              variants: ['domande'],
-              confidence: 0.9,
-            },
-          ],
+          modelId: input.normalization === 'LEMMA' ? 'it_lemma_lookup@1.0.5' : null,
         }),
     );
-    await fixture.componentInstance.setWordCloudLemmaLocale('fr');
-    expect(fixture.componentInstance.qaWordCloudAnalysisLocale()).toBe('fr');
-    await vi.waitUntil(
-      () =>
-        wordCloudAnalyzeQueryMock.mock.calls.some(
-          (call) => (call[0] as { mode?: string }).mode === 'THEME',
-        ) && lemmaAnalyzeCalls().length >= 1,
-      { timeout: 5000, interval: 25 },
-    );
-    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({ mode: 'THEME', locale: 'fr', normalization: 'NONE' }),
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
-    );
-
-    await vi.waitUntil(() => fixture.componentInstance.qaWordCloudSmoothingStatus() === 'active', {
-      timeout: 5000,
-      interval: 25,
-    });
-    expect(lemmaAnalyzeCalls()).toEqual([
-      [expect.objectContaining({ locale: 'fr', normalization: 'LEMMA', mode: 'LEXICAL' })],
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    const component = fixture.componentInstance;
+    await component.openQaWordCloudDialog();
+    expect(component.qaWordCloudAnalysisLocale()).toBe('it');
+    await vi.waitUntil(() => lemmaAnalyzeCalls().length > 0);
+    expect(lemmaAnalyzeCalls()).toContainEqual([
+      expect.objectContaining({ locale: 'it', normalization: 'LEMMA', filter: 'ALL_ELIGIBLE' }),
     ]);
     fixture.destroy();
   });
@@ -16789,6 +17048,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       1,
     );
     expect(buttonTexts).toEqual([
+      'Frage auslassenS',
       'Diskussionsphase',
       'Ergebnis trotzdem zeigen',
       'Weitere Aktionen',
@@ -17155,7 +17415,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     stopMusicSpy.mockClear();
     playMusicSpy.mockClear();
 
-    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true });
+    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: true, lockVersion: 1 });
     await component.toggleQuickFeedbackRoundLock();
     fixture.detectChanges();
 
@@ -17164,7 +17424,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(stopMusicSpy).toHaveBeenCalled();
 
     playMusicSpy.mockClear();
-    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: false });
+    quickFeedbackToggleLockMutateMock.mockResolvedValueOnce({ locked: false, lockVersion: 2 });
     await component.toggleQuickFeedbackRoundLock();
     fixture.detectChanges();
 
@@ -17256,6 +17516,21 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     component.countdownSeconds.set(5);
     fixture.detectChanges();
     expect(component.showFingerCountdown()).toBe(true);
+    const host = fixture.nativeElement as HTMLElement;
+    const fingerHost = host.querySelector('app-countdown-fingers') as HTMLElement;
+    const fingerImage = fingerHost.querySelector('img') as HTMLImageElement;
+    expect(fingerImage).toBeTruthy();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    fingerImage.dispatchEvent(new Event('load'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(true);
+    fingerImage.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fingerHost.classList.contains('countdown-fingers-host--loaded')).toBe(false);
+    // Die Media Query blendet auf schmalen Ansichten nur die Finger aus.
+    const countdown = host.querySelector('.session-host__countdown[role="timer"]');
+    expect(countdown?.textContent?.trim()).toBe('5');
+    expect(countdown?.getAttribute('aria-label')).toBe('5 Sekunden verbleibend');
     expect(component.personalTimeOvertimeActive()).toBe(false);
     expect(component.currentMusicPhase()).toBe('countdown');
     expect(component.activeMusicTrack()).toBeNull();
@@ -17671,7 +17946,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Lies die Frage zuerst.');
     expect(el.textContent).toContain('Lesephase');
-    expect(el.textContent).toContain('Antwortoptionen freigeben');
+    expect(el.textContent).toContain('Antwortphase starten');
     const exitAnchor = el.querySelector('.session-host__exit-anchor') as HTMLElement;
     const buttonTexts = Array.from(exitAnchor.querySelectorAll('button'), (button) =>
       exitAnchorButtonLabel(button),
@@ -17680,7 +17955,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       1,
     );
-    expect(buttonTexts).toEqual(['Antwortoptionen freigeben', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Frage auslassenS', 'Antwortphase starten', 'Weitere Aktionen']);
     expect(
       exitAnchor.querySelector('.session-host__exit-anchor-label--reveal-options-compact')
         ?.textContent,
@@ -17689,7 +17964,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       exitAnchor
         .querySelector('.session-host__exit-anchor-button--reveal-options')
         ?.getAttribute('aria-label'),
-    ).toBe('Antwortoptionen freigeben');
+    ).toBe('Antwortphase starten');
     expect(el.querySelector('.session-host__answers')).toBeNull();
     fixture.destroy();
   });
@@ -17726,9 +18001,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.textContent).toContain('Antwortoptionen freigeben');
+    expect(host.textContent).toContain('Antwortphase starten');
+    expect(host.querySelector('[data-testid="host-quiz-skip-question"]')).not.toBeNull();
     const { menu } = await openHostMoreActions(fixture);
-    expect(menu.textContent).toContain('Frage auslassen');
+    expect(menu.textContent).not.toContain('Frage auslassen');
     fixture.debugElement
       .query(By.css('[data-testid="host-more-actions"]'))
       .injector.get(MatMenuTrigger)
@@ -17745,7 +18021,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     expect(fixture.componentInstance.activeChannel()).toBe('qa');
     expect(buttonTexts).toContain('Zur Startseite');
-    expect(host.textContent).not.toContain('Antwortoptionen freigeben');
+    expect(host.textContent).not.toContain('Antwortphase starten');
     expect(host.textContent).not.toContain('Frage auslassen');
     expect(host.textContent).not.toContain('Nächste Frage');
     expect(host.textContent).not.toContain('Letztes Ergebnis');
@@ -17765,9 +18041,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.componentInstance.selectChannel('quiz');
     fixture.detectChanges();
 
-    expect(host.textContent).toContain('Antwortoptionen freigeben');
-    const reopened = await openHostMoreActions(fixture);
-    expect(reopened.menu.textContent).toContain('Frage auslassen');
+    expect(host.textContent).toContain('Antwortphase starten');
+    expect(host.querySelector('[data-testid="host-quiz-skip-question"]')).not.toBeNull();
     fixture.destroy();
   });
 
@@ -17819,7 +18094,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('2 von 2 bereit');
     expect(el.textContent).toContain(
-      'Alle Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
+      'Alle Teilnehmenden sind bereit. Du kannst die Antwortphase starten.',
     );
 
     fixture.destroy();
@@ -17867,27 +18142,37 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
-    const { trigger, menu } = await openHostMoreActions(fixture);
-    const skipButton = menu.querySelector<HTMLButtonElement>(
-      'button[aria-label="Aktuelle Frage auslassen"]',
+    const host = fixture.nativeElement as HTMLElement;
+    const skipButton = host.querySelector<HTMLButtonElement>(
+      '[data-testid="host-quiz-skip-question"]',
     );
     expect(skipButton).not.toBeNull();
+    expect(skipButton?.getAttribute('aria-keyshortcuts')).toBe('S');
+    expect(skipButton?.querySelector('mat-icon')).toBeNull();
+    expect(skipButton?.querySelector('kbd')?.textContent).toBe('S');
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => of(false) });
     skipButton!.focus();
-    skipButton!.click();
+    const input = document.createElement('input');
+    host.append(input);
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 's', bubbles: true, repeat: true }),
+    );
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    const otherAction = document.createElement('button');
+    host.append(otherAction);
+    otherAction.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
+    expect(dialogOpenMock).not.toHaveBeenCalled();
+    skipButton!.focus();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 's', bubbles: true }));
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    await vi.waitUntil(
-      () => document.querySelector('.cdk-overlay-container [role="menu"]') === null,
-      {
-        timeout: 1000,
-        interval: 10,
-      },
-    );
-    expect(document.activeElement).toBe(trigger);
-    expect(trigger.isConnected).toBe(true);
-    expect(getComputedStyle(trigger).display).not.toBe('none');
+    expect(document.activeElement).toBe(skipButton);
+    expect(skipButton?.isConnected).toBe(true);
+    expect(getComputedStyle(skipButton!).display).not.toBe('none');
     expect(skipQuestionMutateMock).not.toHaveBeenCalled();
 
     await fixture.componentInstance.skipQuestion();
@@ -17898,6 +18183,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
+        autoFocus: '.confirm-leave__confirm',
         restoreFocus: false,
         data: expect.objectContaining({
           message:
@@ -17913,10 +18199,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(questionCard?.getAttribute('tabindex')).toBe('-1');
 
     skipQuestionMutateMock.mockRejectedValueOnce(new Error('offline'));
-    const retryMenu = await openHostMoreActions(fixture);
-    retryMenu.menu
-      .querySelector<HTMLButtonElement>('button[aria-label="Aktuelle Frage auslassen"]')!
-      .click();
+    host.querySelector<HTMLButtonElement>('[data-testid="host-quiz-skip-question"]')!.click();
     await vi.waitUntil(() => fixture.componentInstance.hostSteeringCallout() !== null, {
       timeout: 1000,
       interval: 10,
@@ -17955,6 +18238,34 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(skipQuestionMutateMock).not.toHaveBeenCalled();
     expect(prevQuestionMutateMock).not.toHaveBeenCalled();
     expect(endMutateMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('öffnet die Smartphone-Fernbedienung über Weitere Aktionen', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const { menu } = await openHostMoreActions(fixture);
+    const action = menu.querySelector<HTMLButtonElement>(
+      '[data-testid="host-smartphone-remote-action"]',
+    );
+    expect(action?.textContent).toContain('Smartphone als Fernbedienung');
+    expect(action?.querySelector('mat-icon')?.textContent?.trim()).toBe('devices');
+
+    action!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(dialogOpenMock).toHaveBeenCalledWith(
+      HostPairingDialogComponent,
+      expect.objectContaining({
+        data: { code: 'ABC123', screenVisibility: 'PROJECTED' },
+        autoFocus: 'first-tabbable',
+        restoreFocus: true,
+      }),
+    );
     fixture.destroy();
   });
 
@@ -20042,18 +20353,14 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       trigger!.click();
       fixture.detectChanges();
       expect(document.querySelector('.cdk-overlay-container [role="menu"]')).toBeNull();
-      const skip = vi.spyOn(component, 'skipQuestion').mockResolvedValue(undefined);
-      const previous = vi.spyOn(component, 'prevQuestion').mockResolvedValue(undefined);
       const replace = vi.spyOn(component, 'replaceQuizBeforeStart').mockResolvedValue(undefined);
       const leave = vi.spyOn(component, 'onLeaveHostKeepingQaOpen').mockResolvedValue(undefined);
       const end = vi.spyOn(component, 'onSessionEndAnchorClick').mockResolvedValue(undefined);
-      for (const action of ['skip', 'previous', 'replace', 'leave', 'end'] as const) {
+      for (const action of ['replace', 'leave', 'end'] as const) {
         component.pendingHostMoreAction.set(action);
         component.runHostMoreAction();
         expect(component.pendingHostMoreAction()).toBeNull();
       }
-      expect(skip).not.toHaveBeenCalled();
-      expect(previous).not.toHaveBeenCalled();
       expect(replace).not.toHaveBeenCalled();
       expect(leave).not.toHaveBeenCalled();
       expect(end).not.toHaveBeenCalled();
@@ -20215,7 +20522,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('1 von 1 verbunden bereit');
     expect(text).toContain('501 insgesamt');
     expect(text).toContain(
-      'Alle verbundenen Teilnehmenden sind bereit – Antwortoptionen können freigegeben werden.',
+      'Alle verbundenen Teilnehmenden sind bereit. Du kannst die Antwortphase starten.',
     );
     fixture.destroy();
   });
@@ -20450,7 +20757,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       1,
     );
-    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Frage auslassenS', 'Ergebnis zeigen', 'Weitere Aktionen']);
     expect(exitAnchor.querySelector('.session-host__exit-anchor-button--skip')).toBeNull();
     expect(exitAnchor.querySelector('[data-testid="host-more-actions"]')).not.toBeNull();
     expect(exitAnchor.querySelector('.session-host__exit-anchor-button--primary')).not.toBeNull();
@@ -20907,7 +21214,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const text = fixture.nativeElement.textContent ?? '';
 
     expect(text).not.toContain('Peer Instruction empfohlen');
-    expect(buttonTexts).toEqual(['Ergebnis zeigen', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Frage auslassenS', 'Ergebnis zeigen', 'Weitere Aktionen']);
     fixture.destroy();
   });
 
@@ -22275,7 +22582,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const revealButtonWhilePending = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
-    ).find((button) => (button.textContent ?? '').includes('Antwortoptionen freigeben'));
+    ).find((button) => (button.textContent ?? '').includes('Antwortphase starten'));
     expect(component.controlPending()).toBe(false);
     expect(component.quizStartQuestionPending()).toBe(true);
     expect(revealButtonWhilePending).toBeUndefined();
@@ -22287,12 +22594,94 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     const revealButton = Array.from(
       (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
-    ).find((button) => (button.textContent ?? '').includes('Antwortoptionen freigeben'));
+    ).find((button) => (button.textContent ?? '').includes('Antwortphase starten'));
+    const presenterOffer = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>(
+      '[data-testid="host-presenter-start-offer"]',
+    );
+    const presenterOfferCta = presenterOffer?.querySelector<HTMLButtonElement>(
+      '[data-testid="host-presenter-start-offer-open"]',
+    );
     expect(component.quizStartQuestionPending()).toBe(false);
     expect(revealButton).toBeTruthy();
     expect(revealButton?.disabled).toBe(false);
+    expect(presenterOffer?.textContent).toContain('Quiz gestartet');
+    expect(presenterOffer?.textContent).not.toContain('Möchtest du');
+    expect(presenterOfferCta?.textContent).toContain('Präsentationsansicht öffnen');
+    expect(presenterOfferCta?.querySelector('app-presenter-icon')).not.toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="open-presenter-view"]'),
+    ).toBeNull();
+    expect(document.activeElement).toBe(presenterOfferCta);
+
+    const openFromOffer = vi
+      .spyOn(component, 'openPresenterViewFromStartOffer')
+      .mockResolvedValue();
+    presenterOfferCta?.click();
+    expect(openFromOffer).toHaveBeenCalledOnce();
+    openFromOffer.mockRestore();
+
+    presenterOffer
+      ?.querySelector<HTMLButtonElement>('[data-testid="host-presenter-start-offer-dismiss"]')
+      ?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="host-presenter-start-offer"]',
+      ),
+    ).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[data-testid="open-presenter-view"]'),
+    ).not.toBeNull();
+    expect(document.activeElement).toBe(revealButton);
     fixture.destroy();
   });
+
+  it.each(['bereits gestartet', 'kompakter Viewport'] as const)(
+    'bietet den Presenter nach Quizstart nicht an: %s',
+    async (reason) => {
+      const loadedQuestion = {
+        questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        order: 0,
+        totalQuestions: 1,
+        text: 'Welche Antwort ist richtig?',
+        type: 'SINGLE_CHOICE' as const,
+        currentRound: 1,
+        timer: null,
+        answers: [],
+        totalVotes: 0,
+      };
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'LOBBY' });
+      nextQuestionMutateMock.mockResolvedValue({
+        status: 'QUESTION_OPEN',
+        currentQuestion: 0,
+        currentRound: 1,
+      });
+      getCurrentQuestionForHostQueryMock.mockResolvedValue(loadedQuestion);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      if (reason === 'bereits gestartet') {
+        fixture.componentInstance.presentationStarted.set(true);
+      } else {
+        fixture.componentInstance.showPresenterViewButton.set(false);
+      }
+
+      await fixture.componentInstance.nextQuestion();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector(
+          '[data-testid="host-presenter-start-offer"]',
+        ),
+      ).toBeNull();
+      fixture.destroy();
+    },
+  );
 
   it('haelt die Lobby-Teamkarten stabil, waehrend eine spaetere Startfrage nachlaedt', async () => {
     const loadedQuestion = {
@@ -22700,12 +23089,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       await Promise.resolve();
       await fixture.whenStable();
       fixture.detectChanges();
+      await Promise.resolve();
 
       const hostAfterRetry = fixture.nativeElement as HTMLElement;
-      expect(getCurrentQuestionForHostQueryMock).toHaveBeenCalledTimes(refreshCallsBeforeStart + 2);
+      const presenterOfferCta = hostAfterRetry.querySelector<HTMLButtonElement>(
+        '[data-testid="host-presenter-start-offer-open"]',
+      );
+      expect(getCurrentQuestionForHostQueryMock.mock.calls.length).toBeGreaterThanOrEqual(
+        refreshCallsBeforeStart + 2,
+      );
       expect(component.quizStartQuestionPending()).toBe(false);
       expect(component.showLobbyStage()).toBe(false);
       expect(hostAfterRetry.textContent ?? '').toContain('Welche Antwort ist richtig?');
+      expect(presenterOfferCta).not.toBeNull();
+      expect(document.activeElement).toBe(presenterOfferCta);
     } finally {
       fixture.destroy();
       vi.useRealTimers();
@@ -22759,7 +23156,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('ordnet beim Ergebnis Rückblick und Sessionende im Menü neben Nächste Frage ein', async () => {
+  it('zeigt beim Ergebnis den Rückblick direkt und nicht zusätzlich im Menü', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'RESULTS',
@@ -22825,15 +23222,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exitAnchor.querySelectorAll('.session-host__exit-anchor-button--primary')).toHaveLength(
       1,
     );
-    expect(buttonTexts).toEqual(['Nächste Frage', 'Weitere Aktionen']);
+    expect(buttonTexts).toEqual(['Vorheriges Ergebnis', 'Nächste Frage', 'Weitere Aktionen']);
 
     const { menu } = await openHostMoreActions(fixture);
-    const previousButton = Array.from(menu.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Letztes Ergebnis erneut anzeigen'),
-    );
-    expect(previousButton?.getAttribute('role')).toBe('menuitem');
-    expect(previousButton?.textContent).toContain('Letztes Ergebnis erneut anzeigen');
     expect(menu.textContent).toContain('Session beenden');
+    expect(menu.textContent).not.toContain('Letztes Ergebnis');
     expect(menu.textContent).not.toContain('Frage auslassen');
     fixture.destroy();
   });
@@ -23005,7 +23398,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt nach prevQuestion das Umfrage-Ergebnis ohne Musterlösung und ohne Steuerungs-Callout', async () => {
+  it('zeigt über den direkten Host-Button ein früheres Ergebnis lokal, ohne die laufende Session umzuschalten', async () => {
     const freetextQuestion = {
       questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
       order: 1,
@@ -23013,6 +23406,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       text: 'Was hilft dir beim Lernen?',
       type: 'FREETEXT' as const,
       canShowPreviousResult: true,
+      hasEarlierPresenterResult: true,
       answers: [] as { id: string; text: string; isCorrect: boolean }[],
       freeTextResponses: [] as string[],
       totalVotes: 0,
@@ -23055,10 +23449,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     );
     getCurrentQuestionForHostQueryMock.mockResolvedValue(freetextQuestion);
-    prevQuestionMutateMock.mockResolvedValue({
-      status: 'RESULTS',
-      currentQuestion: 0,
-      currentRound: 1,
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: surveyQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
     });
 
     const fixture = setup();
@@ -23066,12 +23461,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
-    const initialMenu = await openHostMoreActions(fixture);
-    expect(initialMenu.menu.textContent).toContain('Letztes Ergebnis erneut anzeigen');
-    getCurrentQuestionForHostQueryMock.mockResolvedValue(surveyQuestion);
-    const previousItem = Array.from(initialMenu.menu.querySelectorAll('button')).find((button) =>
-      button.textContent?.includes('Letztes Ergebnis erneut anzeigen'),
+    const previousItem = (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+      '[data-testid="host-quiz-history-previous"]',
     );
+    expect(previousItem?.textContent).toContain('Vorheriges Ergebnis');
     previousItem!.click();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -23079,14 +23472,427 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(prevQuestionMutateMock).toHaveBeenCalledWith({ code: 'ABC123' });
-    expect(fixture.componentInstance.steppedBackToPreviousResult()).toBe(true);
-    expect(fixture.componentInstance.displayedCurrentQuestionForHost()?.type).toBe('SURVEY');
+    expect(getPresenterQuizResultQueryMock).toHaveBeenCalledWith(
+      {
+        code: 'ABC123',
+        liveQuestionId: freetextQuestion.questionId,
+        fromQuestionId: undefined,
+        direction: 'previous',
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+    expect(prevQuestionMutateMock).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.effectiveStatus()).toBe('RESULTS');
+    expect(fixture.componentInstance.displayedCurrentQuestionForHost()?.type).toBe('FREETEXT');
+    expect(fixture.componentInstance.earlierQuizResult()?.question.type).toBe('SURVEY');
     const { menu } = await openHostMoreActions(fixture);
     expect(menu.textContent).not.toContain('Letztes Ergebnis');
     expect(host.querySelector('[data-testid="host-steering-retry"]')).toBeNull();
+    expect(host.querySelector('[data-testid="host-quiz-history-stage"]')).not.toBeNull();
     expect(host.textContent).toContain('Gut');
     expect(host.querySelector('.session-host__extra--freetext')).toBeNull();
+    fixture.destroy();
+  });
+
+  it('blättert per Pfeiltasten durch Host-Ergebnisse, ohne eine laufende Abstimmung zu verändern', async () => {
+    const liveQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 3,
+      text: 'Aktuelle Abstimmung',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      hasEarlierPresenterResult: true,
+      answers: [
+        { id: 'bbbbbbbb-1111-4111-8111-111111111111', text: 'Live A', isCorrect: true },
+        { id: 'bbbbbbbb-3333-4333-8333-333333333333', text: 'Live B', isCorrect: false },
+      ],
+      totalVotes: 1,
+    };
+    const earlierQuestion = {
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Früheres Ergebnis',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      answers: [
+        { id: 'aaaaaaaa-2222-4222-8222-222222222222', text: 'Früher A', isCorrect: true },
+        { id: 'aaaaaaaa-3333-4333-8333-333333333333', text: 'Früher B', isCorrect: false },
+      ],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-2222-4222-8222-222222222222',
+          text: 'Früher A',
+          isCorrect: true,
+          voteCount: 4,
+          votePercentage: 80,
+        },
+        {
+          id: 'aaaaaaaa-3333-4333-8333-333333333333',
+          text: 'Früher B',
+          isCorrect: false,
+          voteCount: 1,
+          votePercentage: 20,
+        },
+      ],
+      totalVotes: 5,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 1, currentRound: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(liveQuestion);
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+
+    const previousPresenterAction = document.createElement('button');
+    document.body.append(previousPresenterAction);
+    previousPresenterAction.focus();
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.contains(document.activeElement)).toBe(true);
+    previousPresenterAction.focus();
+    expect(host.querySelector('[data-testid="host-quiz-history-previous"] kbd')?.textContent).toBe(
+      '←',
+    );
+
+    const left = new KeyboardEvent('keydown', {
+      key: 'ArrowLeft',
+      bubbles: true,
+      cancelable: true,
+    });
+    previousPresenterAction.dispatchEvent(left);
+    previousPresenterAction.remove();
+    await vi.waitUntil(() => getPresenterQuizResultQueryMock.mock.calls.length === 1);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(left.defaultPrevented).toBe(true);
+    expect(component.effectiveStatus()).toBe('ACTIVE');
+    expect(component.displayedCurrentQuestionForHost()?.questionId).toBe(liveQuestion.questionId);
+    expect(component.earlierQuizResult()?.question.questionId).toBe(earlierQuestion.questionId);
+    expect(document.activeElement).toBe(
+      host.querySelector('[data-testid="host-quiz-history-next"]'),
+    );
+    expect(prevQuestionMutateMock).not.toHaveBeenCalled();
+    expect(nextQuestionMutateMock).not.toHaveBeenCalled();
+    expect(revealResultsMutateMock).not.toHaveBeenCalled();
+    expect(
+      host
+        .querySelector('.session-host__history-projection')
+        ?.classList.contains('session-present'),
+    ).toBe(true);
+    const { readFileSync } = await import('node:fs');
+    const historyStyles = readFileSync(`${__dirname}/session-host.component.scss`, 'utf8');
+    expect(historyStyles).toMatch(
+      /\.session-host__history-projection\s*\{[^}]*height:\s*clamp\(40rem, 90dvh, 90rem\)/s,
+    );
+    expect(host.querySelector('[data-testid="host-quiz-history-next"] kbd')?.textContent).toBe('→');
+
+    const historyProjection = host.querySelector<HTMLElement>('.session-host__history-projection');
+    expect(historyProjection).not.toBeNull();
+    Object.defineProperties(historyProjection!, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 400 },
+    });
+    const appMain = document.createElement('main');
+    appMain.className = 'app-main';
+    Object.defineProperties(appMain, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 1000 },
+    });
+    const historyScrollBy = vi.fn();
+    appMain.scrollBy = historyScrollBy;
+    document.body.append(appMain);
+    const focusedHistoryControl = host.querySelector<HTMLElement>(
+      '[data-testid="host-quiz-history-next"]',
+    );
+    expect(document.activeElement).toBe(focusedHistoryControl);
+    focusedHistoryControl!.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }),
+    );
+    expect(historyScrollBy).toHaveBeenCalledWith({ top: 48, behavior: 'instant' });
+    appMain.remove();
+
+    component.reportHistoryPages(3);
+    fixture.detectChanges();
+    expect(
+      host
+        .querySelector('[data-testid="host-quiz-history-previous-page"]')
+        ?.getAttribute('aria-keyshortcuts'),
+    ).toBe('ArrowUp');
+    expect(
+      host.querySelector('[data-testid="host-quiz-history-previous-page"] kbd')?.textContent,
+    ).toBe('↑');
+    expect(
+      host
+        .querySelector('[data-testid="host-quiz-history-next-page"]')
+        ?.getAttribute('aria-keyshortcuts'),
+    ).toBe('ArrowDown');
+    expect(host.querySelector('[data-testid="host-quiz-history-next-page"] kbd')?.textContent).toBe(
+      '↓',
+    );
+    const down = new KeyboardEvent('keydown', {
+      key: 'ArrowDown',
+      bubbles: true,
+      cancelable: true,
+    });
+    focusedHistoryControl!.dispatchEvent(down);
+    expect(down.defaultPrevented).toBe(true);
+    expect(component.historyPage().index).toBe(1);
+    fixture.detectChanges();
+    const up = new KeyboardEvent('keydown', {
+      key: 'ArrowUp',
+      bubbles: true,
+      cancelable: true,
+    });
+    focusedHistoryControl!.dispatchEvent(up);
+    expect(up.defaultPrevented).toBe(true);
+    expect(component.historyPage().index).toBe(0);
+
+    const input = document.createElement('input');
+    host.append(input);
+    input.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
+    expect(component.earlierQuizResult()).not.toBeNull();
+    input.remove();
+
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
+    fixture.detectChanges();
+    expect(component.earlierQuizResult()).toBeNull();
+    expect(component.effectiveStatus()).toBe('ACTIVE');
+    expect(component.displayedCurrentQuestionForHost()?.questionId).toBe(liveQuestion.questionId);
+    expect(getPresenterQuizResultQueryMock).toHaveBeenCalledTimes(1);
+
+    type HistoryResult = {
+      question: typeof earlierQuestion;
+      hasPrevious: boolean;
+      hasNext: boolean;
+      wordCloudUnavailable: boolean;
+    };
+    let resolvePendingResult!: (value: HistoryResult) => void;
+    const pendingResult = new Promise<HistoryResult>((resolve) => {
+      resolvePendingResult = resolve;
+    });
+    getPresenterQuizResultQueryMock.mockImplementationOnce(() => pendingResult);
+    const previousResultButton = host.querySelector<HTMLButtonElement>(
+      '[data-testid="host-quiz-history-previous"]',
+    );
+    const moreActionsButton = host.querySelector<HTMLButtonElement>(
+      '[data-testid="host-more-actions"]',
+    );
+    expect(previousResultButton).not.toBeNull();
+    expect(moreActionsButton).not.toBeNull();
+    previousResultButton!.focus();
+    const pendingStep = component.stepQuizHistory('previous');
+    await vi.waitUntil(() => getPresenterQuizResultQueryMock.mock.calls.length === 2);
+    moreActionsButton!.focus();
+    resolvePendingResult({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+    await pendingStep;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(moreActionsButton);
+    fixture.destroy();
+  });
+
+  it('beendet den Host-Rückblick bei externer Pause und öffnet ihn nach dem Fortsetzen nicht erneut', async () => {
+    const liveQuestion = {
+      questionId: 'bbbbbbbb-2222-4222-8222-222222222222',
+      order: 1,
+      totalQuestions: 3,
+      text: 'Aktuelle Abstimmung',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      hasEarlierPresenterResult: true,
+      answers: [{ id: 'bbbbbbbb-1111-4111-8111-111111111111', text: 'Live', isCorrect: true }],
+      totalVotes: 1,
+    };
+    const earlierQuestion = {
+      questionId: 'aaaaaaaa-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 3,
+      text: 'Früheres Ergebnis',
+      type: 'SINGLE_CHOICE' as const,
+      difficulty: 'MEDIUM' as const,
+      answers: [{ id: 'aaaaaaaa-2222-4222-8222-222222222222', text: 'Früher', isCorrect: true }],
+      voteDistribution: [
+        {
+          id: 'aaaaaaaa-2222-4222-8222-222222222222',
+          text: 'Früher',
+          isCorrect: true,
+          voteCount: 1,
+          votePercentage: 100,
+        },
+      ],
+      totalVotes: 1,
+    };
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      currentQuestion: 1,
+      currentRound: 1,
+    });
+    onStatusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, opts: { onData: (d: unknown) => void }) => {
+        opts.onData({ status: 'ACTIVE', currentQuestion: 1, currentRound: 1 });
+        return { unsubscribe: unsubscribeMock };
+      },
+    );
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(liveQuestion);
+    getPresenterQuizResultQueryMock.mockResolvedValue({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await fixture.componentInstance.stepQuizHistory('previous');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.earlierQuizResult()).not.toBeNull();
+
+    const statusHandler = (
+      onStatusChangedSubscribeMock.mock.calls[0]?.[1] as unknown as
+        { onData?: (data: { status: string; currentQuestion: number | null }) => void } | undefined
+    )?.onData;
+    expect(statusHandler).toBeTypeOf('function');
+    statusHandler?.({ status: 'PAUSED', currentQuestion: 1 });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="host-quiz-history-stage"]',
+      ),
+    ).toBeNull();
+    getPresenterQuizResultQueryMock.mockClear();
+    await fixture.componentInstance.stepQuizHistory('previous');
+    await fixture.componentInstance.stepQuizHistory('next');
+    expect(getPresenterQuizResultQueryMock).not.toHaveBeenCalled();
+
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 1 });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
+
+    type HistoryResult = {
+      question: typeof earlierQuestion;
+      hasPrevious: boolean;
+      hasNext: boolean;
+      wordCloudUnavailable: boolean;
+    };
+    let resolvePendingResult!: (value: HistoryResult) => void;
+    const pendingResult = new Promise<HistoryResult>((resolve) => {
+      resolvePendingResult = resolve;
+    });
+    getPresenterQuizResultQueryMock.mockImplementationOnce(() => pendingResult);
+    const pendingStep = fixture.componentInstance.stepQuizHistory('previous');
+    await vi.waitUntil(() => getPresenterQuizResultQueryMock.mock.calls.length === 1);
+    statusHandler?.({ status: 'PAUSED', currentQuestion: 1 });
+    fixture.detectChanges();
+    statusHandler?.({ status: 'ACTIVE', currentQuestion: 1 });
+    fixture.detectChanges();
+    resolvePendingResult({
+      question: earlierQuestion,
+      hasPrevious: false,
+      hasNext: false,
+      wordCloudUnavailable: false,
+    });
+    await pendingStep;
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.earlierQuizResult()).toBeNull();
+    fixture.destroy();
+  });
+
+  it('ignoriert globale Pfeiltasten, solange der Beitrittsdialog geöffnet ist', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const host = fixture.nativeElement as HTMLElement;
+    const shortcut = document.createElement('button');
+    shortcut.setAttribute('aria-keyshortcuts', 'ArrowRight');
+    const clickSpy = vi.fn();
+    shortcut.addEventListener('click', clickSpy);
+    host.prepend(shortcut);
+    fixture.componentInstance.joinInfoPopoverOpen.set(true);
+    fixture.detectChanges();
+    const closeButton = host.querySelector<HTMLButtonElement>(
+      '.session-host__join-viewport-overlay__close',
+    );
+    expect(closeButton).not.toBeNull();
+    closeButton!.focus();
+
+    const right = new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true,
+    });
+    closeButton!.dispatchEvent(right);
+
+    expect(clickSpy).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('ignoriert globale Pfeiltasten in Inline-Dialogen und auf inerten Aktionen', async () => {
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+
+    const host = fixture.nativeElement as HTMLElement;
+    const inertSurface = document.createElement('div');
+    inertSurface.setAttribute('inert', '');
+    const shortcut = document.createElement('button');
+    shortcut.setAttribute('aria-keyshortcuts', 'ArrowRight');
+    const clickSpy = vi.fn();
+    shortcut.addEventListener('click', clickSpy);
+    inertSurface.append(shortcut);
+    host.prepend(inertSurface);
+
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
+    expect(clickSpy).not.toHaveBeenCalled();
+
+    inertSurface.removeAttribute('inert');
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    const closeButton = document.createElement('button');
+    dialog.append(closeButton);
+    host.prepend(dialog);
+    closeButton.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
+    expect(clickSpy).not.toHaveBeenCalled();
     fixture.destroy();
   });
 
@@ -23531,6 +24337,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
 
     expect(buttonTexts).toEqual([
+      'Vorheriges Ergebnis',
       'Zweite Abstimmung',
       'Zur Gesamtauswertung ohne zweite Abstimmung',
       'Weitere Aktionen',
@@ -23740,11 +24547,110 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     ) as HTMLButtonElement;
     expect(roundControl).not.toBeNull();
     expect(roundControl.textContent).toContain('Stopp');
+    expect(roundControl.getAttribute('aria-keyshortcuts')).toBe('ArrowRight');
+    expect(roundControl.querySelector('kbd')?.textContent).toBe('→');
     expect(roundControl.closest('app-feedback-host')).not.toBeNull();
-    roundControl.click();
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
+    );
     await fixture.whenStable();
 
     expect(quickFeedbackToggleLockMutateMock).toHaveBeenCalledWith({ sessionCode: 'ABC123' });
+    fixture.destroy();
+  });
+
+  it('behält bestätigten Blitzlicht-Stopp bei verspätetem Abo-Snapshot bei', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      preferredChannel: 'quickFeedback',
+      channels: {
+        quiz: { enabled: true },
+        qa: { enabled: false, open: false, title: null, moderationMode: false },
+        quickFeedback: { enabled: true, open: true },
+      },
+    });
+    quickFeedbackHostResultsQueryMock.mockResolvedValue({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 2,
+      distribution: { POSITIVE: 1, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    let confirmStop!: (value: { locked: boolean; lockVersion: number }) => void;
+    quickFeedbackToggleLockMutateMock.mockImplementationOnce(
+      () =>
+        new Promise<{ locked: boolean; lockVersion: number }>((resolve) => {
+          confirmStop = resolve;
+        }),
+    );
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 50);
+    await vi.waitFor(() => {
+      expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(false);
+    });
+    fixture.detectChanges();
+
+    let resolveStalePoll!: (value: QuickFeedbackResult) => void;
+    quickFeedbackHostResultsQueryMock.mockImplementationOnce(
+      () =>
+        new Promise<QuickFeedbackResult>((resolve) => {
+          resolveStalePoll = resolve;
+        }),
+    );
+    const stalePoll = (
+      fixture.componentInstance as unknown as {
+        refreshQuickFeedbackResult(): Promise<void>;
+      }
+    ).refreshQuickFeedbackResult();
+
+    const feedbackHost = fixture.debugElement.query(By.css('app-feedback-host')).componentInstance;
+    const roundControl = fixture.nativeElement.querySelector(
+      '[data-testid="feedback-primary-round-control"]',
+    ) as HTMLButtonElement;
+    const togglePending = fixture.componentInstance.toggleQuickFeedbackRoundLock();
+    fixture.detectChanges();
+    expect(roundControl.getAttribute('aria-disabled')).toBe('true');
+
+    confirmStop({ locked: true, lockVersion: 1 });
+    await togglePending;
+    fixture.detectChanges();
+
+    expect(feedbackHost.locked()).toBe(false);
+    expect(fixture.componentInstance.quickFeedbackResult()?.locked).toBe(true);
+    expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
+    expect(roundControl.textContent).toContain('Fortsetzen');
+    expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
+
+    feedbackHost.hostResultChange.emit({
+      type: 'MOOD',
+      locked: true,
+      lockVersion: 1,
+      totalVotes: 3,
+      distribution: { POSITIVE: 2, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    fixture.detectChanges();
+
+    resolveStalePoll({
+      type: 'MOOD',
+      locked: false,
+      lockVersion: 0,
+      totalVotes: 4,
+      distribution: { POSITIVE: 3, NEUTRAL: 1, NEGATIVE: 0 },
+    });
+    await stalePoll;
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.quickFeedbackResult()).toMatchObject({
+      locked: true,
+      lockVersion: 1,
+      totalVotes: 4,
+    });
+    expect(roundControl.getAttribute('aria-disabled')).not.toBe('true');
+    expect(roundControl.textContent).toContain('Fortsetzen');
+    expect(roundControl.querySelector('mat-icon')?.textContent?.trim()).toBe('play_arrow');
     fixture.destroy();
   });
 
@@ -24377,6 +25283,160 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt Median, Verteilung und zugeordnete bestätigte Lernziele vor der Rangliste', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+    getLeaderboardQueryMock.mockResolvedValue([
+      { rank: 1, nickname: 'Ada', totalScore: 120, correctCount: 3, totalQuestions: 4 },
+    ]);
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getLearningObjectivesQueryMock.mockResolvedValue({
+      objectives: [
+        hostLearningObjective('Bestätigtes Lernziel', 'confirmed', 'question-set'),
+        hostLearningObjective('Entwurf', 'draft', 'question-set', '1'),
+        hostLearningObjective('Quizweites Lernziel', 'confirmed', 'quiz-wide', '2'),
+      ],
+    });
+    getLearningOverviewQueryMock.mockResolvedValue({
+      questionCount: 4,
+      respondentCount: 3,
+      noResponseCount: 2,
+      medianCorrectCount: 1,
+      distribution: [1, 1, 0, 1],
+      reviewQuestions: [
+        {
+          questionId,
+          questionOrder: 2,
+          text: [
+            '### Mittelwert berechnen',
+            '',
+            'Betrachte die **Messreihe** mit $n=12$ Werten.',
+            '',
+            String.raw`$$\bar{x}=\frac{1}{n}\sum_{i=1}^n x_i$$`,
+            '',
+            '1. Berechne den Mittelwert.',
+            '2. Erkläre den Einfluss eines Ausreißers.',
+          ].join('\n'),
+          correctCount: 1,
+          responseCount: 3,
+        },
+      ],
+    });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(root.querySelector('#leaderboard-heading')).not.toBeNull();
+      expect(root.querySelector('.session-host__learning-overview')?.textContent).toContain(
+        'Bestätigtes Lernziel',
+      );
+    });
+    const overview = root.querySelector('.session-host__learning-overview')!;
+    const sections = [...root.querySelectorAll('#learning-overview-heading, #leaderboard-heading')];
+    expect(sections.map(({ id }) => id)).toEqual([
+      'learning-overview-heading',
+      'leaderboard-heading',
+    ]);
+    const median = overview.querySelector('.session-host__learning-overview-median-value');
+    expect(median?.textContent?.replace(/\s+/g, ' ').trim()).toBe('1 von 4 richtigen Antworten');
+    expect(
+      overview.querySelector('.session-host__learning-overview-median-hint')?.textContent,
+    ).toContain('Die Mitte, wenn du die Ergebnisse');
+    const bandLabels = [
+      ...overview.querySelectorAll('.session-host__learning-overview-bars li > span:first-child'),
+    ];
+    expect(bandLabels.map((label) => label.textContent)).toEqual([
+      'Unter 25\u00a0%',
+      '25 bis unter 50\u00a0%',
+      '50 bis unter 75\u00a0%',
+      '75 bis 100\u00a0%',
+    ]);
+    const question = overview.querySelector('.session-host__learning-overview-question-text');
+    expect(question?.querySelector('h4')?.textContent).toBe('Mittelwert berechnen');
+    expect(question?.querySelector('strong')?.textContent).toBe('Messreihe');
+    expect(question?.querySelector('.katex math')).not.toBeNull();
+    expect(question?.querySelector('.katex-display')?.getAttribute('tabindex')).toBe('0');
+    expect(question?.querySelectorAll('ol > li')).toHaveLength(2);
+    expect(question?.textContent).toContain('Erkläre den Einfluss eines Ausreißers.');
+    expect(overview.textContent).toContain('Bestätigtes Lernziel');
+    expect(overview.textContent).not.toContain('Entwurf');
+    expect(overview.textContent).not.toContain('Quizweites Lernziel');
+    fixture.destroy();
+  });
+
+  it('lässt die fehlgeschlagene Lernstandsübersicht erneut laden und behält den Fokus', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+    const retry = Promise.withResolvers<{
+      questionCount: number;
+      medianCorrectCount: null;
+      respondentCount: number;
+      noResponseCount: number;
+      distribution: number[];
+      reviewQuestions: [];
+    }>();
+    getLearningOverviewQueryMock.mockRejectedValueOnce(new Error('offline'));
+
+    const fixture = setup();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(
+        root.querySelector('.session-host__learning-overview [role="status"]')?.textContent,
+      ).toContain('konnte nicht geladen werden');
+    });
+    const overview = root.querySelector('.session-host__learning-overview')!;
+    const status = overview.querySelector('[role="status"]')!;
+    getLearningOverviewQueryMock.mockReturnValueOnce(retry.promise);
+    const button = overview.querySelector('button')!;
+    button.focus();
+    button.click();
+    fixture.detectChanges();
+    expect(status.textContent).toContain('wird geladen');
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    retry.resolve({
+      questionCount: 4,
+      respondentCount: 0,
+      noResponseCount: 2,
+      medianCorrectCount: null,
+      distribution: [0, 0, 0, 0],
+      reviewQuestions: [],
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(status.textContent).toContain('Lernstand geladen');
+    });
+    expect(overview.textContent).toContain('Keine gewerteten Antworten');
+    expect(overview.querySelector('.session-host__learning-overview-median-hint')).toBeNull();
+    expect(document.activeElement).toBe(button);
+    fixture.destroy();
+  });
+
+  it('zeigt bei deaktivierter Lernstandsauswertung weder Lernstand noch Nachbesprechungsplan', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'FINISHED',
+      enableLearningDebrief: false,
+    });
+    getLeaderboardQueryMock.mockResolvedValue([
+      { rank: 1, nickname: 'Ada', totalScore: 120, correctCount: 3, totalQuestions: 4 },
+    ]);
+    const fixture = setup();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(root.querySelector('#leaderboard-heading')).not.toBeNull();
+    });
+    expect(root.querySelector('#learning-overview-heading')).toBeNull();
+    expect(root.querySelector('.session-host__export-pdf-btn')).toBeNull();
+    expect(root.querySelector('[aria-label="Exportieren"]')).not.toBeNull();
+    expect(getLearningOverviewQueryMock).not.toHaveBeenCalled();
+    expect(getSessionConfidenceSummaryQueryMock).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
   it('lädt die Rangliste nach Session-Ende nur einmal', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -24389,7 +25449,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     );
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([]);
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([]);
 
     const fixture = setup();
     fixture.detectChanges();
@@ -24427,7 +25487,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         teamColor: '#1E88E5',
       },
     ]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: 'Team A',
@@ -24435,6 +25495,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 220,
+        medianScore: 0,
       },
       {
         rank: 2,
@@ -24443,6 +25504,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 2,
         averageScore: 220,
+        medianScore: 220,
       },
     ]);
 
@@ -24451,20 +25513,28 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await flushComponentAfterStable(fixture, 50);
     fixture.detectChanges();
 
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.componentInstance.teamLeaderboard()).toHaveLength(2);
+    });
     const text = fixture.nativeElement.textContent ?? '';
     expect(text).toContain('Zur Startseite');
     expect(text).toContain('Team-Leaderboard');
+    const teamScores = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.session-host__team-bar-meta',
+    );
+    expect(teamScores).toHaveLength(2);
+    expect(teamScores[0].querySelector('.session-host__team-median')?.textContent?.trim()).toBe(
+      'Median 0 Pkt.',
+    );
+    expect(teamScores[1].textContent).toContain('∅ 220');
+    expect(teamScores[1].querySelector('.session-host__team-median')).toBeNull();
     expect(text).toContain('Team A');
     expect(text).toContain('Gleichstand: Antwortzeit zählt.');
     expect(
       fixture.nativeElement.querySelector('td.session-host__lb-col--name')?.textContent ?? '',
     ).toContain('Team A');
-    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        code: 'ABC123',
-        anonymousClientId: '11111111-1111-4111-8111-111111111111',
-      }),
-    );
+    expect(getHostTeamLeaderboardQueryMock).toHaveBeenCalledWith({ code: 'ABC123' });
     fixture.destroy();
   });
 
@@ -24621,6 +25691,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('Bei Punktgleichheit entscheidet die schnellere Antwortzeit.');
     expect(text).toMatch(/Mit 9[.,]400 Punkten/);
     expect(winnerEmoji?.getAttribute('title')).toBe('Lila Delfin');
+    expect(winnerEmoji?.getAttribute('src')).toMatch(/emoji_u1f42c\.svg$/);
     expect(
       fixture.nativeElement
         .querySelector(
@@ -24953,7 +26024,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     getLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
-        nickname: 'Lila Delfin',
+        nickname: 'Lila Delfin 1',
         totalScore: 500,
         correctCount: 3,
         totalQuestions: 3,
@@ -24963,7 +26034,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
       {
         rank: 2,
-        nickname: 'Lagunenblaue Qualle',
+        nickname: 'Lagunenblaue Qualle 2',
         totalScore: 500,
         correctCount: 2,
         totalQuestions: 3,
@@ -24991,9 +26062,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
     expect(interimEmojis.map((emoji) => emoji.getAttribute('title'))).toEqual([
       'Lila Delfin',
-      'Lagunenblaue Qualle',
+      'Lagunenblaue Qualle 2',
     ]);
-    expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle']);
+    expect(interimLabels).toEqual(['Lila Delfin', 'Lagunenblaue Qualle 2']);
+    expect(interimEmojis.map((image) => image.getAttribute('src')?.split('/').at(-1))).toEqual([
+      'emoji_u1f42c.svg',
+      'emoji_u1fabc.svg',
+    ]);
     expect(fixture.nativeElement.textContent ?? '').toContain('Team Apfel');
     expect(fixture.nativeElement.textContent ?? '').toContain('Gleichstand: Antwortzeit zählt.');
     fixture.destroy();
@@ -25032,7 +26107,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalResponseTimeMs: 900,
       },
     ]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: ':apple: Team Apfel',
@@ -25040,6 +26115,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 600,
         memberCount: 2,
         averageScore: 600,
+        medianScore: 550.5,
       },
     ]);
 
@@ -25068,7 +26144,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       },
     );
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: ':apple: Rot',
@@ -25076,6 +26152,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 220,
+        medianScore: 0,
       },
       {
         rank: 2,
@@ -25084,6 +26161,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 2,
         averageScore: 220,
+        medianScore: 220,
       },
     ]);
 
@@ -25131,7 +26209,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       correctVoterCount: 1,
     });
     getLeaderboardQueryMock.mockResolvedValue([]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: ':apple: Rot',
@@ -25139,6 +26217,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 220,
+        medianScore: 0,
       },
       {
         rank: 2,
@@ -25147,6 +26226,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 2,
         averageScore: 220,
+        medianScore: 220,
+      },
+      {
+        rank: 3,
+        teamName: 'Blau',
+        teamColor: null,
+        totalScore: 120,
+        memberCount: 1,
+        averageScore: 120,
+        medianScore: 120,
       },
     ]);
 
@@ -25161,12 +26250,19 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const interimName = teamInterim?.querySelector(
       '.session-host__interim-name',
     ) as HTMLElement | null;
-    const interimScore = teamInterim?.querySelector(
-      '.session-host__interim-score',
-    ) as HTMLElement | null;
+    const interimScores = teamInterim!.querySelectorAll('.session-host__interim-score');
+    expect(interimScores).toHaveLength(3);
+    const interimScore = interimScores[0];
     expect(interimName?.textContent ?? '').toContain('Rot');
     expect(interimScore?.textContent ?? '').toContain('3 Mitglieder');
     expect(interimScore?.textContent ?? '').toContain('∅ 220');
+    expect(interimScore.querySelector('.session-host__team-median')?.textContent?.trim()).toBe(
+      'Median 0 Pkt.',
+    );
+    expect(interimScores[1].textContent).toContain('∅ 220');
+    expect(interimScores[1].querySelector('.session-host__team-median')).toBeNull();
+    expect(interimScores[2].textContent).toContain('∅ 120');
+    expect(interimScores[2].querySelector('.session-host__team-median')).toBeNull();
     expect(teamInterim?.textContent ?? '').toContain('Gleichstand: Antwortzeit zählt.');
     expect(interimName?.querySelector('.session-host__interim-team-dot')).toBeNull();
     expect(interimName?.querySelector('.session-host__interim-team-emoji')?.textContent).toBe('🍎');
@@ -25206,7 +26302,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       { rank: 1, nickname: 'Ada', totalScore: 120 },
       { rank: 2, nickname: 'Linus', totalScore: 100 },
     ]);
-    getTeamLeaderboardQueryMock.mockResolvedValue([
+    getHostTeamLeaderboardQueryMock.mockResolvedValue([
       {
         rank: 1,
         teamName: 'Rot',
@@ -25214,6 +26310,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         totalScore: 220,
         memberCount: 3,
         averageScore: 73.3,
+        medianScore: 0,
       },
     ]);
 
@@ -25664,9 +26761,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
-          (node) => (node.textContent ?? '').trim(),
+          (node) => node.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
         ),
-      ).toEqual(['🐻']);
+      ).toEqual(['emoji_u1f43b.svg']);
 
       participantJoinedHandler?.({
         participantCount: 2,
@@ -25680,17 +26777,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
-          (node) => (node.textContent ?? '').trim(),
+          (node) => node.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
         ),
-      ).toEqual(['🐻']);
+      ).toEqual(['emoji_u1f43b.svg']);
       const overlayChip = fixture.nativeElement.querySelector(
         '.session-lobby__foyer-stage--overlay .foyer-entrance-layer__chip--emoji-only',
       ) as HTMLElement | null;
       expect(overlayChip).not.toBeNull();
       expect(overlayChip?.querySelector('.foyer-entrance-layer__chip-text')).toBeNull();
       expect(
-        overlayChip?.querySelector('.foyer-entrance-layer__chip-emoji')?.textContent?.trim().length,
-      ).toBeGreaterThan(0);
+        overlayChip?.querySelector('img.foyer-entrance-layer__chip-emoji')?.getAttribute('src'),
+      ).toMatch(/emoji_u1f981\.svg$/);
       expect(fixture.nativeElement.querySelector('.foyer-entrance-layer--overlay')).not.toBeNull();
 
       await vi.advanceTimersByTimeAsync(5200);
@@ -25698,9 +26795,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
       expect(
         [...fixture.nativeElement.querySelectorAll('.session-lobby__nick-emoji--host-lobby')].map(
-          (node) => (node.textContent ?? '').trim(),
+          (node) => node.querySelector('img')?.getAttribute('src')?.split('/').at(-1),
         ),
-      ).toEqual(['🦁', '🐻']);
+      ).toEqual(['emoji_u1f981.svg', 'emoji_u1f43b.svg']);
       fixture.destroy();
     } finally {
       vi.useRealTimers();
@@ -25770,8 +26867,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(overlayChip).not.toBeNull();
       expect(overlayChip?.className).toContain('foyer-entrance-layer__chip--emoji-only');
       expect(
-        overlayChip?.querySelector('.foyer-entrance-layer__chip-emoji')?.textContent?.trim().length,
-      ).toBeGreaterThan(0);
+        overlayChip?.querySelector('img.foyer-entrance-layer__chip-emoji')?.getAttribute('src'),
+      ).toMatch(/emoji_u1f981\.svg$/);
       expect(overlayChip?.querySelector('.foyer-entrance-layer__chip-text')).toBeNull();
       expect(overlayBadge?.textContent?.trim()).toBe('Gelber Löwe');
       fixture.destroy();
@@ -29528,6 +30625,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       closed$.next({ action: 'return-to-compass' });
       await vi.waitFor(() => expect(dialogOpenMock).toHaveBeenCalledTimes(2));
       expect(component.activeChannel()).toBe('quiz');
+      expect(component.qaToolsOpen()).toBe(false);
       expect(setPresenterSurfaceMutateMock).not.toHaveBeenCalled();
       expect(setPreferredLiveChannelMutateMock).not.toHaveBeenCalled();
       expect(component.moderationCompassReturn()).toBeNull();
@@ -29851,11 +30949,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       });
       fixture.detectChanges();
 
+      expect(component.qaToolsOpen()).toBe(false);
       closed$.next(['11111111-1111-4111-8111-111111111111']);
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
 
+      const host = fixture.nativeElement as HTMLElement;
+      expect(
+        host.querySelector('[data-testid="qa-tools-toggle"]')?.getAttribute('aria-expanded'),
+      ).toBe('true');
+      expect(host.querySelector('#qa-tools-content')?.hasAttribute('hidden')).toBe(false);
       expect(component.isQaCompassFocused('11111111-1111-4111-8111-111111111111')).toBe(true);
       expect(component.isQaCompassFocused('22222222-2222-4222-8222-222222222222')).toBe(true);
       const cards = [

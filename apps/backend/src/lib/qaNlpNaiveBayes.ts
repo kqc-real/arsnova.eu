@@ -6,11 +6,12 @@ export const QA_NLP_GATEKEEPER_CATEGORIES = [
   'technical',
 ] as const satisfies readonly QaNlpCategory[];
 
-export const QA_NLP_FEATURE_DIM = 2048;
+/** More buckets separate overlapping character and word features across locales. */
+export const QA_NLP_FEATURE_DIM = 8_192;
 export const QA_NLP_CHAR_NGRAM_MIN = 3;
 export const QA_NLP_CHAR_NGRAM_MAX = 5;
 /** Temperierung der Naive-Bayes-Softmax, damit Konfidenzen nicht bei 1.0 kleben. */
-export const QA_NLP_SOFTMAX_TEMPERATURE = 2;
+export const QA_NLP_SOFTMAX_TEMPERATURE = 4;
 const FNV_OFFSET = 2_166_136_261;
 const FNV_PRIME = 16_777_619;
 

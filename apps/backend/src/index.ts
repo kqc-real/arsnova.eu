@@ -14,6 +14,8 @@ import { disconnectDatabase } from './db';
 import { logger } from './lib/logger';
 import { shutdownAbuseTelemetry } from './lib/abuseTelemetry';
 import { shutdownPdfTelemetry } from './lib/pdfTelemetry';
+import { shutdownQaApiDiagnostics } from './lib/qaApiDiagnostics';
+import { closeQaSummaryStateRedis } from './lib/qaSummaryStateStore';
 import { pickLocaleFromAcceptLanguage } from './lib/pick-locale-from-accept-language';
 import { TRPC_MAX_BODY_SIZE_BYTES } from './lib/requestLimits';
 import { startSessionCleanupScheduler, stopSessionCleanupScheduler } from './lib/sessionCleanup';
@@ -21,6 +23,17 @@ import {
   startSessionPurgeInvalidationSubscriber,
   stopSessionPurgeInvalidationSubscriber,
 } from './lib/sessionPurgeInvalidation';
+import {
+  isSessionPubSubEnabled,
+  startSessionPubSub,
+  stopSessionPubSub,
+} from './lib/sessionStatusPubSub';
+import {
+  invalidateLocalJoinCachesForCode,
+  invalidateRemoteSessionStatusForCode,
+  invalidateRemoteVoteProgressForCode,
+} from './routers/session';
+import { invalidateLocalQaQuestionsForSession } from './routers/qa';
 import { attachTrustedClientIp, createTrustProxyFunction } from './lib/trustedProxy';
 import { resolveTrpcWebSocketConfig, TrpcWebSocketServer } from './lib/trpcWebSocketServer';
 import { resolveYjsRelayConfig, YjsRelayServer } from './lib/yjsRelay';
@@ -31,8 +44,10 @@ import { beginWordCloudAnalysisCacheShutdown } from './lib/wordCloudAnalysisCach
 import {
   assertYjsShareTokenSecretConfigured,
   getYjsShareLegacyUuidCutoffAt,
+  usesExternalYjsRelay,
 } from './lib/yjsShareToken';
 import { assertCapabilityEnvelopeKeyConfigured } from './lib/capabilityCrypto';
+import { assertQaSummaryReplicaStateConfigured } from './lib/qaSummaryConfig';
 import {
   startQaPlatformProjectionScheduler,
   stopQaPlatformProjectionScheduler,
@@ -45,12 +60,14 @@ import {
   startUsageStatisticOutboxScheduler,
   stopUsageStatisticOutboxScheduler,
 } from './lib/usageStatistic';
+import { flushParticipantMaximaUpdates } from './lib/platformStatistic';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
 // Produktion: Yjs-Share-HMAC ohne starkes Secret hart abbrechen (W3.4).
 assertYjsShareTokenSecretConfigured();
 assertCapabilityEnvelopeKeyConfigured();
+assertQaSummaryReplicaStateConfigured();
 getYjsShareLegacyUuidCutoffAt();
 
 // Redis beim Start initialisieren (Story 0.1)
@@ -64,6 +81,15 @@ void startSessionPurgeInvalidationSubscriber().catch((error: unknown) => {
     (error as Error).message,
   );
 });
+
+if (isSessionPubSubEnabled()) {
+  startSessionPubSub({
+    status: invalidateRemoteSessionStatusForCode,
+    voteProgress: invalidateRemoteVoteProgressForCode,
+    participants: invalidateLocalJoinCachesForCode,
+    qaQuestions: invalidateLocalQaQuestionsForSession,
+  });
+}
 
 const app = express();
 app.disable('x-powered-by');
@@ -79,7 +105,12 @@ app.use('/csp-report', createCspReportRouter());
 // Nur erfolgreiche HTML-Dokumentantworten erhalten die optionale Beobachtungspolicy.
 // Der Report-Ingest liegt davor und kann daher nie rekursiv einen CSP-Header ausliefern.
 app.use(createCspReportOnlyMiddleware());
-app.use(compression());
+app.use(
+  compression({
+    filter: (req, res) =>
+      req.originalUrl.split('?', 1)[0] !== '/trpc/session.join' && compression.filter(req, res),
+  }),
+);
 const httpCorsMiddleware = createHttpCorsMiddleware(process.env['NODE_ENV']);
 if (httpCorsMiddleware) {
   app.use(httpCorsMiddleware);
@@ -222,8 +253,13 @@ if (fs.existsSync(frontendDist)) {
 const server = app.listen(PORT, () => {
   logger.info(`🚀 Backend HTTP auf http://localhost:${PORT}`);
   logger.info(`   tRPC: http://localhost:${PORT}/trpc`);
-  startSessionCleanupScheduler();
+  if (process.env['SESSION_CLEANUP_SCHEDULER_ENABLED'] !== 'false') {
+    startSessionCleanupScheduler();
+  }
 });
+
+// Der Reverse-Proxy räumt seinen Upstream-Pool nach 20 s auf, bevor Node die Verbindung beendet.
+if (isSessionPubSubEnabled()) server.keepAliveTimeout = 25_000;
 
 // WebSocket-Server für tRPC-Subscriptions (Story 0.2 / W2.3a)
 const trpcWebSocketConfig = resolveTrpcWebSocketConfig();
@@ -242,8 +278,8 @@ trpcWebSocketServer.listen(() => {
 
 // Story 0.3 / W2.2: gehärteter Yjs-Relay für geteilte Quiz-Sammlungen.
 const yjsRelayConfig = resolveYjsRelayConfig();
-const yjsRelay = new YjsRelayServer(yjsRelayConfig);
-yjsRelay.listen(() => {
+const yjsRelay = usesExternalYjsRelay() ? null : new YjsRelayServer(yjsRelayConfig);
+yjsRelay?.listen(() => {
   logger.info(`   Yjs WebSocket: ws://${yjsRelayConfig.host}:${yjsRelayConfig.port}`);
 });
 
@@ -271,13 +307,17 @@ async function shutdown(): Promise<void> {
   await Promise.all([
     httpDrain,
     trpcWebSocketServer.close(),
-    yjsRelay.close(),
+    yjsRelay?.close(),
     shutdownAbuseTelemetry(),
     shutdownPdfTelemetry(),
+    shutdownQaApiDiagnostics(),
     stopSessionPurgeInvalidationSubscriber(),
   ]);
+  stopSessionPubSub();
   beginRedisShutdown();
+  closeQaSummaryStateRedis();
   await closeRedis();
+  await flushParticipantMaximaUpdates();
   await disconnectDatabase();
   process.exit(0);
 }

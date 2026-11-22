@@ -155,8 +155,10 @@ jobs:
           bash -n scripts/backup/*.sh
           bash -n scripts/backup/tests/*.sh
           bash -n scripts/ci/*.sh
-          bash -n scripts/deploy.sh scripts/deploy/*.sh
-          shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh scripts/ci/*.sh scripts/deploy.sh scripts/deploy/*.sh
+          for script in scripts/deploy.sh scripts/prod-replicas.sh scripts/prod-compose.sh scripts/prod-text-sidecars.sh scripts/build-text-sidecars.sh scripts/deploy/*.sh deploy/production/nginx-pools.sh; do
+            bash -n "$script"
+          done
+          shellcheck scripts/backup/*.sh scripts/backup/tests/*.sh scripts/ci/*.sh scripts/deploy.sh scripts/prod-replicas.sh scripts/prod-compose.sh scripts/prod-text-sidecars.sh scripts/build-text-sidecars.sh scripts/deploy/*.sh deploy/production/nginx-pools.sh
           node --test scripts/ci/*.test.mjs scripts/deploy/*.test.mjs
           python3 -m py_compile scripts/monitoring/arsnova_monitor.py
           python3 -m unittest discover -s scripts/monitoring/tests -p 'test_*.py'
@@ -783,6 +785,7 @@ jobs:
           RUN_REDIS_YJS_SHARE_TESTS: '1'
           RUN_REDIS_YJS_DURABILITY_TESTS: '1'
           RUN_REDIS_WORD_CLOUD_CACHE_TESTS: '1'
+          RUN_REDIS_SESSION_REPLICA_TESTS: '1'
           YJS_SHARE_REQUIRE_DURABILITY: '1'
           WORD_CLOUD_PURGE_REQUIRE_DURABILITY: '1'
           QUICK_FEEDBACK_PURGE_REQUIRE_DURABILITY: '1'
@@ -819,6 +822,8 @@ jobs:
 
           npx vitest run src/lib/yjsShareToken.redis.test.ts
           npx vitest run src/lib/wordCloudAnalysisCache.redis.test.ts
+          npx vitest run src/lib/sessionReplicaState.redis.test.ts
+          npx vitest run src/lib/trpcWebSocketClusterBudget.redis.test.ts
           WORD_CLOUD_DURABILITY_TEST_PHASE=prepare \
             npx vitest run src/lib/wordCloudAnalysisCache.durability.redis.test.ts
           SESSION_RUNTIME_DATA_DURABILITY_TEST_PHASE=prepare \
@@ -2333,6 +2338,7 @@ jobs:
       DEPLOY_BRANCH: main
       DEPLOY_SHA: ${{ github.sha }}
       DEPLOY_IMAGE: ${{ needs.publish-image.outputs.image_ref }}
+      DEPLOY_SMOKE_URL: https://${{ secrets.DEPLOY_HOST }}
 
     steps:
       - name: Validate deploy configuration
@@ -2352,7 +2358,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: 22
-          envs: DEPLOY_DIR,DEPLOY_BRANCH,DEPLOY_SHA,DEPLOY_IMAGE
+          envs: DEPLOY_DIR,DEPLOY_BRANCH,DEPLOY_SHA,DEPLOY_IMAGE,DEPLOY_SMOKE_URL
+          command_timeout: 25m
           script: |
             set -e
             export DEPLOY_DIR="${DEPLOY_DIR:-/home/deploy/arsnova.eu}"
@@ -2388,92 +2395,11 @@ jobs:
             fi
             echo "Deploy-Speicher-Gate OK: mindestens 15 GiB auf / frei."
             cd "$DEPLOY_DIR"
-            # Bootstrap: Ziel-Commit AUSCHECKEN, bevor deploy.sh startet.
-            # Sonst würde der erste Post-Merge-Lauf noch das alte 1B-Skript
-            # (compose build) aus dem vorherigen Working Tree ausführen.
-            # Inline (nicht checkout-deploy-sha.sh), weil das Helper-Skript
-            # auf dem Server erst nach diesem Checkout vorhanden sein kann.
+            # Bootstrap aus dem Ziel-Commit. Der Runner wechselt den gemeinsamen
+            # Checkout erst mit gehaltener Produktionssperre.
             git fetch --prune origin "$DEPLOY_BRANCH"
             if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
               git fetch origin "$DEPLOY_SHA"
             fi
-            if ! git cat-file -e "${DEPLOY_SHA}^{commit}" 2>/dev/null; then
-              echo "Fehler: Ziel-Commit $DEPLOY_SHA konnte nicht gefunden werden."
-              exit 1
-            fi
-            git checkout --detach --force "$DEPLOY_SHA"
-            test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
-            chmod +x scripts/deploy.sh
-            ./scripts/deploy.sh
-
-  # ─── Post-Deploy Smoke Check ───────────────────────────────────────────────
-  post-deploy-smoke:
-    name: Post-Deploy Smoke Check
-    runs-on: ubuntu-latest
-    needs: deploy
-    if: needs.deploy.result == 'success'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
-
-      - name: Verify production serving
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-        run: |
-          set -euo pipefail
-
-          if printf '%s' "$DEPLOY_HOST" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "DEPLOY_HOST ist eine IP-Adresse ($DEPLOY_HOST). TLS-Zertifikate enthalten i. d. R. DNS-Namen, nicht IP-SANs."
-            echo "Setze DEPLOY_HOST auf den öffentlichen DNS-Namen mit gültigem Zertifikat (z. B. arsnova.eu)."
-            exit 1
-          fi
-
-          SMOKE_URL="https://$DEPLOY_HOST"
-          node scripts/verify-production-serving.mjs "$SMOKE_URL"
-
-  # ─── Rollback (wenn Post-Deploy-Smoke fehlschlägt) ───────────────────────
-  # Nutzt previous image+sha aus dem serverseitigen Deploy-State — nicht github.event.before.
-  rollback-on-smoke-failure:
-    name: Rollback on Smoke Failure
-    runs-on: ubuntu-latest
-    needs: [deploy, post-deploy-smoke]
-    # Run only for real push deployments on main when the smoke test failed.
-    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.deploy.result == 'success' && needs.post-deploy-smoke.result == 'failure' }}
-    timeout-minutes: 30
-    concurrency:
-      group: deploy-main
-      cancel-in-progress: false
-    environment:
-      name: production
-
-    env:
-      DEPLOY_DIR: /home/deploy/arsnova.eu
-      DEPLOY_BRANCH: main
-
-    steps:
-      - name: Validate rollback configuration
-        run: |
-          set -euo pipefail
-          test -n "${{ secrets.DEPLOY_HOST }}" || (echo "Missing secret: DEPLOY_HOST" && exit 1)
-          test -n "${{ secrets.DEPLOY_USER }}" || (echo "Missing secret: DEPLOY_USER" && exit 1)
-          test -n "${{ secrets.DEPLOY_SSH_KEY }}" || (echo "Missing secret: DEPLOY_SSH_KEY" && exit 1)
-          echo "Rollback configuration looks complete (previous image+sha from server deploy state)."
-
-      - name: Roll back via SSH
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: 22
-          envs: DEPLOY_DIR,DEPLOY_BRANCH
-          script: |
-            set -e
-            export DEPLOY_DIR="${DEPLOY_DIR:-/home/deploy/arsnova.eu}"
-            export DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
-            cd "$DEPLOY_DIR"
-            # Kein Checkout vor dem Skript: das installierte 1C-Skript muss
-            # zuerst previous.state lesen; erst danach checkt es den Previous-SHA aus.
-            chmod +x scripts/deploy.sh
-            ./scripts/deploy.sh --rollback
+            release_runner="$(git show "$DEPLOY_SHA:scripts/deploy/release.sh")"
+            bash -c "$release_runner"

@@ -16,15 +16,13 @@ import {
 import { prisma } from '../../db';
 import { getRedis } from '../../redis';
 import { hashCapability } from '../../lib/capabilityCrypto';
-import {
-  loadAuthorizedModerationState,
-  moderationQaContextInternals,
-} from '../../lib/moderationQaContext';
+import { loadAuthorizedModerationState } from '../../lib/moderationQaContext';
 import {
   QA_SEMANTIC_TOPIC_SNAPSHOT_VERSION,
   QaSemanticTopicSnapshotSchema,
   hashQaSemanticTopicMemberText,
 } from '../../lib/qaSemanticTopicSnapshot';
+import { qaRankingCorpusRevision } from '../../lib/qaRankingSql';
 import { saveSessionLearningObjectives } from '../../lib/sessionLearningObjectives';
 import { createRedisWordCloudAnalysisCache } from '../../lib/wordCloudAnalysisCache';
 
@@ -432,11 +430,7 @@ export async function createFullContextScenario(options: {
     version: QA_SEMANTIC_TOPIC_SNAPSHOT_VERSION,
     status: 'ready',
     metric,
-    corpusRevision: moderationQaContextInternals.buildCurrentQaSemanticCorpusRevision({
-      state,
-      participantCount: state.participantCount,
-      metric,
-    }),
+    corpusRevision: qaRankingCorpusRevision(state.qaRankingRevision, metric),
     analyzedAt: new Date().toISOString(),
     analysisVersion: 'e2e-fixture-topics-v1',
     model: { id: 'e2e-fixture-encoder', version: 'fixture' },

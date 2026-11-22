@@ -29,6 +29,7 @@ export interface BuildSessionResultsPdfOptions {
   localeId?: string;
   /** `visual` (Standard) oder `pdfUa`. */
   profile?: SessionResultsPdfProfile;
+  beforeRender?: () => Promise<void>;
 }
 
 export const PDF_MAX_REPORT_IMAGES = 100;
@@ -221,6 +222,7 @@ export async function buildSessionResultsPdf(
   });
   html = await inlineTrustedReportStylesheets(html);
 
+  await options.beforeRender?.();
   const rawPdf = await renderSessionResultsPdfHtml({
     html,
     pdfOptions: buildSessionResultsPlaywrightPdfOptions(

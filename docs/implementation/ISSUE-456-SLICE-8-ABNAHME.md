@@ -62,11 +62,11 @@ Der technische Übergabepfad verwendet derzeit dieses feste Profil:
 | Anteil                                      |  Wert | Bedeutung                                                             |
 | ------------------------------------------- | ----: | --------------------------------------------------------------------- |
 | Kontextfenster                              | 8.192 | konservative UTF-8-Obergrenze des Packers für das feste Runtimeprofil |
-| technische Instruktion                      |   314 | exakte UTF-8-Bytes                                                    |
+| technische Instruktion (`v8`)               |   931 | exakte UTF-8-Bytes                                                    |
 | Bedeutungsdefinition                        |   203 | exakte UTF-8-Bytes                                                    |
-| Antwortreserve                              |   640 | reservierte Ausgabetokens                                             |
+| Antwortreserve                              |   192 | reservierte Ausgabetokens (synchron zu V2 `max_tokens = 192`)         |
 | Sicherheitsmarge                            |   128 | nicht für Eingabedaten verwendbar                                     |
-| verbleibende konservative Kontextobergrenze | 2.811 | kanonisches JSON des gepackten Fachkontexts                           |
+| verbleibende konservative Kontextobergrenze | 6.738 | kanonisches JSON des gepackten Fachkontexts                           |
 
 Die llama.cpp-Übergabe besteht bei V2 aus genau drei Nachrichten:
 
@@ -92,8 +92,10 @@ Dieser Lauf war eine interaktive Lernzielableitung, **nicht** der lokale 250-Tei
 
 Am 17.10.2026 wurden zusätzlich auf derselben Zwei-Host-Produktionsarchitektur (`arsnova` ↔ `arsnova-privat` unter `10.0.0.2:8080`) reale Ende-zu-Ende-Läufe für `qa_summary` V2 und `topic_label` (Einzel- und Multi-Cluster-Batch-Vertrag) durchgeführt:
 
-- **`qa_summary` V2 (historische Messung mit `qa-summary-technical-handoff-v2` + `qa-summary-model-output-v3`):** Mit der damaligen technischen Systeminstruktion (314 UTF-8-Bytes, einzeiliges JSON, ausschließliche Zusammenfassung von `included`-Quellen) und den auf 4 Aussagen / 2 nächste Schritte / 2 Hinweise begrenzten Modell-Arrays (`QaSummaryModelOutputV2BaseSchema`) schloss der Lauf auf dem privaten Produktionshost mit `status: "completed"`, `finish_reason: "stop"`, `completionTokens: 374` (vorher 496 bzw. 640-Token-Abbruch) in **56,9 Sekunden** ab. Der aktuelle `qa-summary-technical-handoff-v5` ist hiervon nicht abgedeckt.
+- **`qa_summary` V2 (historische Messung mit `qa-summary-technical-handoff-v2` + `qa-summary-model-output-v3`):** Mit der damaligen technischen Systeminstruktion (314 UTF-8-Bytes, einzeiliges JSON, ausschließliche Zusammenfassung von `included`-Quellen) und den auf 4 Aussagen / 2 nächste Schritte / 2 Hinweise begrenzten Modell-Arrays (`QaSummaryModelOutputV2BaseSchema`) schloss der Lauf auf dem privaten Produktionshost mit `status: "completed"`, `finish_reason: "stop"`, `completionTokens: 374` (vorher 496 bzw. 640-Token-Abbruch) in **56,9 Sekunden** ab.
 - **`topic_label` (`schemaVersion: 2` Multi-Cluster-Batching + `clusterTopicLabelCache`):** Ein Sammelauftrag über 6 Themen-Cluster mit kompakten Quell-IDs (`s1`..`s6`) schloss mit `status: "completed"`, `promptTokens: 411`, `completionTokens: 179` in **22,9 Sekunden** ab. Durch `sessionClustersCache`, `sessionItemEmbeddingsCache`, Hintergrund-Pre-Warming (`scheduleWordCloudSemanticEmbeddingPrewarm`) und `clusterTopicLabelCache` sinkt die Antwortzeit bei Sortierwechseln auf 500 Q&A-Fragen auf **< 5 ms**.
+
+Am 12.11.2026 bestand `qa-summary-technical-handoff-v8` in fünf App-Locales mit vier synthetischen Q&A-Belegen je Lauf, vollständigen Überschriften und ohne Fallback. Die [Summary-Modellprobe](../features/qa-summary.md) protokolliert die Zeiten im 90-Sekunden-Limit.
 
 Für die noch offene formale Abnahme über diese erfolgreichen Funktions- und Laufzeitläufe hinaus müssen ohne Secrets dauerhaft in der Abnahmedokumentation festgehalten werden:
 
@@ -123,6 +125,9 @@ Während die realen Ende-zu-Ende-Funktions- und Laufzeitläufe für `learning_ob
 
 ```bash
 npm run load:issue-456:validate
+npm run eval:issue-456:slice8:pack
+# Optional gegen konfigurierte private llama-server-Runtime (3 Läufe bei T=0, ohne Secrets im Output):
+# OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=90000 node --env-file=.env --import tsx apps/backend/scripts/eval-issue-456-slice8-summary.ts --live
 npm test -w @arsnova/shared-types -- --run \
   src/qa-summary-v2.test.ts \
   src/qa-summary-visibility.test.ts

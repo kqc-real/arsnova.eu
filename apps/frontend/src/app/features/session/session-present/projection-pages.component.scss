@@ -44,6 +44,39 @@ app-projection-pages:not([hidden]) {
   overflow: visible;
   padding-bottom: 0;
 }
+
+@container projection-pages (min-width: 52rem) {
+  .session-present app-projection-pages .session-projection-quiz--rating-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.35fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: 'question stage';
+    align-items: stretch;
+    width: 100%;
+    height: auto;
+  }
+
+  .session-present
+    app-projection-pages
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__question {
+    grid-area: question;
+  }
+
+  .session-present
+    app-projection-pages
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__stage {
+    grid-area: stage;
+  }
+
+  .session-present
+    app-projection-pages
+    .session-projection-quiz--rating-overview
+    :is(.session-projection-quiz__question, .session-projection-quiz__stage) {
+    height: auto;
+  }
+}
 .session-present
   app-projection-pages
   :is(
@@ -381,4 +414,48 @@ app-projection-pages [data-markdown-code-copy] {
   :is(.session-present__qa-text, .session-present__qa-list-text)
   :is(p, li) {
   line-height: 1.5;
+}
+
+@container projection-pages (min-width: 52rem) {
+  .session-present
+    .projection-pages__page
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__rating--dense {
+    row-gap: clamp(0.3rem, 0.8vmin, 0.55rem);
+    padding-block: 0;
+  }
+
+  .session-present
+    .projection-pages__page
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__rating--dense
+    .session-projection-quiz__bar {
+    font-size: clamp(0.9rem, 1.7vmin, 1.2rem);
+    line-height: 1.15;
+  }
+
+  .session-present
+    .projection-pages__page
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__rating--dense
+    .session-projection-quiz__bar-track {
+    height: clamp(0.7rem, 1.4vmin, 1rem);
+  }
+
+  .session-present
+    .projection-pages__page
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__rating--dense
+    .session-projection-quiz__rating-statistics {
+    gap: 0.4rem;
+  }
+
+  .session-present
+    .projection-pages__page
+    .session-projection-quiz--rating-overview
+    .session-projection-quiz__rating--dense
+    .session-projection-quiz__rating-statistics
+    > div {
+    padding: 0.4rem;
+  }
 }

@@ -43,6 +43,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: false,
+      shuffleAnswerOptions: false,
       preset: 'PLAYFUL',
     },
     questions: [],
@@ -100,6 +101,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: null,
       readingPhaseEnabled: false,
+      shuffleAnswerOptions: false,
       preset: 'PLAYFUL',
     };
     quiz.questions = [];
@@ -147,6 +149,22 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     expect(component.isNewQuestionFormPanelExpanded()).toBe(false);
   });
 
+  it('verwendet in allen drei aufklappbaren Kartenköpfen die kompakte dekorative Icon-Kachel', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    for (const selector of [
+      '.quiz-edit__meta-panel-title',
+      '.learning-objectives__panel-title',
+      '.quiz-edit__new-question-panel-title',
+    ]) {
+      const tile = host.querySelector(
+        `${selector} .dialog-title-header__icon.dialog-title-header__icon--compact`,
+      );
+      expect(tile?.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
   it('klappt die Metadaten-Karte nach Neuanlage (from=new) zu und entfernt den Query-Parameter', async () => {
     quiz.questions = [];
     TestBed.resetTestingModule();
@@ -184,6 +202,50 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
         replaceUrl: true,
       }),
     );
+  });
+
+  it.each([
+    'Lange Beschreibung. '.repeat(30),
+    Array.from({ length: 9 }, (_, index) => `- Punkt ${index + 1}`).join('\n'),
+  ])('startet mit eingeklappter langer Beschreibung und lässt sie bearbeiten', (description) => {
+    quiz.description = description;
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const header = host.querySelector<HTMLElement>(
+      '.quiz-edit__meta-expansion-panel mat-expansion-panel-header',
+    )!;
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+
+    header.focus();
+    header.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13 }));
+    fixture.detectChanges();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+    expect(document.activeElement).toBe(header);
+    const editor = host.querySelector<HTMLTextAreaElement>('#quiz-edit-description')!;
+    expect(editor.value).toBe(description);
+    editor.value += '\nErgänzung';
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    expect(header.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.componentInstance.metadataForm.controls.description.value).toBe(editor.value);
+
+    header.click();
+    fixture.detectChanges();
+    expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).not.toBe(editor);
+  });
+
+  it('zeigt eine kurze Beschreibung beim Öffnen direkt an', () => {
+    quiz.description = 'Kurze Beschreibung';
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+
+    const header = (fixture.nativeElement as HTMLElement).querySelector(
+      '.quiz-edit__meta-expansion-panel mat-expansion-panel-header',
+    );
+    expect(header?.getAttribute('aria-expanded')).toBe('true');
   });
 
   it('hält Einstellungsänderungen lokal, bis global gespeichert wird', () => {
@@ -685,7 +747,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       confidenceEnabled: true,
       confidenceLabelLow: 'sehr unsicher',
       confidenceLabelHigh: 'absolut sicher',
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'Antwort A', isCorrect: false },
         { text: 'Antwort B', isCorrect: true },
@@ -1289,7 +1351,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       difficulty: 'MEDIUM' as const,
       timer: null,
       skipReadingPhase: false,
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'Zu schnell', isCorrect: false },
         { text: 'Passend', isCorrect: false },
@@ -1368,7 +1430,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       timer: null,
       skipReadingPhase: false,
       confidenceEnabled: false,
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'Neu A', isCorrect: false },
         { text: 'Neu B', isCorrect: true },
@@ -1853,7 +1915,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       confidenceEnabled: true,
       confidenceLabelLow: 'sehr unsicher',
       confidenceLabelHigh: 'absolut sicher',
-      shuffleAnswerOptions: true,
+      shuffleAnswerOptions: false,
       answers: [
         { text: 'A', isCorrect: true },
         { text: 'B', isCorrect: false },
@@ -1898,6 +1960,7 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
       nicknameTheme: 'HIGH_SCHOOL',
       bonusTokenCount: 5,
       readingPhaseEnabled: true,
+      shuffleAnswerOptions: false,
       preset: 'SERIOUS',
     });
     const fixture = TestBed.createComponent(QuizEditComponent);
@@ -1991,6 +2054,33 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     );
   });
 
+  it('verlinkt die Erklärung zu Peer Instruction direkt am Schalter', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.componentInstance.showSettings.set(true);
+    fixture.detectChanges();
+    const link = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>(
+      'mat-checkbox[formcontrolname="enablePeerInstruction"] + app-info-landing-link a',
+    );
+    expect(link?.hash).toBe('#peer-instruction');
+  });
+
+  it.each([undefined, true, false])(
+    'bewahrt beim Bearbeiten eines SERIOUS-Quiz die Auswertungswahl %s ohne implizite Änderung',
+    (enableLearningDebrief) => {
+      quiz.settings.preset = 'SERIOUS';
+      quiz.settings.enableLearningDebrief = enableLearningDebrief;
+      const fixture = TestBed.createComponent(QuizEditComponent);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+
+      expect(component.settingsForm.controls.enableLearningDebrief.value).toBe(
+        enableLearningDebrief ?? true,
+      );
+      component.saveAll();
+      expect(mockStore.updateQuizSettings).not.toHaveBeenCalled();
+    },
+  );
+
   it('wendet Preset-Werte auf die Sitzungs-Konfiguration an', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
@@ -1998,6 +2088,8 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     component.applySettingsPreset('SERIOUS');
 
     expect(component.settingsForm.controls.showLeaderboard.value).toBe(false);
+    expect(component.settingsForm.controls.enableLearningDebrief.value).toBe(false);
+    expect(component.settingsForm.controls.enablePeerInstruction.value).toBe(true);
     expect(component.settingsForm.controls.enableSoundEffects.value).toBe(false);
     expect(component.settingsForm.controls.anonymousMode.value).toBe(false);
     expect(component.settingsForm.controls.nicknameTheme.value).toBe('HIGH_SCHOOL');
@@ -2044,6 +2136,27 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
 
     expect(mockStore.updateQuizMetadata).not.toHaveBeenCalled();
     expect(focusSpy).toHaveBeenCalled();
+  });
+
+  it('wartet bei eingeklappten Metadaten mit dem Fehlerfokus bis nach dem Aufklappen', async () => {
+    quiz.description = 'Lange Beschreibung. '.repeat(30);
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const nameInput = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '.quiz-edit__meta-expansion-panel input[formcontrolname="name"]',
+    )!;
+    const focusSpy = vi.spyOn(nameInput, 'focus');
+
+    component.metadataForm.controls.name.setValue('');
+    component.saveAll();
+
+    expect(component.metadataPanelExpanded()).toBe(true);
+    expect(focusSpy).not.toHaveBeenCalled();
+    fixture.detectChanges();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    expect(focusSpy).toHaveBeenCalledOnce();
+    expect(mockStore.updateQuizMetadata).not.toHaveBeenCalled();
   });
 
   it('fokussiert bei ungültigen Einstellungen das erste Fehlerfeld', () => {
@@ -2575,11 +2688,10 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('speichert abgeschaltetes Mischen der Wahloptionen für Teilnehmende', () => {
+  it('übernimmt die globale Antwortreihenfolge in neue Wahlfragen', () => {
     const fixture = TestBed.createComponent(QuizEditComponent);
     const component = fixture.componentInstance;
     component.form.controls.text.setValue('Welche Aussage stimmt?');
-    component.form.controls.shuffleAnswerOptions.setValue(false);
     component.answersArray.at(0).controls.text.setValue('Erste');
     component.answersArray.at(1).controls.text.setValue('Zweite');
 
@@ -2595,6 +2707,25 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
           { text: 'Zweite', isCorrect: false },
         ],
       }),
+    );
+    fixture.destroy();
+  });
+
+  it('zeigt die Antwortreihenfolge nur global in den Quiz-Einstellungen', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+
+    expect(host.querySelector('[formcontrolname="shuffleAnswerOptions"]')).toBeNull();
+
+    fixture.componentInstance.showSettings.set(true);
+    fixture.detectChanges();
+
+    const controls = host.querySelectorAll('[formcontrolname="shuffleAnswerOptions"]');
+    expect(controls).toHaveLength(1);
+    expect(fixture.componentInstance.settingsForm.controls.shuffleAnswerOptions.value).toBe(false);
+    expect(host.textContent).toContain(
+      'Ausgeschaltet bleibt die Reihenfolge aus dem Editor für alle Single-Choice-',
     );
     fixture.destroy();
   });

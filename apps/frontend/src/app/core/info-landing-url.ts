@@ -6,6 +6,7 @@ export const INFO_LANDING_ORIGIN = 'https://info.arsnova.eu';
 /** Kanonische Deep-Link-Anker (Issue #192); sprachneutral und in allen Locales identisch. */
 export const INFO_LANDING_ANCHORS = {
   workflow: 'workflow',
+  peerInstruction: 'peer-instruction',
   numericEstimate: 'numeric-estimate',
   confidence: 'confidence',
   qaWall: 'qa-wall',

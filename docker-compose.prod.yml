@@ -79,8 +79,7 @@ services:
       retries: 5
     stop_grace_period: 15s
 
-  # Optionaler spaCy-Sidecar (Story 1.14b, umgesetzt). Nicht Teil von deploy.sh.
-  # Start: COMPOSE_PROFILES=nlp SPACY_IMAGE=arsnova-spacy:3.8.15 ./scripts/prod-compose.sh up -d spacy
+  # Optionale Textanalyse: Ersteinrichtung per Compose, Updates über scripts/prod-text-sidecars.sh.
   spacy:
     profiles: ['nlp']
     image: ${SPACY_IMAGE:-arsnova-spacy:3.8.15}
@@ -111,7 +110,7 @@ services:
       retries: 5
     stop_grace_period: 10s
 
-  # Start: COMPOSE_PROFILES=encoder WORD_CLOUD_ENCODER_IMAGE=arsnova-wordcloud-encoder:e5-small ./scripts/prod-compose.sh up -d wordcloud-encoder
+  # Encoder-Updates gemeinsam mit spaCy über scripts/prod-text-sidecars.sh.
   wordcloud-encoder:
     profiles: ['encoder']
     image: ${WORD_CLOUD_ENCODER_IMAGE:-arsnova-wordcloud-encoder:e5-small}
@@ -179,7 +178,7 @@ services:
       retries: 5
     stop_grace_period: 10s
 
-  app:
+  app: &production-app
     image: ${ARSNOVA_IMAGE:?ARSNOVA_IMAGE must be set to a digest image ref}
     container_name: arsnova-v3-app
     restart: always
@@ -203,7 +202,7 @@ services:
       - '127.0.0.1:3000:3000'
       - '127.0.0.1:3001:3001'
       - '127.0.0.1:3002:3002'
-    environment:
+    environment: &production-app-env
       # Fixe Laufzeitwerte; DATABASE_URL, REDIS_URL, JWT_SECRET,
       # CAPABILITY_ENVELOPE_KEY_BASE64, STRUCTURED_SHUFFLE_SECRET und ADMIN_*
       # kommen aus `.env.production`
@@ -256,6 +255,71 @@ services:
       timeout: 10s
       start_period: 45s
       retries: 3
+
+  # Über scripts/prod-replicas.sh starten. Nur App A wendet Migrationen und
+  # den Rollout-Purge über den Produktions-Entrypoint an.
+  app-b: &production-replica
+    <<: *production-app
+    profiles: ['app-replicas']
+    container_name: arsnova-v3-app-b
+    restart: unless-stopped
+    init: true
+    entrypoint: ['node', 'apps/backend/dist/index.js']
+    command: []
+    ports:
+      - '127.0.0.1:13100:3000'
+      - '127.0.0.1:13101:3001'
+    environment:
+      <<: *production-app-env
+      DATABASE_POOL_MAX: ${ARSNOVA_REPLICA_POOL_MAX:-30}
+      SESSION_STATUS_PUBSUB_ENABLED: 'true'
+      TRPC_WS_SHARED_LIMITS_ENABLED: 'true'
+      REDIS_RECONNECT_CONTINUOUS: 'true'
+      YJS_RELAY_MODE: external
+      PDF_SHARED_LIMIT_ENABLED: 'true'
+      OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED: 'true'
+      SESSION_CLEANUP_SCHEDULER_ENABLED: 'false'
+    stop_grace_period: 30s
+
+  app-c:
+    <<: *production-replica
+    profiles: ['app-third']
+    container_name: arsnova-v3-app-c
+    ports:
+      - '127.0.0.1:13300:3000'
+      - '127.0.0.1:13301:3001'
+
+  yjs-relay:
+    profiles: ['app-replicas']
+    image: ${ARSNOVA_IMAGE:?ARSNOVA_IMAGE must be set to a digest image ref}
+    container_name: arsnova-v3-yjs-relay
+    restart: unless-stopped
+    init: true
+    entrypoint: ['node', 'apps/backend/dist/yjsRelayMain.js']
+    command: []
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      REDIS_RECONNECT_CONTINUOUS: 'true'
+      YJS_WS_HOST: '0.0.0.0'
+      YJS_WS_PORT: '3002'
+    networks:
+      - app
+    ports:
+      - '127.0.0.1:13202:3002'
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', '-T', '3', 'http://127.0.0.1:3002/']
+      interval: 5s
+      timeout: 4s
+      retries: 6
+    stop_grace_period: 15s
 
 networks:
   app:

@@ -310,15 +310,13 @@ Ohne Bewertungen ist der Wert null. Der Score bevorzugt zuverlässig unterstütz
 
 ### 6.2 Kontroversität
 
-Die im Router implementierte Berechnung verwendet:
+Für jede Frage verwendet der Router ihre Dafür-Stimmen $U$ und Dagegen-Stimmen $D$:
 
 $$
-C=\max(1,\lceil 0{,}1N \rceil), \qquad K=\min\left(1,\frac{2\min(U,D)}{U+D+C}\right),
+K=\frac{2\min(U,D)}{U+D+4}.
 $$
 
-wobei $N$ die Zahl der persistierten Teilnehmerdatensätze der Session (`session-participant-record-count`) ist. Weder momentan online befindliche Personen noch eine konfigurierte Maximalkapazität sind dafür zulässige Ersatzwerte. Der Kontext weist diese Basis einschließlich `qa-ranking-v1` ausdrücklich aus.
-
-Die explizite Kontroversitätsmarkierung verlangt zusätzlich $K>0{,}5$ und $n\geq\max(1,C)$. Ein hoher Nettowert und Kontroversität können gleichzeitig auftreten. Historische Featuretexte müssen bei Abweichungen gegen die aktuelle SQL-Berechnung geprüft werden.
+Der feste Zuschlag 4 dämpft kleine Stimmzahlen unabhängig von der Sessiongröße. Der aktuelle Kontext weist die Berechnungsversion `qa-ranking-v2` aus. Die Kennzeichnung »Umstritten« verlangt $K>0{,}5$ und $U+D\geq 6$. Ein hoher Nettowert und Kontroversität können gleichzeitig auftreten.
 
 Wilson-Werte und Kontroversitätswerte einzelner Fragen dürfen nicht einfach zu einem „Themenscore“ addiert werden. Aggregierte Stimmen sind außerdem keine Anzahl verschiedener Personen: Dieselbe Person kann mehrere Fragen bewerten. Für Themen sind Summen, Verteilungen, Extremwerte und die genaue Berechnungsbasis getrennt auszuweisen.
 
@@ -679,7 +677,7 @@ Der Adapter muss ausdrücklich angeben, welche Kontext- und Ausgabeversion er ve
 
 Jede im gepackten Kontext verwendete `sourceId`-/`SourceIds`-Kante muss im Quellenregister auflösbar und vom gepackten Fachgraphen erreichbar sein. Dies gilt auch für Themen, Kompasssignale, Ziele und Aggregate, nicht nur für einzelne Fragen. `quizScopeId`, `sectionScopeId` und `optionId` sind dagegen präfixvalidierte opake Fachschlüssel: Sie stehen nicht im Quellenregister, werden nicht dereferenziert und enthalten keinen Modelltext. Enthaltener Q&A-Text gehört stets zu `questions.items`; nicht gepackte Themenmitglieder bleiben als `reference-only` ohne vorgetäuschten Volltext auflösbar. Soweit ein Themenmitglied als dargestellte Frage vorliegt, führen Frage und Thema konsistente Gegenreferenzen; `representedQuestionSourceIds` bezeichnet tatsächlich enthaltene Mitgliedstexte. Ein kompaktes Aggregat kann einen größeren Bestand repräsentieren, dessen Einzeltexte nicht alle in das Budget passen. Seine Herkunft, Bezugsmenge und Kürzung müssen dann dennoch nachvollziehbar sein.
 
-Der Kompass bindet jeden Signaltyp an genau eine Messbasis: `high-best-score` an `best-score`, `high-controversy` an `controversy-score`, `high-frequency` an `question-frequency`, `unanswered` an `unaddressed-question-count`, `topic-concentration` an `topic-question-share`, `learning-gap` an `learning-gap-rule-score`, `result-pattern` an `released-result-rule-score` und `feedback-pattern` an `feedback-rule-score`. Q&A-Evidenz und `questionSourceIds` spiegeln einander exakt. Best-Score und Kontroversität müssen einem verfügbaren Fragenwert entsprechen; diese Fragenwerte werden zuvor gegen die `qa-ranking-v1`-Formeln und die ausdrücklich ausgewiesene Teilnehmerbasis validiert, wobei Gesamtstimmen die Basis nicht überschreiten dürfen. Häufigkeit zählt exakt die genannten Fragen; `unanswered` zählt nur ausdrücklich `unaddressed` ausgewiesene Fragen. Themenanteil und die drei Regelscores liegen zwischen 0 und 1. Lernlücken benötigen ein verfügbares Lernziel und ein tatsächlich beobachtetes freigegebenes Ergebnis mit `population.included > 0` im selben Quiz-, Abschnitts- oder Aufgaben-Scope; Ergebnis- und Feedbackmuster benötigen ebenfalls ein passendes Aggregat mit nicht leerer eingeschlossener Population.
+Der Kompass bindet jeden Signaltyp an genau eine Messbasis: `high-best-score` an `best-score`, `high-controversy` an `controversy-score`, `high-frequency` an `question-frequency`, `unanswered` an `unaddressed-question-count`, `topic-concentration` an `topic-question-share`, `learning-gap` an `learning-gap-rule-score`, `result-pattern` an `released-result-rule-score` und `feedback-pattern` an `feedback-rule-score`. Q&A-Evidenz und `questionSourceIds` spiegeln einander exakt. Best-Score und Kontroversität müssen einem verfügbaren Fragenwert entsprechen; diese Fragenwerte werden zuvor gegen die Formeln der jeweiligen Berechnungsversion validiert. Häufigkeit zählt exakt die genannten Fragen; `unanswered` zählt nur ausdrücklich `unaddressed` ausgewiesene Fragen. Themenanteil und die drei Regelscores liegen zwischen 0 und 1. Lernlücken benötigen ein verfügbares Lernziel und ein tatsächlich beobachtetes freigegebenes Ergebnis mit `population.included > 0` im selben Quiz-, Abschnitts- oder Aufgaben-Scope; Ergebnis- und Feedbackmuster benötigen ebenfalls ein passendes Aggregat mit nicht leerer eingeschlossener Population.
 
 Bereichs- und Kanalzustände begrenzen den Graphen: Q&A-Inhalte benötigen `qa`; Quizergebnisse, Quizfragenreferenzen, `quiz`-/`section`-Lernziele, Aufgabenlernziele mit Quizfragen und jede modellabgeleitete Lernzielherkunft benötigen `quiz`; Feedback benötigt `quickFeedback`. `not-released` enthält keine Ergebnisreferenzen; Ergebnisquellen und Kompassevidenz auf Ergebnisse sind in diesem Zustand ungültig. Entsprechend dürfen Thema, Lernziel und Feedback nur als Kompassevidenz dienen, wenn ihr Fachbereich verfügbar ist und genau diese Quelle führt. Verfügbare Fragen, Themen, Lernziele, Ergebnisse und Feedback benötigen außerdem ihre einschlägigen `meta.revisions`-Einträge; der Kompass trägt eine eigene `rulesVersion`.
 
@@ -1055,7 +1053,7 @@ Eine neue Modellversion ist deshalb keine bloße URL-Änderung. Alte Caches und 
 | „NLP beginnt mit dem Host-Klick.“                   | 8.9b beginnt nach erfolgreicher neuer Einreichung; andere Aufträge sind hostgesteuert. |
 | „Eine Themenwolke zeigt alle Fragen.“               | Sie zeigt einen definierten, begrenzten und gegebenenfalls veralteten Analysebestand.  |
 | „Hohe Konfidenz heißt hohe Wahrheit.“               | Scores beschreiben das jeweilige Verfahren und benötigen eigene Evaluation.            |
-| „Kontrovers bedeutet viele Downvotes.“              | Kontroversität benötigt beidseitige Bewertungen und eine Bezugsgröße.                  |
+| „Kontrovers bedeutet viele Downvotes.“              | Kontroversität benötigt beidseitige Bewertungen pro Frage.                             |
 | „Eine Quellen-ID verhindert Halluzinationen.“       | Sie gewährleistet nur Auflösbarkeit, nicht inhaltliche Unterstützung.                  |
 | „Ein Timeout stoppt das Modell.“                    | Abbruch muss bis zur Runtime wirken und den Slot freigeben.                            |
 | „Jede Queue mit Parallelität eins ist ausreichend.“ | Drei Auftragstypen brauchen gemeinsam eine globale LLM-Grenze.                         |
@@ -1064,7 +1062,7 @@ Eine neue Modellversion ist deshalb keine bloße URL-Änderung. Alte Caches und 
 
 ## 20. Durchgängiges Beispiel
 
-Das folgende Beispiel ist eine synthetische Erläuterung, kein gemessener Produktdatensatz. Angenommen werden sechs zulässige Fragen und eine für die Kontroversitätsberechnung verwendete Teilnehmerbasis von 200. Damit ist der Dämpfungswert $C=20$.
+Das folgende Beispiel ist eine synthetische Erläuterung, kein gemessener Produktdatensatz. Das Beispiel verwendet die historische `qa-ranking-v1`-Fixture mit sechs zulässigen Fragen, einer Teilnehmerbasis von 200 und dem damaligen Dämpfungswert $C=20$.
 
 | Frage | Inhalt, gekürzt                           | Positiv | Negativ | Netto | Kontroversität |
 | ----- | ----------------------------------------- | ------: | ------: | ----: | -------------: |

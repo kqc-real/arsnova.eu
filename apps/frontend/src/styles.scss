@@ -406,6 +406,16 @@ html {
   );
 }
 
+.quiz-edit__meta-expansion-panel {
+  @include mat.expansion-overrides(
+    (
+      container-elevation-shadow: none,
+      container-background-color: transparent,
+      container-shape: var(--mat-card-outlined-container-shape, var(--mat-sys-corner-medium)),
+    )
+  );
+}
+
 /* MDC blendet den nativen Kalender-Indikator aus; Desktop braucht ihn zum Öffnen. */
 html .mdc-text-field__input[type='date']::-webkit-calendar-picker-indicator,
 html .mdc-text-field__input[type='time']::-webkit-calendar-picker-indicator,
@@ -572,6 +582,8 @@ html .mdc-text-field__input[type='month']::-webkit-calendar-picker-indicator {
 
   --app-bg-root: var(--mat-sys-surface);
   --app-shadow-accent: none;
+  --app-icon-tile-border: 1.5px solid
+    color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
   --app-toolbar-max-width: 56rem;
   --app-live-channel-max-width: 36rem;
   --app-live-channel-inline: 1rem;
@@ -1015,22 +1027,6 @@ html {
   color: var(--mat-sys-on-surface);
   outline: 1px solid var(--mat-sys-outline);
   box-shadow: var(--mat-sys-level3);
-}
-
-.cdk-overlay-pane.host-pairing-dialog-panel .dialog-title-header__icon,
-.cdk-overlay-pane.presentation-start-dialog-panel .dialog-title-header__icon,
-.cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon,
-.cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon {
-  background: transparent;
-  border: 1.5px solid color-mix(in srgb, var(--mat-sys-outline) 72%, var(--mat-sys-primary) 28%);
-  color: var(--mat-sys-primary);
-}
-
-.cdk-overlay-pane.session-lifecycle-dialog-panel .dialog-title-header__icon--warn,
-.cdk-overlay-pane.host-recovery-card-dialog-panel .dialog-title-header__icon--warn {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--mat-sys-outline) 48%, var(--mat-sys-error) 52%);
-  color: var(--mat-sys-error);
 }
 
 .cdk-overlay-backdrop.host-pairing-dialog-backdrop,
@@ -2331,6 +2327,14 @@ $markdown-katex-flow-hosts:
   margin: 0.45rem 0;
 }
 
+.session-host__learning-overview-question-text > :first-child {
+  margin-block-start: 0;
+}
+
+.session-host__learning-overview-question-text > :last-child {
+  margin-block-end: 0;
+}
+
 .session-host__question-title-inner h1,
 .session-host__question-title-inner h2,
 .session-host__question-title-inner h3,
@@ -2432,6 +2436,24 @@ $markdown-katex-flow-hosts:
     overflow-x: auto;
     overflow-y: hidden;
   }
+}
+
+/* In der Lernstandskarte scrollt nur der per Tastatur erreichbare Formel-Wrapper. */
+.session-host__learning-overview-question-text .katex-display {
+  display: flex;
+  justify-content: safe center;
+}
+
+.session-host__learning-overview-question-text .katex-display > .katex {
+  flex: none;
+  max-width: none;
+  padding: 0.4em 0.25em;
+  overflow: visible;
+}
+
+.session-host__learning-overview-question-text .katex-display:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
 }
 
 /* Markdown-Tabellen in Fragen, Antworten, Vorschau, Host, Vote und Quiz-Beschreibung. */
@@ -2758,6 +2780,19 @@ html.preset-playful
   width: 100% !important;
   height: var(--mat-button-text-touch-target-size, 2.75rem) !important;
   transform: translateY(-50%) !important;
+}
+
+.session-host__add-channel-menu {
+  @include mat.menu-overrides(
+    (
+      container-color: var(--mat-sys-surface-container-high),
+      container-shape: var(--mat-sys-corner-medium),
+      container-elevation-shadow: var(--mat-sys-level3),
+      item-label-text-color: var(--mat-sys-on-surface),
+    )
+  );
+
+  border: 1px solid var(--mat-sys-outline);
 }
 
 /*

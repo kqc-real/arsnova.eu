@@ -1,6 +1,6 @@
 # Host-Aufgabenwahl — #470, Slice 1
 
-**Aktueller Stand der Startseite:** Die drei Host-Karten sind nicht mehr gleichzeitig sichtbar. Die Buttons heißen »Quiz erstellen & verwalten«, »Q&A-Forum erstellen & verwalten« (in der Zeile »Q&A erstellen & verwalten«) und »Blitzlicht auswählen«, blenden jeweils nur ihre Karte ein und speichern die Auswahl nicht. Der übrige Text beschreibt den historischen Slice-1-Stand.
+**Aktueller Stand der Startseite:** Die drei Host-Karten sind nicht mehr gleichzeitig sichtbar. Die Buttons heißen »Quiz auswählen«, »Q&A-Forum eröffnen« und »Blitzlicht starten«, blenden jeweils nur ihre Karte ein und speichern die Auswahl nicht. Der übrige Text beschreibt den historischen Slice-1-Stand.
 
 Quelle und Umfang: [Issue #470](https://github.com/kqc-real/arsnova.eu/issues/470), ausschließlich **Slice 1 — reines UI-Zustandsmodell und Startseite**. Die Live-Navigation und die Reduktion der Host-Arbeitsflächen aus Slice 2–4 sind nicht Bestandteil dieses Slices. Übersetzungen, nahe Regressionstests und Dokumentation begleiten bereits die hier geänderte Oberfläche; dies bedeutet keine Abnahme von Slice 5 oder des gesamten Issues.
 
@@ -54,7 +54,7 @@ Eine lokale Aufgabenpräferenz öffnet oder schließt selbst keinen Kanal, beend
 
 Slice 2 baut auf der lokalen Aufgabenzuordnung auf, leitet die Navigation aber aus dem tatsächlichen, serverbestätigten Kanalzustand ab:
 
-- `availableChannels()` in aktivierte Tabs und hinzufügbare Formate aufteilen. Bei einem aktivierten Kanal keine Tab-Leiste; inaktive Formate nur unter **Format hinzufügen**.
+- `availableChannels()` in aktivierte Tabs und hinzufügbare Formate aufteilen. Bei einem aktivierten Kanal keine Tab-Leiste; inaktive Formate nur unter **Session erweitern**.
 - Aktivierung über die bestehenden Pfade `activateQuizChannel` beziehungsweise `enableChannel` inklusive Q&A-Ersteinrichtung führen. Nach Erfolg wechseln; nach Abbruch oder Fehler weder einen falschen Tab noch einen falschen `activeChannel` übernehmen.
 - `selectChannel`, `onChannelToggleChange`, `ensureActiveChannel`, `showChannelTabs`, `channelTabMetaLabel` und `reconcilePresentedChannel` gemeinsam prüfen. Der Beides-Anschluss verwendet bereits `enableChannel` und `selectChannel` und muss dabei erhalten bleiben.
 - Reload und Reconnect aus bestätigtem Sessionzustand rekonstruieren. Ein geschlossenes, aktiviertes Format bleibt von einem noch nicht aktivierten Format unterscheidbar. `preferredChannel` bleibt serverautoritativ.

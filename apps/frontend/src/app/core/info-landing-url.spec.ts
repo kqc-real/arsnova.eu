@@ -37,6 +37,9 @@ describe('infoLandingUrl', () => {
       expect(infoLandingUrl(INFO_LANDING_ANCHORS.workflow, locale, 'dark')).toBe(
         `https://info.arsnova.eu/${locale}/?theme=dark#workflow`,
       );
+      expect(infoLandingUrl(INFO_LANDING_ANCHORS.peerInstruction, locale, 'dark')).toBe(
+        `https://info.arsnova.eu/${locale}/?theme=dark#peer-instruction`,
+      );
       expect(infoLandingUrl(INFO_LANDING_ANCHORS.features, locale, 'light')).toBe(
         `https://info.arsnova.eu/${locale}/?theme=light#features`,
       );

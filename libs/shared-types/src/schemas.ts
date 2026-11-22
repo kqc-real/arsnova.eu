@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { APP_LOCALES } from './app-locale';
 import {
   CONFIDENCE_SCALE_MAX,
   CONFIDENCE_SCALE_MIN,
@@ -1383,6 +1384,8 @@ export const CreateQuizInputSchema = z.object({
   motifImageUrl: QuizMotifImageUrlInputSchema,
   motifImageCredit: QuizMotifImageCreditInputSchema,
   showLeaderboard: z.boolean().optional().default(true),
+  enableLearningDebrief: z.boolean().optional(),
+  enablePeerInstruction: z.boolean().optional(),
   allowCustomNicknames: z.boolean().optional().default(false),
   defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
   timerScaleByDifficulty: z.boolean().optional().default(true),
@@ -1401,6 +1404,8 @@ export const CreateQuizInputSchema = z.object({
   nicknameTheme: NicknameThemeEnum.optional().default('HIGH_SCHOOL'),
   bonusTokenCount: z.number().int().min(1).max(50).nullable().optional().default(null), // Story 4.6
   readingPhaseEnabled: z.boolean().optional().default(true),
+  /** Global für SC/MC/Umfrage; neue Quizze behalten die Autorenreihenfolge bei. */
+  shuffleAnswerOptions: z.boolean().optional().default(false),
   preset: QuizPresetEnum.optional().default('PLAYFUL'),
 });
 export type CreateQuizInput = z.infer<typeof CreateQuizInputSchema>;
@@ -2567,6 +2572,9 @@ export const QuizUploadInputSchema = z
     motifImageUrl: QuizMotifImageUrlInputSchema,
     motifImageCredit: QuizMotifImageCreditInputSchema,
     showLeaderboard: z.boolean(),
+    /** Fehlende Legacy-Werte erhalten die bisher verfügbaren Funktionen unabhängig vom Preset. */
+    enableLearningDebrief: z.boolean().optional().default(true),
+    enablePeerInstruction: z.boolean().optional().default(true),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),
@@ -2585,6 +2593,8 @@ export const QuizUploadInputSchema = z
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(),
+    /** Globaler Override; fehlt nur bei älteren Upload-Clients mit Fragewerten. */
+    shuffleAnswerOptions: z.boolean().optional(),
     preset: QuizPresetEnum.optional(),
     /** Versionierter Sidecar-Snapshot; enthält keine Antwort-/Lösungsdaten. */
     learningObjectives: QuizLearningObjectiveBundleV1Schema.optional(),
@@ -2759,6 +2769,7 @@ type QuizHistoryAccessMaterial = {
   nicknameTheme: NicknameTheme;
   bonusTokenCount: number | null;
   readingPhaseEnabled: boolean;
+  shuffleAnswerOptions?: boolean;
   preset: QuizPreset;
   questions: Array<{
     text: string;
@@ -2955,7 +2966,7 @@ function buildQuizHistoryAccessMaterial(input: QuizUploadInput): QuizHistoryAcce
             ? (question.categorizationShuffleItems ?? true)
             : false,
         ...(questionShufflesParticipantChoiceAnswers(question.type) &&
-        question.shuffleAnswerOptions === false
+        (parsed.shuffleAnswerOptions ?? question.shuffleAnswerOptions ?? true) === false
           ? { shuffleAnswerOptions: false as const }
           : {}),
         answers: [...question.answers]
@@ -3441,11 +3452,27 @@ export const SessionPresenterSurfaceSchema = z.enum([
 export type SessionPresenterSurface = z.infer<typeof SessionPresenterSurfaceSchema>;
 
 /** Ephemeral projection state; context rejects delayed requests for an earlier question. */
-export const PresenterPageSchema = z.object({
-  context: z.string().max(200),
-  index: z.number().int().min(0).max(9999),
-  count: z.number().int().min(1).max(10000),
-});
+const PresenterPageSectionStartsSchema = z
+  .array(z.number().int().min(0).max(9999))
+  .min(1)
+  .max(16)
+  .refine(
+    (starts) =>
+      starts[0] === 0 && starts.every((start, index) => index === 0 || start > starts[index - 1]!),
+    'Projektionsabschnitte müssen bei 0 beginnen und streng aufsteigend sein.',
+  );
+export const PresenterPageSchema = z
+  .object({
+    context: z.string().max(200),
+    index: z.number().int().min(0).max(9999),
+    count: z.number().int().min(1).max(10000),
+    /** Startindizes semantischer Ansichten innerhalb der physischen Projektionsseiten. */
+    sectionStarts: PresenterPageSectionStartsSchema.optional(),
+  })
+  .refine(
+    (page) => page.sectionStarts?.every((start) => start < page.count) ?? true,
+    'Projektionsabschnitte müssen innerhalb der Seitenzahl liegen.',
+  );
 export type PresenterPage = z.infer<typeof PresenterPageSchema>;
 export const SetPresenterSurfaceInputSchema = z
   .object({
@@ -3456,6 +3483,8 @@ export const SetPresenterSurfaceInputSchema = z
         context: z.string().max(200),
         delta: z.union([z.literal(-1), z.literal(1)]).optional(),
         count: z.number().int().min(1).max(10000).optional(),
+        /** `null` entfernt zuvor gemeldete semantische Abschnitte. */
+        sectionStarts: PresenterPageSectionStartsSchema.nullable().optional(),
         /** Absoluter Seitenindex (z. B. Q&A-Navigator springt in der Bühnenliste). */
         index: z.number().int().min(0).max(9999).optional(),
       })
@@ -3463,8 +3492,13 @@ export const SetPresenterSurfaceInputSchema = z
         const hasDelta = value.delta !== undefined;
         const hasCount = value.count !== undefined;
         const hasIndex = value.index !== undefined;
+        if (
+          value.sectionStarts?.some((start) => value.count === undefined || start >= value.count)
+        ) {
+          return false;
+        }
         if (hasDelta) {
-          return !hasCount && !hasIndex;
+          return !hasCount && !hasIndex && value.sectionStarts === undefined;
         }
         if (hasIndex) {
           return !hasDelta;
@@ -3819,6 +3853,8 @@ export const HostCurrentQuestionDTOSchema = z.object({
    * zurückblättern kann. Unabhängig von Musterlösung (Umfrage, Freitext, Reihenfolge).
    */
   canShowPreviousResult: z.boolean().optional(),
+  /** Ob im Presenter ein abgeschlossenes Ergebnis vor der Live-Frage verfügbar ist. */
+  hasEarlierPresenterResult: z.boolean().optional(),
   /** Ob nach der aktuellen Frage noch eine nicht ausgelassene Frage folgt. */
   hasNextQuestion: z.boolean().optional(),
   /**
@@ -3917,12 +3953,31 @@ export const HostCurrentQuestionDTOSchema = z.object({
 });
 export type HostCurrentQuestionDTO = z.infer<typeof HostCurrentQuestionDTOSchema>;
 
+export const GetPresenterQuizResultInputSchema = GetSessionInfoInputSchema.extend({
+  liveQuestionId: z.uuid(),
+  fromQuestionId: z.uuid().optional(),
+  direction: z.enum(['previous', 'next']),
+});
+
+export const PresenterQuizResultSchema = z.object({
+  question: HostCurrentQuestionDTOSchema,
+  hasPrevious: z.boolean(),
+  hasNext: z.boolean(),
+  wordCloudUnavailable: z.boolean(),
+});
+export type PresenterQuizResult = z.infer<typeof PresenterQuizResultSchema>;
+
 /** DTO: Leichter Live-Fortschritt fuer die Host-Ansicht waehrend ACTIVE. */
 export const HostVoteProgressDTOSchema = z.object({
   questionId: z.string().uuid(),
   questionOrder: z.number().int().min(0),
   round: z.number().int().min(1).max(2),
   totalVotes: z.number().int().min(0),
+  /** Host-only live distribution for rating projection; never part of participant payloads. */
+  ratingDistribution: z.record(z.string(), z.number().int().min(0)).optional(),
+  ratingAvg: z.number().nullable().optional(),
+  ratingMedian: z.number().nullable().optional(),
+  ratingStdDev: z.number().nullable().optional(),
   /** Personen mit persönlicher Zeitanpassung, die in dieser Runde noch nicht geantwortet haben. */
   pendingTimerAccommodationCount: z.number().int().min(0).optional(),
   /** Davon Personen, deren garantiertes 10×-Zeitfenster noch läuft. */
@@ -3933,10 +3988,13 @@ export const HostVoteProgressDTOSchema = z.object({
 });
 export type HostVoteProgressDTO = z.infer<typeof HostVoteProgressDTOSchema>;
 
+const KindergartenAnimalIdSchema = z.number().int().nonnegative().optional();
+
 /** Input: Einer Session beitreten (Story 3.1) */
 export const JoinSessionInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
   nickname: z.string().trim().min(1).max(30),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   /**
    * Browserweite, zufällige Throttle-ID; kein Authentifizierungs- oder
    * Besitznachweis. Während des Service-Worker-Rollouts optional für gecachte
@@ -4305,6 +4363,8 @@ export const SessionInfoDTOSchema = z.object({
   allowCustomNicknames: z.boolean().optional(),
   anonymousMode: z.boolean().optional(),
   showLeaderboard: z.boolean().optional(),
+  /** Host-Konfiguration des abgeschlossenen Lernstands, nur mit gültigem Host-Token. */
+  enableLearningDebrief: z.boolean().optional(),
   enableSoundEffects: z.boolean().optional(),
   enableRewardEffects: z.boolean().optional(),
   enableMotivationMessages: z.boolean().optional(),
@@ -4329,6 +4389,7 @@ export const JoinSessionOutputSchema = SessionInfoDTOSchema.extend({
   participantId: z.uuid(),
   participantNumber: z.number().int().positive(),
   participantNickname: z.string().min(1).max(30),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   rejoinToken: OpaqueCapabilitySchema,
   /** Nur beim neuen Join oder bei nachgewiesenem Rejoin zurückgegeben. */
   productFeedbackClaimToken: z.string().min(32).max(128).nullable().optional(),
@@ -4422,12 +4483,11 @@ export type WordCloudNormalizationFallbackReason = z.infer<
   typeof WordCloudNormalizationFallbackReasonEnum
 >;
 
-/** Analyse-Locales mit Sidecar-Modell. `it` bleibt ausserhalb (CC BY-NC-SA). */
+/** Analyse-Locales mit Sidecar-Unterstützung. */
 export const WordCloudAnalysisLocaleEnum = z.enum(WORD_CLOUD_LEMMA_LOCALES);
 export type WordCloudAnalysisLocale = z.infer<typeof WordCloudAnalysisLocaleEnum>;
 
-/** Lokale Wortextraktion unterstützt zusätzlich Italienisch. */
-export const WordCloudDisplayLocaleEnum = WordCloudAnalysisLocaleEnum.or(z.literal('it'));
+export const WordCloudDisplayLocaleEnum = WordCloudAnalysisLocaleEnum;
 
 /**
  * Darstellungsmetadaten. Bei älteren Snapshots und Projektionen können sie fehlen.
@@ -4758,6 +4818,7 @@ export type GetActiveQuizIdsInput = z.infer<typeof GetActiveQuizIdsInputSchema>;
 export const ParticipantDTOSchema = z.object({
   id: z.uuid(),
   nickname: z.string(),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   teamId: z.uuid().nullable().optional(),
   teamName: z.string().nullable().optional(),
 });
@@ -4889,8 +4950,9 @@ export type SessionTeamsPayload = z.infer<typeof SessionTeamsPayloadSchema>;
 export const LeaderboardEntryDTOSchema = z.object({
   rank: z.number(),
   nickname: z.string(),
+  kindergartenAnimalId: KindergartenAnimalIdSchema,
   totalScore: z.number(), // Gesamtpunkte (Schwierigkeit × Zeitbonus)
-  correctCount: z.number(), // Anzahl richtiger Antworten
+  correctCount: z.number(), // Anzahl vollständig richtig beantworteter Fragen
   totalQuestions: z.number(), // Gesamtanzahl Fragen
   totalResponseTimeMs: z.number(), // Gesamtantwortzeit positiv bewerteter Antworten in ms (Tiebreaker)
   teamName: z.string().nullable().optional(), // Teamzuordnung im Teammodus
@@ -4938,6 +5000,11 @@ export const TeamLeaderboardEntryDTOSchema = z.object({
   averageScore: z.number(), // @deprecated Derzeit identisch zu totalScore
 });
 export type TeamLeaderboardEntryDTO = z.infer<typeof TeamLeaderboardEntryDTOSchema>;
+
+export const HostTeamLeaderboardEntryDTOSchema = TeamLeaderboardEntryDTOSchema.extend({
+  medianScore: z.number().nonnegative(),
+});
+export type HostTeamLeaderboardEntryDTO = z.infer<typeof HostTeamLeaderboardEntryDTOSchema>;
 
 /** Input: Emoji-Reaktion senden (Story 5.8). `round`: Peer Instruction – eigener Speicher pro Runde. */
 export const SendEmojiReactionInputSchema = z.object({
@@ -5666,6 +5733,8 @@ const ExportedQuizMetadataSchema = z
     motifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
     motifImageCredit: z.union([MotifImageCreditSchema, z.null()]).optional(),
     showLeaderboard: z.boolean(),
+    enableLearningDebrief: z.boolean().optional(),
+    enablePeerInstruction: z.boolean().optional(),
     allowCustomNicknames: z.boolean(),
     defaultTimer: z.number().int().min(5).max(300).nullable().optional(),
     timerScaleByDifficulty: z.boolean().optional(),
@@ -5684,6 +5753,7 @@ const ExportedQuizMetadataSchema = z
     nicknameTheme: NicknameThemeEnum,
     bonusTokenCount: z.number().int().min(1).max(50).nullable().optional(), // Story 4.6
     readingPhaseEnabled: z.boolean().optional(), // Story 2.6: Lesephase
+    shuffleAnswerOptions: z.boolean().optional(),
   })
   .strict();
 
@@ -5940,6 +6010,32 @@ export const GetExportDataInputSchema = z.object({
   code: z.string().length(6, { error: 'Session-Code muss 6 Zeichen lang sein' }),
 });
 export type GetExportDataInput = z.infer<typeof GetExportDataInputSchema>;
+
+export const SessionLearningOverviewDTOSchema = z.object({
+  questionCount: z.number().int().nonnegative(),
+  respondentCount: z.number().int().nonnegative(),
+  noResponseCount: z.number().int().nonnegative(),
+  medianCorrectCount: z.number().nonnegative().nullable(),
+  // Below 25%, 25% to below 50%, 50% to below 75%, 75% to 100%.
+  distribution: z.tuple([
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+    z.number().int().nonnegative(),
+  ]),
+  reviewQuestions: z
+    .array(
+      z.object({
+        questionId: z.string(),
+        questionOrder: z.number().int().nonnegative(),
+        text: z.string(),
+        correctCount: z.number().int().nonnegative(),
+        responseCount: z.number().int().positive(),
+      }),
+    )
+    .max(3),
+});
+export type SessionLearningOverviewDTO = z.infer<typeof SessionLearningOverviewDTOSchema>;
 
 /**
  * PDF-Exportprofil für den Nachbesprechungsplan:
@@ -6482,7 +6578,7 @@ export const QaSummarySourceSchema = z.object({
 export type QaSummarySource = z.infer<typeof QaSummarySourceSchema>;
 
 /** Werte identisch zu AppLocaleEnum; hier vorgezogen, weil der Q&A-Vertrag davor steht. */
-export const QaSummaryLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
+export const QaSummaryLocaleEnum = z.enum(APP_LOCALES);
 export type QaSummaryLocale = z.infer<typeof QaSummaryLocaleEnum>;
 
 export const QaSummaryResultSchema = z
@@ -6575,6 +6671,7 @@ export const QaQuestionDTOSchema = z.object({
    */
   passagesRedactedAt: z.string().datetime().optional(),
   authorNickname: z.string().min(1).max(30).optional(),
+  authorKindergartenAnimalId: KindergartenAnimalIdSchema,
   authorTeamName: z.string().trim().min(1).max(40).optional(),
   positiveVoteCount: z.number().int().min(0).optional(),
   negativeVoteCount: z.number().int().min(0).optional(),
@@ -6946,9 +7043,14 @@ export function isDemoQuizHistoryScopeId(value: string | null | undefined): valu
 }
 
 /** Preset-Konfigurationen (Story 1.11) — clientseitig angewandt */
-export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
+export const QUIZ_PRESETS: Record<
+  QuizPreset,
+  Partial<CreateQuizInput> & { enableLearningDebrief: boolean; enablePeerInstruction: boolean }
+> = {
   PLAYFUL: {
     showLeaderboard: true,
+    enableLearningDebrief: true,
+    enablePeerInstruction: true,
     enableSoundEffects: true,
     enableRewardEffects: true,
     enableMotivationMessages: true,
@@ -6963,6 +7065,8 @@ export const QUIZ_PRESETS: Record<QuizPreset, Partial<CreateQuizInput>> = {
   },
   SERIOUS: {
     showLeaderboard: false,
+    enableLearningDebrief: false,
+    enablePeerInstruction: true,
     enableSoundEffects: false,
     enableRewardEffects: false,
     enableMotivationMessages: false,
@@ -7125,6 +7229,8 @@ export type QuickFeedbackIsActiveOutput = z.infer<typeof QuickFeedbackIsActiveOu
 export const QuickFeedbackResultSchema = z.object({
   type: QuickFeedbackTypeEnum,
   locked: z.boolean(),
+  /** Monotoner Stand aller Sperrstatus-Änderungen; schützt Clients vor verspäteten Snapshots. */
+  lockVersion: z.number().int().nonnegative().optional(),
   showLiveResults: z.boolean().optional(),
   resultsVisible: z.boolean().optional(),
   totalVotes: z.number(),
@@ -7137,6 +7243,12 @@ export const QuickFeedbackResultSchema = z.object({
   tempoTrend: TempoTrendSchema.optional(),
 });
 export type QuickFeedbackResult = z.infer<typeof QuickFeedbackResultSchema>;
+
+export const QuickFeedbackLockStateSchema = z.object({
+  locked: z.boolean(),
+  lockVersion: z.number().int().nonnegative(),
+});
+export type QuickFeedbackLockState = z.infer<typeof QuickFeedbackLockStateSchema>;
 
 // ─── Session-Bewertung (Story 4.8) ───────────────────────────────────────────
 
@@ -7187,7 +7299,7 @@ export type GetLastSessionExportPdfForQuizInput = z.infer<
 // ─── MOTD / Plattform-Kommunikation (Epic 10) ───────────────────────────────
 
 /** UI-Locales (ADR-0008) — synchron mit Angular-Builds */
-export const AppLocaleEnum = z.enum(['de', 'en', 'fr', 'es', 'it']);
+export const AppLocaleEnum = z.enum(APP_LOCALES);
 export type AppLocale = z.infer<typeof AppLocaleEnum>;
 
 /** Fallback-Kette wenn Übersetzung fehlt: angefragte Locale → de → en → rest */

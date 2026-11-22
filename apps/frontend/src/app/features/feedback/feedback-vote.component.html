@@ -43,9 +43,11 @@
                   "
                   [attr.aria-label]="participantIdentityCaption() + ' ' + identity"
                 >
-                  <span class="feedback-vote__context-kita-emoji" aria-hidden="true">{{
-                    avatar
-                  }}</span>
+                  <img
+                    class="feedback-vote__context-kita-emoji"
+                    [src]="animalIconUrl(avatar)"
+                    alt=""
+                  />
                   @if (participantAvatarSequenceLabel(); as sequence) {
                     <span class="feedback-vote__context-kita-sequence" aria-hidden="true">{{
                       sequence

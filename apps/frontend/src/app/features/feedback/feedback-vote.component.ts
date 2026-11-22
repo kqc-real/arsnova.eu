@@ -1,3 +1,4 @@
+import { animalIconUrl } from '../../shared/animal-icon-url';
 import {
   Component,
   HostListener,
@@ -97,6 +98,8 @@ function writeStoredTempoSelection(code: string, value: string | null): void {
   },
 })
 export class FeedbackVoteComponent implements OnInit, OnDestroy {
+  readonly animalIconUrl = animalIconUrl;
+
   readonly starValues = [1, 2, 3, 4, 5] as const;
   readonly localizedPath = localizePath;
   private readonly route = inject(ActivatedRoute);

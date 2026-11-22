@@ -447,7 +447,7 @@ describe.skipIf(!RUN)(
 
     async function waitForStored(sessionId: string, started: number) {
       for (;;) {
-        const stored = getQaSummaryRuntime(sessionId).result;
+        const stored = (await getQaSummaryRuntime(sessionId)).result;
         if (stored && stored.status !== 'pending') return stored;
         if (now() - started > terminalWaitMs) {
           throw new Error(`Job erreichte nach ${terminalWaitMs} ms keinen Endstatus`);

@@ -399,7 +399,7 @@
         }
         @if (playerKindergartenEmoji(); as kEmoji) {
           <span class="vote-player-badge__kita-id">
-            <span class="vote-player-badge__emoji" aria-hidden="true">{{ kEmoji }}</span>
+            <img class="vote-player-badge__emoji" [src]="animalIconUrl(kEmoji)" alt="" />
             <span
               class="vote-player-badge__name vote-player-badge__name--kita"
               [attr.title]="playerNickname()"
@@ -444,12 +444,12 @@
       </div>
     }
 
-    @if ((countdownSeconds() !== null && isActive()) || liveScorePreviewAvailable()) {
+    @if (showNumericCountdown() || liveScorePreviewAvailable()) {
       <div
         class="vote-countdown-floating"
         [class.vote-countdown-floating--with-tabs]="showChannelTabs()"
       >
-        @if (countdownSeconds() !== null && isActive()) {
+        @if (showNumericCountdown()) {
           <span
             class="vote-countdown"
             [class.vote-countdown--urgent]="countdownSeconds()! <= 5"
@@ -494,7 +494,7 @@
       </div>
     }
 
-    @if (showFingerCountdown()) {
+    @if (prepareFingerCountdown()) {
       <app-countdown-fingers [seconds]="countdownSeconds()!" size="small" />
     }
 
@@ -528,7 +528,7 @@
           role="group"
           [attr.aria-label]="playerBadgeAriaLabel()"
         >
-          <span class="vote-lobby__kita-emoji" aria-hidden="true">{{ kitaEmoji }}</span>
+          <img class="vote-lobby__kita-emoji" [src]="animalIconUrl(kitaEmoji)" alt="" />
           <p class="vote-lobby__kita-identity">
             <span class="vote-lobby__kita-nick" [attr.title]="playerNickname()">{{
               playerNickname()
@@ -712,10 +712,16 @@
                     <span i18n="@@sessionHost.leaderboardWinnerLabel">Gewonnen hat</span>
                   </p>
                   <p class="vote-finished-winner__name">
-                    @if (leaderboardKindergartenEmoji(winner.nickname); as em) {
-                      <span class="vote-finished-winner__emoji" aria-hidden="true">{{ em }}</span>
+                    @let emoji =
+                      leaderboardKindergartenEmoji(winner.nickname, winner.kindergartenAnimalId);
+                    @if (emoji) {
+                      <img
+                        class="vote-finished-winner__emoji"
+                        [src]="animalIconUrl(emoji)"
+                        alt=""
+                      />
                     }
-                    <span>{{ winner.nickname }}</span>
+                    <span>{{ scoreboardNickname(winner.nickname, emoji) }}</span>
                     @if (winner.teamName; as teamName) {
                       <span
                         class="vote-finished-leaderboard__team-icon vote-finished-leaderboard__team-icon--hero"
@@ -741,6 +747,8 @@
               }
               <ol class="vote-finished-leaderboard__list">
                 @for (entry of personalLeaderboard(); track entry.rank) {
+                  @let emoji =
+                    leaderboardKindergartenEmoji(entry.nickname, entry.kindergartenAnimalId);
                   <li
                     class="vote-finished-leaderboard__item"
                     [class.vote-finished-leaderboard__item--own]="
@@ -769,13 +777,17 @@
                           {{ entry.rank }}
                         }
                       </span>
-                      @if (leaderboardKindergartenEmoji(entry.nickname); as em) {
-                        <span class="vote-finished-leaderboard__emoji" aria-hidden="true">{{
-                          em
-                        }}</span>
+                      @if (emoji) {
+                        <img
+                          class="vote-finished-leaderboard__emoji"
+                          [src]="animalIconUrl(emoji)"
+                          alt=""
+                        />
                       }
                     </span>
-                    <span class="vote-finished-leaderboard__name">{{ entry.nickname }}</span>
+                    <span class="vote-finished-leaderboard__name">{{
+                      scoreboardNickname(entry.nickname, emoji)
+                    }}</span>
                     <span class="vote-finished-leaderboard__tail">
                       @if (entry.teamName; as teamName) {
                         <span
@@ -1163,7 +1175,7 @@
               <p class="vote-reading-banner__title">
                 {{ vpc.voteReadingTitle(isPlayfulPreset()) }}
               </p>
-              <p class="vote-reading-banner__hint">{{ vpc.voteReadingHint(isPlayfulPreset()) }}</p>
+              <p class="vote-reading-banner__hint">{{ questionReadingHint(q.type) }}</p>
               @if (readingReadyConfirmed()) {
                 <p class="vote-reading-banner__ready vote-reading-banner__ready--done">
                   <mat-icon aria-hidden="true">check_circle</mat-icon>
@@ -1463,7 +1475,8 @@
                 @let showsCorrectness = isRevealed && questionUsesCorrectness(q.type);
                 @let isCorrect = showsCorrectness && a.isCorrect;
                 @let isWrong = showsCorrectness && isSelected && !a.isCorrect;
-                @let isResultSelected = isRevealed && isSelected && !showsCorrectness;
+                @let isResultSelected = isRevealed && isSelected;
+                @let selectionLabelId = 'vote-own-answer-' + i;
                 <li>
                   <button
                     [attr.id]="i === 0 ? 'vote-option-0' : null"
@@ -1471,11 +1484,12 @@
                     [class.vote-answer--selected]="isSelected"
                     [class.vote-answer--correct]="isCorrect"
                     [class.vote-answer--wrong]="isWrong"
-                    [class.vote-answer--result-selected]="isResultSelected"
+                    [class.vote-answer--result-selected]="isResultSelected && !showsCorrectness"
                     [class.vote-answer--disabled]="voteInteractionLocked() || !isActive()"
                     [disabled]="voteInteractionLocked() || !isActive()"
                     (click)="toggleAnswer(a.id)"
                     [attr.aria-label]="getLetter(i) + ': ' + a.text"
+                    [attr.aria-describedby]="isResultSelected ? selectionLabelId : null"
                   >
                     <app-answer-option-badge
                       class="vote-answer__badge"
@@ -1483,10 +1497,20 @@
                       [questionType]="q.type"
                       [showTypeIndicator]="q.showQuestionTypeIndicators"
                     ></app-answer-option-badge>
-                    <span
-                      class="vote-answer__text markdown-body"
-                      [innerHTML]="renderMarkdown(a.text, 4)"
-                    ></span>
+                    <span class="vote-answer__content">
+                      <span
+                        class="vote-answer__text markdown-body"
+                        [innerHTML]="renderMarkdown(a.text, 4)"
+                      ></span>
+                      @if (isResultSelected) {
+                        <span
+                          class="vote-answer__own"
+                          [id]="selectionLabelId"
+                          i18n="@@sessionVote.ownChoice"
+                          >Deine Antwort</span
+                        >
+                      }
+                    </span>
                     @if (showsCorrectness) {
                       @if (a.isCorrect) {
                         <mat-icon class="vote-answer__icon vote-answer__icon--correct"
@@ -2865,14 +2889,14 @@
               >
                 <mat-button-toggle value="CONTROVERSIAL">
                   <span class="session-qa-sort-toggle__label">
-                    <span i18n="@@sessionQa.sortControversial">Kontroverse</span>
+                    <span i18n="@@sessionQa.sortControversial">Geteilte Stimmen</span>
                     <span
                       class="session-qa-sort-help"
                       role="button"
                       tabindex="0"
                       data-testid="qa-sort-help-controversial"
                       i18n-aria-label="@@sessionQa.sortHelpControversialAria"
-                      aria-label="Hilfe zu »Kontroverse«"
+                      aria-label="Hilfe zu »Geteilte Stimmen«"
                       (click)="openQaSortHelp($event, 'CONTROVERSIAL')"
                       (keydown.enter)="openQaSortHelp($event, 'CONTROVERSIAL')"
                       (keydown.space)="openQaSortHelp($event, 'CONTROVERSIAL')"
@@ -2891,7 +2915,7 @@
                       tabindex="0"
                       data-testid="qa-sort-help-best"
                       i18n-aria-label="@@sessionQa.sortHelpBestAria"
-                      aria-label="Hilfe zu »Beste Fragen«"
+                      aria-label="Hilfe zu »Klare Zustimmung«"
                       (click)="openQaSortHelp($event, 'BEST')"
                       (keydown.enter)="openQaSortHelp($event, 'BEST')"
                       (keydown.space)="openQaSortHelp($event, 'BEST')"
@@ -2993,7 +3017,7 @@
                   }
                   <div class="session-qa-card__body">
                     <div class="session-qa-card__status-row">
-                      @if (qaAuthorKindergartenBadgeLabel(question); as authorBadge) {
+                      @if (qaAuthorKindergartenBadge(question); as authorBadge) {
                         <button
                           type="button"
                           class="session-qa-card__author-icon session-qa-card__author-icon--button"
@@ -3005,7 +3029,14 @@
                           [attr.title]="qaQuestionAuthorNickname(question)"
                           (click)="toggleQaAuthorSelection(qaQuestionAuthorNickname(question))"
                         >
-                          <span aria-hidden="true">{{ authorBadge }}</span>
+                          <img
+                            class="session-qa-card__author-animal"
+                            [src]="animalIconUrl(authorBadge.emoji)"
+                            alt=""
+                          />
+                          @if (authorBadge.sequence; as sequence) {
+                            <span aria-hidden="true">{{ sequence }}</span>
+                          }
                         </button>
                       } @else if (qaQuestionAuthorNickname(question); as authorNickname) {
                         <button
@@ -3115,7 +3146,7 @@
                           <span
                             class="session-qa-card__badge session-qa-card__badge--controversial"
                             i18n="@@sessionQa.badgeControversial"
-                            >Umstritten</span
+                            >Geteilte Stimmen</span
                           >
                         } @else if (
                           qaSortMode() === 'CONTROVERSIAL' &&
@@ -3136,32 +3167,17 @@
                           <span
                             class="session-qa-card__badge session-qa-card__badge--controversy-onesided"
                             i18n-title="@@sessionQa.badgeControversyOnesidedAria"
-                            title="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                            title="Die abgegebenen Stimmen tendieren zu einer Seite"
                             i18n-aria-label="@@sessionQa.badgeControversyOnesidedAria"
-                            aria-label="Überwiegend einseitige Bewertung — nicht als umstritten eingestuft"
+                            aria-label="Die abgegebenen Stimmen tendieren zu einer Seite"
                             i18n="@@sessionQa.badgeControversyOnesided"
                             >Einseitig</span
                           >
                         }
-                        @if (qaSortMode() === 'BEST' && question.bestScore !== undefined) {
-                          <span
-                            class="session-qa-card__metric session-qa-card__metric--best"
-                            i18n="@@sessionQa.bestMetric"
-                            >Zustimmung {{ formatQaPercent(question.bestScore) }}</span
-                          >
-                        }
-                        @if (
-                          qaSortMode() === 'CONTROVERSIAL' &&
-                          question.isControversial === true &&
-                          question.controversyScore !== undefined &&
-                          question.controversyScore > 0
-                        ) {
-                          <span
-                            class="session-qa-card__metric session-qa-card__metric--controversial"
-                            i18n="@@sessionQa.controversyMetric"
-                            >Geteilte Reaktionen
-                            {{ formatQaPercent(question.controversyScore) }}</span
-                          >
+                        @if (qaSortMode() === 'BEST' && formatQaSupport(question); as support) {
+                          <span class="session-qa-card__metric session-qa-card__metric--best">
+                            {{ support }}
+                          </span>
                         }
                       </div>
                       @if (question.isOwn) {
@@ -3349,18 +3365,30 @@
         i18n-aria-label="@@sessionVote.quizActionsAria"
         aria-label="Quiz-Aktionen"
       >
-        <button
-          mat-flat-button
-          color="primary"
-          id="vote-submit"
-          type="button"
-          class="vote-page__bottom-action vote-page__bottom-action--primary"
-          [class.vote-submit--pending]="voteSending()"
-          [disabled]="voteSubmitDisabled()"
-          (click)="submitVote()"
-        >
-          <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
-        </button>
+        <div class="vote-page__submit-stack">
+          <div role="status">
+            @if (showConfidenceSubmitHint()) {
+              <p class="vote-page__submit-hint" id="vote-confidence-submit-hint">
+                {{ confidenceRequiredMessage }}
+              </p>
+            }
+          </div>
+          <button
+            mat-flat-button
+            color="primary"
+            id="vote-submit"
+            type="button"
+            class="vote-page__bottom-action vote-page__bottom-action--primary"
+            [class.vote-submit--pending]="voteSending()"
+            [disabled]="voteSubmitDisabled()"
+            [attr.aria-describedby]="
+              showConfidenceSubmitHint() ? 'vote-confidence-submit-hint' : null
+            "
+            (click)="submitVote()"
+          >
+            <span>{{ vpc.voteSubmitCta(isPlayfulPreset()) }}</span>
+          </button>
+        </div>
       </div>
     } @else if (showQaSubmitAction()) {
       <div

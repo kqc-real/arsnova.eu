@@ -5,12 +5,12 @@ import { isIP } from 'node:net';
 import type { LookupAddress } from 'node:dns';
 import { z } from 'zod';
 import {
+  createQaSummaryModelWireSchema,
   hasOnlyAllowedOpenWeightLlmReferences,
   OpenWeightLlmLearningObjectivesOutputSchema,
   OpenWeightLlmOutputSchema,
   OpenWeightLlmRequestSchema,
   OpenWeightLlmSummaryOutputSchema,
-  OpenWeightLlmSummaryOutputV2Schema,
   OpenWeightLlmTopicLabelBatchOutputSchema,
   OpenWeightLlmTopicLabelOutputSchema,
   type OpenWeightLlmLearningObjectivesOutput,
@@ -28,7 +28,6 @@ import {
   type OpenWeightLlmTopicLabelOutput,
   type OpenWeightLlmTopicLabelRequest,
 } from '@arsnova/shared-types';
-import { canonicalModerationPromptJson } from './moderationPromptContextPacking';
 import { logger } from './logger';
 import {
   isBlockedOpenWeightLlmHost,
@@ -36,12 +35,17 @@ import {
   normalizeOpenWeightLlmHostname,
   OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD,
   OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS,
+  OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
   resolveOpenWeightLlmConfig,
   type OpenWeightLlmConfig,
   type OpenWeightLlmTransport,
 } from './openWeightLlmConfig';
+import { acquireRedisLease, type RedisLease } from './redisLease';
 
 const OPEN_WEIGHT_LLM_MAX_RESPONSE_BYTES = 262_144;
+const OPEN_WEIGHT_LLM_LEASE_KEY = 'llm:inference:lease:v1';
+const OPEN_WEIGHT_LLM_LEASE_GRACE_MS = 15_000;
+const OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS = 1_000;
 
 /** Audit-visible prompt contract; changes require a derivation contract review. */
 export const OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION = 'topic-label-system-v1';
@@ -71,12 +75,21 @@ const ChatCompletionResponseSchema = z
   })
   .passthrough();
 
+export interface OpenWeightLlmTimings {
+  readonly promptMs: number | null;
+  readonly promptPerSecond: number | null;
+  readonly predictedMs: number | null;
+  readonly predictedPerSecond: number | null;
+}
+
 export interface OpenWeightLlmTelemetry {
   readonly taskType: OpenWeightLlmTaskType;
   readonly elapsedMs: number;
   readonly model: string | null;
   readonly promptTokens: number | null;
   readonly completionTokens: number | null;
+  readonly finishReason?: 'stop' | 'length' | 'unknown';
+  readonly timings?: OpenWeightLlmTimings;
 }
 
 export type OpenWeightLlmCompletedResult = {
@@ -243,9 +256,7 @@ function outputSchemaFor(request: OpenWeightLlmRequest) {
         ? OpenWeightLlmTopicLabelBatchOutputSchema
         : OpenWeightLlmTopicLabelOutputSchema;
     case 'qa_summary':
-      return request.schemaVersion === 2
-        ? OpenWeightLlmSummaryOutputV2Schema
-        : OpenWeightLlmSummaryOutputSchema;
+      return OpenWeightLlmSummaryOutputSchema;
     case 'learning_objectives':
       return OpenWeightLlmLearningObjectivesOutputSchema;
   }
@@ -290,7 +301,138 @@ function systemInstructionFor(request: OpenWeightLlmRequest): string {
   ].join(' ');
 }
 
+function summarySourceRefs(request: OpenWeightLlmSummaryRequestV2): Map<string, string> {
+  return new Map(
+    request.promptContext.context.sources.map(({ id }, index) => [id, String(index + 1)]),
+  );
+}
+
+function isSummaryReferenceOnly(
+  source: OpenWeightLlmSummaryRequestV2['promptContext']['context']['sources'][number],
+) {
+  return source.kind === 'qa-question' && source.content.state === 'reference-only';
+}
+
+function summaryCitableRefs(request: OpenWeightLlmSummaryRequestV2, refs: Map<string, string>) {
+  return request.promptContext.context.sources
+    .filter((source) => !isSummaryReferenceOnly(source))
+    .map(({ id }) => refs.get(id)!);
+}
+
+function compactSummaryTopics(
+  topics: OpenWeightLlmSummaryRequestV2['promptContext']['context']['topics'],
+) {
+  if (topics.state !== 'available' || topics.items.length === 0) return undefined;
+  return {
+    freshness: topics.freshness.state,
+    items: topics.items.map((topic) => ({
+      sourceId: topic.sourceId,
+      labelOrigin: topic.labelOrigin.kind,
+      representativeQuestionSourceId: topic.representativeQuestionSourceId,
+      representedQuestionSourceIds: topic.representedQuestionSourceIds,
+      memberQuestionSourceIds: topic.memberQuestionSourceIds,
+    })),
+  };
+}
+
+function compactSummaryCompass(
+  compass: OpenWeightLlmSummaryRequestV2['promptContext']['context']['compass'],
+) {
+  if (compass.state !== 'available' || compass.signals.length === 0) return undefined;
+  return {
+    primarySignalSourceId: compass.primarySignalSourceId,
+    signals: compass.signals.map((signal) => {
+      const evidenceSourceIds = [...new Set(signal.evidence.map(({ sourceId }) => sourceId))];
+      return {
+        sourceId: signal.sourceId,
+        signal: signal.signal,
+        cardKind: signal.cardKind,
+        ...(signal.questionSourceIds.length > 0
+          ? { questionSourceIds: signal.questionSourceIds }
+          : {}),
+        evidenceSourceIds,
+        suggestedAction: signal.suggestedNextStep.action,
+      };
+    }),
+  };
+}
+
+export function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
+  const refs = summarySourceRefs(request);
+  const { locale, questions, topics, compass, learningContext, releasedResults, feedback } =
+    request.promptContext.context;
+  const answers = new Map(
+    questions.state === 'available'
+      ? questions.items.map((item) => [item.sourceId, item.answerState.state])
+      : [],
+  );
+  const sources = request.promptContext.context.sources.map((source) => {
+    if (source.kind !== 'qa-question') return source;
+    if (source.content.state === 'reference-only') {
+      return { id: source.id, kind: source.kind, state: source.content.state };
+    }
+    return {
+      id: source.id,
+      kind: source.kind,
+      text: source.content.text,
+      answerState: answers.get(source.id),
+    };
+  });
+  return JSON.stringify(
+    {
+      locale,
+      sources,
+      topics: compactSummaryTopics(topics),
+      compass: compactSummaryCompass(compass),
+      learningContext: learningContext.state === 'available' ? learningContext : undefined,
+      releasedResults: releasedResults.state === 'available' ? releasedResults : undefined,
+      feedback: feedback.state === 'available' ? feedback : undefined,
+    },
+    (key, value: unknown) =>
+      typeof value === 'string' && key !== 'text' && key !== 'label'
+        ? (refs.get(value) ?? value)
+        : value,
+  );
+}
+
+function expandSummaryWireOutput(request: OpenWeightLlmSummaryRequestV2, content: unknown) {
+  const refs = summarySourceRefs(request);
+  const parsed = createQaSummaryModelWireSchema(summaryCitableRefs(request, refs)).safeParse(
+    content,
+  );
+  if (!parsed.success) return null;
+
+  const idsByRef = new Map([...refs].map(([id, ref]) => [ref, id]));
+  const sourceIds = (values: readonly string[]) => [
+    ...new Set(values.map((ref) => idsByRef.get(ref)!)),
+  ];
+  return {
+    schemaVersion: request.schemaVersion,
+    taskType: request.taskType,
+    outputContract: request.outputContract,
+    output: {
+      status: 'ready',
+      statements: parsed.data.topics.map(({ topic, question, refs: values }) => ({
+        text: `${topic}: ${question}`,
+        sourceIds: sourceIds(values),
+      })),
+      suggestedNextSteps: parsed.data.next
+        ? [{ text: parsed.data.next.sentence, sourceIds: sourceIds(parsed.data.next.refs) }]
+        : [],
+      limitations: [],
+    },
+  };
+}
+
 function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, unknown> {
+  if (request.taskType === 'qa_summary' && request.schemaVersion === 2) {
+    return z.toJSONSchema(
+      createQaSummaryModelWireSchema(summaryCitableRefs(request, summarySourceRefs(request))),
+      {
+        target: 'draft-7',
+      },
+    );
+  }
   const base = z.toJSONSchema(outputSchemaFor(request), { target: 'draft-7' }) as Record<
     string,
     unknown
@@ -327,57 +469,11 @@ function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, 
       },
     };
   }
-  if (request.taskType !== 'qa_summary' || request.schemaVersion !== 2) {
-    return base;
-  }
-  const allowedIds = request.promptContext.context.sources.map((source) => source.id);
-  const statementSchema = {
-    type: 'object',
-    properties: {
-      text: { type: 'string', minLength: 1, maxLength: 180 },
-      sourceIds: {
-        type: 'array',
-        minItems: 1,
-        maxItems: 2,
-        items:
-          allowedIds.length > 0
-            ? { type: 'string', enum: allowedIds }
-            : { type: 'string', minLength: 1, maxLength: 160 },
-      },
-    },
-    required: ['text', 'sourceIds'],
-    additionalProperties: false,
-  };
-  return {
-    ...base,
-    properties: {
-      ...(base['properties'] as Record<string, unknown>),
-      output: {
-        type: 'object',
-        properties: {
-          status: { type: 'string', enum: ['ready', 'uncertain', 'failed'] },
-          statements: {
-            type: 'array',
-            minItems: 2,
-            maxItems: 4,
-            items: statementSchema,
-          },
-          suggestedNextSteps: {
-            type: 'array',
-            maxItems: 1,
-            items: statementSchema,
-          },
-          limitations: {
-            type: 'array',
-            maxItems: 0,
-            items: { type: 'string' },
-          },
-        },
-        required: ['status', 'statements', 'suggestedNextSteps', 'limitations'],
-        additionalProperties: false,
-      },
-    },
-  };
+  return base;
+}
+
+export function projectCompactSummaryWireContext(request: OpenWeightLlmSummaryRequestV2): string {
+  return compactSummaryContext(request);
 }
 
 function buildChatCompletionBody(
@@ -391,7 +487,7 @@ function buildChatCompletionBody(
           { role: 'system', content: request.definitionText },
           {
             role: 'user',
-            content: canonicalModerationPromptJson(request.promptContext.context),
+            content: compactSummaryContext(request),
           },
         ]
       : [
@@ -411,12 +507,38 @@ function buildChatCompletionBody(
     max_tokens:
       request.taskType === 'topic_label' && request.schemaVersion === 2
         ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
-        : config.maxOutputTokens[request.taskType],
+        : request.taskType === 'qa_summary' && request.schemaVersion === 2
+          ? Math.min(
+              OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+              config.maxOutputTokens.qa_summary,
+            )
+          : config.maxOutputTokens[request.taskType],
     temperature: 0,
     stream: false,
     reasoning_effort: 'none',
     chat_template_kwargs: { enable_thinking: false },
   });
+}
+
+function finiteTimingNumber(
+  timings: Record<string, unknown> | undefined,
+  key: string,
+): number | null {
+  const value = timings?.[key];
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function extractCompletionTimings(
+  timings: Record<string, unknown> | undefined,
+): OpenWeightLlmTimings | undefined {
+  if (!timings) return undefined;
+  const parsed: OpenWeightLlmTimings = {
+    promptMs: finiteTimingNumber(timings, 'prompt_ms'),
+    promptPerSecond: finiteTimingNumber(timings, 'prompt_per_second'),
+    predictedMs: finiteTimingNumber(timings, 'predicted_ms'),
+    predictedPerSecond: finiteTimingNumber(timings, 'predicted_per_second'),
+  };
+  return Object.values(parsed).some((value) => value !== null) ? parsed : undefined;
 }
 
 function parseCompletion(
@@ -455,11 +577,23 @@ function parseCompletion(
   } catch {
     return reject('invalid_model_json', completion.data);
   }
+  if (request.taskType === 'qa_summary' && request.schemaVersion === 2) {
+    content = expandSummaryWireOutput(request, content);
+  }
   const parsedOutput = OpenWeightLlmOutputSchema.safeParse(content);
   if (!parsedOutput.success) return reject('output_schema', completion.data);
   if (parsedOutput.data.taskType !== request.taskType) return reject('task_type', completion.data);
   if (!hasOnlyAllowedOpenWeightLlmReferences(request, parsedOutput.data))
     return reject('question_references', completion.data);
+  const rawFinishReason = completion.data.choices[0]?.finish_reason;
+  const finishReason: OpenWeightLlmTelemetry['finishReason'] =
+    rawFinishReason === undefined
+      ? undefined
+      : rawFinishReason === 'stop' || rawFinishReason === 'length'
+        ? rawFinishReason
+        : 'unknown';
+  const timings = extractCompletionTimings(completion.data.timings);
+
   return {
     status: 'completed',
     output: parsedOutput.data,
@@ -469,6 +603,8 @@ function parseCompletion(
       model: completion.data.model ?? null,
       promptTokens: completion.data.usage?.prompt_tokens ?? null,
       completionTokens: completion.data.usage?.completion_tokens ?? null,
+      ...(finishReason !== undefined ? { finishReason } : {}),
+      ...(timings !== undefined ? { timings } : {}),
     },
   };
 }
@@ -512,7 +648,20 @@ export async function runOpenWeightLlm(
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
 
   let result: OpenWeightLlmRunResult;
+  let lease: RedisLease | null = null;
+  let canReleaseLease = true;
   try {
+    if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
+      lease = await waitForAbort(
+        acquireRedisLease(
+          OPEN_WEIGHT_LLM_LEASE_KEY,
+          taskTimeoutMs + OPEN_WEIGHT_LLM_LEASE_GRACE_MS,
+        ),
+        AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+      );
+      if (!lease) return { status: 'busy', retry: 'manual' };
+      signal.throwIfAborted();
+    }
     const resolvedAddress = await resolvePrivateTarget(config.transport, signal);
     const headers = {
       accept: 'application/json',
@@ -544,6 +693,18 @@ export async function runOpenWeightLlm(
           JSON.stringify({ event: 'learning_objectives:debug_request', body: requestBody }),
         );
       }
+      if (
+        lease &&
+        !(await waitForAbort(
+          lease.refresh(),
+          AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+        ))
+      ) {
+        return { status: 'unavailable' };
+      }
+      signal.throwIfAborted();
+      // Bei einem Transportunterbruch kann der Server den POST noch bearbeiten.
+      canReleaseLease = false;
       const completion = await hooks.request({
         transport: config.transport,
         resolvedAddress,
@@ -553,6 +714,7 @@ export async function runOpenWeightLlm(
         body: requestBody,
         signal,
       });
+      canReleaseLease = true;
       if (debugLearningObjectives) {
         logger.info(
           JSON.stringify({
@@ -577,6 +739,12 @@ export async function runOpenWeightLlm(
   } catch (error) {
     result = { status: classifyCaughtError(error, options.signal, timeoutSignal) };
   } finally {
+    if (lease && canReleaseLease) {
+      await waitForAbort(
+        lease.release(),
+        AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS),
+      ).catch(() => logger.warn('LLM-Reservierung konnte nicht freigegeben werden und läuft ab.'));
+    }
     inFlight = false;
   }
 

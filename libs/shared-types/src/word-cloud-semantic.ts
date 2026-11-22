@@ -3,15 +3,17 @@
  * (Encoder + Clustering).
  *
  * Kein 8.9b-/8.9c-Vertrag. Encoder-HTTP bleibt backend-intern; das Frontend
- * spricht nur `wordCloud.analyze`. Pflichtlocales der Stufe: de/en.
+ * spricht nur `wordCloud.analyze`.
  */
 
-export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.2';
+import { APP_LOCALES } from './app-locale';
+
+export const WORD_CLOUD_SEMANTIC_ANALYSIS_VERSION = '1.14c.3';
 
 /** Hugging-Face-Karte; Digest kommt vom Inferenzdienst. */
 export const WORD_CLOUD_SEMANTIC_MODEL_ID = 'intfloat/multilingual-e5-small';
 
-export const WORD_CLOUD_SEMANTIC_LOCALES = ['de', 'en'] as const;
+export const WORD_CLOUD_SEMANTIC_LOCALES = APP_LOCALES;
 export type WordCloudSemanticLocale = (typeof WORD_CLOUD_SEMANTIC_LOCALES)[number];
 
 export const WORD_CLOUD_ANALYSIS_CHANNEL_VALUES = ['QA', 'FREETEXT'] as const;

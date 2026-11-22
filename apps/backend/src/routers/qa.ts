@@ -13,6 +13,7 @@ import {
   QA_LIST_PAGE_SIZE_OPTIONS,
   QA_MAX_QUESTIONS_PER_PARTICIPANT,
   QA_MAX_QUESTIONS_PER_SESSION,
+  QA_RANKING_VERSION,
   QaNlpRuntimeDTOSchema,
   QaPendingReleaseSnapshotOutputSchema,
   QaQuestionDTOSchema,
@@ -39,6 +40,7 @@ import {
 } from '@arsnova/shared-types';
 import { assertHostSessionAccessFromContext } from '../lib/hostAuth';
 import { waitWhileHostTokenValid } from '../lib/hostRealtimeGuard';
+import { logger } from '../lib/logger';
 import { prisma } from '../db';
 import { isQaNlpEnabled } from '../lib/qaNlpConfig';
 import { getQaNlpMetrics } from '../lib/qaNlpQueue';
@@ -46,22 +48,17 @@ import { enqueueQaNlpJob, invalidateQaNlpForQuestion } from '../lib/qaNlpQueue';
 import { scheduleWordCloudSemanticEmbeddingPrewarm } from '../lib/wordCloudPrewarmQueue';
 import { isQaSummaryEnabled } from '../lib/qaSummaryConfig';
 import {
-  getQaSummaryRuntime,
   getQaSummaryRuntimeFresh,
   getQaSummaryContextPreview,
   invalidateQaSummaryForSession,
   requestQaSummary,
 } from '../lib/qaSummaryQueue';
 import {
-  hasQaPresenterStageView,
-  resolveQaPresenterStageView,
+  QA_PRESENTER_STAGE_VIEW_DEFAULT,
+  readStoredQaPresenterStageView,
   setQaPresenterStageView,
 } from '../lib/qaPresenterSortMode';
-import {
-  isQaControversialLabel,
-  isQaControversyInsufficientVotes,
-  resolveQaControversyThreshold,
-} from '../lib/qaControversy';
+import { isQaControversialLabel, isQaControversyInsufficientVotes } from '../lib/qaControversy';
 import { buildQaRankingMetricOrderSql, buildQaRankingScoreSelectSql } from '../lib/qaRankingSql';
 import {
   buildSessionRetentionTimeline,
@@ -75,6 +72,7 @@ import {
 import { hostProcedure, publicProcedure, router } from '../trpc';
 import { assertParticipantCapability } from '../lib/participantAuth';
 import { recordQaQuestionAccepted, recordQaRatingChanged } from '../lib/qaTelemetry';
+import { publishQaQuestionsInvalidation } from '../lib/sessionStatusPubSub';
 import { enqueueUsageStatisticEventAndSchedule } from '../lib/usageStatistic';
 import {
   emitQaQuestionsSignal,
@@ -112,6 +110,7 @@ type QaQuestionRecord = {
   nlpAnalyzedAt?: Date | null;
   participant?: {
     nickname?: string | null;
+    kindergartenAnimalId?: number | null;
     teamName?: string | null;
   } | null;
   authorNickname?: string | null;
@@ -542,7 +541,10 @@ function mapQaQuestion(
         }
       : {}),
     ...(question.participant?.nickname?.trim()
-      ? { authorNickname: question.participant.nickname.trim() }
+      ? {
+          authorNickname: question.participant.nickname.trim(),
+          authorKindergartenAnimalId: question.participant.kindergartenAnimalId ?? undefined,
+        }
       : {}),
     ...(question.participant?.teamName?.trim()
       ? { authorTeamName: question.participant.teamName.trim() }
@@ -566,6 +568,7 @@ type QaPageCursor = {
 
 type RankedQaQuestionRow = QaQuestionRecord & {
   authorNickname: string | null;
+  authorKindergartenAnimalId?: number | null;
   authorTeamName: string | null;
   myVote: 'UP' | 'DOWN' | null;
   positiveVoteCount: number;
@@ -605,11 +608,6 @@ type SharedQaHostOverviewCacheEntry = {
   promise: Promise<HostQaStatusOverview>;
 };
 const sharedQaHostOverviewLoads = new Map<string, SharedQaHostOverviewCacheEntry>();
-type SharedQaParticipantCountCacheEntry = {
-  expiresAt: number;
-  promise: Promise<number>;
-};
-const sharedQaParticipantCountLoads = new Map<string, SharedQaParticipantCountCacheEntry>();
 type QaOwnQuestionQuotaSnapshot = {
   participantQuestionCount: number;
   ownQuestionCounts: { visible: number; pending: number; archived: number };
@@ -665,7 +663,6 @@ function pruneSharedQaRankingCache(nowMs: number): void {
   pruneSharedMapByExpiry(sharedQaPendingCountLoads, nowMs);
   pruneSharedMapByExpiry(sharedQaForumVisibleCountLoads, nowMs);
   pruneSharedMapByExpiry(sharedQaHostOverviewLoads, nowMs);
-  pruneSharedMapByExpiry(sharedQaParticipantCountLoads, nowMs);
   pruneSharedMapByExpiry(sharedQaSubscriptionSessionLoads, nowMs);
   pruneSharedMapByExpiry(
     sharedQaOwnQuestionQuotaLoads,
@@ -679,7 +676,6 @@ export function resetSharedQaRankingCacheForTests(): void {
   sharedQaPendingCountLoads.clear();
   sharedQaForumVisibleCountLoads.clear();
   sharedQaHostOverviewLoads.clear();
-  sharedQaParticipantCountLoads.clear();
   sharedQaSubscriptionSessionLoads.clear();
   sharedQaOwnQuestionQuotaLoads.clear();
 }
@@ -691,6 +687,11 @@ function invalidateQaOwnQuestionQuotaCache(sessionId: string, participantId?: st
       sharedQaOwnQuestionQuotaLoads.delete(key);
     }
   }
+}
+
+export function invalidateLocalQaQuestionsForSession(sessionId: string): void {
+  invalidateQaOwnQuestionQuotaCache(sessionId);
+  emitQaQuestionsSignal(sessionId, { immediate: true });
 }
 
 function rememberSharedPromise<T>(
@@ -725,18 +726,6 @@ function rememberSharedPromise<T>(
   );
   map.set(key, entry);
   return entry.promise;
-}
-
-async function loadQaParticipantCount(
-  sessionId: string,
-  rankingRevision: number,
-  participantRevision: number,
-): Promise<number> {
-  return rememberSharedPromise(
-    sharedQaParticipantCountLoads,
-    `${sessionId}:${rankingRevision}:${participantRevision}`,
-    () => prisma.participant.count({ where: { sessionId } }),
-  );
 }
 
 async function loadQaOwnQuestionQuota(
@@ -943,7 +932,6 @@ async function buildQaQuestionPayloadFromDb(options: {
   /** Presenter/Beamer: Wilson-/Controversy-Scores in der DTO-Ausgabe. */
   includeVoteMetrics?: boolean;
   sortMode: QaQuestionSortMode;
-  participantCountForControversy?: number;
   includeAuthorNickname?: boolean;
   pageSize: number;
   cursor?: string;
@@ -973,8 +961,6 @@ async function buildQaQuestionPayloadFromDb(options: {
   const offset = cursor?.offset ?? 0;
   const moderatorView = options.moderatorView === true;
   const includeVoteMetrics = moderatorView || options.includeVoteMetrics === true;
-  const participantCount = options.participantCountForControversy ?? 0;
-  const controversyThreshold = resolveQaControversyThreshold(participantCount);
   const canSharePublicRanking =
     !moderatorView &&
     options.participantId !== undefined &&
@@ -1064,7 +1050,7 @@ async function buildQaQuestionPayloadFromDb(options: {
   const needsScoreMetrics =
     includeVoteMetrics || options.sortMode === 'BEST' || options.sortMode === 'CONTROVERSIAL';
   const scoreSelect = needsScoreMetrics
-    ? buildQaRankingScoreSelectSql(participantCount)
+    ? buildQaRankingScoreSelectSql()
     : Prisma.sql`
         0::DOUBLE PRECISION AS "bestScore",
         0::DOUBLE PRECISION AS "controversyScore"
@@ -1114,6 +1100,7 @@ async function buildQaQuestionPayloadFromDb(options: {
     SELECT
       question.*,
       participant."nickname" AS "authorNickname",
+      participant."kindergartenAnimalId" AS "authorKindergartenAnimalId",
       author_team."name" AS "authorTeamName",
       ${myVoteSelect} AS "myVote",
       page.status_bucket,
@@ -1201,7 +1188,6 @@ async function buildQaQuestionPayloadFromDb(options: {
     const isControversial = isQaControversialLabel({
       controversyScore,
       voteCount,
-      controversyThreshold,
     });
     return mapQaQuestion(
       {
@@ -1209,7 +1195,11 @@ async function buildQaQuestionPayloadFromDb(options: {
         upvoteCount: Number(row.upvoteCount),
         participant:
           options.includeAuthorNickname && (row.authorNickname || row.authorTeamName)
-            ? { nickname: row.authorNickname, teamName: row.authorTeamName }
+            ? {
+                nickname: row.authorNickname,
+                kindergartenAnimalId: row.authorKindergartenAnimalId,
+                teamName: row.authorTeamName,
+              }
             : undefined,
         upvotes:
           options.participantId && row.myVote
@@ -1225,11 +1215,7 @@ async function buildQaQuestionPayloadFromDb(options: {
         bestScore,
         controversyScore,
         isControversial,
-        controversyInsufficientVotes: isQaControversyInsufficientVotes({
-          voteCount,
-          controversyThreshold,
-          isControversial,
-        }),
+        controversyInsufficientVotes: isQaControversyInsufficientVotes(voteCount),
       },
       moderatorView || includeVoteMetrics,
       moderatorView,
@@ -1287,7 +1273,6 @@ export const qaRouter = router({
           qaClosesAt: true,
           sessionLifecycleRevision: true,
           qaRankingRevision: true,
-          participantRevision: true,
           qaQuestionCount: true,
           qaModerationMode: true,
           onboardingAnonymousMode: true,
@@ -1363,18 +1348,11 @@ export const qaRouter = router({
         });
       }
 
-      const participantCountForControversy = await loadQaParticipantCount(
-        session.id,
-        session.qaRankingRevision,
-        session.participantRevision ?? 0,
-      );
       const includeAuthorNickname = session.onboardingAnonymousMode !== true;
       const authorNickname = input.moderatorView
         ? input.authorNickname?.trim() || undefined
         : undefined;
-      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${
-        sortMode === 'CONTROVERSIAL' ? participantCountForControversy : ''
-      }`;
+      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${QA_RANKING_VERSION}`;
       const pendingCountWithoutModeration =
         session.qaModerationMode === false
           ? await loadQaPendingCount(session.id, session.qaRankingRevision)
@@ -1400,7 +1378,6 @@ export const qaRouter = router({
           // Zustimmung/Umstritten auch für Teilnehmende (Vote-UI-Labels).
           includeVoteMetrics: true,
           sortMode,
-          participantCountForControversy,
           includeAuthorNickname,
           pageSize: input.pageSize,
           cursor: input.cursor,
@@ -1439,16 +1416,9 @@ export const qaRouter = router({
           : undefined;
       const currentRevision = await prisma.session.findUnique({
         where: { id: session.id },
-        select: {
-          qaRankingRevision: true,
-          participantRevision: true,
-        },
+        select: { qaRankingRevision: true },
       });
-      if (
-        currentRevision?.qaRankingRevision !== session.qaRankingRevision ||
-        (sortMode === 'CONTROVERSIAL' &&
-          (currentRevision?.participantRevision ?? 0) !== (session.participantRevision ?? 0))
-      ) {
+      if (currentRevision?.qaRankingRevision !== session.qaRankingRevision) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Die Q&A-Rangliste hat sich geändert. Lade sie bitte neu.',
@@ -1525,7 +1495,7 @@ export const qaRouter = router({
           message: 'Fragen sind in dieser Session nicht aktiviert.',
         });
       }
-      const stageView = setQaPresenterStageView(
+      return setQaPresenterStageView(
         session.id,
         {
           sortMode: input.sortMode,
@@ -1536,7 +1506,6 @@ export const qaRouter = router({
         },
         { takeover: input.takeover === true },
       );
-      return stageView;
     }),
 
   presentProjection: publicProcedure
@@ -1581,13 +1550,14 @@ export const qaRouter = router({
           : session.qaOpen === false
             ? 'CHANNEL_CLOSED'
             : 'ACTIVE';
-      const stageView = resolveQaPresenterStageView(session.id);
+      const storedStageView = await readStoredQaPresenterStageView(session.id);
+      const stageView = storedStageView ?? QA_PRESENTER_STAGE_VIEW_DEFAULT;
       const sortMode: QaQuestionSortMode = stageView.sortMode;
-      const sortModeSource = hasQaPresenterStageView(session.id) ? stageView.source : undefined;
-      const participantCountForControversy = await prisma.participant.count({
-        where: { sessionId: session.id },
-      });
-      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${stageView.search}:${stageView.pinnedOnly ? '1' : '0'}:${stageView.authorNickname ?? ''}:${participantCountForControversy}`;
+      const sortModeSource = storedStageView?.source;
+      const filterRevision = createHash('sha256')
+        .update(JSON.stringify([stageView.search, stageView.pinnedOnly, stageView.authorNickname]))
+        .digest('base64url');
+      const rankingRevision = `${session.qaRankingRevision}:${sortMode}:${QA_RANKING_VERSION}:${filterRevision}`;
       // Eine Seite à Forum-Maximum: ACTIVE+PINNED vollständig bis 500 (DTO-Cap).
       // Früher pageSize 100 → Host-Navigator und Presenter-Warteschlange divergierten.
       const presentProjectionPageSize =
@@ -1600,7 +1570,6 @@ export const qaRouter = router({
         moderatorView: false,
         includeVoteMetrics: true,
         sortMode,
-        participantCountForControversy,
         includeAuthorNickname: session.onboardingAnonymousMode !== true,
         pageSize: presentProjectionPageSize,
         statuses,
@@ -1662,10 +1631,7 @@ export const qaRouter = router({
       }
       const hostToken = await assertHostSessionAccessFromContext(ctx, session.code);
       assertQaHostContentReadAllowed(session);
-      const current = getQaSummaryRuntime(input.sessionId);
-      return getQaSummaryRuntimeFresh(input.sessionId, current.result?.locale ?? 'de', {
-        hostToken,
-      });
+      return getQaSummaryRuntimeFresh(input.sessionId, { hostToken });
     }),
 
   summaryContextPreview: publicProcedure
@@ -1830,6 +1796,7 @@ export const qaRouter = router({
         });
         invalidateQaOwnQuestionQuotaCache(session.id);
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
         return moderated;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
@@ -1962,7 +1929,9 @@ export const qaRouter = router({
           return mapQaQuestion(updated);
         });
 
-        invalidateQaSummaryForSession(session.id);
+        await invalidateQaSummaryForSession(session.id).catch(() => {
+          logger.warn('qa_summary:state_invalidation_failed');
+        });
         // Immer invalidieren: ein früher gestarteter Job kann noch laufen, auch wenn NLP jetzt aus ist.
         if (redactedQuestionId) {
           invalidateQaNlpForQuestion(redactedQuestionId);
@@ -1979,6 +1948,7 @@ export const qaRouter = router({
           });
         }
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
         return redacted;
       } catch (error) {
         if (String(error).includes('ARSNOVA_SESSION_ENDED')) {
@@ -2059,6 +2029,7 @@ export const qaRouter = router({
         });
         invalidateQaOwnQuestionQuotaCache(input.sessionId, input.participantId);
         emitQaQuestionsSignal(input.sessionId);
+        publishQaQuestionsInvalidation(input.sessionId);
       }
       return {
         question: mapQaQuestion(
@@ -2135,6 +2106,7 @@ export const qaRouter = router({
       }
       invalidateQaOwnQuestionQuotaCache(question.sessionId, input.participantId);
       emitQaQuestionsSignal(question.sessionId, { immediate: true });
+      publishQaQuestionsInvalidation(question.sessionId, { immediate: true });
       return { deleted: true };
     }),
 
@@ -2163,6 +2135,7 @@ export const qaRouter = router({
           idempotencyKey: `qa-rating:${randomUUID()}`,
         });
         emitQaQuestionsSignal(question.sessionId);
+        publishQaQuestionsInvalidation(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -2196,6 +2169,7 @@ export const qaRouter = router({
           idempotencyKey: `qa-rating:${randomUUID()}`,
         });
         emitQaQuestionsSignal(question.sessionId);
+        publishQaQuestionsInvalidation(question.sessionId);
       }
       return {
         questionId: result.questionId,
@@ -2335,6 +2309,7 @@ export const qaRouter = router({
       if (releasedCount > 0) {
         invalidateQaOwnQuestionQuotaCache(session.id);
         emitQaQuestionsSignal(session.id, { immediate: true });
+        publishQaQuestionsInvalidation(session.id, { immediate: true });
       }
       return { releasedCount };
     }),
@@ -2378,6 +2353,7 @@ export const qaRouter = router({
         })
         .catch(rethrowQaContributionError);
       emitQaQuestionsSignal(session.id, { immediate: true });
+      publishQaQuestionsInvalidation(session.id, { immediate: true });
       return { enabled: updated.qaModerationMode };
     }),
 
@@ -2386,7 +2362,6 @@ export const qaRouter = router({
     .output(zAsyncIterable(QaQuestionsInvalidationDTOSchema))
     .subscription(async function* ({ input, ctx }) {
       let lastRevisionKey = '';
-      const sortMode = input.sort;
 
       const gateSession = await prisma.session.findUnique({
         where: { id: input.sessionId },
@@ -2486,11 +2461,8 @@ export const qaRouter = router({
             participantId: input.participantId!,
           });
         }
-        const signalVersionBeforeRead = getQaQuestionsSignalVersion(input.sessionId);
-        const session = await loadQaSubscriptionSessionSnapshot(
-          input.sessionId,
-          signalVersionBeforeRead,
-        );
+        const signalVersion = getQaQuestionsSignalVersion(input.sessionId);
+        const session = await loadQaSubscriptionSessionSnapshot(input.sessionId, signalVersion);
         if (!session) {
           return;
         }
@@ -2537,7 +2509,6 @@ export const qaRouter = router({
               : !input.moderatorView && session.qaOpen === false
                 ? 'CHANNEL_CLOSED'
                 : 'ACTIVE';
-        const signalVersion = getQaQuestionsSignalVersion(session.id);
         if (!input.moderatorView && contentState !== 'ACTIVE') {
           const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${session.qaRankingRevision}:${session.participantRevision}`;
           if (revisionKey !== lastRevisionKey) {
@@ -2555,9 +2526,7 @@ export const qaRouter = router({
 
         const revisionKey = `${contentState}:${session.sessionLifecycleRevision}:${
           session.qaRankingRevision
-        }:${sortMode === 'CONTROVERSIAL' ? session.participantRevision : ''}:${
-          input.moderatorView ? session.qaModerationMode : ''
-        }`;
+        }:${input.moderatorView ? session.qaModerationMode : ''}`;
         if (revisionKey === lastRevisionKey) {
           await waitForNextTick(session, signalVersion);
           continue;

@@ -16,14 +16,14 @@ export const QA_NLP_CONCURRENCY_DEFAULT = 1;
 export const QA_NLP_CONCURRENCY_MIN = 1;
 export const QA_NLP_CONCURRENCY_MAX = 4;
 export const QA_NLP_STUB_MODEL_VERSION = 'stub';
-export const QA_NLP_GATEKEEPER_MODEL_VERSION = 'gatekeeper-hash-nb-v1';
+export const QA_NLP_GATEKEEPER_MODEL_VERSION = 'gatekeeper-hash-nb-v3';
 /** Level-2 k-NN imselben gehashten n-Gramm-Raum (kein Transformer-Download). */
-export const QA_NLP_FALLBACK_MODEL_VERSION = 'fallback-knn-v1';
+export const QA_NLP_FALLBACK_MODEL_VERSION = 'fallback-knn-v3';
 export const QA_NLP_EARLY_EXIT_MARGIN = 0.22;
 export const QA_NLP_EARLY_EXIT_MIN_TOKENS = 6;
 export const QA_NLP_FALLBACK_K = 5;
 export const QA_NLP_FALLBACK_MIN_AGREEMENT = 0.6;
-export const QA_NLP_FALLBACK_MIN_SIMILARITY = 0.12;
+export const QA_NLP_FALLBACK_MIN_SIMILARITY = 0.14;
 export const QA_NLP_MIN_CONFIDENCE_DEFAULT = 0.55;
 export const QA_NLP_MIN_CONFIDENCE_MIN = 0.2;
 export const QA_NLP_MIN_CONFIDENCE_MAX = 0.95;

@@ -1,6 +1,15 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import {
+  getKindergartenAnimalId,
+  getKindergartenAnimalNames,
+  getKindergartenCounterId,
+  getLegacyKindergartenAnimal,
+  INVALID_KINDERGARTEN_NICKNAME_MESSAGE,
+  type NicknameTheme,
+} from '@arsnova/shared-types';
 import { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
+import { prisma } from '../db';
 import {
   createOpaqueCapability,
   decryptCapabilityEnvelope,
@@ -13,6 +22,8 @@ import { hashToken as hashProductFeedbackToken } from './productFeedbackTokens';
 import { enqueueUsageStatisticEvent } from './usageStatistic';
 
 export const PARTICIPANT_JOIN_REPLAY_MS = 10 * 60 * 1000;
+/** Burst aus dem Hörsaal darf auf einen freien Pool-Slot warten statt hart zu scheitern. */
+export const PARTICIPANT_JOIN_TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 15_000 } as const;
 
 export async function expireParticipantJoinReplayEnvelopes(
   tx: Prisma.TransactionClient,
@@ -31,6 +42,7 @@ export async function expireParticipantJoinReplayEnvelopes(
 type JoinProfile = {
   allowCustomNicknames: boolean;
   anonymousMode: boolean;
+  nicknameTheme?: NicknameTheme;
 };
 
 type ParticipantJoinEnvelope = {
@@ -42,6 +54,7 @@ export type PreparedParticipantJoin = {
   participantId: string;
   participantNumber: number;
   nickname: string;
+  kindergartenAnimalId?: number;
   teamId: string | null;
   teamName: string | null;
   timerAccommodation: string;
@@ -90,9 +103,153 @@ function appendParticipantNumber(nickname: string, participantNumber: number): s
   return `${nickname.slice(0, maxBaseLength).trimEnd()}${suffix}`;
 }
 
+async function allocateKindergartenNickname(
+  tx: Prisma.TransactionClient,
+  sessionId: string,
+  animalId: number,
+  nickname: string,
+): Promise<string> {
+  const counterId = getKindergartenCounterId(animalId);
+  const counter = { sessionId, animalId: counterId };
+  const where = { sessionId_animalId: counter };
+  const select = { lastNumber: true };
+  const allocation = await tx.kindergartenNicknameCounter.upsert({
+    where,
+    create: { ...counter, lastNumber: 1 },
+    update: { lastNumber: { increment: 1 } },
+    select,
+  });
+
+  const localizedNames = getKindergartenAnimalNames(counterId);
+  let number = allocation.lastNumber;
+  // Bestehende Teilnahmen können dieselbe Tier-Nummer aus der alten Vergabe tragen.
+  while (
+    await tx.participant.findFirst({
+      where: {
+        sessionId,
+        nickname: { in: localizedNames.map((name) => appendParticipantNumber(name, number)) },
+      },
+      select: { id: true },
+    })
+  ) {
+    number += 1;
+  }
+  if (number !== allocation.lastNumber) {
+    await tx.kindergartenNicknameCounter.update({ where, data: { lastNumber: number }, select });
+  }
+  return appendParticipantNumber(nickname, number);
+}
+
 function anonymousNickname(requestedNickname: string, participantNumber: number): string {
   const stem = requestedNickname.replace(/\s+\d+$/, '').trim() || 'User';
   return appendParticipantNumber(stem, participantNumber);
+}
+
+const CUSTOM_JOIN_BATCH_SIZE = 64;
+const CUSTOM_JOIN_BATCH_WINDOW_MS = 5;
+
+type CustomJoinCandidate = {
+  id: string;
+  nickname: string;
+  clientHash: string | null;
+  rejoinHash: string;
+  feedbackHash: string;
+  replayHash: string;
+  envelope: string;
+};
+
+type PreparedCustomParticipantJoin = PreparedParticipantJoin & { batch: object };
+
+type PendingCustomJoin = {
+  candidate: CustomJoinCandidate;
+  credentials: ParticipantJoinEnvelope;
+  resolve: (join: PreparedCustomParticipantJoin | null) => void;
+  reject: (error: unknown) => void;
+};
+
+const pendingCustomJoins = new Map<string, PendingCustomJoin[]>();
+
+async function flushCustomJoins(sessionId: string, pending: PendingCustomJoin[]): Promise<void> {
+  while (pending.length > 0) {
+    const batch = pending.splice(0, CUSTOM_JOIN_BATCH_SIZE);
+    try {
+      const candidates = JSON.stringify(batch.map((entry) => entry.candidate));
+      const rows = await prisma.$transaction(
+        (tx) => tx.$queryRaw<
+          Pick<
+            PreparedParticipantJoin,
+            'participantId' | 'participantNumber' | 'timerAccommodation'
+          >[]
+        >`SELECT * FROM arsnova_create_custom_participant_joins(
+          ${sessionId}, ${candidates}::jsonb, ${PARTICIPANT_JOIN_REPLAY_MS}::integer
+        )`,
+        PARTICIPANT_JOIN_TRANSACTION_OPTIONS,
+      );
+      const byId = new Map(rows.map((row) => [row.participantId, row]));
+      const batchIdentity = {};
+      for (const { candidate, credentials, resolve } of batch) {
+        const row = byId.get(candidate.id);
+        if (!row) {
+          resolve(null);
+          continue;
+        }
+        rememberParticipantCapability(sessionId, row.participantId, credentials.rejoinCapability);
+        resolve({
+          ...row,
+          ...credentials,
+          batch: batchIdentity,
+          nickname: candidate.nickname,
+          teamId: null,
+          teamName: null,
+          rejoined: false,
+        });
+      }
+    } catch (error) {
+      for (const { reject } of batch) reject(error);
+    }
+  }
+  pendingCustomJoins.delete(sessionId);
+}
+
+/** Nur Erstbeitritte mit freiem Nickname und gespeichertem Profil ohne Teams. */
+export function tryPrepareCustomParticipantJoin(input: {
+  sessionId: string;
+  requestedNickname: string;
+  anonymousClientId?: string;
+  joinIdempotencyKey: string;
+}): Promise<PreparedCustomParticipantJoin | null> {
+  const { sessionId } = input;
+  // PostgreSQL-JSONB kann NUL und ungepaarte Surrogate nicht lesen.
+  // Ein solcher Name wird wie bisher isoliert im Einzelpfad behandelt.
+  if (
+    input.requestedNickname.includes('\0') ||
+    Buffer.from(input.requestedNickname, 'utf8').toString('utf8') !== input.requestedNickname
+  ) {
+    return Promise.resolve(null);
+  }
+  const credentials = {
+    rejoinCapability: createOpaqueCapability(),
+    productFeedbackClaimToken: createOpaqueCapability(),
+  };
+  const replayHash = hashCapabilityIndex(input.joinIdempotencyKey, `participant-join:${sessionId}`);
+  const candidate = {
+    id: randomUUID(),
+    nickname: input.requestedNickname,
+    clientHash: input.anonymousClientId ? hashCapability(input.anonymousClientId) : null,
+    rejoinHash: hashCapability(credentials.rejoinCapability),
+    feedbackHash: hashProductFeedbackToken(credentials.productFeedbackClaimToken),
+    replayHash,
+    envelope: encryptCapabilityEnvelope(credentials, replayAad(sessionId, replayHash)),
+  };
+  return new Promise((resolve, reject) => {
+    const current = pendingCustomJoins.get(sessionId);
+    const pending = current ?? [];
+    pending.push({ candidate, credentials, resolve, reject });
+    if (!current) {
+      pendingCustomJoins.set(sessionId, pending);
+      setTimeout(() => void flushCustomJoins(sessionId, pending), CUSTOM_JOIN_BATCH_WINDOW_MS);
+    }
+  });
 }
 
 async function databaseNow(tx: Prisma.TransactionClient): Promise<Date> {
@@ -121,6 +278,7 @@ async function replayPreparedJoin(params: {
           id: true,
           participantNumber: true,
           nickname: true,
+          kindergartenAnimalId: true,
           teamId: true,
           timerAccommodation: true,
           team: { select: { name: true } },
@@ -145,6 +303,7 @@ async function replayPreparedJoin(params: {
     participantId: replay.participant.id,
     participantNumber: replay.participant.participantNumber,
     nickname: replay.participant.nickname,
+    kindergartenAnimalId: replay.participant.kindergartenAnimalId ?? undefined,
     teamId: replay.participant.teamId,
     teamName: replay.participant.team?.name ?? null,
     timerAccommodation: replay.participant.timerAccommodation,
@@ -158,6 +317,7 @@ export async function prepareParticipantJoin(params: {
   tx: Prisma.TransactionClient;
   sessionId: string;
   requestedNickname: string;
+  kindergartenAnimalId?: number;
   assignedTeamId?: string;
   autoTeamIds?: readonly string[];
   requireAssignedTeamForNew?: boolean;
@@ -193,6 +353,7 @@ export async function prepareParticipantJoin(params: {
     id: string;
     participantNumber: number | null;
     nickname: string;
+    kindergartenAnimalId?: number | null;
     teamId: string | null;
     timerAccommodation: string;
     productFeedbackClaimTokenHash: string | null;
@@ -203,6 +364,7 @@ export async function prepareParticipantJoin(params: {
     id: true,
     participantNumber: true,
     nickname: true,
+    kindergartenAnimalId: true,
     teamId: true,
     timerAccommodation: true,
     productFeedbackClaimTokenHash: true,
@@ -269,6 +431,7 @@ export async function prepareParticipantJoin(params: {
       participantId: existing.id,
       participantNumber: existing.participantNumber,
       nickname: existing.nickname,
+      kindergartenAnimalId: existing.kindergartenAnimalId ?? undefined,
       teamId: existing.teamId,
       teamName: existing.team?.name ?? null,
       timerAccommodation: existing.timerAccommodation,
@@ -324,11 +487,32 @@ export async function prepareParticipantJoin(params: {
       ? params.autoTeamIds[(participantNumber - 1) % params.autoTeamIds.length]
       : undefined);
   let nickname = params.requestedNickname.trim().slice(0, 30);
+  let kindergartenAnimalId: number | undefined;
   if (params.profile.anonymousMode) {
     nickname = anonymousNickname(nickname, participantNumber);
   } else if (!params.profile.allowCustomNicknames) {
     const presetNickname = nickname.replace(/\s+\d+$/, '').trim() || 'User';
-    nickname = appendParticipantNumber(presetNickname, participantNumber);
+    const legacyAnimal =
+      params.profile.nicknameTheme === 'KINDERGARTEN' && params.kindergartenAnimalId === undefined
+        ? getLegacyKindergartenAnimal(presetNickname)
+        : undefined;
+    kindergartenAnimalId =
+      params.profile.nicknameTheme === 'KINDERGARTEN'
+        ? (getKindergartenAnimalId(presetNickname, params.kindergartenAnimalId) ??
+          legacyAnimal?.animalId)
+        : undefined;
+    if (params.profile.nicknameTheme === 'KINDERGARTEN' && kindergartenAnimalId === undefined) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: INVALID_KINDERGARTEN_NICKNAME_MESSAGE });
+    }
+    nickname =
+      kindergartenAnimalId === undefined
+        ? appendParticipantNumber(presetNickname, participantNumber)
+        : await allocateKindergartenNickname(
+            params.tx,
+            params.sessionId,
+            kindergartenAnimalId,
+            legacyAnimal?.name ?? presetNickname,
+          );
   }
 
   const rejoinCapability = createOpaqueCapability();
@@ -339,6 +523,7 @@ export async function prepareParticipantJoin(params: {
         sessionId: params.sessionId,
         participantNumber,
         nickname,
+        kindergartenAnimalId,
         teamId: assignedTeamId,
         rejoinCapabilityHash: hashCapability(rejoinCapability),
         productFeedbackClaimTokenHash: hashProductFeedbackToken(productFeedbackClaimToken),
@@ -348,6 +533,7 @@ export async function prepareParticipantJoin(params: {
         id: true,
         participantNumber: true,
         nickname: true,
+        kindergartenAnimalId: true,
         teamId: true,
         timerAccommodation: true,
         team: { select: { name: true } },
@@ -381,6 +567,7 @@ export async function prepareParticipantJoin(params: {
       participantId: participant.id,
       participantNumber,
       nickname: participant.nickname,
+      kindergartenAnimalId: participant.kindergartenAnimalId ?? undefined,
       teamId: participant.teamId,
       teamName: participant.team?.name ?? null,
       timerAccommodation: participant.timerAccommodation,
