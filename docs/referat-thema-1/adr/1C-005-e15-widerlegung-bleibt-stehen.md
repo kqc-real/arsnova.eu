@@ -9,7 +9,7 @@ Auftragsschritte 1 und 2 verlangen den vollständigen #456-Kontext auf dem Draht
 
 ## Entscheidung
 
-Die Widerlegung bleibt stehen. Der vorregistrierte Fall wird nicht nachträglich umformuliert, etwa auf ein größeres Profil oder weniger Bereiche. Getroffen hat das die KI-gestützte Steuerung; vom Autor ist es noch zu bestätigen ([E15](../evidenz/1C/2026-10-24-teil3.md#e15--voller-456-kontext-auf-dem-draht), [KI-Nutzung Teil 3](../evidenz/1C/2026-10-24-teil3.md#ki-nutzung)). _Aktualisiert 2026-11-12:_ Der Autor hat die Entscheidung bestätigt ([Stand der Autorenprüfung](../1C-eigenanteil.md#stand-der-autorenprüfung)).
+Die Widerlegung bleibt stehen. Der vorregistrierte Fall wird nicht nachträglich umformuliert, etwa auf ein größeres Profil oder weniger Bereiche. Getroffen hat das die KI-gestützte Steuerung; vom Autor ist es noch zu bestätigen ([E15](../evidenz/1C/2026-10-24-teil3.md#e15--voller-456-kontext-auf-dem-draht), [KI-Nutzung Teil 3](../evidenz/1C/2026-10-24-teil3.md#ki-nutzung)). _Aktualisiert 2026-11-12:_ Der Autor hat die Entscheidung bestätigt ([Stand der Autorenprüfung](../1C/1C-eigenanteil.md#stand-der-autorenprüfung)).
 
 ## Alternativen
 
@@ -28,7 +28,7 @@ Beobachtung: K (1) von E15 rot, drei Bereiche leer → Hypothese: Packbudget sta
 
 ## Folgen
 
-- **Für das Referat:** „voller #456-Kontext auf dem Draht“ gilt als widerlegt; ein Bereich kann aus Budgetgründen `available` und leer sein. Das ist kein Transportfehler, aber eine Grenze für „kein stiller Feldverlust“ (Punkt 3, [1C-diagrams](../1C-diagrams.md#aufgabenabdeckung-prüfungsdokument-43-1c)).
+- **Für das Referat:** „voller #456-Kontext auf dem Draht“ gilt als widerlegt; ein Bereich kann aus Budgetgründen `available` und leer sein. Das ist kein Transportfehler, aber eine Grenze für „kein stiller Feldverlust“ (Punkt 3, [1C-diagrams](../1C/1C-diagrams.md#aufgabenabdeckung-prüfungsdokument-43-1c)).
 - **Kosten:** keine. **Risiko:** keines für das Produkt.
 - **Gültigkeitsgrenze:** eine synthetische Fixture; welche Lage eintritt (Lernziel enthalten oder nicht), hängt von zufälligen IDs ab und ist nicht deterministisch; die Ursache im Greedy-Packer ist nicht weiter untersucht ([E15](../evidenz/1C/2026-10-24-teil3.md#e15--voller-456-kontext-auf-dem-draht)).
 - _Aktualisiert 2026-11-12:_ vom Autor bestätigt; nichts mehr offen.

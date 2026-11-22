@@ -6,7 +6,7 @@ Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 Niklas hat nach Freigabe drei Label-Aufträge mit +500 ms Antwortverzögerung
 und Live-Last ausgeführt. Reduzierter Umfang vor dem Lauf auf seinen Wunsch
-festgelegt, siehe [Planung](../../1B-3u4-Planung.md).
+festgelegt, siehe [Planung](../../1B/archiv/1B-3u4-Planung.md).
 
 - Ausführungs- und Auswertungscommit:
   `7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.

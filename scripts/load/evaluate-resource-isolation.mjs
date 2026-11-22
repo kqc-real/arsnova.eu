@@ -61,7 +61,7 @@ export async function leseVersuchsreihe(ordner, reihe) {
     'Vollständiger Abschluss der festgelegten Baseline erforderlich.',
   );
   fordere(
-    sha256(await readFile(join(root, 'docs/referat-thema-1/1A-experiment-contract.md'))) ===
+    sha256(await readFile(join(root, 'docs/referat-thema-1/1A/1A-experiment-contract.md'))) ===
       vertragSha,
     'Der vorab festgelegte Vertrag wurde verändert.',
   );

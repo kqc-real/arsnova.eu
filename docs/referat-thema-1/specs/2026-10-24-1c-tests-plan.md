@@ -415,7 +415,7 @@ Then run `mise exec node@24.18.0 -- npx prettier --check docs/TESTING.md .github
 **Files:**
 
 - Modify: `docs/referat-thema-1/evidenz/1C/2026-10-24-tests.md` (summary table)
-- Modify: `docs/referat-thema-1/1C-diagrams.md`, only if a hypothesis was refuted (e.g. T2.3, T5.5) or a finding needs a test reference
+- Modify: `docs/referat-thema-1/1C/1C-diagrams.md`, only if a hypothesis was refuted (e.g. T2.3, T5.5) or a finding needs a test reference
 
 - [ ] **Step 1: Full validation**
 
@@ -433,7 +433,7 @@ Add a table: case | H confirmed / refuted | test name | mutation red → green. 
 
 - [ ] **Step 4: Update the Referat document where outcomes require it**
 
-In `1C-diagrams.md`, link findings 3 and 4 to their test names, and correct any statement a refuted hypothesis contradicts.
+In `1C/1C-diagrams.md`, link findings 3 and 4 to their test names, and correct any statement a refuted hypothesis contradicts.
 
 - [ ] **Step 5: Commit, push, open the draft PR**
 
@@ -444,4 +444,4 @@ In `1C-diagrams.md`, link findings 3 and 4 to their test names, and correct any 
 
 ## Nachtrag: KI-Nutzung (2026-10-24, nach der Ausführung)
 
-Dieser Plan wurde mit Claude Code (Anthropic, Modell Claude Opus 5.5) entworfen und vom Autor vor der Ausführung freigegeben. Der übrige Inhalt ist seit der Freigabe unverändert; dieser Abschnitt ist der einzige Nachtrag. Einzelheiten zur KI-Nutzung: [`1C-diagrams.md`](../1C-diagrams.md#method-verification-and-ai-use). Der Hinweis „For agentic workers: REQUIRED SUB-SKILL …“ am Anfang ist eine Steueranweisung für den ausführenden KI-Agenten.
+Dieser Plan wurde mit Claude Code (Anthropic, Modell Claude Opus 5.5) entworfen und vom Autor vor der Ausführung freigegeben. Der übrige Inhalt ist seit der Freigabe unverändert; dieser Abschnitt ist der einzige Nachtrag. Einzelheiten zur KI-Nutzung: [`1C/1C-diagrams.md`](../1C/1C-diagrams.md#method-verification-and-ai-use). Der Hinweis „For agentic workers: REQUIRED SUB-SKILL …“ am Anfang ist eine Steueranweisung für den ausführenden KI-Agenten.

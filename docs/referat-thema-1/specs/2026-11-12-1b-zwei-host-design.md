@@ -56,7 +56,7 @@ Laptop (Arch/Omarchy, KVM)
 - **Runtime-Image:** `prod-compose.mjs` verlangt eine Referenz mit `@sha256:`-Digest; im Repo steht kein Digest (Dossier, Abschnitt 13, Frage 2). Die Bauenden wählen den Weg (etwa eine lokale Registry in der llm-host-VM nach Runbook Anhang A) und dokumentieren ihn als Befund für Kernaussage C.
 - **Encoder und spaCy** bleiben aus (Release-Default `false`, Profile werden nicht gestartet). Der Encoder wird in der Abgleichtabelle als Komponente des App-Hosts ausgewiesen, nicht betrieben.
 
-**Verworfen** (für ADR 1B-002): PC plus Laptop über WireGuard (Netzzeit würde einen Internet-Tunnel messen, instabile Verbindung, PC aus der Ferne nicht wiederherstellbar); PC und Laptop im Heimnetz (Anwesenheit am Messtag nötig); Same-Host-Profil `llm` (kein Zwei-Host-Deployment). Grundlage der Wahl: Antwort des Prüfers „Die Laborinstanz ist Ihr eigener Rechner“ ([Rahmendokument, Frage 4](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)). Keine Mail an den Prüfer; die Begründung steht im ADR (Autor).
+**Verworfen** (für ADR 1B-002): PC plus Laptop über WireGuard (Netzzeit würde einen Internet-Tunnel messen, instabile Verbindung, PC aus der Ferne nicht wiederherstellbar); PC und Laptop im Heimnetz (Anwesenheit am Messtag nötig); Same-Host-Profil `llm` (kein Zwei-Host-Deployment). Grundlage der Wahl: Antwort des Prüfers „Die Laborinstanz ist Ihr eigener Rechner“ ([Rahmendokument, Frage 4](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)). Keine Mail an den Prüfer; die Begründung steht im ADR (Autor).
 
 ### 3.2 Portabilität (Autor)
 
@@ -88,7 +88,7 @@ Weitere Abweichungen, die beim Bauen auftauchen, kommen vor dem gewerteten Lauf 
 ### 3.5 Referenzstand und Manifest
 
 - Codestand: Fork-`main` `a19ca70f` plus Branch-Commits, die nur Doku, Skripte und Testhelfer ändern. ADR 1B-001 begründet die Baseline nach [ADR 1C-001](../adr/1C-001-baseline-aktueller-main.md).
-- Manifest: Tabelle 3.8 des [Dossiers](../1B-private-inferenz-zweiter-host.md#38-tabelle-aller-gepinnten-artefakte-und-werte-referenzmanifest-entwurf) am aktuellen Stand ausfüllen (Image-Digest, GGUF-Digest, Flags, Limits, Timeouts) und im Laufprotokoll ablegen. Alle Zeilenangaben des Dossiers (Stand `27966e75`) werden am Stand `a19ca70f` nachgeprüft; sie haben sich verschoben (z. B. `runOpenWeightLlm` jetzt `openWeightLlmClient.ts` Z. 480–589).
+- Manifest: Tabelle 3.8 des [Dossiers](../1B/1B-private-inferenz-zweiter-host.md#38-tabelle-aller-gepinnten-artefakte-und-werte-referenzmanifest-entwurf) am aktuellen Stand ausfüllen (Image-Digest, GGUF-Digest, Flags, Limits, Timeouts) und im Laufprotokoll ablegen. Alle Zeilenangaben des Dossiers (Stand `27966e75`) werden am Stand `a19ca70f` nachgeprüft; sie haben sich verschoben (z. B. `runOpenWeightLlm` jetzt `openWeightLlmClient.ts` Z. 480–589).
 
 ## 4. Der Auftrag (Autor)
 
@@ -156,13 +156,13 @@ Ohne Eingriff in den Release-Pfad. Der aufzeichnende Proxy aus 1C passt nicht: E
 
 ## 9. Ergebnisse und Ablage (KI-Vorschlag nach den Ordnerregeln)
 
-- `docs/referat-thema-1/1B-ergebnis.md`: gemeinsames Hauptdokument mit Abschnitten zu Schritten 1–2 und 3–4 und gemeinsamem Kurzfazit (Autor). Diese PR füllt Schritte 1–2 und legt die Gliederung für 3–4 an.
+- `docs/referat-thema-1/1B/1B-ergebnis.md`: gemeinsames Hauptdokument mit Abschnitten zu Schritten 1–2 und 3–4 und gemeinsamem Kurzfazit (Autor). Diese PR füllt Schritte 1–2 und legt die Gliederung für 3–4 an.
 - ADRs `1B-001…019` (Autor); mindestens: Baseline (001), Topologie zwei VMs (002), Netzregel (003), Summary mit 1C-Fixture (004), Abweichungen vom Release (005), Zeitmessung per Mitschnitt (006), Umgang mit den 1C-Fallen (007), Kernaussagen und Schwellen (008), Portabilität (009). Zuschnitt entscheiden die Bauenden.
 - `evidenz/1B/`: Laufprotokoll(e), Abgleichtabelle, abgeleitete Rohdaten, Runbook für den Nachbau.
 - Skripte und cloud-init-Dateien: unter `evidenz/1B/` oder `scripts/` (Bauende entscheiden; Testhelfer bleiben außerhalb von Produktionscode).
 - Belegtabelle mit Zeilennummern in einer Diagrammdoku zu 1B (Ordnerregel „Code-Belege“).
 - Eigenanteil je Person (Autor); Datei und Zuschnitt entscheiden die Bauenden.
-- `01-aufteilung.md`: Vorschlag „zwei PRs nacheinander, Niklas zweigt nach dem Merge ab“ eintragen, als noch mit Niklas abzustimmen (Autor). `README.md` des Ordners um die neuen Dateien ergänzen. `AGENTS.md` des Ordners nach 3.3.
+- `rahmen/01-aufteilung.md`: Vorschlag „zwei PRs nacheinander, Niklas zweigt nach dem Merge ab“ eintragen, als noch mit Niklas abzustimmen (Autor). `README.md` des Ordners um die neuen Dateien ergänzen. `AGENTS.md` des Ordners nach 3.3.
 
 ## 10. Ablauf und Regeln für die Arbeit
 

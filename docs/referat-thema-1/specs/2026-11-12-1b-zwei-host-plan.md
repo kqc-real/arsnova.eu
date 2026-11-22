@@ -41,25 +41,25 @@
 
 ## Dateistruktur
 
-| Datei                                                   | Verantwortung                                                                                     |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `evidenz/1B/vm/netz.xml`                                | libvirt-Netz `arsnova-1b`: NAT ausgehend, privates /24, statische IPs                             |
-| `evidenz/1B/vm/app-host.user-data.yaml`                 | cloud-init des app-hosts (Docker, Node 22, Repo-Stand, tcpdump/tshark)                            |
-| `evidenz/1B/vm/llm-host.user-data.yaml`                 | cloud-init des llm-hosts (Docker, Node 22, `ufw`, Repo-Stand, lokale Registry, tcpdump/tshark)    |
-| `evidenz/1B/vm/vm-linux.sh`                             | Startschicht Linux: Netz, Image, Seeds, `virt-install` mit CPU-Pinning, `destroy`                 |
-| `evidenz/1B/vm/WINDOWS.md`                              | Startschicht Windows (ungetestet, Niklas prüft)                                                   |
-| `evidenz/1B/llm-vm.override.yml`                        | Override: `cpus: '4.0'`, `OPEN_WEIGHT_LLM_THREADS: '4'`                                           |
-| `evidenz/1B/llm-start.sh`                               | im llm-host: Wrapper-Prüfungen per Trockenlauf, dann Start mit Override                           |
-| `evidenz/1B/treiber.mjs`                                | Referenzszenario über tRPC anlegen, Summary anfordern, Ergebnis abholen                           |
-| `evidenz/1B/lauf.sh`                                    | vom Laptop: `kalibrierung` und `lauf` (Mitschnitte, Speicherlog, Treiber, Einsammeln, Auswertung) |
-| `evidenz/1B/messung/zeitzerlegung.mjs`                  | Mitschnitt-Felder plus App-Log → Zeitzerlegung je Auftrag und Kennzahlen                          |
-| `evidenz/1B/messung/zeitzerlegung.test.mjs`             | `node:test` mit synthetischen Eingaben                                                            |
-| `evidenz/1B/runbook.md`                                 | Nachbau Schritt für Schritt (Linux), Verweis auf `WINDOWS.md`                                     |
-| `evidenz/1B/<DATUM>-aufbau.md`                          | Protokoll Schritt 1 mit Abgleichtabelle                                                           |
-| `evidenz/1B/<DATUM>-lauf.md`                            | Protokoll Schritt 2                                                                               |
-| `adr/1B-001…009-*.md`, `adr/README.md`                  | Entscheidungen                                                                                    |
-| `1B-ergebnis.md`, `1B-diagrams.md`, `1B-eigenanteil.md` | Hauptdokument, Belegtabelle mit Zeilennummern, Eigenanteil je Person                              |
-| `AGENTS.md`, `01-aufteilung.md`, `README.md` (Ordner)   | Netzregel, PR-Reihenfolge, Dateiübersicht                                                         |
+| Datei                                                            | Verantwortung                                                                                     |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `evidenz/1B/vm/netz.xml`                                         | libvirt-Netz `arsnova-1b`: NAT ausgehend, privates /24, statische IPs                             |
+| `evidenz/1B/vm/app-host.user-data.yaml`                          | cloud-init des app-hosts (Docker, Node 22, Repo-Stand, tcpdump/tshark)                            |
+| `evidenz/1B/vm/llm-host.user-data.yaml`                          | cloud-init des llm-hosts (Docker, Node 22, `ufw`, Repo-Stand, lokale Registry, tcpdump/tshark)    |
+| `evidenz/1B/vm/vm-linux.sh`                                      | Startschicht Linux: Netz, Image, Seeds, `virt-install` mit CPU-Pinning, `destroy`                 |
+| `evidenz/1B/vm/WINDOWS.md`                                       | Startschicht Windows (ungetestet, Niklas prüft)                                                   |
+| `evidenz/1B/llm-vm.override.yml`                                 | Override: `cpus: '4.0'`, `OPEN_WEIGHT_LLM_THREADS: '4'`                                           |
+| `evidenz/1B/llm-start.sh`                                        | im llm-host: Wrapper-Prüfungen per Trockenlauf, dann Start mit Override                           |
+| `evidenz/1B/treiber.mjs`                                         | Referenzszenario über tRPC anlegen, Summary anfordern, Ergebnis abholen                           |
+| `evidenz/1B/lauf.sh`                                             | vom Laptop: `kalibrierung` und `lauf` (Mitschnitte, Speicherlog, Treiber, Einsammeln, Auswertung) |
+| `evidenz/1B/messung/zeitzerlegung.mjs`                           | Mitschnitt-Felder plus App-Log → Zeitzerlegung je Auftrag und Kennzahlen                          |
+| `evidenz/1B/messung/zeitzerlegung.test.mjs`                      | `node:test` mit synthetischen Eingaben                                                            |
+| `evidenz/1B/runbook.md`                                          | Nachbau Schritt für Schritt (Linux), Verweis auf `WINDOWS.md`                                     |
+| `evidenz/1B/<DATUM>-aufbau.md`                                   | Protokoll Schritt 1 mit Abgleichtabelle                                                           |
+| `evidenz/1B/<DATUM>-lauf.md`                                     | Protokoll Schritt 2                                                                               |
+| `adr/1B-001…009-*.md`, `adr/README.md`                           | Entscheidungen                                                                                    |
+| `1B/1B-ergebnis.md`, `1B/1B-diagrams.md`, `1B/1B-eigenanteil.md` | Hauptdokument, Belegtabelle mit Zeilennummern, Eigenanteil je Person                              |
+| `AGENTS.md`, `rahmen/01-aufteilung.md`, `README.md` (Ordner)     | Netzregel, PR-Reihenfolge, Dateiübersicht                                                         |
 
 Alle Pfade relativ zu `docs/referat-thema-1/`.
 
@@ -72,7 +72,7 @@ Muss vor jedem Lauf committet sein (Nachweiskette).
 **Files:**
 
 - Create: `adr/1B-001-baseline-fork-main-a19ca70f.md`, `adr/1B-002-topologie-zwei-vms-ein-rechner.md`, `adr/1B-003-laborregel-virtuelles-netz.md`, `adr/1B-004-summary-auftrag-referenzfixture.md`, `adr/1B-005-abweichungen-vom-release.md`, `adr/1B-006-zeitmessung-per-mitschnitt.md`, `adr/1B-007-umgang-mit-1c-fallen.md`, `adr/1B-008-kernaussagen-und-schwellen.md`, `adr/1B-009-portabilitaet-linux-windows.md`
-- Modify: `adr/README.md`, `AGENTS.md` (Regel „Laborinstanzen“), `01-aufteilung.md`, `README.md`
+- Modify: `adr/README.md`, `AGENTS.md` (Regel „Laborinstanzen“), `rahmen/01-aufteilung.md`, `README.md`
 
 **Interfaces:**
 
@@ -80,9 +80,9 @@ Muss vor jedem Lauf committet sein (Nachweiskette).
 
 - [x] **Step 1:** ADRs im Format von `adr/1C-001-baseline-aktueller-main.md` schreiben (Status, Kategorie, Kontext, Entscheidung, Alternativen, Belege, Folgen). Inhalte aus Design 3.1 (002, mit verworfenen Alternativen), 3.3 (003), 4 (004), 3.4 (005, Tabelle verlinken statt kopieren), 5 (006), 7 (007), 6 (008, Schwellen exakt aus Global Constraints), 3.2 (009). 001 begründet `a19ca70f` nach 1C-001 mit Verweis auf die Prüfer-Mail. Status jeweils „methodisch (2026-11-12)“, Kategorie Methodik.
 - [x] **Step 2:** `AGENTS.md` des Ordners: Zeile „Laborinstanzen nur auf `127.0.0.1`.“ ersetzen durch den Wortlaut aus Design 3.3 mit Link auf ADR 1B-003. Wurzel-`AGENTS.md` nicht anfassen.
-- [x] **Step 3:** `01-aufteilung.md`: datierten Abschnitt „1B: zwei PRs nacheinander (Vorschlag, mit Niklas abzustimmen)“ ergänzen: Jonas Schritte 1–2 zuerst, Niklas zweigt nach dem Merge ab; ADR-Kreise 1B-001…019 / 1B-020…039; Niklas nutzt die Dateien, nicht die Geräte; Windows-Weg in `evidenz/1B/vm/WINDOWS.md`.
+- [x] **Step 3:** `rahmen/01-aufteilung.md`: datierten Abschnitt „1B: zwei PRs nacheinander (Vorschlag, mit Niklas abzustimmen)“ ergänzen: Jonas Schritte 1–2 zuerst, Niklas zweigt nach dem Merge ab; ADR-Kreise 1B-001…019 / 1B-020…039; Niklas nutzt die Dateien, nicht die Geräte; Windows-Weg in `evidenz/1B/vm/WINDOWS.md`.
 - [x] **Step 4:** `adr/README.md` und Ordner-`README.md` um die neuen Dateien ergänzen.
-- [x] **Step 5:** Prüfen: `npx prettier --check docs/referat-thema-1/adr/1B-*.md docs/referat-thema-1/AGENTS.md docs/referat-thema-1/01-aufteilung.md docs/referat-thema-1/README.md docs/referat-thema-1/adr/README.md && git diff --check` → keine Ausgabe außer „All matched files use Prettier code style!“.
+- [x] **Step 5:** Prüfen: `npx prettier --check docs/referat-thema-1/adr/1B-*.md docs/referat-thema-1/AGENTS.md docs/referat-thema-1/rahmen/01-aufteilung.md docs/referat-thema-1/README.md docs/referat-thema-1/adr/README.md && git diff --check` → keine Ausgabe außer „All matched files use Prettier code style!“.
 - [x] **Step 6:** Commit `docs(referat): record the 1B step 1-2 decisions before any run`.
 
 ---
@@ -261,12 +261,12 @@ Muss vor jedem Lauf committet sein (Nachweiskette).
 
 **Files:**
 
-- Create: `1B-ergebnis.md`, `1B-diagrams.md`, `1B-eigenanteil.md`
+- Create: `1B/1B-ergebnis.md`, `1B/1B-diagrams.md`, `1B/1B-eigenanteil.md`
 - Modify: `README.md` (Ordner), `adr/README.md` falls neue ADRs entstanden
 
-- [x] **Step 1:** `1B-ergebnis.md`: Abschnitte „Schritte 1–2 (Jonas)“ mit Aufgabenabdeckung, Befunden B und C, Gültigkeitsgrenze D, Entscheidung; „Schritte 3–4 (Niklas)“ als leere Gliederung; „Gemeinsames Kurzfazit“ als Platzhalter. Zahlen nur mit Link auf Protokoll oder ADR.
-- [x] **Step 2:** `1B-diagrams.md`: Topologie (Mermaid, Labor) und Belegtabelle mit Zeilennummern am Laufstand für alle zitierten Codestellen (per Serena/codebase-memory geprüft).
-- [x] **Step 3:** `1B-eigenanteil.md`: Abschnitt Jonas (eigener Anteil, KI-Nutzung mit Agenten und zentralen Prompts, Prüfung durch den Autor), Abschnitt Niklas leer.
+- [x] **Step 1:** `1B/1B-ergebnis.md`: Abschnitte „Schritte 1–2 (Jonas)“ mit Aufgabenabdeckung, Befunden B und C, Gültigkeitsgrenze D, Entscheidung; „Schritte 3–4 (Niklas)“ als leere Gliederung; „Gemeinsames Kurzfazit“ als Platzhalter. Zahlen nur mit Link auf Protokoll oder ADR.
+- [x] **Step 2:** `1B/1B-diagrams.md`: Topologie (Mermaid, Labor) und Belegtabelle mit Zeilennummern am Laufstand für alle zitierten Codestellen (per Serena/codebase-memory geprüft).
+- [x] **Step 3:** `1B/1B-eigenanteil.md`: Abschnitt Jonas (eigener Anteil, KI-Nutzung mit Agenten und zentralen Prompts, Prüfung durch den Autor), Abschnitt Niklas leer.
 - [x] **Step 4:** Volle Prüfung: `npx prettier --check docs/referat-thema-1/**/*.md`, `git diff --check`, `node --test docs/referat-thema-1/evidenz/1B/messung/`, Links in den neuen Dateien prüfen (Ziele existieren).
 - [x] **Step 5:** Commit `docs(referat): add the 1B result for steps 1-2`.
 - [ ] **Step 6:** PR gegen Fork-`main` erst nach Freigabe durch den Autor, mit vollständigem `.github/pull_request_template.md`.

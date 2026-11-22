@@ -5,7 +5,7 @@
 - **Rechner:** Laptop (ThinkPad P50, i7-6820HQ), derselbe wie im [Aufbau](2026-11-12-aufbau.md) und im
   [Windows-Test](2026-11-13-windows-test.md)
 - **Rohdaten:** [`messung/2026-11-17-vm-laufzeiten.csv`](messung/2026-11-17-vm-laufzeiten.csv), 58 Zeilen
-- **Auswertung:** `vorarbeit()` in [`abgabe/jonas/nachweisumfang.mjs`](../../abgabe/jonas/nachweisumfang.mjs),
+- **Auswertung:** `vorarbeit()` in [`abgabe/bau/nachweisumfang.mjs`](../../abgabe/bau/nachweisumfang.mjs),
   Test in `nachweisumfang.test.mjs`
 
 ## Frage

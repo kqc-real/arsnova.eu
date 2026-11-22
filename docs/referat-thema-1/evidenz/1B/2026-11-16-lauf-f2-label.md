@@ -6,7 +6,7 @@ Prüfung durch den Autor: 2026-11-16 (Niklas).
 
 Niklas hat nach Freigabe drei Label-Aufträge unter Firewall-DROP mit
 Live-Last ausgeführt. Vorab reduzierter Umfang gemäß
-[Planung](../../1B-3u4-Planung.md).
+[Planung](../../1B/archiv/1B-3u4-Planung.md).
 
 - Ausführungs- und Auswertungscommit:
   `7c64dd6a0352df1e51981ab16300532eb849f712`, ohne `--arbeitsstand`.

@@ -115,7 +115,7 @@ _Ergänzt 2026-11-15 (Schritte 3–4):_ Die unten beschriebenen fehlenden
 Haken und manuellen Störbefehle sind der historische Übergabestand. Die neue
 Implementierung ersetzt diese Vorschläge; **auf den VMs noch nicht verifiziert**.
 Design, Schwellen und datierte Abweichungen stehen in der
-[Planung](../../1B-3u4-Planung.md).
+[Planung](../../1B/archiv/1B-3u4-Planung.md).
 
 - Windows/WSL: `-LabStoerung normal|l1|l2|l3|f1|f2|busy|race`,
   `-LabAuftrag summary|label|breaker-summary`, optional `-LabLive`.
@@ -196,7 +196,7 @@ mit der neuen Erfassung steht aus. Label-Baseline erst auf regulärem Commit.
 Historischer Übergabestand:
 
 - **Branch:** Eigene Arbeit frisch von `main` abzweigen, etwa `git fetch origin && git switch -c <eigener-branch> origin/main`. Der in #9 genannte Branch `feature-1B-private-inference-3-4` stammt vom 2026-10-23 und enthält das Labor nicht; ob er ersetzt oder ein neuer Name genutzt wird, entscheidet Niklas.
-- **Begriffe und Vergleichswerte:** gemeinsame Zeitbegriffe (T_host … T_transport) in [ADR 1B-011](../../adr/1B-011-zeitbegriffe-und-leitfrage.md); Werte aus Schritt 2 (normaler Dienst, kalt und warm, C0, B0) im [1B-Ergebnis](../../1B-ergebnis.md), Rohdaten unter `messung/`. Absolute Zeiten anderer Rechner sind damit nicht vergleichbar, nur Verhältnisse; der normale Dienst wird deshalb auf dem eigenen Rechner neu gemessen.
+- **Begriffe und Vergleichswerte:** gemeinsame Zeitbegriffe (T_host … T_transport) in [ADR 1B-011](../../adr/1B-011-zeitbegriffe-und-leitfrage.md); Werte aus Schritt 2 (normaler Dienst, kalt und warm, C0, B0) im [1B-Ergebnis](../../1B/1B-ergebnis.md), Rohdaten unter `messung/`. Absolute Zeiten anderer Rechner sind damit nicht vergleichbar, nur Verhältnisse; der normale Dienst wird deshalb auf dem eigenen Rechner neu gemessen.
 - **Wiederverwendbar:** `lauf.sh` (Mitschnitt auf beiden Hosts, Speicher-CSV der Runtime, Zeitzerlegung), `pruefen.sh` (Limits, Flags, Bind), der Treiber `treiber.mjs` und der Ausfall B0. **B0 entspricht F1 aus #9** (Container gestoppt, schneller Fehler); Vergleichswert H_B0 im 1B-Ergebnis. S1 (Same-Host) ist in Schritt 2 nicht gemessen; wer S1 für Schritt 4 braucht, misst es selbst.
 - **Was das Labor für Schritt 3 noch nicht kann:**
   - **Hohe Latenz und Firewall-DROP:** `lauf` hat außer `LAB_RUNTIME_AUS` keinen Haken für Störungen. Netzverzögerung und DROP lassen sich von Hand in der llm-host-VM setzen, vor dem Lauf, mit Rücknahme danach. Vorschlag, im Labor noch nicht ausprobiert (aus WSL jeweils `labor-wsl.sh vm llm '…'`):
@@ -226,7 +226,7 @@ Die Pester-Tests brauchen Pester 5 (`Install-Module Pester -MinimumVersion 5`) u
 ## 10. S1-Same-Host-Vergleich (Schritt 4)
 
 _Ergänzt 2026-11-16:_ Neue Laborfunktion, lokal getestet, noch kein VM-Nachweis.
-Design und Ressourcenabweichungen im [S1-Nachtrag](../../1B-3u4-Planung.md#nachtrag-2026-11-16-s1-vorbereitung-für-schritt-4).
+Design und Ressourcenabweichungen im [S1-Nachtrag](../../1B/archiv/1B-3u4-Planung.md#nachtrag-2026-11-16-s1-vorbereitung-für-schritt-4).
 Nur nach gesonderter Freigabe für jeden Lauf und die enthaltenen Neustarts.
 
 Aus WSL ausschließlich `labor-wsl.sh s1`. Erforderlich: `-LabAuftrag label`

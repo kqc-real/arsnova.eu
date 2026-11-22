@@ -183,7 +183,7 @@ git diff --cached --stat
 git commit -m 'docs(referat): record the 1C lab run against the private runtime'
 ```
 
-Anschließend die Ergebnisse nach den Regeln des Designs (Abschnitt 6) in einem eigenen Protokoll `evidenz/1C/<DATUM>-labor.md` festhalten: Umgebung (Hardware, Commit, Image-ID, Basisimage-Digest, GGUF-SHA, `build_info`), Abweichungen vom Ablauf, je Fall H/G/K mit Wert, Entscheidung, Gültigkeitsgrenzen. Die JSON-Datei wird nach dem Commit nicht mehr verändert. _Aktualisiert 2026-11-12:_ Die Aufgabenabdeckung steht inzwischen im [Ergebnisbericht](../../1C-ergebnis.md); nach einem neuen Lauf dort nachtragen. Der einmalige Schritt, die Statuszeile „Offen“ in `1C-diagrams.md` zu aktualisieren, ist erledigt (historisch).
+Anschließend die Ergebnisse nach den Regeln des Designs (Abschnitt 6) in einem eigenen Protokoll `evidenz/1C/<DATUM>-labor.md` festhalten: Umgebung (Hardware, Commit, Image-ID, Basisimage-Digest, GGUF-SHA, `build_info`), Abweichungen vom Ablauf, je Fall H/G/K mit Wert, Entscheidung, Gültigkeitsgrenzen. Die JSON-Datei wird nach dem Commit nicht mehr verändert. _Aktualisiert 2026-11-12:_ Die Aufgabenabdeckung steht inzwischen im [Ergebnisbericht](../../1C/1C-ergebnis.md); nach einem neuen Lauf dort nachtragen. Der einmalige Schritt, die Statuszeile „Offen“ in `1C/1C-diagrams.md` zu aktualisieren, ist erledigt (historisch).
 
 ## 8. Was an den Prüfer geht
 

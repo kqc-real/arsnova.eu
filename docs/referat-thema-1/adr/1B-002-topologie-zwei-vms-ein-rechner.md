@@ -5,7 +5,7 @@
 
 ## Kontext
 
-1B Schritt 1 verlangt, das Zwei-Host-Deployment nachzubauen: App-Host mit App, PostgreSQL und Redis, Inferenz-Host mit `llama-server` ([ADR-0035](../../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md), [Zweit-Host-Runbook](../../operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md)). Der Prüfer stellt keine Laborhosts bereit: „Die Laborinstanz ist Ihr eigener Rechner“ ([Rahmendokument, Frage 4](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)). Verfügbar sind der Laptop des Autors (ThinkPad P50) und ein Desktop-PC an einem anderen Ort.
+1B Schritt 1 verlangt, das Zwei-Host-Deployment nachzubauen: App-Host mit App, PostgreSQL und Redis, Inferenz-Host mit `llama-server` ([ADR-0035](../../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md), [Zweit-Host-Runbook](../../operations/OPEN-WEIGHT-LLM-SECOND-HOST-RUNBOOK.md)). Der Prüfer stellt keine Laborhosts bereit: „Die Laborinstanz ist Ihr eigener Rechner“ ([Rahmendokument, Frage 4](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer)). Verfügbar sind der Laptop des Autors (ThinkPad P50) und ein Desktop-PC an einem anderen Ort.
 
 ## Entscheidung
 

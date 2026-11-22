@@ -22,7 +22,7 @@
 
 Auftrag 1C, Punkt 2 (Prüfungsdokument 4.3) verlangt, einen realen Auftrag durch die versionierten Verträge **bis zur privaten Runtime** zu verfolgen und für denselben Revisionsstand Host-Vorschau und gepackte Nutzlast zu vergleichen. Issue #10, Schritt 2, ergänzt: Baseline nach Dossier §11.2, `messages[2]` gegen den kanonischen Kontext der Vorschau, `max_tokens`, und `usage.prompt_tokens` gegen `budget.packedInputTokens`.
 
-Teil 2 und 3 haben das nur bis zu einer **Test-Runtime** auf 127.0.0.1 gezeigt (E1, E3, E15). Offen ist laut [`1C-diagrams.md`](../1C-diagrams.md#task-coverage-exam-document-43-1c) allein der Lauf gegen die ausgelieferte Runtime. Dieser Laborlauf ist die **unveränderte eigene Baseline** mit der ausgelieferten Runtime (gepinntes llama.cpp-Basisimage, gepinntes GGUF, Release-Einstellungen) auf dem lokalen Laborpfad des Repositorys (Abschnitt 3.1). Er liefert zugleich die reale Inferenzzeit, die Teil 2 nur durch D = 2000 ms ersetzt hat.
+Teil 2 und 3 haben das nur bis zu einer **Test-Runtime** auf 127.0.0.1 gezeigt (E1, E3, E15). Offen ist laut [`1C/1C-diagrams.md`](../1C/1C-diagrams.md#task-coverage-exam-document-43-1c) allein der Lauf gegen die ausgelieferte Runtime. Dieser Laborlauf ist die **unveränderte eigene Baseline** mit der ausgelieferten Runtime (gepinntes llama.cpp-Basisimage, gepinntes GGUF, Release-Einstellungen) auf dem lokalen Laborpfad des Repositorys (Abschnitt 3.1). Er liefert zugleich die reale Inferenzzeit, die Teil 2 nur durch D = 2000 ms ersetzt hat.
 
 ## 2. Ziele, Nicht-Ziele, Anti-Ziele
 
@@ -208,7 +208,7 @@ Folge: Mit dem Release-Timeout von 90 s würde jeder Lauf mit `timeout` enden, s
 
 ## 11. Offene Fragen
 
-An den Prüfer (gestellt per E-Mail am 2026-10-26, beantwortet per E-Mail nach Rückfrage vom 2026-11-02, notiert 2026-11-04; siehe [00-rahmen](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer), Fragen 3 und 4):
+An den Prüfer (gestellt per E-Mail am 2026-10-26, beantwortet per E-Mail nach Rückfrage vom 2026-11-02, notiert 2026-11-04; siehe [00-rahmen](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer), Fragen 3 und 4):
 
 - ~~**P1 Referenzstand:** `v1.3.0` (`87c39334`) oder `main`?~~ **Beantwortet:** „Aktualisieren Sie Ihren Fork und Clone vor Ihrer Auswertung / Untersuchung.“ Daraus abgeleitet: aktueller `main`, keine Rückportierung (Abschnitt 3.3).
 - ~~**P2 Laborinstanz:** Zugang, zwei VMs, Hardware, Image und GGUF?~~ **Beantwortet:** „Die Laborinstanz ist Ihr eigener Rechner.“ Daraus abgeleitet: keine bereitgestellten VMs, ein Rechner, Image und GGUF lädt der Autor selbst (Abschnitt 3.1).

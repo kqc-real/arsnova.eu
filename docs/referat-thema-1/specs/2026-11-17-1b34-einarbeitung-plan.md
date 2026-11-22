@@ -51,7 +51,7 @@ folien), `handout-latex-1a.mjs` erzeugt die Makros für Abschnitt 06 in PaperLab
 
 **Files:** `evidenz/1B/messung/*.json` > 1 MB → `.json.gz`; Leser `abgabe/niklas/daten-1b34.mjs`,
 `evidenz/1B/vergleichen.mjs`, `evidenz/1B/s1.mjs`, `evidenz/1B/experiment-result.mjs` (nur falls sie
-Ergebnisdateien lesen); Links in `evidenz/1B/*.md`, `1B-ergebnis.md`, `README.md`, ADR 1B-020.
+Ergebnisdateien lesen); Links in `evidenz/1B/*.md`, `1B/1B-ergebnis.md`, `README.md`, ADR 1B-020.
 
 - [ ] Test zuerst: `liesJson(pfad)` (neu, `evidenz/1B/json-lesen.mjs`) liest `.json` und `.json.gz` gleich;
       `eingaben1B34` liefert je Lauf genau einen Pfad.

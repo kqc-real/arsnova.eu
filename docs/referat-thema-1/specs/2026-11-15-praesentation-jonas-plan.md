@@ -192,7 +192,7 @@ Hinweis: Niklas' PDFs (`abgabe/1A-folien.pdf`, später 1B 3–4) liegen erst nac
 **Files:**
 
 - Create: `docs/referat-thema-1/abgabe/jonas/fragenkatalog.md`, `sprechnotizen.md` (aus `folien.mjs` erzeugt, mit Sekunden und Kürzungsmarke)
-- Modify: `docs/referat-thema-1/README.md` (Zeilen für Design, Plan, `abgabe/jonas/`), `01-aufteilung.md` (datierter Hinweis: Reihenfolge-Vorschlag Niklas–Jonas–Niklas, gemeinsames Deck, noch abzustimmen)
+- Modify: `docs/referat-thema-1/README.md` (Zeilen für Design, Plan, `abgabe/jonas/`), `rahmen/01-aufteilung.md` (datierter Hinweis: Reihenfolge-Vorschlag Niklas–Jonas–Niklas, gemeinsames Deck, noch abzustimmen)
 
 - [ ] **Step 1:** Fragenkatalog: Fragen aus beiden Gerüsten plus mindestens 10 neue (Grenzen der Zeitzerlegung auf einer CPU, warum Mitschnitt statt Instrumentierung, Gate-Kriterien, KI-Anteil, Abweichungen von Release 1.3, Matrikel-/Datenregeln, Wiederholbarkeit); je Antwort ≤ 3 Sätze und Beleglink.
 - [ ] **Step 2:** prettier, `git diff --check`.

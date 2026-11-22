@@ -4,10 +4,10 @@
 - **Autor:** Jonas Weirauch (Rolle Y)
 - **Issue:** [#10](https://github.com/NiklasSkulll/arsnova.eu/issues/10)
 - **Branch:** `feature-1C-context-path`
-- **Codebasis:** `main` `248029dc`. Das ist `v1.3.0` plus 228 Commits; die Baseline-Frage ist offen, siehe [00-rahmen](../00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer).
+- **Codebasis:** `main` `248029dc`. Das ist `v1.3.0` plus 228 Commits; die Baseline-Frage ist offen, siehe [00-rahmen](../rahmen/00-rahmen-und-pruefung.md#offene-fragen-an-den-prüfer).
 - **Grundlage:**
-  - [`1C-diagrams.md`](../1C-diagrams.md), sobald PR #11 gemergt ist: Befunde 1–7, Fallback-Tabelle, Belege je Station.
-  - [`1C-kontext-und-adapterpfad.md`](../1C-kontext-und-adapterpfad.md), Testlücken G1–G11.
+  - [`1C/1C-diagrams.md`](../1C/1C-diagrams.md), sobald PR #11 gemergt ist: Befunde 1–7, Fallback-Tabelle, Belege je Station.
+  - [`1C/1C-kontext-und-adapterpfad.md`](../1C/1C-kontext-und-adapterpfad.md), Testlücken G1–G11.
 
 ## 1. Zweck und Begründung
 
@@ -181,7 +181,7 @@ Protokolliert werden je Mutation der Diff, der Testlauf (rot) und die Rückkehr 
 
 - **Unit (T1–T4)** belegt das Verhalten der Queue-, Kontext- und Client-Logik bei kontrollierten Eingaben. Nicht belegt sind Zeitverhalten unter Last, ein reales Modell und Netzfehler.
 - **Postgres (T5)** belegt die Trigger und den Kontextaufbau auf PostgreSQL 16 mit dem Migrationsstand von `248029dc`. Nicht belegt sind Häufigkeiten unter echter Last (z. B. der Anteil von `source_changed` bei N Stimmen pro Sekunde) und das Verhalten am Tag `v1.3.0`.
-- **Für alle Gruppen** gilt: Die Aussagen gelten für `main` `248029dc`. Abweichungen zu `v1.3.0` stehen in [`1C-diagrams.md`](../1C-diagrams.md#differences-to-v130).
+- **Für alle Gruppen** gilt: Die Aussagen gelten für `main` `248029dc`. Abweichungen zu `v1.3.0` stehen in [`1C/1C-diagrams.md`](../1C/1C-diagrams.md#differences-to-v130).
 
 ### 5.5 Entscheidungsregel fürs Referat
 
@@ -236,4 +236,4 @@ Alle Kriterien stehen damit vor der ersten Ausführung fest. Spätere Änderunge
 
 ## Nachtrag: KI-Nutzung (2026-10-24, nach der Ausführung)
 
-Dieses Design wurde mit Claude Code (Anthropic, Modell Claude Opus 5.5) entworfen und vom Autor vor der Ausführung freigegeben. Der übrige Inhalt ist seit der Freigabe unverändert; dieser Abschnitt ist der einzige Nachtrag. Einzelheiten zur KI-Nutzung: [`1C-diagrams.md`](../1C-diagrams.md#method-verification-and-ai-use).
+Dieses Design wurde mit Claude Code (Anthropic, Modell Claude Opus 5.5) entworfen und vom Autor vor der Ausführung freigegeben. Der übrige Inhalt ist seit der Freigabe unverändert; dieser Abschnitt ist der einzige Nachtrag. Einzelheiten zur KI-Nutzung: [`1C/1C-diagrams.md`](../1C/1C-diagrams.md#method-verification-and-ai-use).

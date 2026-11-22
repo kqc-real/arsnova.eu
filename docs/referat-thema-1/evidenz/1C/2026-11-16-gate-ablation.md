@@ -8,7 +8,7 @@ Im Nachlauf (`def56700`, Instruktion v5, mit Gate) endet kein Auftrag `full-cont
 
 ## 2. Daten (vorab festgelegt)
 
-- Codestand Gate: `apps/backend/src/lib/qaSummaryQuality.ts`, `hasAcceptableQaSummaryQuality`, byte-gleich zwischen `v1.4.0` und `def56700` ([1C-Ergebnis](../../1C-ergebnis.md)). Locale `de` (Referenzfixture).
+- Codestand Gate: `apps/backend/src/lib/qaSummaryQuality.ts`, `hasAcceptableQaSummaryQuality`, byte-gleich zwischen `v1.4.0` und `def56700` ([1C-Ergebnis](../../1C/1C-ergebnis.md)). Locale `de` (Referenzfixture).
 - Antworten: jede aufgezeichnete Runtime-Antwort mit `choices` in
   - `messung/2026-11-09-labor-nachlauf.json.gz` (`def56700`, Laptop),
   - `messung/2026-11-05-labor.json.gz` (`9f230abc`, Laptop),

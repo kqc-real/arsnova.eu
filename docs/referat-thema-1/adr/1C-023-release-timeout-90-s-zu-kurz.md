@@ -20,9 +20,9 @@ Die Queue nutzt das Maximum beider Werte, begrenzt auf 300 000 ms ([`qaSummaryCo
 
 ## Alternativen
 
-- **Default auf 300 s anheben.** Nicht empfohlen. Für den Produktionshost berichtet upstream 56,9 s Ende-zu-Ende für `qa_summary` V2 (Messung vom 17.10.2026, [Runtime-Doku](../../features/open-weight-llm-runtime.md#abschließender-cross-uid-lauf-auf-dem-finalen-image), in 1C nicht nachgeprüft). Gemessen wurde das mit v2; für v5 verlangt upstream eine neue Messung (`git show 96b2e46e:docs/features/open-weight-llm-runtime.md`, Z. 258, dort „historisch“). Für v2 hätten 90 s dort gereicht. Ein längerer Timeout hält bei einem Slot und einer globalen Queue außerdem Folgeaufträge länger auf. Die Queue lässt höchstens 8 Aufträge zu und arbeitet einen nach dem anderen ab ([Kernbefunde 7](../1C-diagrams.md#kernbefunde)). _Korrigiert 2026-11-12:_ 8 ist der Standard, konfigurierbar ([Kernbefunde 7](../1C-diagrams.md#kernbefunde)).
+- **Default auf 300 s anheben.** Nicht empfohlen. Für den Produktionshost berichtet upstream 56,9 s Ende-zu-Ende für `qa_summary` V2 (Messung vom 17.10.2026, [Runtime-Doku](../../features/open-weight-llm-runtime.md#abschließender-cross-uid-lauf-auf-dem-finalen-image), in 1C nicht nachgeprüft). Gemessen wurde das mit v2; für v5 verlangt upstream eine neue Messung (`git show 96b2e46e:docs/features/open-weight-llm-runtime.md`, Z. 258, dort „historisch“). Für v2 hätten 90 s dort gereicht. Ein längerer Timeout hält bei einem Slot und einer globalen Queue außerdem Folgeaufträge länger auf. Die Queue lässt höchstens 8 Aufträge zu und arbeitet einen nach dem anderen ab ([Kernbefunde 7](../1C/1C-diagrams.md#kernbefunde)). _Korrigiert 2026-11-12:_ 8 ist der Standard, konfigurierbar ([Kernbefunde 7](../1C/1C-diagrams.md#kernbefunde)).
 - **90 s beibehalten, ohne Hinweis.** Verworfen: Auf Hardware wie den beiden Laborrechnern endeten dann Aufträge mit `timeout` und Fallback, am Laptop nach der Kalibrierung jeder. Der Betreiber erkennt den Grund nicht aus der Konfiguration.
-- **Kürzere Ausgabe statt längerem Timeout.** Nicht untersucht. Das ist eine Frage der Ausgabegrenzen ([Kernbefunde 6](../1C-diagrams.md#kernbefunde)), nicht dieses Befunds.
+- **Kürzere Ausgabe statt längerem Timeout.** Nicht untersucht. Das ist eine Frage der Ausgabegrenzen ([Kernbefunde 6](../1C/1C-diagrams.md#kernbefunde)), nicht dieses Befunds.
 
 ## Belege
 

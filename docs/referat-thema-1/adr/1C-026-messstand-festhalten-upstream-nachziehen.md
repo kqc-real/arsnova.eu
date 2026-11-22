@@ -29,6 +29,6 @@ Upstream `main` ändert sich bis zur Präsentation weiter; zwischen dem Trockenl
 ## Folgen
 
 - Die Zahlen aller Läufe bleiben an ihre Commits gebunden: Teil 1–3 an `248029dc`, Laborläufe vom 2026-11-05 an `9f230abc`, Trockenlauf an `44c0a796` (lokaler Merge), Nachlauf an `f746ffba`.
-- Die Prüfung vor der Präsentation braucht wenige Minuten und die CI; ihr Ergebnis wird im [Bericht](../1C-ergebnis.md) vermerkt.
+- Die Prüfung vor der Präsentation braucht wenige Minuten und die CI; ihr Ergebnis wird im [Bericht](../1C/1C-ergebnis.md) vermerkt.
 - **Offen:** Datum der Präsentation und damit der letzte Abgleich.
 - _Ergänzt 2026-11-12:_ Die Baseline-Regel stammt aus [1C-001](1C-001-baseline-aktueller-main.md); die Codestände der früheren Läufe halten [1C-022](1C-022-codestand-eingefroren-9f230abc.md) (`9f230abc`) und [1C-025](1C-025-codestand-auf-upstream-aktualisiert.md) (Merge von upstream, Trockenlauf an `44c0a796`) fest.

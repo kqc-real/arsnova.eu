@@ -5,14 +5,15 @@ Dateien in diesem Ordner, zusätzlich zur `AGENTS.md` im Wurzelverzeichnis.
 
 ## Karte
 
-- Rahmen, Prüfung, Baseline: [`00-rahmen-und-pruefung.md`](00-rahmen-und-pruefung.md)
-- Aufteilung und gemeinsame Artefakte: [`01-aufteilung.md`](01-aufteilung.md)
+- Rahmen, Prüfung, Baseline: [`rahmen/00-rahmen-und-pruefung.md`](rahmen/00-rahmen-und-pruefung.md)
+- Aufteilung und gemeinsame Artefakte: [`rahmen/01-aufteilung.md`](rahmen/01-aufteilung.md)
 - Alle Dateien des Ordners: [`README.md`](README.md)
 - Je Auftrag ein Hauptdokument mit Ergebnis, Befunden und offenen Punkten
-  (1C: [`1C-ergebnis.md`](1C-ergebnis.md))
+  (1C: [`1C/1C-ergebnis.md`](1C/1C-ergebnis.md))
 - Entscheidungen: [`adr/`](adr/README.md), ein Nummernkreis je Auftrag
 - Protokolle und Rohdaten: `evidenz/<Auftrag>/` · Designs und Pläne: `specs/`
 - Diagramme: `diagrams/`, Regeln in [`diagrams/README.md`](diagrams/README.md)
+- Abgabe (Folien HTML/PDF): direkt in [`abgabe/`](abgabe/README.md); Bauskripte und Tests in `abgabe/bau/`
 
 ## Ein Fakt, ein Ort
 

@@ -5,7 +5,7 @@
 
 ## Kontext
 
-Auftragsschritt 2 fragt, was vom Kontext beim Modell ankommt. Der Packer zählt jedes UTF-8-Byte als ein Token (`estimateModerationPromptUtf8Tokens`, Schätzer `utf8-byte-upper-bound`); im Fenster von 8192 Tokens bleiben nach Instruktion, Definition, Ausgabereserve 640 und Marge 128 auf `248029dc` höchstens 6907 Byte für das Kontext-JSON, _aktualisiert 2026-11-10:_ auf `def56700` (Instruktion v5: 650, Definition 203) höchstens 6571 Byte ([Dossier 5.3](../1C-kontext-und-adapterpfad.md#53-packing-budget-und-auswahl) für die Rechnung; Werte auf `def56700` aus `budget` der [Nachlauf-Rohdaten](../evidenz/1C/messung/2026-11-09-labor-nachlauf.json.gz)). In E15 fielen mit vollem #456-Kontext Blitzlicht, freigegebene Ergebnisse und Kompass aus Budgetgründen heraus ([E15](../evidenz/1C/2026-10-24-teil3.md#e15--voller-456-kontext-auf-dem-draht)). Fall L2 misst, wie stark die Schätzung die echten Prompt-Tokens überschätzt ([Labor-Design 5](../specs/2026-10-25-1c-labor-design.md#5-fälle)).
+Auftragsschritt 2 fragt, was vom Kontext beim Modell ankommt. Der Packer zählt jedes UTF-8-Byte als ein Token (`estimateModerationPromptUtf8Tokens`, Schätzer `utf8-byte-upper-bound`); im Fenster von 8192 Tokens bleiben nach Instruktion, Definition, Ausgabereserve 640 und Marge 128 auf `248029dc` höchstens 6907 Byte für das Kontext-JSON, _aktualisiert 2026-11-10:_ auf `def56700` (Instruktion v5: 650, Definition 203) höchstens 6571 Byte ([Dossier 5.3](../1C/1C-kontext-und-adapterpfad.md#53-packing-budget-und-auswahl) für die Rechnung; Werte auf `def56700` aus `budget` der [Nachlauf-Rohdaten](../evidenz/1C/messung/2026-11-09-labor-nachlauf.json.gz)). In E15 fielen mit vollem #456-Kontext Blitzlicht, freigegebene Ergebnisse und Kompass aus Budgetgründen heraus ([E15](../evidenz/1C/2026-10-24-teil3.md#e15--voller-456-kontext-auf-dem-draht)). Fall L2 misst, wie stark die Schätzung die echten Prompt-Tokens überschätzt ([Labor-Design 5](../specs/2026-10-25-1c-labor-design.md#5-fälle)).
 
 ## Entscheidung
 
@@ -14,7 +14,7 @@ Befund: Die Byte-Schätzung ist sicher, verschenkt aber rund zwei Drittel des Fe
 ## Alternativen
 
 - **Beibehaltung der Byte-Schätzung mit dokumentiertem Faktor:** Das wäre nach der vorab festgelegten Regel die Folge bei Median q > 0,5 gewesen ([Labor-Design 6](../specs/2026-10-25-1c-labor-design.md#6-entscheidungsregeln)); gemessen ist q ≈ 0,32 auf beiden Rechnern, die Zeile greift nicht.
-- **Exakte Zählung über die Runtime** und **kalibrierter Faktor mit Marge:** beide als Prüfkandidaten benannt, keiner bevorzugt. Kosten und Risiko sind in den Quellen nicht gemessen; Einschätzung (nicht belegt): Eine exakte Zählung koppelt das Packen an die Erreichbarkeit der Runtime; ein Faktor gilt nur für dieses Modell und diesen Tokenizer und braucht eine Marge für Ausreißer und den nicht budgetierten Template-Overhead (Offener Punkt O5, [Dossier 13](../1C-kontext-und-adapterpfad.md#13-offene-punkte--fragen-an-den-prüfer)).
+- **Exakte Zählung über die Runtime** und **kalibrierter Faktor mit Marge:** beide als Prüfkandidaten benannt, keiner bevorzugt. Kosten und Risiko sind in den Quellen nicht gemessen; Einschätzung (nicht belegt): Eine exakte Zählung koppelt das Packen an die Erreichbarkeit der Runtime; ein Faktor gilt nur für dieses Modell und diesen Tokenizer und braucht eine Marge für Ausreißer und den nicht budgetierten Template-Overhead (Offener Punkt O5, [Dossier 13](../1C/1C-kontext-und-adapterpfad.md#13-offene-punkte--fragen-an-den-prüfer)).
 
 ## Belege
 

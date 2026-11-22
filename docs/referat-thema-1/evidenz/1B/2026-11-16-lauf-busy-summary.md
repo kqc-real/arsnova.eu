@@ -61,7 +61,7 @@ Rechner, Ausführungscommit `5e758d0a870bc38441b60c541a6ff6f3d0662ee2`.
 Die Manifestprojektion aus `vergleichen.mjs` unterscheidet sich ausschließlich
 im Commit; Images, Modellhash, Settings, Energieprofil, VM-Größen und
 Live-Profile stimmen überein. Der
-[Versionsnachtrag](../../1B-3u4-Planung.md#nachtrag-2026-11-16-tageskalibrierung-und-vorbereitung-der-f2-reihe)
+[Versionsnachtrag](../../1B/archiv/1B-3u4-Planung.md#nachtrag-2026-11-16-tageskalibrierung-und-vorbereitung-der-f2-reihe)
 belegt unveränderten Produktionscode, Treiber und Messablauf.
 Energiesparplan Ausbalanciert; Windows-Energiemodus nicht damit belegt.
 

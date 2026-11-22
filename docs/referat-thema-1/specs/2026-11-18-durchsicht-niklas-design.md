@@ -99,7 +99,7 @@ keine Änderung an Produktionscode oder eingefrorenen Protokollen.
   - H2: das gilt auch bei CPU-Drosselung (V3) und verzögerten Antworten
     (V4).
 - Die beiden Zeilen gehören an den Regelkasten.
-- Quelle: `1A-experiment-contract.md`.
+- Quelle: `1A/1A-experiment-contract.md`.
 
 ### 8. Folie M1 (Niklas, Ersatzzeit je Störung)
 

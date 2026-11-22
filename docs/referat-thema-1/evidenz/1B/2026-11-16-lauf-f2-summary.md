@@ -84,7 +84,7 @@ bleiben erhalten, auch ihre damals unzutreffenden Transportfelder.
 Die Manifestprojektion aus `vergleichen.mjs` unterscheidet sich zwischen F1
 und F2 ausschließlich im Ausführungscommit. Insbesondere sind Images,
 Modellhash, Settings, Energieprofil, VM-Größen und Live-Profile gleich.
-Der [datierte Versionsnachtrag](../../1B-3u4-Planung.md#nachtrag-2026-11-16-tageskalibrierung-und-vorbereitung-der-f2-reihe)
+Der [datierte Versionsnachtrag](../../1B/archiv/1B-3u4-Planung.md#nachtrag-2026-11-16-tageskalibrierung-und-vorbereitung-der-f2-reihe)
 belegt unveränderten Produktionscode, Treiber und Messablauf; Änderungen
 betreffen F2-Aktivierung/-Prüfung und TCP-Flag-Auswertung.
 

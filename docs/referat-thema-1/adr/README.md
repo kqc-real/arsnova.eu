@@ -4,9 +4,9 @@ Diese ADRs halten jede Entscheidung aus Auftrag 1C (Kontext- und Adapterpfad der
 Q&A-Zusammenfassung) fest: fachliche Ergebnisse, Labor-Befunde und methodische
 Festlegungen. Jede ADR fasst zusammen und verlinkt auf die Quelle (Dossier,
 Design, Protokoll, Rohdaten); Zahlen stehen nur mit Beleg. Einstieg in das
-Gesamtergebnis: [`1C-ergebnis.md`](../1C-ergebnis.md).
+Gesamtergebnis: [`1C/1C-ergebnis.md`](../1C/1C-ergebnis.md).
 
-_Ergänzt 2026-11-14:_ Seit 2026-11-12 enthält der Ordner auch die ADRs zu Auftrag 1B ([Abschnitt unten](#adrs-zu-1b), Einstieg: [`1B-ergebnis.md`](../1B-ergebnis.md)). Auch 1B ändert keinen Produktionscode ([ADR 1B-001](1B-001-baseline-fork-main-a19ca70f.md)).
+_Ergänzt 2026-11-14:_ Seit 2026-11-12 enthält der Ordner auch die ADRs zu Auftrag 1B ([Abschnitt unten](#adrs-zu-1b), Einstieg: [`1B/1B-ergebnis.md`](../1B/1B-ergebnis.md)). Auch 1B ändert keinen Produktionscode ([ADR 1B-001](1B-001-baseline-fork-main-a19ca70f.md)).
 
 Grundlage der Form: [Dokumentationsdesign](../specs/2026-11-05-1c-doku-design.md).
 
@@ -24,11 +24,11 @@ keinen Patch (siehe [ADR 1C-004](1C-004-empfehlung-statt-patch.md)).
 
 ## Nummernplan
 
-| Bereich           | Inhalt                                                                                                               | Verantwortlich                                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `1C-001`–`1C-009` | Methodik (Baseline, Laborinstanz, Tests, Ergebnisform, Umgang mit Befunden)                                          | Laptop-Sitzung                                                                                                  |
-| `1C-010`–`1C-019` | Fachliche Befunde aus Teil 1–3 und den Laborläufen, auch aus dem Nachlauf (1C-018)                                   | Laptop-Sitzung                                                                                                  |
-| `1C-020`–`1C-029` | Labor und Codestand der Läufe (Timeout, Zusatzlauf, Codestand, Laufzeit- und Speicherbefunde, Abgleich mit upstream) | PC-Sitzung geplant; erstellt am Laptop, 1C-025 und 1C-026 ebenfalls (siehe [Eigenanteil](../1C-eigenanteil.md)) |
+| Bereich           | Inhalt                                                                                                               | Verantwortlich                                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `1C-001`–`1C-009` | Methodik (Baseline, Laborinstanz, Tests, Ergebnisform, Umgang mit Befunden)                                          | Laptop-Sitzung                                                                                                     |
+| `1C-010`–`1C-019` | Fachliche Befunde aus Teil 1–3 und den Laborläufen, auch aus dem Nachlauf (1C-018)                                   | Laptop-Sitzung                                                                                                     |
+| `1C-020`–`1C-029` | Labor und Codestand der Läufe (Timeout, Zusatzlauf, Codestand, Laufzeit- und Speicherbefunde, Abgleich mit upstream) | PC-Sitzung geplant; erstellt am Laptop, 1C-025 und 1C-026 ebenfalls (siehe [Eigenanteil](../1C/1C-eigenanteil.md)) |
 
 Dateiname: `1C-NNN-<kurztitel-kebab>.md`.
 

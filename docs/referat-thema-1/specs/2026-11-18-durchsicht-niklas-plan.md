@@ -227,7 +227,7 @@ statisches HTML und SVG.
   - N4 enthält zwei Zeilen:
     - „H1:“ mit „V2“ und „V1“;
     - „H2:“ mit „V3“ und „V4“.
-  - Die Quelle von N4 nennt `1A-experiment-contract.md`.
+  - Die Quelle von N4 nennt `1A/1A-experiment-contract.md`.
   - `ersatzSvg(d)`:
     - Für jede Zeile steht ein Text `n = <Anzahl>` je vorhandenem Consumer,
       und die Anzahl ist `zeitenMs.length` aus `d.finde`.
