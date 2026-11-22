@@ -581,6 +581,30 @@ async function inspectMobileJoinEntry(page) {
     );
 }
 
+async function learningObjectiveButtonFits(page) {
+  await page.locator('.quiz-list__lead-demo .quiz-list-item__link').click();
+  await page.locator('#learning-objectives-title').click();
+  const button = page.locator('#learning-objective-derive');
+  await button.waitFor({ state: 'visible' });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  return button.evaluate((element) => {
+    const label = element.querySelector('span:not([class])');
+    if (!label) return false;
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const text = range.getBoundingClientRect();
+    const bounds = element.getBoundingClientRect();
+    return (
+      text.left >= bounds.left &&
+      text.right <= bounds.right &&
+      text.top >= bounds.top &&
+      text.bottom <= bounds.bottom
+    );
+  });
+}
+
 const STRUCTURED_QUESTION_MOTD = {
   de: {
     title: 'Neu: Zuordnen. Sortieren. Kategorisieren.',
@@ -776,6 +800,16 @@ async function main() {
       ...motdChecks,
     ];
     await checkPage(page, path, { keyboardNavigation });
+    if (path === '/de/quiz') {
+      checkedStates += 1;
+      if (await learningObjectiveButtonFits(page)) {
+        console.log('  Quiz-Editor: Lernziel-Button … OK (Text innerhalb des Buttons)');
+      } else {
+        failed += 1;
+        console.error('  Quiz-Editor: Lernziel-Button … FEHLER: Text ragt aus dem Button');
+        await page.screenshot({ path: join(ARTIFACT_DIR, 'quiz-learning-objective-button.png') });
+      }
+    }
     await page.close();
   }
 
