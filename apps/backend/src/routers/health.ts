@@ -1144,9 +1144,8 @@ export const healthRouter = router({
   stats: publicProcedure.output(ServerStatsDTOSchema).query(() => fetchServerStats()),
 
   /**
-   * Minimale Stichprobe der privaten LLM-Runtime (topic_label, Summary V2, learning_objectives).
-   * Nicht Teil von footerBundle/serviceStatus — nur für den Betriebsstatus-Dialog.
-   * `refresh` umgeht den 5‑Minuten-Cache nicht (Schutz des einzigen Inferenz-Slots).
+   * Erreichbarkeit und Belegung der privaten LLM-Runtime für den Betriebsstatus-Dialog.
+   * Die Slot-Sonde startet keinen Modellauftrag. `refresh` respektiert den 5-Minuten-Cache.
    * IP-Rate-Limit atomar mit dem Single-Flight-Live-Start — Cache-/Coalesce-Treffer
    * und parallele Shared-NAT-Bursts belasten das Budget nicht mehrfach.
    */

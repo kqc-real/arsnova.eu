@@ -247,9 +247,8 @@ export interface ServerStatusHelpDialogData {
                     class="status-help-dialog__copy status-help-dialog__copy--compact"
                     i18n="@@app.footer.statusOpenWeightLlmHint"
                   >
-                    Diese Prüfung betrifft nur die Text-KI auf diesem Server: ein lokal betriebenes
-                    Open-Weight-Modell, kein Cloud-Anbieter. Geprüft werden die drei Hilfen unten.
-                    Das Ergebnis ändert den allgemeinen Betriebsstatus nicht.
+                    Die Prüfung zeigt, ob die lokale Text-KI erreichbar ist und gerade Anfragen
+                    annehmen kann.
                   </p>
                   @if (llmModelLabel(); as modelLabel) {
                     <p class="status-help-dialog__copy status-help-dialog__copy--compact">
@@ -295,17 +294,13 @@ export interface ServerStatusHelpDialogData {
                         <article class="status-help-dialog__metric">
                           <div class="status-help-dialog__metric-head">
                             <mat-icon aria-hidden="true">verified</mat-icon>
-                            <span i18n="@@app.footer.statusMetricOpenWeightLlmOverall">Gesamt</span>
+                            <span i18n="@@app.footer.statusMetricOpenWeightLlmOverall"
+                              >Verfügbarkeit</span
+                            >
                           </div>
                           <strong class="status-help-dialog__metric-value--prose">{{
                             formatLlmProbeStatus(llm.overall)
                           }}</strong>
-                          <p
-                            class="status-help-dialog__metric-hint"
-                            i18n="@@app.footer.statusMetricOpenWeightLlmOverallHint"
-                          >
-                            Gemeinsames Ergebnis der drei Hilfen.
-                          </p>
                         </article>
                         <article class="status-help-dialog__metric">
                           <div class="status-help-dialog__metric-head">
@@ -314,9 +309,6 @@ export interface ServerStatusHelpDialogData {
                               >Themennamen</span
                             >
                           </div>
-                          <strong class="status-help-dialog__metric-value--prose">{{
-                            formatLlmProbeStatus(llm.tasks.topic_label.status)
-                          }}</strong>
                           <p
                             class="status-help-dialog__metric-hint"
                             i18n="@@app.footer.statusMetricOpenWeightLlmTopicLabelHint"
@@ -332,9 +324,6 @@ export interface ServerStatusHelpDialogData {
                               >Q&amp;A-Kurzfassung</span
                             >
                           </div>
-                          <strong class="status-help-dialog__metric-value--prose">{{
-                            formatLlmProbeStatus(llm.tasks.qa_summary.status)
-                          }}</strong>
                           <p
                             class="status-help-dialog__metric-hint"
                             i18n="@@app.footer.statusMetricOpenWeightLlmQaSummaryHint"
@@ -349,9 +338,6 @@ export interface ServerStatusHelpDialogData {
                               >Lernziele</span
                             >
                           </div>
-                          <strong class="status-help-dialog__metric-value--prose">{{
-                            formatLlmProbeStatus(llm.tasks.learning_objectives.status)
-                          }}</strong>
                           <p
                             class="status-help-dialog__metric-hint"
                             i18n="@@app.footer.statusMetricOpenWeightLlmLearningHint"

@@ -274,8 +274,10 @@ Bei einem Konfigurationswechsel wie unten beschrieben erst `down`, dann
 `up` ausführen. [LLM-Topologie](../features/open-weight-llm-runtime.md#topologien)
 
 Beide Apps verwenden für alle Auftragsarten einen gemeinsamen Redis-Slot
-(`llm:inference:lease:v1`). Die App reserviert ihn vor der Anfrage an
-`/slots` und prüft ihren Besitz vor dem POST. Ist der Slot belegt, nutzen
+(`llm:inference:lease:v1`). Nach der Adressauflösung reserviert die App
+ihn mit kurzer TTL für die Anfrage an `/slots`. Das Zeitbudget für
+Adressauflösung, Reservierung und Sonde beträgt 2,5 Sekunden. Erst vor
+dem POST verlängert die App die Reservierung und prüft dabei den Besitzer. Ist der Slot belegt, nutzen
 Themenlabel und Zusammenfassung ihren fachlichen Fallback. Die
 Lernzielableitung meldet `busy` und erlaubt einen manuellen
 Wiederholungsversuch. Bei einem Redis-Fehler bleibt die Inferenzanfrage aus.

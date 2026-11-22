@@ -276,7 +276,7 @@ Da `llama-server` auf dem dedizierten 8-Core-ARM-Inferenzhost (`arsnova-privat`,
 
 - **Kein unsichtbares Queueing hinter `llama-server`:** Ist der Slot belegt, fallen Live-Aufträge (`topic_label`, `qa_summary`) sofort auf ihre extraktiven Fallbacks zurück; der Vorbereitungsauftrag `learning_objectives` meldet einen klaren `busy`-Status mit manuellem Retry.
 - **1,5-s-Slot-Cooldown nach Abbruch/Timeout:** Wurde ein Request abgebrochen (z. B. weil der Host die Seite verlassen hat oder ein Probe-Budget griff: 20 s für `topic_label`, höchstens 90 s für `learning_objectives`), wartet der Client vor dem nächsten sequenziellen Aufruf `1.500 ms`, damit `llama-server` den abgebrochenen Slot sauber freigeben kann.
-- **Ungebündelter HTTP-Transport (`shouldUseUnbatchedHttpTransport` in `trpc.client.ts`):** Langlaufende KI-Prozeduren (`health.openWeightLlmProbe`, `quiz.deriveLearningObjectives`, `wordCloud.analyze`, `wordCloud.analyzeQa`) werden im Frontend niemals über `httpBatchLink` mit schnellen UI-Queries (wie `health.stats`) gebündelt. Der Dialog **Betrieb & Nutzung** öffnet dadurch in **~150 ms**, während die Live-Prüfung der lokalen Text-KI unabhängig im Hintergrund läuft.
+- **Ungebündelter HTTP-Transport (`shouldUseUnbatchedHttpTransport` in `trpc.client.ts`):** Langlaufende KI-Prozeduren (`health.openWeightLlmProbe`, `quiz.deriveLearningObjectives`, `wordCloud.analyze`, `wordCloud.analyzeQa`) werden im Frontend niemals über `httpBatchLink` mit schnellen UI-Queries (wie `health.stats`) gebündelt. Der Dialog **Betrieb & Nutzung** öffnet unabhängig von der Slot-Sonde der lokalen Text-KI. Die Sonde hat ein Budget von 2,5 Sekunden und startet keinen Modellauftrag.
 
 ### Zusammenfassung der realen Laufzeitmessungen (Stand: 17.10.2026)
 

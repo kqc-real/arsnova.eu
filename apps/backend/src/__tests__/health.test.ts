@@ -88,59 +88,7 @@ vi.mock('../lib/rateLimit', async (importOriginal) => {
 });
 
 vi.mock('../lib/openWeightLlmClient', () => ({
-  runOpenWeightLlmTopicLabel: vi.fn(async (_request, fallback) => ({
-    status: 'completed',
-    output: fallback,
-    telemetry: {
-      taskType: 'topic_label',
-      elapsedMs: 1,
-      model: 'mock-model',
-      promptTokens: null,
-      completionTokens: null,
-    },
-  })),
-  runOpenWeightLlmSummaryV2: vi.fn(async () => ({
-    status: 'completed',
-    output: {
-      schemaVersion: 2,
-      taskType: 'qa_summary',
-      outputContract: 'qa-summary-model-output-v3',
-      output: {
-        status: 'ready',
-        statements: [{ text: 'Probe', sourceIds: ['probe-s1'] }],
-        suggestedNextSteps: [],
-        limitations: [],
-      },
-    },
-    telemetry: {
-      taskType: 'qa_summary',
-      elapsedMs: 1,
-      model: 'mock-model',
-      promptTokens: null,
-      completionTokens: null,
-    },
-  })),
-  runOpenWeightLlmLearningObjectives: vi.fn(async () => ({
-    status: 'completed',
-    output: {
-      schemaVersion: 1,
-      taskType: 'learning_objectives',
-      objectives: [
-        {
-          text: 'Probe',
-          questionIds: ['11111111-1111-4111-8111-111111111111'],
-        },
-      ],
-      limitations: [],
-    },
-    telemetry: {
-      taskType: 'learning_objectives',
-      elapsedMs: 1,
-      model: 'mock-model',
-      promptTokens: null,
-      completionTokens: null,
-    },
-  })),
+  inspectOpenWeightLlmAvailability: vi.fn(async () => 'ready'),
 }));
 
 vi.mock('../lib/usageStatistic', async (importOriginal) => {

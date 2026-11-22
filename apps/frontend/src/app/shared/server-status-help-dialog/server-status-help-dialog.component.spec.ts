@@ -839,17 +839,22 @@ describe('ServerStatusHelpDialogComponent', () => {
       checkedAt: '2026-10-14T03:05:00.000Z',
       cache: 'live',
       modelAlias: 'qwen3-4b-instruct-2507-q4_k_m',
-      modelReported: 'qwen3-4b-instruct-2507-q4_k_m',
+      modelReported: null,
       tasks: {
-        topic_label: { status: 'ok', elapsedMs: 10, reason: null },
-        qa_summary: { status: 'ok', elapsedMs: 20, reason: null },
-        learning_objectives: { status: 'ok', elapsedMs: 30, reason: null },
+        topic_label: { status: 'unknown', elapsedMs: null, reason: 'availability_only' },
+        qa_summary: { status: 'unknown', elapsedMs: null, reason: 'availability_only' },
+        learning_objectives: { status: 'unknown', elapsedMs: null, reason: 'availability_only' },
       },
     });
     retry?.click();
     await fixture.whenStable();
     fixture.detectChanges();
     expect(openWeightLlmProbeQuery).toHaveBeenCalledWith({ refresh: true });
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Themennamen');
+    expect(live?.textContent).toContain('Verfügbarkeit');
+    expect(live?.textContent).toContain('Themennamen');
+    expect(live?.querySelectorAll('strong.status-help-dialog__metric-value--prose')).toHaveLength(
+      1,
+    );
+    expect(live?.querySelector('strong')?.textContent?.trim()).toBe('ok');
   });
 });
