@@ -21,7 +21,7 @@ import {
   wegSvg,
   zeitzerlegungSvg,
 } from './grafik.mjs';
-import { LITERATUR, kurzbeleg, quellenzeile } from './literatur.mjs';
+import { LITERATUR, quellenzeile } from './literatur.mjs';
 import { fmt, ladeZahlen } from './zahlen.mjs';
 import { privat } from './notizen.mjs';
 
@@ -385,7 +385,7 @@ export function ladeNachweis(root) {
   };
 }
 
-/** Abb. 1 und 2 aus 1C/1C-diagrams.md (gerenderte Mermaid-SVGs, helles Thema) für R15 und R16. */
+/** Abb. 1 und 2 aus 1C/1C-diagrams.md (gerenderte Mermaid-SVGs, helles Thema) (Daten für Tests und Diagrammprüfung). */
 export const DIAGRAMME = {
   abb1: [
     'diagrams/1c-context-path-overview.light.svg',
@@ -741,19 +741,6 @@ const ZITATE = {
     [W, '1B/1B-ergebnis.md, 1C/1C-ergebnis.md'],
     ['schneider2026', 'Ordner evidenz/1A und evidenz/1B'],
   ],
-  R1: [[W, 'ADR 1C-020, 1B-005']],
-  R5: [[W, '1C-Nachlauf, Ordner evidenz/1B, ADR 1B-011']],
-  R6: [[W, 'Dateien 1B/1B-eigenanteil.md, 1C/1C-eigenanteil.md']],
-  R7: [[W, 'adr/README.md']],
-  R9: [[W, '1C/1C-ergebnis.md, Kap. 3']],
-  R10: [
-    [W, 'Aufbauprotokoll 1B'],
-    ['arsnova2026adr0035', 'Kap. 2.4'],
-  ],
-  R11: [[W, 'Laufprotokoll 1B, Befund C']],
-  R12: [[W, '1C/1C-ergebnis.md, Kap. 5']],
-  R15: [[W, 'Datei 1C/1C-diagrams.md, Abb. 1']],
-  R16: [[W, 'Datei 1C/1C-diagrams.md, Abb. 2']],
   // Niklas' gewertete Läufe 1A und 1B 3–4 zählen in die Laborzeit (gemeinsames Verzeichnis seit 2026-11-18)
   GN: [
     [W, 'Ordner docs/referat-thema-1, Datei nachweisumfang.md'],
@@ -929,12 +916,6 @@ export function folien(daten) {
   // Produktionscode des 1B-Laufs = Fork-main a19ca70f (git describe v1.4.0-184); Lauf-Commits auf dem
   // 1B-Zweig ändern nur Laborskripte (ADR 1B-001). 1C: def56700 = v1.4.0-14; vor dem Gate 9f230abc = v1.3.0-322.
   const STAND = `Code ${mono('a19ca70f')} (v1.4.0-184); Lauf-Commit ${mono(H.hauptlauf.commit.slice(0, 8))} nur Laborskripte`;
-  const kasten = (titel, punkte, linie, groesse = 22) =>
-    `<div style="border:var(--linie-min) solid ${linie};border-radius:10px;padding:${groesse > 22 ? '18px 24px 10px' : '12px 20px 6px'}">` +
-    `<p style="margin:0 0 ${groesse > 22 ? 10 : 6}px;font-weight:700;font-size:${groesse + 2}px">${titel}</p>` +
-    `<ul style="margin:0;padding-left:26px;font-size:${groesse}px;line-height:1.35">` +
-    punkte.map((p) => `<li style="margin:0 0 ${groesse > 22 ? 10 : 4}px">${p}</li>`).join('') +
-    '</ul></div>';
 
   const F = [];
 
@@ -1154,7 +1135,7 @@ export function folien(daten) {
     inhalt: flaeche(
       frage('Welchen Weg nimmt ein Auftrag über die zwei Hosts?', 'beide') +
         grafikBox(wegSvg({ aktiv: 'klick', b1: b, c1: c, auftrag: au })) +
-        `<p class="beleg">Vereinfacht aus Abb. 1 und 2 (1C/1C-diagrams.md), vollständig in der Reserve (R15, R16)</p>`,
+        `<p class="beleg">Vereinfacht aus Abb. 1 und 2 (1C/1C-diagrams.md)</p>`,
     ),
     notiz: privat('J3.notiz', { au, z }),
     zeitS: 45,
@@ -1524,48 +1505,6 @@ export function folien(daten) {
     station: 'gate',
   });
 
-  // ------------------------------------------------------------ J15
-  const folge = (was, text) =>
-    `<li style="margin:0 0 10px"><b style="font-weight:600">${was}</b> <span style="color:var(--text-2)">${text}</span></li>`;
-  const spalte = (auftrag, linie, kopf, punkte) =>
-    `<div style="border-left:6px solid ${linie};padding-left:18px">` +
-    `<p style="margin:0 0 6px">${etikett(auftrag)} <span style="color:var(--gedaempft)">${kopf}</span></p>` +
-    `<ul style="margin:0;padding:0;list-style:none">${punkte.join('')}</ul></div>`;
-  // Entscheidungen je Auftrag mit Kosten, Risiko, Betriebsfolge: im Detail auf R12, J15 verweist darauf.
-  const entscheidungen =
-    `<div style="display:grid;grid-template-columns:880px 1fr;column-gap:50px;font-size:24px;line-height:1.35">` +
-    spalte(
-      '1C',
-      'var(--petrol)',
-      'Kosten, Risiko, Betrieb; Änderungen empfohlen, nicht umgesetzt',
-      [
-        folge(
-          'Bleibt (1C-010 bis 1C-013):',
-          'wenig Zeit; Risiko: unter Voting verwirft jede Stimme während der Inferenz die Antwort, Häufigkeit offen (1C-017)',
-        ),
-        folge(
-          'Gate (1C-018):',
-          'Abnahmemessung nötig; Risiko: lockere Schwelle zeigt Metaaussagen',
-        ),
-        folge('Timeout (1C-023):', 'eine Kalibrierung je Host; Slot länger belegt'),
-        folge(
-          'Cache (1C-024):',
-          'eine Zeile im Entry-Point; Risiko: nur ein Slot und ein Auftragstyp gemessen',
-        ),
-        folge('Zählung (1C-014):', 'Änderung am Packer; Risiko: Fenster läuft über'),
-        folge(
-          'Snapshot, Blitzlicht (1C-015, 1C-016):',
-          'klein; Risiko: Fenster beschreibt die Rundenlaufzeit nicht mehr',
-        ),
-      ],
-    ) +
-    spalte('1B', 'var(--bernstein)', 'Konfiguration', [
-      folge('Topologie bleibt:', 'Hebel am Inferenz-Host'),
-      folge('Aufwand der zweiten Rolle:', 'Niklas'),
-      folge('Logs (#19, #20):', 'Kosten: Logzeilen; empfohlen, nicht umgesetzt'),
-      folge('Vorher:', 'Gate passend zum Modell (#13)'),
-    ]) +
-    `</div>`;
   // Drei Spalten statt Textwand (Audit): was bleibt, was empfohlen ist, was offen ist; eine Frage.
   const triple = (kopf, farbe, punkte) =>
     `<div style="border-top:6px solid ${farbe};padding-top:12px">` +
@@ -1593,7 +1532,6 @@ export function folien(daten) {
           'Sprache und Inhalt der Antworten prüft niemand',
         ]) +
         `</div>` +
-        `<p class="vermerk">Details: R12 (Kosten, Risiko und Betriebsfolge je Entscheidung)</p>` +
         `<p data-ab="1" class="merksatz"><b>Zur Diskussion:</b> Prüft das Gate das Richtige, wenn die Antworten auch inhaltlich verfehlt sind?</p>` +
         `<p data-ab="2" class="uebergabe">Und wenn der zweite Host langsam ist oder ausfällt? <span class="uebergabe-ziel">→ Niklas ${etikett('1B')}</span></p>`,
     ),
@@ -1766,21 +1704,6 @@ export function folien(daten) {
     }),
   );
 
-  // ------------------------------------------------------------ Reserve
-  const reserve = (id, auftrag, titel, inhalt, notiz, quelle) =>
-    F.push({
-      id,
-      teil: 'reserve',
-      auftrag,
-      titel,
-      inhalt: flaeche(inhalt),
-      notiz,
-      zeitS: 0,
-      kurzfassung: false,
-      quelle,
-      station: null,
-    });
-
   // Aus der Reserve in den Hauptteil geholt (Redezeit 15 min je Person, Absprache 2026-11-16).
   const haupt = (id, auftrag, titel, inhalt, notiz, quelle, extra) =>
     F.push({
@@ -1795,35 +1718,6 @@ export function folien(daten) {
       station: null,
       ...extra,
     });
-
-  reserve(
-    'R1',
-    '1C',
-    'Reserve: Kalibrierung des Timeouts',
-    frage('Warum liefen die Labore mit 300 s statt 90 s?', '1C') +
-      zweiSpalten(
-        liste(
-          [
-            `Je Rechner eine Anfrage mit echtem Body, I = ${mono('prompt_ms')} + ${mono('predicted_ms')}`,
-            `${etikett('1C')} Laptop: ${fw.kalibrierungLaptopS} s (Prefill ${fw.kalibrierungLaptopPrefillS} s, Ausgabe ${fw.kalibrierungLaptopAusgabeS} s), daher ${fw.laborTimeoutS} s für die Laborläufe am Laptop`,
-            `${etikett('1C')} PC, zweiter Rechner: I = ${z.kalPc} s, ebenfalls über ${fw.releaseTimeoutS} s, also ${fw.laborTimeoutS} s`,
-            `${etikett('1B')} I = ${fw.kalibrierung1BS} s, nach der Regel aus ADR 1B-005 ebenfalls ${fw.laborTimeout1BS} s`,
-            `Ab Werk v1.4.0 ${fw.releaseTimeoutS} s (v1.3.0: ${fw.v13TimeoutS} s); ${fw.laborTimeoutS} s ist die Obergrenze des Produkts, offen als Abweichung`,
-          ],
-          24,
-        ),
-        zahl({
-          wert: fw.kalibrierungLaptopS,
-          einheit: 's',
-          was: 'Kalibrierung Laptop (1C)',
-          gruppe: 'Laptop · Wandzeit, vor dem ersten Laborlauf',
-          linie: 'var(--petrol)',
-        }),
-        820,
-      ),
-    privat('R1.notiz', { fw, z }),
-    `adr/1C-020-timeout-300-s-und-kalibrierungsregel.md (Laptop; PC · 9f230abc); evidenz/1B/2026-11-13-lauf.md, Kalibrierung (ThinkPad P50 · 3b2aa5e6)`,
-  );
 
   haupt(
     'J8b',
@@ -1904,78 +1798,6 @@ export function folien(daten) {
     { zeitS: 40, station: 'inferenz' },
   );
 
-  reserve(
-    'R5',
-    'beide',
-    'Reserve: Gültigkeitsgrenzen',
-    `<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:50px">` +
-      `<div><p style="margin:0 0 14px">${etikett('1C')}</p>${liste(
-        [
-          'Laborrechner mit CPU-Inferenz, ein Slot, Qwen3-4B-Instruct-2507 Q4_K_M; ein Rechner über Loopback',
-          'Eine synthetische Fixture, Locale de',
-          'Nachlauf auf upstream nur am Laptop',
-          'Ein formal korrekter Pfad belegt keine guten Prompts',
-          'Keine parallele Last: Aufträge nacheinander, die Leitfrage nennt „reale Last“',
-        ],
-        22,
-      )}</div>` +
-      `<div><p style="margin:0 0 14px">${etikett('1B')}</p>${liste(
-        [
-          'Ein Laptop für beide „Hosts“, die Kerne teilen sich',
-          'Virtuelles statt physisches Netz, weniger CPUs als in Produktion',
-          'Ein Szenario, ein Modell, eine Reihe',
-          `Warm heißt: identische Snapshots, der Prompt kommt aus dem KV-Cache. Bei geändertem Zustand gilt eher der Kaltwert (Median ${z.kaltMedian} s)`,
-          `Netz unter der Messunsicherheit der Uhren (≈ ${fw.netzAufloesungMs} ms)`,
-          'Privates Netz belegt weder Autorisierung noch Datenschutz; der Token läuft im Klartext über HTTP',
-        ],
-        22,
-      )}</div></div>`,
-    privat('R5.notiz', { z }),
-    `evidenz/1C/2026-11-09-labor-nachlauf.md (Laptop · def56700); evidenz/1B/2026-11-13-lauf.md (${rechnerKurz(H.hauptlauf.rechner)} · ${H.hauptlauf.commit.slice(0, 8)}); Kaltwert: ${q1BN}`,
-  );
-
-  reserve(
-    'R6',
-    'beide',
-    'Reserve: Anteil der KI',
-    `<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:50px">` +
-      `<div><p style="margin:0 0 12px;font-weight:700;font-size:28px">Entschieden und geprüft vom Autor</p>${liste(
-        [
-          'Hypothesen und Schwellen vor den gewerteten Läufen freigegeben; Ausnahmen: M7b/M7c ohne vorherige Freigabe, T3.1 exploratorisch, 1B-Leitfrage nach dem Lauf bestätigt (ADR 1B-011)',
-          'Läufe angestoßen, Wiederholung nach Störung entschieden',
-          'Ergebnisse und Protokolle geprüft, Kernzahlen stichprobenartig nachgerechnet',
-        ],
-        28,
-      )}</div>` +
-      `<div><p style="margin:0 0 12px;font-weight:700;font-size:28px">Entworfen von der KI</p>${liste(
-        [
-          'Claude Code, laut Protokollen Claude Opus 5.5 (nicht unabhängig geprüft): Skripte, Tests, Auswertung, Protokolle, Diagramme',
-          'Vorschläge für Schwellen und Messmethode, im Design als KI-Vorschlag markiert',
-          'Reviews waren KI-Sitzungen, keine menschlichen Gutachten',
-        ],
-        28,
-      )}</div></div>`,
-    privat('R6.notiz', {}),
-    '1C/1C-eigenanteil.md (Autorenprüfung); adr/1B-011-zeitbegriffe-und-leitfrage.md; 1B/1B-eigenanteil.md (Stand 2026-11-14) · Arbeit an Laptop (ThinkPad P50) und PC (i7-8700) · Baselines 9f230abc, def56700, a19ca70f',
-  );
-
-  const adrs = (ids) =>
-    ids.map((i) => `<span class="mono" style="white-space:nowrap">${i}</span>`).join(', ');
-  reserve(
-    'R7',
-    '1C',
-    'Reserve: ADR-Zählung 1C',
-    `<table style="border-collapse:collapse;font-size:28px;width:100%">` +
-      `<tr><td style="padding:12px 20px 12px 0;font-weight:700;width:300px">Beibehaltung</td><td>${adrs(['1C-010', '1C-011', '1C-012', '1C-013'])}; dazu ${mono('1C-019')} nur für ${mono('9f230abc')}</td></tr>` +
-      `<tr style="border-top:var(--linie-min) solid var(--linie)"><td style="padding:12px 20px 12px 0;font-weight:700">Empfohlen, nicht umgesetzt</td><td>${adrs(['1C-014', '1C-015', '1C-016', '1C-018', '1C-023', '1C-024'])}</td></tr>` +
-      `<tr style="border-top:var(--linie-min) solid var(--linie)"><td style="padding:12px 20px 12px 0;font-weight:700">Zurückgehalten</td><td>${adrs(['1C-017'])}</td></tr>` +
-      `<tr style="border-top:var(--linie-min) solid var(--linie)"><td style="padding:12px 20px 12px 0;font-weight:700">Methodisch</td><td>${adrs(['1C-001', '1C-002', '1C-003', '1C-004', '1C-005', '1C-020', '1C-021', '1C-022', '1C-025', '1C-026'])}</td></tr>` +
-      `</table>` +
-      `<p style="margin:24px 0 0;font-size:28px">Das Ergebnis ist eine Empfehlung, kein Patch (ADR 1C-004).</p>`,
-    privat('R7.notiz', {}),
-    'adr/README.md, Index · Messstände 9f230abc (Laptop und PC) und def56700 (Laptop)',
-  );
-
   const bz = (bereich, quelleFn, schema, pruefung) =>
     `<tr style="border-top:var(--linie-min) solid var(--linie)"><td style="padding:6px 12px 6px 0;font-weight:600">${bereich}</td>` +
     `<td style="padding:6px 16px 6px 0">${quelleFn}</td><td style="padding:6px 22px 6px 0">${schema}</td><td style="padding:6px 0">${pruefung}</td></tr>`;
@@ -2028,140 +1850,6 @@ export function folien(daten) {
     privat('J5b.notiz', {}),
     '1C/1C-diagrams.md, #456-Bereiche · Code-Stand def56700 (v1.4.0-14), gelesen am Laptop (ThinkPad P50); E2: evidenz/1C/2026-10-24-teil2.md · Laptop · 248029dc',
     { zeitS: 45, station: 'kontext' },
-  );
-
-  reserve(
-    'R9',
-    '1C',
-    'Reserve: 1C Schritte 3–4, Konsistenzfälle',
-    `<div style="display:grid;grid-template-columns:1fr 1fr;column-gap:44px">` +
-      `<div><p style="margin:0 0 8px;font-weight:700;font-size:28px">Schritt 3</p>${liste(
-        [
-          'Inkompatible Version: endet an jeder Grenze kontrolliert (T1, E4)',
-          `Fehlender Bereich: bleibt mit Zustand und Grund (T2.1 ${mono('disabled')}, T2.2 ${mono('failed')})`,
-          'Langsamer oder fehlender Empfänger, belegter Slot, volle Queue: E6a, E6b, E10, E11',
-          'Stiller Feldverlust, zwei Ausnahmen: fremde Snapshot-Version gilt als „keine Daten“ (T2.3); Bereich bleibt „available“, aber aus Budgetgründen leer (E15)',
-        ],
-        22,
-      )}</div>` +
-      `<div><p style="margin:0 0 8px;font-weight:700;font-size:28px">Schritt 4</p>${liste(
-        [
-          `Stimme oder gelöschte Quelle nach dem Auftrag: ${mono('source_changed')} (T5, E7, E8); ohne Änderung gültig (E9)`,
-          `Stimme während des Kontextaufbaus: ${mono('CONFLICT')} (E12)`,
-          `Legacy-Pfad kontrolliert (E13, E14); Runtime fehlt: extraktiv mit ${mono('unavailable')} (E6a)`,
-          'Häufigkeit unter Voting nicht belastbar vorhergesagt (M7)',
-        ],
-        22,
-      )}</div></div>`,
-    privat('R9.notiz', {}),
-    '1C/1C-ergebnis.md, Abschnitt 3 · Tests und Teil 2/3 auf 248029dc (Laptop, ThinkPad P50); Labor def56700',
-  );
-
-  const rolle = (name, ort, text) =>
-    `<div style="border:var(--linie-min) solid var(--bernstein);border-radius:10px;padding:12px 18px;background:var(--bernstein-hell)">` +
-    `<div style="font-weight:700;font-size:28px">${name}</div><div class="mono" style="font-size:22px;color:var(--text-2)">${ort}</div>` +
-    `<div style="font-size:22px;margin-top:6px;line-height:1.3">${text}</div></div>`;
-  reserve(
-    'R10',
-    '1B',
-    'Reserve: 1B Schritt 1 und ADR-0035',
-    `<div style="display:grid;grid-template-columns:repeat(3,1fr);column-gap:28px;margin-bottom:24px">` +
-      rolle(
-        'App-Adapter',
-        'app-host',
-        `${mono('openWeightLlmClient.ts')} ruft die Runtime (Bearer-Token); Gate und Fallback in ${mono('qaSummaryRuntimeAdapter.ts')}`,
-      ) +
-      rolle(
-        'Encoder',
-        'nicht gestartet',
-        'Wortwolken-Encoder, Profil ab Werk aus; keine Abweichung',
-      ) +
-      rolle(
-        'LLM-Server',
-        'llm-host',
-        `${mono('llama-server')}, ein Slot, lauscht nur im privaten Netz, ${mono('--api-key')}`,
-      ) +
-      `</div>` +
-      liste(
-        [
-          'Abgleich Punkt für Punkt mit ADR-0035: abweichend nur der Aufbau auf einem Rechner und die CPU-Zahl, einige Punkte im Aufbau nicht prüfbar. Abnahmeprotokoll des Runbooks: abweichend Baseline-Commit statt Tag, Token ohne Passwortmanager, Summary eingeschaltet',
-          `Lücke: ADR-0035 nennt für ${mono('--n-predict')} „Richtung ${fw.nPredictAdr}“, das Release setzt ${fw.nPredictRelease}. Die Antworten hatten ${fw.antwortTokensMin}–${fw.antwortTokensMax} Tokens, mit ${fw.nPredictAdr} wären sie abgeschnitten`,
-        ],
-        24,
-      ),
-    privat('R10.notiz', {}),
-    `evidenz/1B/2026-11-12-aufbau.md (Komponenten, Abgleich) · ThinkPad P50 · a19ca70f; Lücke: evidenz/1B/2026-11-13-lauf.md, Manifest · ${H.hauptlauf.commit.slice(0, 8)}`,
-  );
-
-  const logZeile = (was, sichtbar, ok) =>
-    `<tr style="border-top:var(--linie-min) solid var(--linie)"><td style="padding:10px 16px 10px 0">${was}</td>` +
-    `<td style="padding:10px 0;${ok ? '' : 'color:var(--rot);font-weight:600'}">${sichtbar}</td></tr>`;
-  reserve(
-    'R11',
-    '1B',
-    'Reserve: Was der Betrieb nicht sieht',
-    frage('Was davon steht im Log der App?', '1B') +
-      zweiSpalten(
-        `<table style="border-collapse:collapse;font-size:28px;width:100%">` +
-          logZeile('Auftrag gesamt', `ja, ${mono('latencyMs')}`, true) +
-          logZeile('Inferenz', 'nein, die App liest die Zeiten nicht aus', false) +
-          logZeile('Netz und Adapter', 'nein, nur mit Mitschnitt', false) +
-          logZeile('Warum das Gate ablehnt', `nein, nur grob ${mono('invalid_response')}`, false) +
-          `</table>` +
-          `<p class="sekundaer" style="margin-top:18px">Empfohlen: Zeiten und Grund des Fallbacks ohne Prompttext loggen (#19, #20), nicht umgesetzt</p>`,
-        zahl({
-          wert: z.transport,
-          einheit: 'ms',
-          was: 'Transport (Netz + Server ohne Inferenz), Median, alle 10',
-          gruppe: `Inferenzanteil ${z.anteil} %, langsame CPU`,
-          linie: 'var(--bernstein)',
-          gross: 72,
-        }),
-        820,
-      ),
-    privat('R11.notiz', {}),
-    `evidenz/1B/2026-11-13-lauf.md, Befund C; ${q1B}`,
-  );
-
-  reserve(
-    'R12',
-    'beide',
-    'Reserve: Entscheidungen im Detail',
-    entscheidungen,
-    privat('R12.notiz', {}),
-    `1C/1C-ergebnis.md, Abschnitt 5, ADRs 1C-010 bis 1C-024, Abschnitt Folgen (Laptop und PC · 9f230abc; Laptop · def56700); 1B/1B-ergebnis.md, Entscheidung (${rechnerKurz(H.hauptlauf.rechner)} · ${H.hauptlauf.commit.slice(0, 8)})`,
-  );
-
-  // ------------------------------------------------------------ R15, R16: Abb. 1 und 2 aus 1C/1C-diagrams.md
-  // Gerenderte Mermaid-SVGs (diagrams/*.light.svg), offline eingebettet; Ids je Abbildung umbenannt, damit
-  // mehrere Diagramme im selben Dokument nicht kollidieren. Für Fragen zum Ablauf (J3 verweist darauf).
-  const dg = daten.diagramme;
-  reserve(
-    'R15',
-    '1C',
-    'Reserve: Der Host-Aufruf wartet nie auf das Modell',
-    // Abbildung in voller Flächenhöhe (grafik-box), rechts Legende, Notation und Stand.
-    `<div class="grafik-box" data-diagramm="abb1" style="gap:40px">${dg.abb1.svg}` +
-      `<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:20px">` +
-      `<div data-diagramm="legende" style="width:100%;aspect-ratio:${dg.legende.verhaeltnis}">${dg.legende.svg}</div>` +
-      `<p class="sekundaer" style="margin:0">Aktivitätsdiagramm, vereinfacht: Bänder sind Prozessschritte und Hosts, Sechsecke Prüfungen. Gespeichert wird die Modellzusammenfassung nur bei gleichem Hash und formgerechter Antwort, sonst der Ersatz mit Grund.</p>` +
-      `<p class="vermerk" style="margin:0">Abb. 1 aus 1C/1C-diagrams.md, Stand ${mono('def56700')} (v1.4.0-14)</p>` +
-      `</div></div>`,
-    privat('R15.notiz', {}),
-    '1C/1C-diagrams.md, Abb. 1 (diagrams/1c-context-path-overview.light.svg, Legende diagrams/1c-legende.light.svg) · Code-Stand def56700 (v1.4.0-14, Branch f746ffba), gezeichnet am Laptop (ThinkPad P50)',
-  );
-  reserve(
-    'R16',
-    '1C',
-    'Reserve: Kontext dreimal gebaut, Status prüft erneut',
-    `<div class="grafik-box" data-diagramm="abb2" style="gap:40px">${dg.abb2.svg}` +
-      `<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:20px">` +
-      `<p class="sekundaer" style="margin:0">UML-Sequenzdiagramm, vereinfacht: gefüllte Spitze = synchroner Aufruf, offene Spitze = asynchrone Nachricht, gestrichelt = Antwort; alt, par und loop sind kombinierte Fragmente, Nummern die Reihenfolge.</p>` +
-      `<p class="sekundaer" style="margin:0">Messpunkte t0–t3 (J8) liegen auf den Pfeilen zur Runtime und zurück.</p>` +
-      `<p class="vermerk" style="margin:0">Abb. 2 aus 1C/1C-diagrams.md, Stand ${mono('def56700')} (v1.4.0-14)</p>` +
-      `</div></div>`,
-    privat('R16.notiz', {}),
-    '1C/1C-diagrams.md, Abb. 2 (diagrams/1c-context-path-overview-sequence.light.svg) · Code-Stand def56700 (v1.4.0-14, Branch f746ffba), gezeichnet am Laptop (ThinkPad P50)',
   );
 
   // ------------------------------------------------------------ J11 (bis 2026-11-16 R13): Betrieb
@@ -2234,7 +1922,7 @@ export function folien(daten) {
         'nein',
         'Inferenz skaliert nur vertikal und von Hand; ein Slot bleibt ein Slot',
       ) +
-      nist('Messbarer Dienst', 'teils', 'Log nur mit Gesamtzeit je Auftrag (R11)') +
+      nist('Messbarer Dienst', 'teils', 'Log nur mit Gesamtzeit je Auftrag') +
       `</table>` +
       `<p style="margin:14px 0 0;font-size:22px;line-height:1.35">${etikett('1B')} <b>Bulkhead:</b> Der zweite Host ist ein getrennter Fehler- und Ressourcenbereich; die Inferenz konkurriert nicht mit dem Live-Pfad um CPU. Den Effekt habe ich nicht gemessen.</p></div>` +
       `<div><p style="margin:0 0 4px;font-weight:700;font-size:28px">Kapazität ${etikett('1C')}</p>` +

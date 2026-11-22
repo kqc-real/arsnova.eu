@@ -58,7 +58,7 @@ after(async () => {
 
 // ---------------------------------------------------------------- Aufbau und Zeit
 
-test('1A: neun Folien im Vortrag (N6b, N8 seit 2026-11-17 wieder Reserve RN1, RN4), Literatur gemeinsam (kein NL)', () => {
+test('1A: neun Folien im Vortrag (N6b, N8 und RN2 seit 2026-11-22 entfernt), Literatur gemeinsam (kein NL)', () => {
   assert.deepEqual(
     haupt1A.map((f) => f.id),
     ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N9', 'N10'],
@@ -69,10 +69,8 @@ test('1A: neun Folien im Vortrag (N6b, N8 seit 2026-11-17 wieder Reserve RN1, RN
   );
   assert.deepEqual(
     reserve1A.map((f) => f.id),
-    ['RN1', 'RN2', 'RN4'],
+    [],
   );
-  assert.ok(reserve1A.every((f) => /^Reserve: /.test(f.titel)));
-  assert.ok(reserve1A.every((f) => f.autor === 'niklas' && f.zeitS === 0));
   assert.ok(haupt1A.every((f) => f.auftrag === '1A' && f.station === null));
 });
 
@@ -140,7 +138,7 @@ test(
     assert.match(md, /\*\*Stichpunkte\*\*/);
     assert.match(md, /\*\*Fließtext\*\*/);
     assert.match(md, /## G9 /);
-    assert.match(md, /## RN2 /);
+    assert.doesNotMatch(md, /## RN\d /, 'keine Reservefolien mehr');
     assert.doesNotMatch(md, /## NL /, 'Literatur ohne Redezeit nicht in den Notizen');
   },
 );
@@ -436,7 +434,7 @@ test('Kopfgrammatik im gemeinsamen Deck: Ort, Titel, Fragezeile im selben Abstan
   }
 });
 
-test('Reihenfolge: GT, G0, GK, Niklas 1A, Jonas, Niklas 1B 3–4, G9, GN, GD, Literatur (J16, J16b), Reserve', async () => {
+test('Reihenfolge: GT, G0, GK, Niklas 1A, Jonas, Niklas 1B 3–4, G9, GN, GD, Literatur (J16, J16b), keine Reserve', async () => {
   const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
   await page.goto(pathToFileURL(deck).href);
   const ids = await page.evaluate(() =>
@@ -457,8 +455,8 @@ test('Reihenfolge: GT, G0, GK, Niklas 1A, Jonas, Niklas 1B 3–4, G9, GN, GD, Li
     ['GN', 'GD', 'J16', 'J16b'],
   );
   assert.ok(!ids.some(([x]) => x === 'NL'), 'kein eigenes Verzeichnis 1A mehr');
-  assert.ok(pos('RN2') > pos('J16b'));
-  assert.equal(ids.find(([x]) => x === 'RN2')[1], 'reserve');
+  assert.equal(ids.at(-1)[0], 'J16b');
+  assert.ok(!ids.some(([, teil]) => teil === 'reserve'), 'keine Reservefolien mehr');
 });
 
 /** Sichtbare Folien im Druck mit ?druck=… */
@@ -475,7 +473,7 @@ async function druckAuszug(art) {
   return ids;
 }
 
-test('Druck ?druck=niklas: genau Niklas’ Folien samt gemeinsamer Literatur und Reserve; Jonas ohne RN', async () => {
+test('Druck ?druck=niklas: genau Niklas’ Folien samt gemeinsamer Literatur, ohne Reserve; Jonas ohne Niklas-Folien', async () => {
   // Titelfolie (beide Namen, lokal mit Matrikelnummern) steht in jedem Einzel-PDF.
   assert.deepEqual(await druckAuszug('niklas'), [
     'GT',
@@ -678,14 +676,17 @@ test('Wegkarte: jede Station jedes Wegs wird besucht, je Teil in nicht fallender
       besucht[z.weg].add(z.station);
     }
   }
-  // Seit 2026-11-17 zeigt nur noch die Reserve RN4 die Station spaCy (Zeit für 1B 3–4); sie zählt hier mit,
-  // die Reihenfolge prüft nur den Vortrag.
-  for (const f of reserve1A) {
-    const z = f.marke ? laeuferZustand(f.marke) : null;
-    if (z?.station) besucht[z.weg].add(z.station);
-  }
+  // Die Station spaCy zeigte seit 2026-11-17 nur noch die Reserve RN4 (N8); seit 2026-11-22 gibt es keine
+  // Reserve mehr. Der Weg zeigt spaCy weiter als Teil des App-Hosts, keine Folie hält dort.
+  const OHNE_FOLIE = { '1a': ['spacy'] };
   for (const [weg, stationen] of Object.entries(besucht))
-    assert.deepEqual([...stationen].sort(), Object.keys(WEGE[weg].stationen).sort(), weg);
+    assert.deepEqual(
+      [...stationen].sort(),
+      Object.keys(WEGE[weg].stationen)
+        .filter((s) => !(OHNE_FOLIE[weg] ?? []).includes(s))
+        .sort(),
+      weg,
+    );
 });
 
 /** Zustand der Wegkarte auf dem Bildschirm (Läufer) nach jedem Tastendruck von `start` bis `ende`. */

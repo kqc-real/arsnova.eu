@@ -272,7 +272,7 @@ test('Teile: Fahrplan auf G0 in Vortragsreihenfolge, teilVon ordnet jede Hauptfo
   assert.equal(teilVon(nach('G9')), 'fazit');
   assert.equal(teilVon(nach('GN')), 'fazit');
   assert.equal(teilVon(nach('J16')), null);
-  assert.equal(teilVon(nach('R1')), null);
+  assert.equal(teilVon({ teil: 'reserve', id: 'R0' }), null);
   assert.equal(teilVon({ teil: 'niklas', auftrag: '1A', id: 'N1' }), '1a');
   assert.equal(teilVon({ teil: 'niklas', auftrag: '1B', id: 'M1' }), '1b34');
   // G9 nimmt die Leitfrage von G0 wörtlich auf (Klammer Anfang–Ende)
@@ -346,7 +346,8 @@ test('Rahmen: GT, G0, G9, GD ohne Entwurfsvermerk und Platzhalter; G9 zitiert Ni
     F.slice(0, 3).map((f) => f.id),
     ['GT', 'G0', 'GK'],
   );
-  assert.equal(F.at(-1).teil, 'reserve');
+  // Seit 2026-11-22 keine Reservefolien mehr: das Deck endet mit dem Literaturverzeichnis.
+  assert.equal(F.at(-1).id, 'J16b');
   // J16 (Literaturverzeichnis) folgt als Anhang nach Fazit und Dank, nicht zwischen J15 und Niklas.
   const haupt = F.filter((f) => f.teil !== 'reserve').map((f) => f.id);
   assert.deepEqual(haupt.slice(-6), ['J15', 'G9', 'GN', 'GD', 'J16', 'J16b']);
@@ -474,24 +475,11 @@ test('Dankfolie: Einladung zu Fragen, Link und offline erzeugter QR-Code zum Bel
   assert.match(qrSvg('x', 100), /viewBox="0 0 29 29"/);
 });
 
-test('Reservefolien R1, R5–R7, R9–R12, R15, R16 (R2–R4, R8, R13, R14 seit 2026-11-16 im Hauptteil, R17 seit 2026-11-18 GN)', () => {
-  const r = F.filter((f) => f.teil === 'reserve');
+test('Keine Reservefolien (seit 2026-11-22 entfernt); aus der Reserve geholte Folien im Hauptteil', () => {
   assert.deepEqual(
-    r.map((f) => f.id),
-    ['R1', 'R5', 'R6', 'R7', 'R9', 'R10', 'R11', 'R12', 'R15', 'R16'],
+    F.filter((f) => f.teil === 'reserve').map((f) => f.id),
+    [],
   );
-  const text = r.map((f) => f.titel).join(' | ');
-  for (const wort of [
-    'Kalibrierung',
-    'Gültigkeitsgrenzen',
-    'KI',
-    'ADR',
-    'Konsistenz',
-    'ADR-0035',
-    'Betrieb',
-    'Entscheidungen',
-  ])
-    assert.ok(text.includes(wort), wort);
   // Aus der Reserve geholt: Behauptung als Titel, ohne „Reserve:“, mit Station des Auftrags
   const geholt = {
     J5b: 'kontext',
@@ -509,36 +497,23 @@ test('Reservefolien R1, R5–R7, R9–R12, R15, R16 (R2–R4, R8, R13, R14 seit 
 });
 
 test(
-  'R15, R16: Abb. 1 und 2 aus 1C/1C-diagrams.md offline eingebettet, eigene Ids, Notation und Stand',
+  'Abb. 1 und 2 aus 1C/1C-diagrams.md: Daten offline, eigene Ids, keine externen Verweise (Folien R15, R16 seit 2026-11-22 entfernt)',
   { skip: OHNE_NOTIZEN },
   () => {
-    const r15 = nach('R15');
-    const r16 = nach('R16');
-    for (const [f, teile] of [
-      [r15, ['abb1', 'legende']],
-      [r16, ['abb2']],
-    ]) {
-      assert.equal(f.teil, 'reserve');
-      for (const k of teile) {
-        const d = daten.diagramme[k];
-        assert.ok(f.inhalt.includes(d.svg), `${f.id}: ${k} eingebettet`);
-        assert.match(
-          d.svg,
-          /^<svg[^>]+role="img"[^>]+aria-label="Abb\.|^<svg[^>]+role="img"[^>]+aria-label="Legende/,
-        );
-        assert.doesNotMatch(d.svg, /my-svg/, `${k}: Ids umbenannt`);
-        assert.doesNotMatch(
-          d.svg,
-          /<image\b|href="https?:|url\(\s*['"]?https?:|@import/,
-          `${k}: extern`,
-        );
-        assert.ok(d.verhaeltnis > 0.5 && d.verhaeltnis < 4, k);
-      }
-      assert.match(f.fuss, /Weirauch, 2026, Datei 1C\/1C-diagrams\.md/);
-      assert.match(sichtbar(f.inhalt), /def56700/);
+    for (const k of ['abb1', 'legende', 'abb2']) {
+      const d = daten.diagramme[k];
+      assert.match(
+        d.svg,
+        /^<svg[^>]+role="img"[^>]+aria-label="Abb\.|^<svg[^>]+role="img"[^>]+aria-label="Legende/,
+      );
+      assert.doesNotMatch(d.svg, /my-svg/, `${k}: Ids umbenannt`);
+      assert.doesNotMatch(
+        d.svg,
+        /<image\b|href="https?:|url\(\s*['"]?https?:|@import/,
+        `${k}: extern`,
+      );
+      assert.ok(d.verhaeltnis > 0.5 && d.verhaeltnis < 4, k);
     }
-    assert.match(sichtbar(r15.inhalt), /Aktivitätsdiagramm/);
-    assert.match(sichtbar(r16.inhalt), /UML-Sequenzdiagramm/);
     // Ids je Abbildung verschieden, keine Kollision im Deck
     const ids = (svg) => [...svg.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
     const alle = Object.values(daten.diagramme).flatMap((d) => ids(d.svg));
@@ -829,22 +804,13 @@ test(
   { skip: OHNE_NOTIZEN },
   () => {
     assert.match(sichtbar(nach('J11').inhalt), /wechselnden Prompts/);
-    const r5 = sichtbar(nach('R5').inhalt);
-    assert.match(r5, /identische/);
     assert.match(nach('J9').notiz, /identisch/);
-    const r1 = alles(nach('R1'));
-    assert.match(r1, /196/);
-    assert.match(r1, /202/);
-    assert.match(r1, /Laptop/);
   },
 );
 
-test('W12: R12 nennt je Entscheidung Kosten, Risiko oder Betriebsfolge; J15 verweist auf R12', () => {
-  const s = sichtbar(nach('R12').inhalt);
-  for (const re of [/Kosten/, /Risiko/, /Betrieb/]) assert.match(s, re);
+test('W12: J15 nennt Entscheidungen je Auftrag (R12 seit 2026-11-22 entfernt)', () => {
   // ohne die Fragezeile im Kopf (Kopfgrammatik)
   const j15 = sichtbar(nach('J15').inhalt.replace(/<p class="folie-frage">[\s\S]*?<\/p>/, ''));
-  assert.match(j15, /Details: R12/);
   assert.match(j15, /nicht umgesetzt/);
   assert.match(j15, /1C/);
   assert.match(j15, /1B/);
@@ -861,11 +827,6 @@ test(
 
 test('Abdeckung: R8–R10 nennen Berechtigung, Konsistenzfälle und Rollen mit Belegen', () => {
   assert.match(sichtbar(nach('J5b').inhalt), /assertHostSessionAccessFromContext/);
-  for (const k of ['E7', 'E8', 'E12', 'T2.3', 'E15', 'T1'])
-    assert.match(sichtbar(nach('R9').inhalt), new RegExp(`\\b${k.replace('.', '\\.')}\\b`), k);
-  const r10 = sichtbar(nach('R10').inhalt);
-  for (const w of ['Encoder', 'Adapter', 'llama-server', '768', '256'])
-    assert.match(r10, new RegExp(w));
   for (const f of jonasUndReserve) assert.ok(f.quelle, f.id);
 });
 
@@ -880,7 +841,6 @@ test(
     assert.match(nach('J9').notiz, /langsame/);
     const j9svg = nach('J9').inhalt;
     assert.match(j9svg, /langsame CPU/);
-    assert.match(alles(nach('R11')), /langsame/);
     assert.ok(!/Transport ist damit rund/.test(nach('J9').notiz));
   },
 );
@@ -910,7 +870,7 @@ test(
 );
 
 test('I-04: KI-Anteil und Methode nennen die Ausnahmen der Vorabfestlegung', () => {
-  for (const id of ['J4', 'R6']) {
+  for (const id of ['J4']) {
     const s = sichtbar(nach(id).inhalt);
     assert.ok(!/vor jeder Messung|bevor gemessen wurde|vor jedem Lauf/.test(s), id);
     assert.match(s, /M7b/, id);
@@ -921,7 +881,7 @@ test('I-04: KI-Anteil und Methode nennen die Ausnahmen der Vorabfestlegung', () 
 
 test('I-05/R3-I4: Nachprüfung mit belegtem Preis unter Voting, ohne Vorhersage als Tatsache', () => {
   assert.ok(!/kostet fast nichts/.test(nach('J12').titel));
-  for (const id of ['J12', 'J15', 'R12']) {
+  for (const id of ['J12', 'J15']) {
     const t = alles(nach(id));
     assert.match(t, /Voting/, id);
     assert.match(t, /Stimme/, id);
@@ -1027,8 +987,6 @@ test(
     assert.ok(html.includes(daten.nachbau.titel), 'Überschrift aus dem Template');
     assert.ok(decode(nach('J13').inhalt).includes(daten.nachbau.titel));
     assert.match(sichtbar(nach('G9').inhalt), /Ausnahmen/);
-    assert.ok((sichtbar(nach('R12').inhalt).match(/Risiko/g) ?? []).length >= 4);
-    assert.match(sichtbar(nach('J15').inhalt), /Details: R12/);
     assert.match(nach('J10').notiz, /langsame/);
   },
 );

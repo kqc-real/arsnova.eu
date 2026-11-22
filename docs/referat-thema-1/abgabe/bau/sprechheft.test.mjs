@@ -43,7 +43,7 @@ test('Markdown: Text wird escaped, nur fett, code und Listen werden zu HTML', ()
 });
 
 test('Jede Folie des Decks hat eine Heftseite mit allen Abschnitten', { skip: ohnePrivat }, () => {
-  assert.ok(folienIds.length > 40, `Folien im Deck: ${folienIds.length}`);
+  assert.ok(folienIds.length > 30, `Folien im Deck: ${folienIds.length}`);
   const fehlt = folienIds.filter((id) => !heft[id]);
   assert.deepEqual(fehlt, [], `Heftseiten fehlen in ${HEFT_ORDNER}`);
   for (const id of folienIds) {

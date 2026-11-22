@@ -24,10 +24,9 @@ import {
   ausreisserSvg,
   liveSvg,
   profilSvg,
-  ressourcenSvg,
   vergleichsMatrixSvg,
 } from './grafik-1a.mjs';
-import { AKTIONEN, VARIANTEN } from './daten-1a.mjs';
+import { VARIANTEN } from './daten-1a.mjs';
 import { quellenzeile } from './literatur-1a.mjs';
 import { privat } from './notizen.mjs';
 
@@ -63,17 +62,9 @@ const ZITATE = {
     ['papadopoulos2021', 'Kap. 2.3'],
   ],
   N6: [[S, 'live-vergleiche.csv']],
-  N6b: [
-    [S, 'Laufdateien'],
-    ['nosek2018', 'S. 2600'],
-  ],
   N7: [
     [S, 'V3/block-05'],
     ['nosek2018', 'S. 2600'],
-  ],
-  N8: [
-    [S, 'auswertung.json'],
-    ['heo2024', 'Abschnitt CPU Interface Files'],
   ],
   N9: [
     [S, 'auswertung.json'],
@@ -84,14 +75,7 @@ const ZITATE = {
     ['dean2013', 'S. 76'],
     ['weirauch2026c', '1B/1B-ergebnis.md'],
   ],
-  RN2: [
-    [S, '1A/1A-auswertung.md'],
-    ['papadopoulos2021', 'Kap. 2.3'],
-  ],
 };
-
-const spanne = ([a, b], stellen = 0) =>
-  fmt(a, stellen) === fmt(b, stellen) ? fmt(a, stellen) : `${fmt(a, stellen)}–${fmt(b, stellen)}`;
 
 /** Kasten mit Akzentlinie links (wie J15/J4 bei Jonas). */
 const kernsatz = (html, linie = 'var(--blau)', groesse = 32) =>
@@ -100,7 +84,7 @@ const kernsatz = (html, linie = 'var(--blau)', groesse = 32) =>
 /** Status der nachträglichen Auswertung: gedämpft in der Fragezeile nach der Frage (Kopfgrammatik). */
 const explorativ = { status: 'nachträglich ausgewertet' };
 
-/** Folien N1–N10 ohne N8 (Hauptteil), ohne eigenes Literaturverzeichnis (gemeinsam: J16, J16b) und Reserve RN1 (bis 2026-11-16 N6b), RN2, RN4 (N8). */
+/** Folien N1–N10 ohne N6b und N8, ohne eigenes Literaturverzeichnis (gemeinsam: J16, J16b); Reservefolien seit 2026-11-22 entfernt. */
 export function folien1A(d) {
   const H = d.herkunft;
   const sw = d.schwellen;
@@ -442,28 +426,6 @@ export function folien1A(d) {
     ),
   });
 
-  // ------------------------------------------------------------ N8 Ressourcen (bis 2026-11-16 Reserve RN4)
-  neu({
-    id: 'N8',
-    titel: 'spaCy bleibt im Budget, bis CPU fehlt',
-    // Wegmarke: CPU und Speicher des spaCy-Containers: Station spaCy.
-    marke: '1a-spacy',
-    zeitS: 45,
-    inhalt: flaeche(
-      frage('Wie viel CPU und Speicher braucht spaCy selbst?', '1A') +
-        grafikBox(ressourcenSvg(d)) +
-        `<p class="beleg">Labor: alle Container zusammen ${spanne(
-          d.labor.containerCpuProzent.map((x) => x / 100),
-          1,
-        )} CPU von ${H.cpus}, mindestens ${fmt(d.labor.minFreiGiBAb, 1)} GiB frei; spaCy V2 ohne OOM</p>`,
-    ),
-    notiz: privat('N8.notiz', { fmt, d, spanne }),
-    stichpunkte: privat('N8.stichpunkte', { fmt, d, spanne, H }),
-    quelle: q(
-      `${H.datei} runs[].resources[alias=spacy] (cpuPercent, throttledPeriodRatio aus cpu.stat, lifetimePeakMemoryBytes aus memory.peak, oomKillDelta), runs[].resources[].cpuPercent (Summe je Lauf), runs[].collectorHost.minAvailableMemoryBytes; Takt von cpu.max: Kernel-Doku cgroup v2, Abschn. „CPU Interface Files“ (Standard „max 100000“, also 100 ms)`,
-    ),
-  });
-
   // Kurzbelege in die Fußzeile (wie Jonas' Folien), eine Zeile
   for (const f of F) {
     const z = ZITATE[f.id];
@@ -473,130 +435,9 @@ export function folien1A(d) {
 
   // Literatur: seit der Durchsicht 2026-11-18 im gemeinsamen Verzeichnis (J16, J16b in folien.mjs), kein NL mehr.
 
-  // ------------------------------------------------------------ Reserve
-  const reserve = (f) => {
-    const z = ZITATE[f.id];
-    F.push({
-      teil: 'reserve',
-      autor: 'niklas',
-      auftrag: '1A',
-      zeitS: 0,
-      kurzfassung: false,
-      station: null,
-      ...f,
-      inhalt: f.inhalt.startsWith('<div class="flaeche-inhalt">') ? f.inhalt : flaeche(f.inhalt),
-      fuss: quellenzeile(z),
-    });
-  };
-  const g = e.gepoolt;
-  const aktionZeile = ([key, name]) =>
-    `<tr style="border-top:var(--linie-min) solid var(--linie)"><td style="padding:8px 14px 8px 0;font-weight:700">${name}</td>` +
-    ['V0', 'V1', 'V2']
-      .map(
-        (v) =>
-          `<td class="mono" style="padding:8px 14px;text-align:right">${fmt(g[v][key].p95, 1)}</td>`,
-      )
-      .join('') +
-    `<td class="mono" style="padding:8px 0 8px 14px;text-align:right;color:var(--gedaempft)">${spanne(e.streuung.V2[key], 1)}</td></tr>`;
-  const abweichung = e.abweichungV2V1;
-  const abwText = `${fmt(abweichung[0], 1)} bis +${fmt(abweichung[1], 1)}`;
-  const zufallsChance = e.zufallsChance;
-  neu({
-    id: 'N6b',
-    titel: 'Die Regel schlägt auch ohne Wirkung an',
-    // Wegmarke: Empfindlichkeit der Regel (Kontrolle ohne spaCy schlägt an): wie N4.
-    marke: '1a-regel',
-    zeitS: 45,
-    fuss: quellenzeile(ZITATE.N6b),
-    inhalt: flaeche(
-      frage('Wie empfindlich ist die Regel?', '1A', explorativ) +
-        zweiSpalten(
-          `<table style="border-collapse:collapse;font-size:28px;width:100%">` +
-            `<tr style="color:var(--gedaempft);font-size:var(--s-min)"><td></td><td style="text-align:right;padding:0 14px">V0</td><td style="text-align:right;padding:0 14px">V1</td><td style="text-align:right;padding:0 14px">V2</td><td style="text-align:right;padding-left:14px">V2 je Lauf</td></tr>` +
-            AKTIONEN.map(aktionZeile).join('') +
-            `</table><p class="vermerk">p95 in ms, alle 5 Blöcke gepoolt (n = ${fmt(g.V1.join.n)}, Q&amp;A ${fmt(g.V1.qaSubmit.n)})</p>`,
-          zahl({
-            wert: `${kontrolle.length}`,
-            einheit: `/ ${d.h1.gesamt}`,
-            was: 'Treffer der Kontrolle ohne spaCy',
-            gruppe: 'nachträglich ausgewertet, grobe Rechnung',
-            linie: 'var(--bernstein)',
-            gross: 84,
-          }) +
-            `<p class="sekundaer">Wären die Vergleiche unabhängig, bestünde eine wirkungslose Komponente alle ${d.h1.gesamt} nur mit etwa ${fmt(zufallsChance * 100)} %.</p>`,
-          820,
-        ) +
-        `<p class="beleg">Gepoolt weicht V2 von V1 um ${abwText} ms ab; grobe Rechnung, kein vorab festgelegter Test</p>`,
-    ),
-    notiz: privat('N6b.notiz', { abwText, spanne, e, kontrolle, d, fmt, zufallsChance }),
-    stichpunkte: privat('N6b.stichpunkte', {
-      abwText,
-      spanne,
-      e,
-      kontrolle,
-      d,
-      fmt,
-      zufallsChance,
-    }),
-    quelle: q(
-      `alle ${d.live.laeufe} lauf.json (live.actions.<aktion>.latency.durationSamplesMs), Nearest Rank gepoolt; Kontrolle: comparisons[variant=V1]; Unabhängigkeit ist eine grobe Annahme`,
-    ),
-  });
-  reserve({
-    id: 'RN2',
-    titel: 'Reserve: Was die Messung nicht zeigt',
-    inhalt: zweiSpalten(
-      `<p style="margin:0 0 12px;font-weight:700;font-size:28px">Grenzen des Labors</p>` +
-        `<ul style="margin:0;padding-left:28px;font-size:24px;line-height:1.36">` +
-        [
-          `Ein WSL2-Rechner mit ${H.cpus} logischen CPUs statt Zielhost mit 8 vCPU`,
-          'Lastgenerator auf demselben Rechner: Latenz enthält Clientarbeit',
-          'Beitrittswelle, keine 500 dauerhaft aktiven Clients',
-          'Synthetischer Korpus mit kleinem Wortschatz',
-          'Kein Rendering, keine Kompassanzeige, keine Aussage zu einem LLM',
-          `Gemessen auf einem Stand nach v1.4.0 (${H.commit}) statt Tag v1.3.0, nach Freigabe des Prüfers`,
-        ]
-          .map((p) => `<li style="margin:0 0 8px">${p}</li>`)
-          .join('') +
-        `</ul>`,
-      `<p style="margin:0 0 12px;font-weight:700;font-size:28px">Eigenanteil und KI</p>` +
-        `<ul style="margin:0;padding-left:28px;font-size:24px;line-height:1.36">` +
-        [
-          'Niklas: Auftrag, Labor, reale Messung, Freigaben, Deutung',
-          'OpenAI Codex: Umsetzung der Werkzeuge, Tests, Auswertung, Entwürfe',
-          'Folien im gemeinsamen Deck: mit Claude Code gebaut, Inhalt verantwortet Niklas',
-        ]
-          .map((p) => `<li style="margin:0 0 8px">${p}</li>`)
-          .join('') +
-        `</ul>`,
-      760,
-    ),
-    notiz: privat('RN2.notiz', {}),
-    stichpunkte: privat('RN2.stichpunkte', {}),
-    quelle: `1A/1A-auswertung.md (Grenzen), 1A/1A-eigenanteil.md, rahmen/00-rahmen-und-pruefung.md (Freigabe des aktuellen main) · ${umgebung}`,
-  });
-  // Seit 2026-11-17 wieder in der Reserve (Zeit für 1B Schritte 3–4, M1–M4): N6b als RN1, N8 als RN4.
-  // Inhalt, Notiz und Fuß bleiben; Reservefolien haben keine Redezeit.
-  const ZUR_RESERVE = { N6b: 'RN1', N8: 'RN4' };
-  for (const f of F) {
-    const neueId = ZUR_RESERVE[f.id];
-    if (!neueId) continue;
-    Object.assign(f, {
-      id: neueId,
-      teil: 'reserve',
-      autor: 'niklas',
-      titel: `Reserve: ${f.titel}`,
-      zeitS: 0,
-      kurzfassung: false,
-    });
-  }
   // Vortragsreihenfolge: N3 (bis 2026-11-16 RN3) an seiner Stelle.
   const ORDNUNG = ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N9', 'N10'];
-  const RESERVE = ['RN1', 'RN2', 'RN4'];
-  const rang = (f) =>
-    ORDNUNG.includes(f.id)
-      ? ORDNUNG.indexOf(f.id)
-      : ORDNUNG.length + 1 + (RESERVE.includes(f.id) ? RESERVE.indexOf(f.id) + 1 : 0);
+  const rang = (f) => (ORDNUNG.includes(f.id) ? ORDNUNG.indexOf(f.id) : ORDNUNG.length + 1);
   return F.map((f, i) => [f, i])
     .sort((a, b) => rang(a[0]) - rang(b[0]) || a[1] - b[1])
     .map(([f]) => f);

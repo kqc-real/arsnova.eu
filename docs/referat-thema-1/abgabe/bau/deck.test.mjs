@@ -112,7 +112,7 @@ test('Deck lädt ohne Konsolenfehler und ohne Anfragen außer der Datei selbst',
   }
 });
 
-test('Anzahl Folien = Rahmen + Niklas + Jonas, Reserve getrennt', async () => {
+test('Anzahl Folien = Rahmen + Niklas + Jonas, keine Reserve (seit 2026-11-22)', async () => {
   const faelle = [
     [deckOhneNiklas, 2], // je eine Platzhalterfolie „Teil Niklas“
     [deckMitNiklas, pngs.length],
@@ -138,13 +138,13 @@ test('Anzahl Folien = Rahmen + Niklas + Jonas, Reserve getrennt', async () => {
       z.jonas,
       JONAS.map((f) => f.id),
     );
-    assert.equal(z.reserve, RESERVE.length);
+    assert.equal(z.reserve, 0);
     // Nach dem Fazit der Nachweisumfang (GN, Jonas), dann der Dank (Durchsicht 2026-11-18)
     assert.equal(z.nachG9, 'GN', 'Nachweisumfang direkt nach dem Fazit');
     // Reihenfolge (Design 2026-11-15, Abschnitt 3): GT und G0, Niklas 1A, Jonas, Niklas 1B 3–4,
-    // G9 und GD, Anhang (J16), Reserve
+    // G9 und GD, Anhang (J16, J16b); keine Reserve mehr
     const block = z.reihenfolge.filter((t, i, a) => i === 0 || a[i - 1] !== t);
-    assert.deepEqual(block, ['rahmen', 'niklas', 'jonas', 'niklas', 'rahmen', 'jonas', 'reserve']);
+    assert.deepEqual(block, ['rahmen', 'niklas', 'jonas', 'niklas', 'rahmen', 'jonas']);
     if (niklas === 2) {
       assert.deepEqual(z.platzhalter, ['Teil Niklas', 'Teil Niklas']);
     } else {
@@ -170,7 +170,6 @@ test('Fußzeile zeigt Seitenzahl im Vortrag und Quelle', async () => {
   assert.match(fuss.G0, new RegExp(`^2 / ${gesamt} · `));
   assert.match(fuss.GK, new RegExp(`^3 / ${gesamt} · `));
   assert.match(fuss.J1, new RegExp(`^5 / ${gesamt} · `));
-  assert.match(fuss.R1, /^Reserve R1 · /);
   assert.match(fuss.J16b, new RegExp(`^${gesamt} / ${gesamt} · `));
   await context.close();
 });
@@ -519,13 +518,12 @@ test('Teilleiste oben rechts: aktueller Teil markiert, nicht auf Titel, Fahrplan
   );
   assert.deepEqual(reihe, ['1A', '1C, 1B 1–2', '1B 3–4', 'Fazit']);
   assert.equal(leisten.J16, null);
-  assert.equal(leisten.R1, null);
   for (const f of JONAS.filter((x) => !x.anhang)) assert.equal(leisten[f.id], '1C, 1B 1–2', f.id);
   assert.equal(leisten.G9, 'Fazit');
   await context.close();
 });
 
-test('Tasten: Home, End, Bild ab/auf, Leertaste; Reserve-Übersicht mit r', async () => {
+test('Tasten: Home, End, Bild ab/auf, Leertaste; r ohne Reserve wirkungslos', async () => {
   const { page, context } = await oeffne(deckOhneNiklas);
   await page.keyboard.press('End');
   assert.equal(await aktuelleId(page), 'J16b');
@@ -547,29 +545,10 @@ test('Tasten: Home, End, Bild ab/auf, Leertaste; Reserve-Übersicht mit r', asyn
   await page.keyboard.press('PageUp');
   await geheZu(page, 'J7');
 
+  // Seit 2026-11-22 keine Reservefolien: r öffnet keine Übersicht und bleibt auf der Folie.
   await page.keyboard.press('r');
-  const knoepfe = await page.evaluate(() =>
-    [...document.querySelectorAll('.reserve-uebersicht button[data-ziel]')].map(
-      (b) => b.dataset.ziel,
-    ),
-  );
-  assert.deepEqual(
-    knoepfe,
-    RESERVE.map((f) => f.id),
-  );
-  assert.ok(await page.locator('.reserve-uebersicht').isVisible());
-  assert.ok(
-    await page.evaluate(() => document.activeElement?.closest('.reserve-uebersicht') !== null),
-    'Fokus liegt in der Übersicht',
-  );
-  await page.keyboard.press('2');
-  assert.equal(await aktuelleId(page), RESERVE[1].id);
   assert.ok(!(await page.locator('.reserve-uebersicht').isVisible()));
-  await page.keyboard.press('ArrowRight');
-  assert.equal(await aktuelleId(page), RESERVE[2].id);
-  await page.keyboard.press('Escape');
-  assert.equal(await aktuelleId(page), 'J7', 'Escape führt zurück in den Vortrag');
-
+  assert.equal(await aktuelleId(page), 'J7');
   await page.keyboard.press('r');
   await page.keyboard.press('r');
   assert.ok(!(await page.locator('.reserve-uebersicht').isVisible()));
@@ -828,7 +807,7 @@ test('Layout-Gegenprobe: zweizeiliger Titel, überlappender Beleg, große oder m
     // Designregeln T und V: mehrzeiliger und zu großer Vermerk, Inhalt oben ohne Zentrierung
     if (f.id === 'J1')
       return { ...f, inhalt: f.inhalt.replace(/(<p class="beleg">)([^<]*)/, '$1$2 $2 $2') };
-    if (f.id === 'J15')
+    if (f.id === 'J13')
       return {
         ...f,
         inhalt: f.inhalt.replace(
@@ -836,13 +815,11 @@ test('Layout-Gegenprobe: zweizeiliger Titel, überlappender Beleg, große oder m
           '<p class="vermerk" style="font-size:28px">',
         ),
       };
-    if (f.id === 'R7')
+    // Früher R7; seit 2026-11-22 ohne Reserve: kurzer Inhalt ohne Zentrierung auf der Literaturfolie
+    if (f.id === 'J16b')
       return {
         ...f,
-        inhalt: f.inhalt.replace(
-          '<div class="flaeche-inhalt">',
-          '<div class="flaeche-inhalt" style="display:block">',
-        ),
+        inhalt: '<div class="flaeche-inhalt" style="display:block"><p>Kurzer Inhalt</p></div>',
       };
     return f;
   });
@@ -853,8 +830,8 @@ test('Layout-Gegenprobe: zweizeiliger Titel, überlappender Beleg, große oder m
   assert.match(befunde, /J7: pre\.mono.* trifft /);
   assert.match(befunde, /J5b: .*(außerhalb der Bühne|ragt aus der Fläche)/);
   assert.match(befunde, /J1: p\.beleg.* Vermerk mehrzeilig/);
-  assert.match(befunde, /J15: p\.vermerk.* Vermerk 28 px, zu groß/);
-  assert.match(befunde, /R7: Inhalt klebt oben/);
+  assert.match(befunde, /J13: p\.vermerk.* Vermerk 28 px, zu groß/);
+  assert.match(befunde, /J16b: Inhalt klebt oben/);
 });
 
 test('Clip wird als data-URI in J13 eingebettet', () => {

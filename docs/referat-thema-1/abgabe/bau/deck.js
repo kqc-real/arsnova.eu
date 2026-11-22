@@ -321,6 +321,7 @@
 
   // ---------------------------------------------------------------- Reserve-Übersicht
   function oeffneUebersicht() {
+    if (!knoepfe.length) return; // keine Reservefolien im Deck (seit 2026-11-22)
     uebersicht.hidden = false;
     const i = liste === reserve ? index : 0;
     knoepfe[i].focus();

@@ -2,12 +2,12 @@
 
 Gemeinsame Abgabe, ohne Sprechnotizen. Zum Öffnen:
 
-| Datei                                        | Inhalt                                                   |
-| -------------------------------------------- | -------------------------------------------------------- |
-| [`folien-gesamt.html`](./folien-gesamt.html) | Gemeinsames Deck zum Präsentieren im Browser (offline)   |
-| [`folien-gesamt.pdf`](./folien-gesamt.pdf)   | Gemeinsames Deck als PDF                                 |
-| [`folien-jonas.pdf`](./folien-jonas.pdf)     | Teil Jonas (1C, 1B Schritte 1–2) mit Rahmen und Reserve  |
-| [`folien-niklas.pdf`](./folien-niklas.pdf)   | Teil Niklas (1A, 1B Schritte 3–4) mit Rahmen und Reserve |
+| Datei                                        | Inhalt                                                  |
+| -------------------------------------------- | ------------------------------------------------------- |
+| [`folien-gesamt.html`](./folien-gesamt.html) | Gemeinsames Deck zum Präsentieren im Browser (offline)  |
+| [`folien-gesamt.pdf`](./folien-gesamt.pdf)   | Gemeinsames Deck als PDF                                |
+| [`folien-jonas.pdf`](./folien-jonas.pdf)     | Teil Jonas (1C, 1B Schritte 1–2) mit Rahmen und Reserve |
+| [`folien-niklas.pdf`](./folien-niklas.pdf)   | Teil Niklas (1A, 1B Schritte 3–4) mit Rahmen            |
 
 [`manifest.json`](./manifest.json) hält Prüfsummen, Seitenzahlen und Eingaben des Baus fest.
 
