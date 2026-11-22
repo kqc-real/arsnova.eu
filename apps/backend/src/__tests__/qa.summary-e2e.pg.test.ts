@@ -889,9 +889,9 @@ describe.skipIf(!RUN_PG)(
       // Danach ist nichts liegen geblieben, und für Session 3 lief kein Job-Kontextaufbau.
       expect(getQaSummaryQueueMetrics()).toMatchObject({ queueLength: 0, running: 0 });
       expect(prepares.get(rooms[2].sessionId)).toBe(1);
-      expect((await getQaSummaryRuntime(rooms[2].sessionId)).result?.execution.fallback?.reason).toBe(
-        'queue_full',
-      );
+      expect(
+        (await getQaSummaryRuntime(rooms[2].sessionId)).result?.execution.fallback?.reason,
+      ).toBe('queue_full');
     }, 120_000);
 
     it('lehnt den Auftrag mit CONFLICT ab und legt keinen Job an, wenn während des Kontextaufbaus eine Q&A-Stimme eingeht', async () => {

@@ -145,7 +145,8 @@ anschließend wieder.
 
 ### Snapshot-Hash der Q&A-Zusammenfassung (PostgreSQL + Redis)
 
-Der Migration-Job prüft außerdem, dass echte Datenbankänderungen den
+Die Suite (Referat Thema 1, Auftrag 1C; nicht im CI-Job, sie belegt den Vertrag
+des Messstands `def56700`) prüft, dass echte Datenbankänderungen den
 `snapshotHash` aus `prepareFreshModerationSummaryContext` ändern. Nur so kann
 die Summary-Queue eine veraltete Modellantwort als `source_changed` verwerfen:
 
@@ -167,7 +168,8 @@ Teilnahme-Capabilities und Trigger laufen gegen die migrierte Datenbank.
 
 ### Ende-zu-Ende-Pfad der Q&A-Zusammenfassung (PostgreSQL + Redis)
 
-Der Migration-Job prüft den Auftrag zur Moderationszusammenfassung vom
+Die Suite (Referat Thema 1, Auftrag 1C; nicht im CI-Job, sie belegt den Vertrag
+des Messstands `def56700`) prüft den Auftrag zur Moderationszusammenfassung vom
 tRPC-Router bis zur Runtime-Schnittstelle: `qa.summaryContextPreview`,
 `qa.requestSummary`, `qa.summaryRuntime` und `qa.moderate` → Summary-Queue →
 `prepareFreshModerationSummaryContext` → Open-Weight-Client → echtes HTTP →

@@ -391,22 +391,6 @@ jobs:
           src/__tests__/session.capabilities.pg.test.ts
           src/__tests__/qa.scale.pg.test.ts
 
-      - name: Q&A summary snapshot hash PostgreSQL regression
-        if: needs.changes.outputs.docs_only != 'true'
-        working-directory: apps/backend
-        env:
-          REDIS_URL: redis://localhost:6379
-          RUN_PG_QA_SUMMARY_HASH_TESTS: '1'
-        run: npx vitest run src/__tests__/qa.summary-hash.pg.test.ts
-
-      - name: Q&A summary end-to-end PostgreSQL regression
-        if: needs.changes.outputs.docs_only != 'true'
-        working-directory: apps/backend
-        env:
-          REDIS_URL: redis://localhost:6379
-          RUN_PG_QA_SUMMARY_E2E_TESTS: '1'
-        run: npx vitest run src/__tests__/qa.summary-e2e.pg.test.ts
-
       - name: Q&A scale migration backfill regression
         if: needs.changes.outputs.docs_only != 'true'
         working-directory: apps/backend

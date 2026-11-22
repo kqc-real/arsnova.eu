@@ -207,11 +207,11 @@ describe.skipIf(!RUN)(
       );
       const requestMs = now() - started;
       input.trace.phase = 'job';
-      let internal = (await getQaSummaryRuntime(input.room.sessionId));
+      let internal = await getQaSummaryRuntime(input.room.sessionId);
       while (!internal.result || internal.result.status === 'pending') {
         if (now() - started > TERMINAL_WAIT_MS) throw new Error('Job erreichte keinen Endstatus');
         await new Promise((resolve) => setTimeout(resolve, 5));
-        internal = (await getQaSummaryRuntime(input.room.sessionId));
+        internal = await getQaSummaryRuntime(input.room.sessionId);
       }
       const jobDoneMs = now() - started;
       input.trace.phase = 'read';

@@ -48,7 +48,9 @@ export async function pruefeAntworten(tsv, locale = 'de') {
     status: a.output.status,
     aussagen: a.output.statements.length,
     mitTrenner: a.output.statements.filter((s) => hatTrenner(s.text)).length,
-    tor: hasAcceptableQaSummaryQuality(a.output, locale) ? 'akzeptiert' : 'abgelehnt',
+    tor: hasAcceptableQaSummaryQuality({ suggestedNextSteps: [], ...a.output }, locale)
+      ? 'akzeptiert'
+      : 'abgelehnt',
   }));
   return {
     locale,

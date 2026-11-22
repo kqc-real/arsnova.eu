@@ -23,7 +23,10 @@ export async function ausschnitt(tsv, { auftrag, maxZeichen = 600, locale = 'de'
   const { hasAcceptableQaSummaryQuality } = await tsImport(TOR, import.meta.url);
   const texte = antwort.output.statements.map((s) => s.text);
   const mitTrenner = texte.filter(hatTrenner).length;
-  const torAkzeptiert = hasAcceptableQaSummaryQuality(antwort.output, locale);
+  const torAkzeptiert = hasAcceptableQaSummaryQuality(
+    { suggestedNextSteps: [], ...antwort.output },
+    locale,
+  );
   const voll = texte.join('\n');
   return {
     quelleSha256: createHash('sha256').update(tsv).digest('hex'),
