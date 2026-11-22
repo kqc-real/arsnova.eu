@@ -5083,7 +5083,7 @@ export const PublicDependenciesStatusSchema = z.object({
 export type PublicDependenciesStatus = z.infer<typeof PublicDependenciesStatusSchema>;
 
 /**
- * Öffentliche Stichprobe der privaten Open-Weight-LLM-Runtime.
+ * Öffentliche Erreichbarkeitsprüfung der privaten Open-Weight-LLM-Runtime.
  * `disabled` = Schalter aus; `busy` = Slot belegt; beeinflusst nicht den Kern-Betriebsstatus.
  */
 export const OpenWeightLlmProbeTaskStatusSchema = z.enum([
@@ -5098,7 +5098,7 @@ export type OpenWeightLlmProbeTaskStatus = z.infer<typeof OpenWeightLlmProbeTask
 
 export const OpenWeightLlmProbeTaskResultSchema = z.object({
   status: OpenWeightLlmProbeTaskStatusSchema,
-  /** Laufzeit der Stichprobe; null wenn nicht ausgeführt. */
+  /** Laufzeit einer Einzelprüfung. Die Erreichbarkeitsprüfung liefert null. */
   elapsedMs: z.number().int().min(0).nullable(),
   /** Kurzer Maschinengrund ohne Secrets (z. B. timeout, misconfigured). */
   reason: z.string().trim().min(1).max(64).nullable(),
@@ -5116,11 +5116,9 @@ export const OpenWeightLlmRuntimeProbeSchema = z.object({
    * Öffentlich, ohne Digest/Token.
    */
   modelAlias: z.string().trim().min(1).max(120).nullable(),
-  /**
-   * Von der Runtime in einer erfolgreichen Completion gemeldetes `model`;
-   * null wenn noch kein erfolgreicher Aufruf.
-   */
+  /** Modellname früherer Inferenzproben. Die Erreichbarkeitsprüfung liefert null. */
   modelReported: z.string().trim().min(1).max(256).nullable(),
+  /** Für ältere Clients. Einzelaufgaben werden als unknown oder disabled gemeldet. */
   tasks: z.object({
     topic_label: OpenWeightLlmProbeTaskResultSchema,
     qa_summary: OpenWeightLlmProbeTaskResultSchema,
@@ -5131,7 +5129,7 @@ export type OpenWeightLlmRuntimeProbeDTO = z.infer<typeof OpenWeightLlmRuntimePr
 
 export const OpenWeightLlmRuntimeProbeInputSchema = z
   .object({
-    /** Cache umgehen und die drei Minimalaufträge erneut ausführen. */
+    /** Erneute Abfrage. Der Mindestabstand zwischen Messungen gilt auch bei refresh. */
     refresh: z.boolean().optional(),
   })
   .strict()

@@ -32748,8 +32748,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusOpenWeightLlmHint" datatype="html">
-        <source>Diese Prüfung betrifft nur die Text-KI auf diesem Server: ein lokal betriebenes Open-Weight-Modell, kein Cloud-Anbieter. Geprüft werden die drei Hilfen unten. Das Ergebnis ändert den allgemeinen Betriebsstatus nicht.</source>
-        <target>Questa revisione riguarda solo l&apos;intelligenza artificiale del testo su questo server: un modello open-weight gestito localmente, non un fornitore di servizi cloud. Vengono testati i tre ausili seguenti. Il risultato non modifica lo stato operativo generale.</target>
+        <source>Die Prüfung zeigt, ob die lokale Text-KI erreichbar ist und gerade Anfragen annehmen kann.</source>
+        <target>La verifica indica se l’IA locale è raggiungibile e può accettare richieste.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -32787,14 +32787,6 @@
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusMetricOpenWeightLlmOverallHint" datatype="html">
-        <source>Gemeinsames Ergebnis der drei Hilfen.</source>
-        <target>Stato complessivo delle tre funzioni.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.statusOpenWeightLlmLoading" datatype="html">
         <source>Prüfung läuft …</source>
         <target>Verifica in corso…</target>
@@ -32812,8 +32804,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricOpenWeightLlmOverall" datatype="html">
-        <source>Gesamt</source>
-        <target>Stato complessivo</target>
+        <source>Verfügbarkeit</source>
+        <target>Disponibilità</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1</context>

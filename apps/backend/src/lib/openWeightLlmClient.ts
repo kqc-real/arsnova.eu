@@ -198,9 +198,11 @@ function classifyCaughtError(
   error: unknown,
   callerSignal: AbortSignal | undefined,
   timeoutSignal: AbortSignal,
+  admissionTimeoutSignal?: AbortSignal,
 ): Exclude<OpenWeightLlmResultFailureStatus, 'busy'> {
   if (callerSignal?.aborted) return 'aborted';
   if (timeoutSignal.aborted) return 'timeout';
+  if (admissionTimeoutSignal?.aborted) return 'unavailable';
   if (error instanceof Error && error.name === 'AbortError') return 'aborted';
   return 'unavailable';
 }
@@ -233,7 +235,10 @@ async function resolvePrivateTarget(
 }
 
 function waitForAbort<T>(operation: Promise<T>, signal: AbortSignal): Promise<T> {
-  if (signal.aborted) return Promise.reject(signal.reason);
+  if (signal.aborted) {
+    void operation.catch(() => undefined);
+    return Promise.reject(signal.reason);
+  }
   return new Promise<T>((resolve, reject) => {
     const onAbort = () => reject(signal.reason);
     signal.addEventListener('abort', onAbort, { once: true });
@@ -610,6 +615,25 @@ function parseCompletion(
   };
 }
 
+async function acquireInferenceLease(signal: AbortSignal): Promise<RedisLease | null> {
+  signal.throwIfAborted();
+  const pendingLease = acquireRedisLease(
+    OPEN_WEIGHT_LLM_LEASE_KEY,
+    OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS,
+  );
+  try {
+    return await waitForAbort(
+      pendingLease,
+      AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+    );
+  } catch (error) {
+    // A timed-out Redis command can still create the lease. Release it if its
+    // acknowledgement arrives later. The short reservation also bounds a lost reply.
+    void pendingLease.then((lateLease) => lateLease?.release()).catch(() => undefined);
+    throw error;
+  }
+}
+
 function failureCountsForCircuit(status: OpenWeightLlmFailureResult['status']): boolean {
   return status === 'timeout' || status === 'unavailable' || status === 'invalid_response';
 }
@@ -648,22 +672,18 @@ export async function runOpenWeightLlm(
   const timeoutSignal = AbortSignal.timeout(taskTimeoutMs);
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
 
+  const admissionTimeoutSignal = AbortSignal.timeout(OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS);
+  const admissionSignal = AbortSignal.any([signal, admissionTimeoutSignal]);
   let result: OpenWeightLlmRunResult;
   let lease: RedisLease | null = null;
   let postOutcomeUnconfirmed = false;
   try {
+    const resolvedAddress = await resolvePrivateTarget(config.transport, admissionSignal);
     if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
-      lease = await waitForAbort(
-        acquireRedisLease(
-          OPEN_WEIGHT_LLM_LEASE_KEY,
-          taskTimeoutMs + OPEN_WEIGHT_LLM_LEASE_GRACE_MS,
-        ),
-        AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
-      );
+      lease = await acquireInferenceLease(admissionSignal);
       if (!lease) return { status: 'busy', retry: 'manual' };
-      signal.throwIfAborted();
     }
-    const resolvedAddress = await resolvePrivateTarget(config.transport, signal);
+    admissionSignal.throwIfAborted();
     const headers = {
       accept: 'application/json',
       authorization: `Bearer ${config.token}`,
@@ -675,7 +695,7 @@ export async function runOpenWeightLlm(
       path: '/slots?fail_on_no_slot=1',
       headers,
       body: null,
-      signal,
+      signal: admissionSignal,
     });
     if (slot.status === 503) {
       result = { status: 'busy', retry: 'manual' };
@@ -694,16 +714,17 @@ export async function runOpenWeightLlm(
           JSON.stringify({ event: 'learning_objectives:debug_request', body: requestBody }),
         );
       }
+      admissionSignal.throwIfAborted();
       if (
         lease &&
         !(await waitForAbort(
-          lease.refresh(),
-          AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+          lease.refresh(taskTimeoutMs + OPEN_WEIGHT_LLM_LEASE_GRACE_MS),
+          AbortSignal.any([admissionSignal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
         ))
       ) {
         return { status: 'unavailable' };
       }
-      signal.throwIfAborted();
+      admissionSignal.throwIfAborted();
       postOutcomeUnconfirmed = true;
       const completion = await hooks.request({
         transport: config.transport,
@@ -737,7 +758,14 @@ export async function runOpenWeightLlm(
       }
     }
   } catch (error) {
-    result = { status: classifyCaughtError(error, options.signal, timeoutSignal) };
+    result = {
+      status: classifyCaughtError(
+        error,
+        options.signal,
+        timeoutSignal,
+        postOutcomeUnconfirmed ? undefined : admissionTimeoutSignal,
+      ),
+    };
   } finally {
     if (lease) {
       if (postOutcomeUnconfirmed) {
@@ -762,7 +790,11 @@ export async function runOpenWeightLlm(
 }
 
 export async function inspectOpenWeightLlmAvailability(
-  options: { readonly signal?: AbortSignal; readonly timeoutMs?: number } = {},
+  options: {
+    readonly signal?: AbortSignal;
+    readonly timeoutMs?: number;
+    readonly reportBusy?: boolean;
+  } = {},
 ): Promise<OpenWeightLlmAvailabilityStatus> {
   let config: OpenWeightLlmConfig;
   try {
@@ -774,7 +806,7 @@ export async function inspectOpenWeightLlmAvailability(
   if (!config.transport || !config.token) return 'misconfigured';
   if (options.signal?.aborted) return 'unavailable';
   if (isCircuitOpen(hooks.now())) return 'circuit_open';
-  if (inFlight) return 'ready';
+  if (inFlight) return options.reportBusy ? 'busy' : 'ready';
 
   const timeoutMs = Math.min(
     5_000,

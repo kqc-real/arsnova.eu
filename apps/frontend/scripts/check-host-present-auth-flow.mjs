@@ -385,9 +385,10 @@ async function main() {
       assert.equal(await previousResult.getAttribute('aria-keyshortcuts'), 'ArrowLeft');
       await host.keyboard.press('ArrowLeft');
       const historyStage = host.getByTestId('host-quiz-history-stage');
-      await historyStage.waitFor({ timeout: 15_000 });
       const visibleHistoryPage = historyStage.locator('.projection-pages__page');
-      assert.match(await visibleHistoryPage.innerText(), /Welche Route wird geprueft\?/);
+      await visibleHistoryPage
+        .getByText(QUIZ_PAYLOAD.questions[0].text, { exact: true })
+        .waitFor({ state: 'visible', timeout: 15_000 });
       assert.equal(
         await visibleHistoryPage.locator('.session-projection-quiz__bar-value').count(),
         2,

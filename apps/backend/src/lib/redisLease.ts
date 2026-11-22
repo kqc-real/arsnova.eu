@@ -11,7 +11,7 @@ return redis.call('DEL', KEYS[1])
 `;
 
 export interface RedisLease {
-  refresh(): Promise<boolean>;
+  refresh(ttlMs?: number): Promise<boolean>;
   release(): Promise<void>;
 }
 
@@ -21,8 +21,8 @@ export async function acquireRedisLease(key: string, ttlMs: number): Promise<Red
   if ((await redis.set(key, owner, 'PX', ttlMs, 'NX')) !== 'OK') return null;
 
   return {
-    async refresh() {
-      return (await redis.eval(REFRESH_LEASE, 1, key, owner, ttlMs)) === 1;
+    async refresh(nextTtlMs = ttlMs) {
+      return (await redis.eval(REFRESH_LEASE, 1, key, owner, nextTtlMs)) === 1;
     },
     async release() {
       await redis.eval(RELEASE_LEASE, 1, key, owner);

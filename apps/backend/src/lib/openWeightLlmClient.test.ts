@@ -235,7 +235,7 @@ describe('openWeightLlmClient', () => {
       'llm:inference:lease:v1',
       expect.any(String),
       'PX',
-      16_000,
+      2_500,
       'NX',
     );
     expect(request).not.toHaveBeenCalled();
@@ -294,6 +294,87 @@ describe('openWeightLlmClient', () => {
       status: 'unavailable',
     });
     expect(request.mock.calls.map(([input]) => input.method)).toEqual(['GET']);
+  });
+
+  it.each(['caller', 'redis deadline'] as const)(
+    'gives up a late provisional lease without posting (%s)',
+    async (interruption) => {
+      vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+      let owner: string | null = null;
+      let acknowledge: (() => void) | undefined;
+      redis.set.mockImplementationOnce(async (_key: string, nextOwner: string) => {
+        owner = nextOwner;
+        await new Promise<void>((resolve) => {
+          acknowledge = resolve;
+        });
+        return 'OK';
+      });
+      redis.set.mockImplementation(async (_key: string, nextOwner: string) => {
+        if (owner !== null) return null;
+        owner = nextOwner;
+        return 'OK';
+      });
+      redis.eval.mockImplementation(
+        async (script: string, _keys: number, _key: string, token: string) => {
+          if (owner !== token) return 0;
+          if (script.includes('DEL')) owner = null;
+          return 1;
+        },
+      );
+      const request = successfulTransport();
+      resetOpenWeightLlmClientForTests({
+        config: () => ({
+          ...defaultConfig,
+          timeoutsMs: { ...defaultConfig.timeoutsMs, learning_objectives: 300_000 },
+        }),
+        request,
+      });
+      const caller = new AbortController();
+      const pending = runOpenWeightLlmLearningObjectives(requests.learning_objectives, {
+        signal: caller.signal,
+      });
+      await waitFor(() => acknowledge !== undefined);
+      if (interruption === 'caller') caller.abort();
+      await expect(pending).resolves.toEqual({
+        status: interruption === 'caller' ? 'aborted' : 'unavailable',
+      });
+      expect(request).not.toHaveBeenCalled();
+      expect(redis.set.mock.calls[0]?.[3]).toBe(2_500);
+
+      acknowledge?.();
+      await waitFor(() => owner === null);
+      await expect(
+        runOpenWeightLlmLearningObjectives(requests.learning_objectives),
+      ).resolves.toMatchObject({ status: 'completed' });
+    },
+  );
+
+  it('bounds a stalled slot check before promoting the reservation or sending a POST', async () => {
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    redis.set.mockResolvedValue('OK');
+    redis.eval.mockResolvedValue(1);
+    const request = vi.fn();
+    resetOpenWeightLlmClientForTests({
+      config: () => ({
+        ...defaultConfig,
+        timeoutsMs: { ...defaultConfig.timeoutsMs, learning_objectives: 300_000 },
+      }),
+      request: ({ method, signal }) => {
+        expect(method).toBe('GET');
+        request();
+        return new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        });
+      },
+    });
+
+    await expect(runOpenWeightLlmLearningObjectives(requests.learning_objectives)).resolves.toEqual(
+      { status: 'unavailable' },
+    );
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(redis.set.mock.calls[0]?.[3]).toBe(2_500);
+    expect(redis.eval).toHaveBeenCalledTimes(1);
+    expect(redis.eval.mock.calls[0]?.[0]).toContain('DEL');
   });
 
   it.each(['aborted', 'unavailable'] as const)(
