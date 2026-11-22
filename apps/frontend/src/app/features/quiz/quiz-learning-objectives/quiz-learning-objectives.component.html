@@ -129,7 +129,11 @@
               (click)="deriveLearningObjectives()"
             >
               <mat-icon aria-hidden="true">auto_awesome</mat-icon>
-              @if (derivationCanResume()) {
+              @if (derivationIsPending() && derivationResumesRemainingQuestions()) {
+                <span i18n="@@learningObjectives.derivationResumePending"
+                  >Übrige Fragen werden bearbeitet</span
+                >
+              } @else if (derivationCanResume()) {
                 <span i18n="@@learningObjectives.derivationResume"
                   >Bei den übrigen Fragen fortsetzen</span
                 >

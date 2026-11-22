@@ -1116,6 +1116,10 @@ describe('QuizLearningObjectivesComponent', () => {
       first.id,
       'Die erste Frage erklären.',
     );
+    let finishResume = () => {};
+    const resumePending = new Promise<void>((resolve) => {
+      finishResume = resolve;
+    });
     let calls = 0;
     runDerivationMock.mockImplementation(
       async (input: {
@@ -1155,6 +1159,7 @@ describe('QuizLearningObjectivesComponent', () => {
             retry: 'manual',
           };
         }
+        await resumePending;
         return {
           schemaVersion: 1,
           operationId: input.operationId,
@@ -1181,6 +1186,10 @@ describe('QuizLearningObjectivesComponent', () => {
     (
       fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
     ).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#learning-objective-derive').textContent).toContain(
+      'Automatisch aus Fragen formulieren',
+    );
     await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
     fixture.detectChanges();
 
@@ -1202,9 +1211,19 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(resume.disabled).toBe(false);
     expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
     resume.click();
+    fixture.detectChanges();
+    expect(resume.textContent).toContain('Übrige Fragen werden bearbeitet');
+    expect(resume.disabled).toBe(true);
+    const cancel = fixture.nativeElement.querySelector(
+      '#learning-objective-derive-cancel',
+    ) as HTMLButtonElement;
+    expect(cancel.disabled).toBe(false);
+    finishResume();
     await vi.waitFor(() =>
       expect(store.getLearningObjectiveBundle(quiz.id).objectives).toHaveLength(2),
     );
+    fixture.detectChanges();
+    expect(resume.textContent).toContain('Erneut automatisch formulieren');
     expect(runDerivationMock).toHaveBeenCalledTimes(3);
     expect(
       store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),

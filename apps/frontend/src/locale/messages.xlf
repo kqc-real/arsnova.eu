@@ -31551,6 +31551,9 @@
       <trans-unit id="learningObjectives.derivationResume" datatype="html">
         <source>Bei den übrigen Fragen fortsetzen</source>
       </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumePending" datatype="html">
+        <source>Übrige Fragen werden bearbeitet</source>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
         <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
       </trans-unit>
