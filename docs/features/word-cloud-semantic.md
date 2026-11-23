@@ -135,12 +135,17 @@ Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: 
 | Image                 | `WORD_CLOUD_ENCODER_IMAGE` (getrennt von `ARSNOVA_IMAGE` und `SPACY_IMAGE`)                                                                           |
 | Compose               | Profil `encoder`                                                                                                                                      |
 | Limits                | 1 CPU (lokal `docker-compose.yml`) bzw. 4 CPU (Produktion `docker-compose.prod.yml`) / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none` |
-| Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`, längensortierte 16er-Batches, bis zu 4 Intra-Op-Threads                |
+| Modell                | E5-small als gepinnte Xenova-ONNX-Konvertierung, Digest in `modelVersion`, längensortierte 16er-Batches, bis zu 4 Intra-Op-Threads                    |
 | Analyseversion        | `1.14d.2`                                                                                                                                             |
 
 Bei deaktivierter Semantik liefert die Analyse `status: disabled`, `fallbackUsed: true` und lexikalische Einträge; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, überlasteter oder bis zum Timeout langsamer Encoder: `failed` plus 2.x. Während ein aktiver oder neuester wartender Request läuft, zeigt das Frontend `pending` über der weiterhin sichtbaren lexikalischen Wolke.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md). Lizenzen: [NOTICE](../../NOTICE), [docker/wordcloud-encoder/NOTICE](../../docker/wordcloud-encoder/NOTICE).
+
+Der Image-Build lädt Modell und Tokenizer aus der festgeschriebenen
+[Xenova-Revision](https://huggingface.co/Xenova/multilingual-e5-small/tree/761b726dd34fb83930e26aab4e9ac3899aa1fa78)
+und prüft alle fünf Dateien gegen das
+[SHA-256-Manifest](../../docker/wordcloud-encoder/model.sha256).
 
 ### Lokal (Docker-App)
 

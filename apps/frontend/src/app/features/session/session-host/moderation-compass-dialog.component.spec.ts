@@ -77,13 +77,18 @@ describe('ModerationCompassDialogComponent', () => {
           },
           topics: { state: 'disabled', reason: 'hidden fixture detail' },
           compass: { state: 'unavailable', reason: 'outside-scope' },
-          learningContext: { state: 'unavailable', reason: 'outside-scope' },
+          learningContext: { state: 'available', objectives: [] },
           releasedResults: { state: 'not-released', reason: 'hidden fixture detail' },
           feedback: { state: 'not-applicable', reason: 'hidden fixture detail' },
           sources: [
             { id: 'semantic-topic:hidden', kind: 'semantic-topic', label: 'GEHEIMER QUELLENTEXT' },
           ],
           limitations: [
+            {
+              code: 'not-released',
+              section: 'learning-context',
+              detail: 'GEHEIMES LERNZIELDETAIL',
+            },
             {
               code: 'budget-truncated',
               section: 'topics',
@@ -1481,6 +1486,8 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).not.toContain('2026-10-05T17:00:00.000Z');
     expect(text).not.toContain('Zusammengefasste Inhalte');
     expect(text).toContain('Nur die wichtigsten Beiträge wurden ausgewählt.');
+    expect(text).toContain('Diese Inhalte sind noch nicht freigegeben.');
+    expect(text).not.toContain('GEHEIMES LERNZIELDETAIL');
     const technicalDetails = fixture.nativeElement.querySelector(
       '.moderation-compass-dialog__technical-details',
     ) as HTMLDetailsElement;

@@ -89,6 +89,7 @@ type DerivationHooks = {
   readonly retryAfterPreemption?: boolean;
   readonly verifyRetry?: () => Promise<boolean>;
   readonly onProgress?: (progress: LearningObjectiveDerivationProgress) => void | Promise<void>;
+  readonly onDraftInferenceInputs?: (inputs: ReadonlyMap<string, readonly string[]>) => void;
   readonly preflight?: (options: {
     readonly signal?: AbortSignal;
   }) => Promise<OpenWeightLlmAvailabilityStatus>;
@@ -415,18 +416,21 @@ function commitLearningObjectiveDrafts(input: {
   readonly drafts: LearningObjectiveDerivedDraft[];
   readonly wasCapped: boolean;
   readonly coveredSourceQuestionIds: string[];
+  readonly inferenceInputsByDraftId: ReadonlyMap<string, readonly string[]>;
 } {
   const coveredSourceQuestionIds: string[] = [];
   const seenQuestions = new Set<string>();
   const suggestions: Array<{
     text: string;
     sourceQuestionIds: string[];
+    inferenceInputQuestionIds: readonly string[];
     sourceDigest: string;
     modelVersion: string;
   }> = [];
   const seenSuggestions = new Set<string>();
 
   for (const item of input.completed) {
+    const inferenceInputQuestionIds = item.request.questions.map(({ id }) => id);
     for (const question of item.request.questions) {
       if (seenQuestions.has(question.id)) continue;
       seenQuestions.add(question.id);
@@ -444,6 +448,7 @@ function commitLearningObjectiveDrafts(input: {
       const suggestion = {
         text,
         sourceQuestionIds,
+        inferenceInputQuestionIds,
         sourceDigest: sourceDigest(sourceQuestions as CanonicalQuestion[]),
         modelVersion: input.modelVersion,
       };
@@ -455,8 +460,9 @@ function commitLearningObjectiveDrafts(input: {
   }
 
   const draftLimit = Math.min(input.operation.maximumDrafts, LEARNING_OBJECTIVE_MAX_OBJECTIVES);
-  const drafts = suggestions.slice(0, draftLimit).map((suggestion) => ({
-    id: stableUuid(
+  const inferenceInputsByDraftId = new Map<string, readonly string[]>();
+  const drafts = suggestions.slice(0, draftLimit).map((suggestion) => {
+    const id = stableUuid(
       [
         'learning-objective-draft',
         input.operation.operationId,
@@ -466,30 +472,35 @@ function commitLearningObjectiveDrafts(input: {
         suggestion.modelVersion,
         LEARNING_OBJECTIVE_DERIVATION_VERSION,
       ].join('\u0000'),
-    ),
-    revision: 0 as const,
-    text: suggestion.text,
-    scope: {
-      kind: 'question-set' as const,
-      sourceQuestionIds: suggestion.sourceQuestionIds,
-    },
-    origin: {
-      kind: 'model-derived' as const,
-      modelId: input.modelId,
-      modelVersion: suggestion.modelVersion,
-      derivationVersion: LEARNING_OBJECTIVE_DERIVATION_VERSION,
-      derivedFromSourceQuestionIds: suggestion.sourceQuestionIds,
-      sourceDigest: suggestion.sourceDigest,
-    },
-    confirmation: { state: 'draft' as const },
-    createdAt: input.createdAt,
-    updatedAt: input.createdAt,
-  }));
+    );
+    inferenceInputsByDraftId.set(id, suggestion.inferenceInputQuestionIds);
+    return {
+      id,
+      revision: 0 as const,
+      text: suggestion.text,
+      scope: {
+        kind: 'question-set' as const,
+        sourceQuestionIds: suggestion.sourceQuestionIds,
+      },
+      origin: {
+        kind: 'model-derived' as const,
+        modelId: input.modelId,
+        modelVersion: suggestion.modelVersion,
+        derivationVersion: LEARNING_OBJECTIVE_DERIVATION_VERSION,
+        derivedFromSourceQuestionIds: suggestion.sourceQuestionIds,
+        sourceDigest: suggestion.sourceDigest,
+      },
+      confirmation: { state: 'draft' as const },
+      createdAt: input.createdAt,
+      updatedAt: input.createdAt,
+    };
+  });
 
   return {
     drafts,
     wasCapped: suggestions.length > draftLimit,
     coveredSourceQuestionIds,
+    inferenceInputsByDraftId,
   };
 }
 
@@ -750,7 +761,7 @@ export async function deriveLearningObjectiveDrafts(
     return interrupted(interruptedStatus(hooks.signal, deadlineSignal), completed.length);
   }
 
-  const { drafts, wasCapped } = commitLearningObjectiveDrafts({
+  const { drafts, wasCapped, inferenceInputsByDraftId } = commitLearningObjectiveDrafts({
     operation: input,
     completed,
     canonicalById,
@@ -774,6 +785,7 @@ export async function deriveLearningObjectiveDrafts(
     limitations: internalLimitation ? [internalLimitation] : [],
     batchCount: plan.requests.length,
   });
+  hooks.onDraftInferenceInputs?.(inferenceInputsByDraftId);
   logger.info('learning_objectives:derivation_completed', {
     batchCount: plan.requests.length,
     draftCount: drafts.length,

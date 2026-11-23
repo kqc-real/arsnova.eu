@@ -36734,8 +36734,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLimitationNotReleased" datatype="html">
-        <source>Diese Ergebnisse sind noch nicht freigegeben.</source>
-        <target>Estos resultados aún no se han publicado.</target>
+        <source>Diese Inhalte sind noch nicht freigegeben.</source>
+        <target>Este contenido aún no se ha publicado.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
         </context-group>

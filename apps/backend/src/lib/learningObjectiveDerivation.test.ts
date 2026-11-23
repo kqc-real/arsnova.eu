@@ -298,6 +298,41 @@ describe('learningObjectiveDerivation', () => {
     expect(requests.map((request) => request.questions.map(({ id }) => id))).toEqual(firstGrouping);
   });
 
+  it('records every actual input question for a draft even when the model cites only one', async () => {
+    const questionIds = QUESTION_IDS.slice(0, 2);
+    const solutionText = '42 Sekunden';
+    const questions = questionIds.map((id, index) => choiceQuestion(id, index));
+    questions[1]!.answers = [{ text: solutionText, isCorrect: true }];
+    const onDraftInferenceInputs = vi.fn();
+    const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => {
+      expect(request.questions.map(({ id }) => id)).toEqual(questionIds);
+      expect(request.questions[1]?.answerOptions).toContainEqual({
+        text: solutionText,
+        isCorrect: true,
+      });
+      const response = successfulBatch(request);
+      response.output.objectives = [
+        {
+          text: `Begründen, warum die Dauer ${solutionText} beträgt.`,
+          questionIds: [questionIds[0]!],
+        },
+      ];
+      return response;
+    });
+    const result = await deriveLearningObjectiveDrafts(input(questions), {
+      run,
+      onDraftInferenceInputs,
+    });
+    expect(run).toHaveBeenCalledOnce();
+    expect(result.status).toBe('completed');
+    if (result.status !== 'completed') throw new Error('Expected a completed derivation');
+    expect(result.drafts[0]?.text).toContain(solutionText);
+    expect(result.drafts[0]?.origin.derivedFromSourceQuestionIds).toEqual([questionIds[0]]);
+    expect(onDraftInferenceInputs).toHaveBeenCalledExactlyOnceWith(
+      new Map([[result.drafts[0]!.id, questionIds]]),
+    );
+  });
+
   it('rejects a single multibyte question that cannot fit instead of truncating it', async () => {
     const run = vi.fn();
     const result = await deriveLearningObjectiveDrafts(

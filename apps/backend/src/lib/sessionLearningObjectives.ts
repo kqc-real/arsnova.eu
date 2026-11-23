@@ -538,7 +538,10 @@ async function snapshotWithDb(
   db: LearningObjectiveDb,
   session: SessionSnapshotRow,
   now: Date,
-): Promise<SessionLearningObjectivesSnapshot> {
+): Promise<{
+  readonly snapshot: SessionLearningObjectivesSnapshot;
+  readonly inferenceInputsByObjectiveId: ReadonlyMap<string, readonly string[]>;
+}> {
   const finished = assertHostReadWindow(session, now);
   const [rows, availableQuizTasks, availableQaTaskCatalog] = await Promise.all([
     db.sessionLearningObjective.findMany({
@@ -561,7 +564,7 @@ async function snapshotWithDb(
       : [],
     loadAvailableQaTaskCatalog(db, session.id),
   ]);
-  return SessionLearningObjectivesSnapshotSchema.parse({
+  const snapshot = SessionLearningObjectivesSnapshotSchema.parse({
     schemaVersion: SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION,
     sessionId: session.id,
     learningContextRevision: session.learningContextRevision,
@@ -582,6 +585,14 @@ async function snapshotWithDb(
     availableQaTasksTruncated: availableQaTaskCatalog.truncated,
     objectives: rows.map(objectiveFromRow),
   });
+  return {
+    snapshot,
+    inferenceInputsByObjectiveId: new Map(
+      rows
+        .filter((row) => row.inferenceInputQuestionIds?.length)
+        .map((row) => [row.objectiveId, row.inferenceInputQuestionIds] as const),
+    ),
+  };
 }
 
 export async function getSessionLearningObjectives(
@@ -603,7 +614,7 @@ export async function getSessionLearningObjectives(
   if (!session) {
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
   }
-  return snapshotWithDb(prisma, session, now);
+  return (await snapshotWithDb(prisma, session, now)).snapshot;
 }
 
 function quizReferenceIds(scope: SessionLearningObjectiveWriteScope): string[] {
@@ -943,7 +954,7 @@ export async function saveSessionLearningObjectives(
         learningContextConfigured: true,
       },
     });
-    return snapshotWithDb(tx, updatedSession, now);
+    return (await snapshotWithDb(tx, updatedSession, now)).snapshot;
   });
 }
 
@@ -1458,6 +1469,15 @@ export async function getSessionLearningObjectivesSnapshotWithDb(
   sessionId: string,
   now = new Date(),
 ): Promise<SessionLearningObjectivesSnapshot> {
+  return (await getSessionLearningObjectivesForModerationWithDb(tx, sessionId, now)).snapshot;
+}
+
+/** The server-recorded inference inputs stay internal to the moderation builder. */
+export async function getSessionLearningObjectivesForModerationWithDb(
+  tx: LearningObjectiveDb,
+  sessionId: string,
+  now: Date,
+) {
   const session = await tx.session.findUnique({
     where: { id: sessionId },
     select: {
@@ -1558,6 +1578,7 @@ export async function deriveSessionLearningObjectives(
     });
   }
 
+  let inferenceInputsByDraftId: ReadonlyMap<string, readonly string[]> = new Map();
   const derivationResult = await deriveLearningObjectiveDrafts(
     {
       schemaVersion: LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
@@ -1571,6 +1592,9 @@ export async function deriveSessionLearningObjectives(
     {
       signal: options.signal,
       now: () => now,
+      onDraftInferenceInputs: (inputs) => {
+        inferenceInputsByDraftId = inputs;
+      },
       verifyRetry: async () => {
         if (options.verifyAuthorization && !(await options.verifyAuthorization())) return false;
         const current = await prisma.session.findUnique({
@@ -1714,6 +1738,7 @@ export async function deriveSessionLearningObjectives(
           modelId: draft.origin.modelId,
           modelVersion: draft.origin.modelVersion,
           derivationVersion: draft.origin.derivationVersion,
+          inferenceInputQuestionIds: [...(inferenceInputsByDraftId.get(draft.id) ?? [])],
           confirmationState: 'DRAFT',
           confirmationRevision: null,
           confirmationAt: null,
@@ -1758,7 +1783,7 @@ export async function deriveSessionLearningObjectives(
         : lockedSession;
 
     return {
-      snapshot: await snapshotWithDb(tx, nextSession, writeNow),
+      snapshot: (await snapshotWithDb(tx, nextSession, writeNow)).snapshot,
       appliedCount: unseenDrafts.length,
     };
   });

@@ -48,6 +48,11 @@ werden.
 
 ## UI
 
+Der Markdown-Renderer erzeugt aus gespeicherten Blockzeichen und
+Legacy-Markierungen sichtbare Balken. Pro Renderdurchlauf ist deren Zahl
+auf das Q&A-Textlimit begrenzt. Jede dargestellte Passage hat einen
+gemeinsamen Screenreader-Text.
+
 - Host-Kartenaktion »Passagen schwärzen« (auch vor Freigabe).
 - Dialog mit auswählbarem Klartext, optionaler Suche für Touch, Vorschau und
   Bestätigung der Irreversibilität.
