@@ -2889,6 +2889,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               : null,
           labelModelId: () => this.qaWordCloudThemeAnalysisResult()?.labelModelId ?? null,
           labelModelVersion: () => this.qaWordCloudThemeAnalysisResult()?.labelModelVersion ?? null,
+          labelPromptVersion: () =>
+            this.qaWordCloudThemeAnalysisResult()?.labelPromptVersion ?? null,
           analysisVariant: () => this.qaWordCloudEffectiveAnalysisVariant(),
           setAnalysisVariant: (variant: WordCloudAnalysisVariant) =>
             this.setQaWordCloudAnalysisVariant(variant),

@@ -1926,6 +1926,9 @@ describe('WordCloudComponent', () => {
       'analysisModelVersion',
       'intfloat/multilingual-e5-small@sha256:testdigest',
     );
+    fixture.componentRef.setInput('labelModelId', 'test-label-model');
+    fixture.componentRef.setInput('labelModelVersion', 'test-label-model-version');
+    fixture.componentRef.setInput('labelPromptVersion', 'topic-label-system-v1');
     fixture.componentRef.setInput('analysisEntries', [
       {
         key: 'semantic-0',
@@ -1946,6 +1949,7 @@ describe('WordCloudComponent', () => {
         ],
         variants: ['Kommt Kapitel 4 in die Klausur?'],
         confidence: 0.91,
+        labelOrigin: 'model',
       },
     ]);
     fixture.detectChanges();
@@ -1967,6 +1971,10 @@ describe('WordCloudComponent', () => {
     const [csv] = downloadSpy.mock.calls[0] as [string, string, string];
     expect(csv).toContain('label,count,variants,basis,members,confidence,modelVersion');
     expect(csv).toContain('intfloat/multilingual-e5-small@sha256:testdigest');
+    expect(csv).toContain('labelOrigin,labelModelId,labelModelVersion,labelPromptVersion');
+    expect(csv).toContain(
+      '"model","test-label-model","test-label-model-version","topic-label-system-v1"',
+    );
   });
 
   it('exportiert PNG mit erfolgreichem Status statt schwarzem Leerbild', async () => {

@@ -43,6 +43,7 @@ import {
   OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD,
   OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS,
   OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
   resolveOpenWeightLlmConfig,
   type OpenWeightLlmConfig,
   type OpenWeightLlmTransport,
@@ -73,7 +74,6 @@ const RuntimeSingleSlotSchema = z.tuple([
 ]);
 
 /** Audit-visible prompt contract; changes require a derivation contract review. */
-export const OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION = 'topic-label-system-v1';
 export const OPEN_WEIGHT_LLM_LEARNING_OBJECTIVES_SYSTEM_PROMPT_VERSION =
   'learning-objectives-system-v6' as const;
 

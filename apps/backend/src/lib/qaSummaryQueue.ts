@@ -515,7 +515,14 @@ export async function getQaSummaryRuntimeFresh(
       finishedState(result, current.generation, now, hooks.config()),
       now,
     );
-    if (written) return toRuntime(result);
+    if (written) {
+      logger.info('qa_summary:stale_on_read', {
+        fallbackReason: 'source_changed',
+        previousMode: current.result.execution.effectiveMode,
+        sourceCount: result.sources.length,
+      });
+      return toRuntime(result);
+    }
   }
   throw summaryStateUnavailable();
 }

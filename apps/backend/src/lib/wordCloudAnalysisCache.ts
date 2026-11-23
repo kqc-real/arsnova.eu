@@ -21,8 +21,14 @@ import {
   type AnalyzeWordCloudInput,
   type AnalyzeWordCloudOutput,
 } from '@arsnova/shared-types';
-import { randomUUID } from 'node:crypto';
-import { isOpenWeightLlmEnabled, OPEN_WEIGHT_LLM_MODEL_ALIAS } from './openWeightLlmConfig';
+import { createHash, randomUUID } from 'node:crypto';
+import {
+  isOpenWeightLlmEnabled,
+  OPEN_WEIGHT_LLM_MODEL_ALIAS,
+  OPEN_WEIGHT_LLM_MODEL_ID,
+  OPEN_WEIGHT_LLM_MODEL_VERSION,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+} from './openWeightLlmConfig';
 import type Redis from 'ioredis';
 import { getRedis } from '../redis';
 import { logger } from './logger';
@@ -137,11 +143,15 @@ export function buildWordCloudTextCacheKey(locale: string, textHash: string): st
   return `${TEXT_KEY_PREFIX}:${locale}:${WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION}:${textHash}`;
 }
 
+const topicLabelModelDigest = createHash('sha256')
+  .update(JSON.stringify([OPEN_WEIGHT_LLM_MODEL_ID, OPEN_WEIGHT_LLM_MODEL_VERSION]))
+  .digest('hex');
+
 export function topicLabelCacheSegment(env: NodeJS.ProcessEnv = process.env): string {
   if (!isOpenWeightLlmEnabled(env['OPEN_WEIGHT_LLM_ENABLED'])) {
     return 'topic-label:off';
   }
-  return `topic-label:${OPEN_WEIGHT_LLM_MODEL_ALIAS}`;
+  return `topic-label:${OPEN_WEIGHT_LLM_MODEL_ALIAS}:${topicLabelModelDigest}:${OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION}`;
 }
 
 function snapshotCacheKeyParts(input: AnalyzeWordCloudInput): readonly string[] {

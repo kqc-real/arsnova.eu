@@ -23,6 +23,7 @@ import {
   OPEN_WEIGHT_LLM_LABEL_TIMEOUT_DEFAULT_MS,
   OPEN_WEIGHT_LLM_MODEL_ID,
   OPEN_WEIGHT_LLM_MODEL_VERSION,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
   resolveOpenWeightLlmLabelTimeoutMs,
 } from './openWeightLlmConfig';
 import {
@@ -189,6 +190,7 @@ function buildClusterTopicLabelCacheKey(
       JSON.stringify({
         model: OPEN_WEIGHT_LLM_MODEL_ID,
         version: OPEN_WEIGHT_LLM_MODEL_VERSION,
+        promptVersion: OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
         locale,
         sources,
       }),
@@ -460,6 +462,7 @@ export async function applyWordCloudTopicLabels(
       labelSettlement: 'disabled',
       labelModelId: null,
       labelModelVersion: null,
+      labelPromptVersion: null,
       entries: output.entries.map((entry) => withOrigin(entry, 'extractive')),
     });
   }
@@ -527,6 +530,9 @@ export async function applyWordCloudTopicLabels(
         labelSettlement: 'complete',
         labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
         labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+        labelPromptVersion: acceptedModelLabel
+          ? OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION
+          : null,
         entries: resolvedEntries.map(
           (entry, idx) => entry ?? withOrigin(output.entries[idx]!, 'extractive'),
         ),
@@ -607,6 +613,9 @@ export async function applyWordCloudTopicLabels(
         labelSettlement: transient ? 'transient' : 'complete',
         labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
         labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+        labelPromptVersion: acceptedModelLabel
+          ? OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION
+          : null,
         entries: finalEntries,
       });
     }
@@ -703,6 +712,9 @@ export async function applyWordCloudTopicLabels(
     labelSettlement,
     labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
     labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+    labelPromptVersion: acceptedModelLabel
+      ? OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION
+      : null,
     entries,
   });
 }

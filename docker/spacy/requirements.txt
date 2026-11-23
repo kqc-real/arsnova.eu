@@ -1,9 +1,3 @@
-# spaCy sidecar for Story 1.14b.
-# Bundled data: MIT de/en/it, LGPL-LR fr, GPL-3.0 es.
-# License texts: licenses/LGPL-LR.txt and licenses/GPL-3.0.txt. See NOTICE.
+# spaCy runtime and Italian lookup data. Language model wheels are installed separately.
 spacy==3.8.15
 spacy-lookups-data==1.0.5
-de-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl
-en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
-fr-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.8.0/fr_core_news_sm-3.8.0-py3-none-any.whl
-es-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl

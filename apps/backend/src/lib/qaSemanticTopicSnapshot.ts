@@ -28,6 +28,7 @@ const QaSemanticTopicSnapshotItemSchema = z
         text: z.string().trim().min(1).max(200),
         modelId: z.string().trim().min(1).max(120),
         modelVersion: z.string().trim().min(1).max(120),
+        generationVersion: z.string().trim().min(1).max(120).optional(),
       })
       .strict()
       .optional(),
@@ -225,11 +226,18 @@ export function buildQaSemanticTopicSnapshot(
     }
     const labelModelId = analysis.labelModelId;
     const labelModelVersion = analysis.labelModelVersion;
+    const generationVersion = analysis.labelPromptVersion;
     const modelLabel =
       entry.labelOrigin === 'model' &&
       typeof labelModelId === 'string' &&
-      typeof labelModelVersion === 'string'
-        ? { text: entry.label, modelId: labelModelId, modelVersion: labelModelVersion }
+      typeof labelModelVersion === 'string' &&
+      typeof generationVersion === 'string'
+        ? {
+            text: entry.label,
+            modelId: labelModelId,
+            modelVersion: labelModelVersion,
+            generationVersion,
+          }
         : undefined;
     topics.push({
       topicId: buildTopicId(completeMembers, labelSourceQuestionId),

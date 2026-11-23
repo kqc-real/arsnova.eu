@@ -58,7 +58,7 @@ resolve_python() {
   if [[ -n "$VENV_DIR" ]]; then
     candidate="$VENV_DIR/bin/python"
     [[ -x "$candidate" ]] || fail "NLP_VENV hat kein python: $candidate"
-    python_has_models "$candidate" || fail "NLP_VENV fehlen spaCy-Sprachdaten für de/en/fr/es/it. Installiere docker/spacy/requirements.txt in diesem venv."
+    python_has_models "$candidate" || fail "NLP_VENV fehlen spaCy-Sprachdaten für de/en/fr/es/it. Installiere die Pakete aus docker/spacy/requirements.txt und docker/spacy/requirements-models.txt in diesem venv."
     PYTHON_BIN="$candidate"
     return 0
   fi
@@ -109,6 +109,8 @@ ensure_python() {
   fi
   "$py" -m pip install --upgrade pip
   "$py" -m pip install -r "$ROOT/docker/spacy/requirements.txt"
+  "$py" -m pip install --no-deps --require-hashes -r "$ROOT/docker/spacy/requirements-models.txt"
+  "$py" -m pip check
   python_has_models "$py" || fail "spaCy-Modelle de/en/fr/es/it konnten nicht geladen werden."
   PYTHON_BIN="$py"
 }

@@ -6,7 +6,7 @@ import {
   calculateModerationQaBestScoreV1,
   calculateQaControversyScore,
 } from '@arsnova/shared-types';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   assertModerationStateStillCurrent,
   collectQaContextCandidates,
@@ -15,6 +15,11 @@ import {
   projectStoredQaNlp,
   type AuthorizedModerationState,
 } from './moderationQaContext';
+import {
+  OPEN_WEIGHT_LLM_MODEL_ID,
+  OPEN_WEIGHT_LLM_MODEL_VERSION,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+} from './openWeightLlmConfig';
 import {
   hashQaSemanticTopicMemberText,
   QaSemanticTopicSnapshotSchema,
@@ -100,7 +105,7 @@ function topicSnapshot(input: {
   labelSourceQuestionId: string;
   metric?: QaSemanticTopicSnapshot['metric'];
   corpusRevision?: string;
-  modelLabel?: { text: string; modelId: string; modelVersion: string };
+  modelLabel?: QaSemanticTopicSnapshot['topics'][number]['modelLabel'];
 }): QaSemanticTopicSnapshot {
   return QaSemanticTopicSnapshotSchema.parse({
     version: 'qa-semantic-topic-snapshot-v1',
@@ -290,6 +295,8 @@ describe('moderationQaContext N6', () => {
 });
 
 describe('moderationQaContext N7', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
   const topicMembers = [
     { id: QUESTION_A, text: 'Wie funktioniert die lineare Regression?' },
     { id: QUESTION_B, text: 'Mehr Beispiele zur Regression bitte' },
@@ -440,43 +447,64 @@ describe('moderationQaContext N7', () => {
     ).toBe(true);
   });
 
-  it('preserves an accepted short model label with explicit provenance', async () => {
-    const candidateProjection = await candidates();
-    const projection = await collectQaTopicContext({
-      tx: txWithTopicRows([], topicRows()),
-      state: state(),
-      candidates: candidateProjection,
-      snapshot: topicSnapshot({
-        members: topicMembers,
-        labelSourceQuestionId: QUESTION_B,
-        modelLabel: {
-          text: 'Lineare Regression',
-          modelId: 'Qwen3-4B-Instruct-2507',
-          modelVersion: 'sha256:topic-label-model',
-        },
-      }),
-      semanticEnabled: true,
-    });
-
-    expect(projection.sources).toContainEqual({
-      id: `semantic-topic:${'e'.repeat(64)}`,
-      kind: 'semantic-topic',
-      label: 'Lineare Regression',
-    });
-    expect(projection.topics).toMatchObject({
-      state: 'available',
-      items: [
-        {
-          labelOrigin: {
-            kind: 'model-generated',
-            modelId: 'Qwen3-4B-Instruct-2507',
-            modelVersion: 'sha256:topic-label-model',
-            generationVersion: 'topic-label-system-v1',
+  it.each([
+    {
+      enabled: 'true',
+      generationVersion: OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+      kind: 'model-generated',
+    },
+    { enabled: 'true', generationVersion: 'topic-label-system-other', kind: 'source-extractive' },
+    { enabled: 'true', generationVersion: undefined, kind: 'source-extractive' },
+    {
+      enabled: 'false',
+      generationVersion: OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+      kind: 'source-extractive',
+    },
+  ])(
+    'uses $kind labels for runtime=$enabled, prompt=$generationVersion',
+    async ({ enabled, generationVersion, kind }) => {
+      vi.stubEnv('OPEN_WEIGHT_LLM_ENABLED', enabled);
+      const candidateProjection = await candidates();
+      const projection = await collectQaTopicContext({
+        tx: txWithTopicRows([], topicRows()),
+        state: state(),
+        candidates: candidateProjection,
+        snapshot: topicSnapshot({
+          members: topicMembers,
+          labelSourceQuestionId: QUESTION_B,
+          modelLabel: {
+            text: 'Lineare Regression',
+            modelId: OPEN_WEIGHT_LLM_MODEL_ID,
+            modelVersion: OPEN_WEIGHT_LLM_MODEL_VERSION,
+            generationVersion,
           },
-        },
-      ],
-    });
-  });
+        }),
+        semanticEnabled: true,
+      });
+
+      expect(projection.sources).toContainEqual({
+        id: `semantic-topic:${'e'.repeat(64)}`,
+        kind: 'semantic-topic',
+        label: kind === 'model-generated' ? 'Lineare Regression' : topicMembers[1].text,
+      });
+      expect(projection.topics).toMatchObject({
+        state: 'available',
+        items: [
+          {
+            labelOrigin:
+              kind === 'model-generated'
+                ? {
+                    kind,
+                    modelId: OPEN_WEIGHT_LLM_MODEL_ID,
+                    modelVersion: OPEN_WEIGHT_LLM_MODEL_VERSION,
+                    generationVersion,
+                  }
+                : { kind, sourceQuestionId: `qa-question:${QUESTION_B}` },
+          },
+        ],
+      });
+    },
+  );
 
   it.each([
     ['17:200', 'stale'],

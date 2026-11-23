@@ -7,7 +7,7 @@ third-party works and are not relicensed as part of arsnova.eu.
 
 This image is not a pure-MIT artifact: it aggregates MIT, LGPL-LR, and
 GPL-3.0 model packages. The models remain replaceable pip wheels
-(see requirements.txt).
+(see requirements.txt and requirements-models.txt).
 
 Included packages
 -----------------

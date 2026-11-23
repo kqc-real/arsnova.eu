@@ -6,7 +6,7 @@ import test from 'node:test';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
-function readCompose(fileName) {
+function readRepoFile(fileName) {
   return readFileSync(join(repoRoot, fileName), 'utf8');
 }
 
@@ -27,7 +27,7 @@ function assertSidecarHardening(block, label) {
 }
 
 test('docker-compose.yml startet spaCy nur über Profil nlp ohne öffentlichen Port', () => {
-  const compose = readCompose('docker-compose.yml');
+  const compose = readRepoFile('docker-compose.yml');
   assertSidecarHardening(extractServiceBlock(compose, 'spacy'), 'local');
   const app = extractServiceBlock(compose, 'app');
   assert.match(app, /NLP_ENABLED:\s*'false'/);
@@ -35,11 +35,28 @@ test('docker-compose.yml startet spaCy nur über Profil nlp ohne öffentlichen P
 });
 
 test('docker-compose.prod.yml koppelt den Sidecar an SPACY_IMAGE, nicht ARSNOVA_IMAGE', () => {
-  const compose = readCompose('docker-compose.prod.yml');
+  const compose = readRepoFile('docker-compose.prod.yml');
   const spacy = extractServiceBlock(compose, 'spacy');
   assertSidecarHardening(spacy, 'prod');
   assert.match(spacy, /image:\s*\$\{SPACY_IMAGE:-arsnova-spacy:3\.8\.15\}/);
   assert.doesNotMatch(spacy, /ARSNOVA_IMAGE/);
   const app = extractServiceBlock(compose, 'app');
   assert.match(app, /NLP_CACHE_TTL_SECONDS:\s*'1800'/);
+});
+
+test('spaCy verifies the four language model wheels in a separate pip hash check', () => {
+  const packages = readRepoFile('docker/spacy/requirements-models.txt')
+    .split('\n')
+    .filter((line) => line && !line.startsWith('#'));
+  assert.deepEqual(
+    packages.map((line) => line.split(' @ ')[0]),
+    ['de-core-news-sm', 'en-core-web-sm', 'fr-core-news-sm', 'es-core-news-sm'],
+  );
+  for (const requirement of packages) {
+    assert.match(requirement, /\.whl --hash=sha256:[a-f0-9]{64}$/);
+  }
+  assert.match(
+    readRepoFile('docker/spacy/Dockerfile'),
+    /pip install --no-cache-dir --no-deps --require-hashes -r requirements-models\.txt/,
+  );
 });

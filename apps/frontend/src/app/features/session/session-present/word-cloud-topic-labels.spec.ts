@@ -37,6 +37,9 @@ const base: AnalyzeWordCloudOutput = {
 const enriched: AnalyzeWordCloudOutput = {
   ...base,
   labelSettlement: 'complete',
+  labelModelId: 'test-model',
+  labelModelVersion: 'test-model-version',
+  labelPromptVersion: 'topic-label-system-v1',
   entries: [
     { ...base.entries[0]!, label: 'Statistische Vorhersagen', labelOrigin: 'model', count: 100 },
   ],
@@ -68,6 +71,7 @@ describe('enrichCurrentTopicCloud', () => {
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
         topicLabelsPending: false,
+        labelPromptVersion: 'topic-label-system-v1',
         entries: [
           expect.objectContaining({
             label: 'Statistische Vorhersagen',

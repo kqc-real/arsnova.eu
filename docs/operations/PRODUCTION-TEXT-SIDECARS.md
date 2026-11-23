@@ -11,6 +11,10 @@ Unix-Socket-Volumes. Der Rollout erneuert die Sidecar-Container.
 Git-Commit und verwendet dessen vollständigen SHA als Tag und OCI-Label.
 Der Build läuft für die Zielarchitektur des Builders, in Produktion ARM64.
 Die Ausgabe enthält die beiden lokalen Image-IDs zur eindeutigen Auswahl.
+Der spaCy-Build prüft die SHA-256-Werte der vier GitHub-Sprachmodell-Wheels
+aus `docker/spacy/requirements-models.txt` vor der Installation. Bei einem
+Modellupdate müssen URL, geprüfter Wheel-Hash und Lizenzhinweise zusammen
+aktualisiert werden.
 
 ```bash
 revision=$(git rev-parse --verify HEAD)

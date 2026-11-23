@@ -63,6 +63,45 @@ describe('loadQuickFeedbackModerationSnapshot', () => {
     expect(redis.eval.mock.calls[0]?.[3]).toBe(`qf:purged-session:v1:${SESSION_ID}`);
   });
 
+  it('keeps a YESNO round stable across reads and changes its revision when a vote arrives', async () => {
+    const read = (observedAt: Date, overrides: Record<string, unknown> = {}) =>
+      loadQuickFeedbackModerationSnapshot({
+        sessionId: SESSION_ID,
+        sessionCode: 'ABC123',
+        enabled: true,
+        eligibleResponses: 12,
+        observedAt,
+        redis: redisResult(
+          'OK',
+          stored({
+            type: 'YESNO',
+            distribution: { YES: 0, NO: 0, MAYBE: 0 },
+            ...overrides,
+          }),
+        ),
+      });
+
+    const first = await read(OBSERVED_AT);
+    const later = await read(new Date('2026-10-04T10:01:00.000Z'));
+    expect(first.sources).toMatchObject([
+      {
+        kind: 'feedback-aggregate',
+        scope: {
+          channel: 'quickFeedback',
+          timeWindow: { kind: 'round', startedAt: ROUND_STARTED_AT },
+        },
+      },
+    ]);
+    expect(later).toEqual(first);
+
+    const withVote = await read(new Date('2026-10-04T10:01:00.000Z'), {
+      totalVotes: 1,
+      distribution: { YES: 1, NO: 0, MAYBE: 0 },
+    });
+    expect(withVote.revision).not.toEqual(first.revision);
+    expect(withVote.sources[0]).toMatchObject({ population: { included: 1 } });
+  });
+
   it.each([
     ['wrong session', { sessionId: '22222222-2222-4222-8222-222222222222' }],
     ['legacy missing timestamp', { roundStartedAt: undefined }],

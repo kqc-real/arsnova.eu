@@ -294,6 +294,7 @@ describe('applyWordCloudTopicLabels', () => {
     expect(result.entries[1]?.labelOrigin).toBe('extractive');
     expect(result.labelSettlement).toBe('complete');
     expect(result.labelModelId).toContain('Qwen3-4B-Instruct-2507');
+    expect(result.labelPromptVersion).toBe('topic-label-system-v1');
   });
 
   it('behandelt einen belegten Slot als vorübergehend und blockiert den zweiten Kanal nicht', async () => {
