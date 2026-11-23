@@ -1,0 +1,186 @@
+--- a/tools/server/server-context.h
++++ b/tools/server/server-context.h
+@@ -1,4 +1,6 @@
+ #pragma once
++
++#include <unordered_map>
+
+ #include "server-http.h"
+ #include "server-task.h"
+@@ -132,6 +134,7 @@
+     server_http_context::handler_t get_metrics;
+     server_http_context::handler_t get_slots;
+     server_http_context::handler_t post_slots;
++    server_http_context::handler_t post_arsnova_cancel;
+     server_http_context::handler_t get_props;
+     server_http_context::handler_t post_props;
+     server_http_context::handler_t post_infill;
+@@ -181,6 +184,13 @@
+     server_response & queue_results;
+     std::unique_ptr<server_res_generator> create_response(bool bypass_sleep = false);
+
++    struct arsnova_inference {
++        int task_id;
++        bool cancellation_requested = false;
++    };
++    std::mutex mutex_arsnova_inferences;
++    std::unordered_map<std::string, arsnova_inference> arsnova_inferences;
++
+     // cached responses, to be used during sleep
+     std::mutex     mutex_cache;
+     json           cached_models  = nullptr;
+--- a/tools/server/server.cpp
++++ b/tools/server/server.cpp
+@@ -243,6 +243,9 @@
+     ctx_http.post("/chat/completions",         ex_wrapper(routes.post_chat_completions));
+     ctx_http.post("/v1/chat/completions",      ex_wrapper(routes.post_chat_completions));
+     ctx_http.post("/v1/chat/completions/control", ex_wrapper(routes.post_control));
++    if (!is_router_server && !params.api_keys.empty()) {
++        ctx_http.post("/internal/arsnova/cancel", ex_wrapper(routes.post_arsnova_cancel));
++    }
+     ctx_http.post("/v1/responses",             ex_wrapper(routes.post_responses_oai));
+     ctx_http.post("/responses",                ex_wrapper(routes.post_responses_oai));
+     ctx_http.post("/v1/audio/transcriptions",  ex_wrapper(routes.post_transcriptions_oai));
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -20,6 +20,8 @@
+ #include <algorithm>
+ #include <atomic>
+ #include <cstddef>
++#include <cctype>
++#include <string_view>
+ #include <cinttypes>
+ #include <exception>
+ #include <memory>
+@@ -4204,6 +4206,34 @@
+ // server_routes
+ //
+
++static bool is_arsnova_inference_id(std::string_view id) {
++    if (id.size() != 36 || id[14] != '4' || std::string_view("89abAB").find(id[19]) == std::string_view::npos) {
++        return false;
++    }
++    for (size_t i = 0; i < id.size(); ++i) {
++        if (i == 8 || i == 13 || i == 18 || i == 23) {
++            if (id[i] != '-') {
++                return false;
++            }
++        } else if (std::string_view("0123456789abcdefABCDEF").find(id[i]) == std::string_view::npos) {
++            return false;
++        }
++    }
++    return true;
++}
++
++static std::string arsnova_inference_id_header(const server_http_req & req) {
++    const std::string_view header = "x-arsnova-inference-id";
++    for (const auto & [key, value] : req.headers) {
++        if (std::equal(key.begin(), key.end(), header.begin(), header.end(), [](unsigned char actual, char expected) {
++            return std::tolower(actual) == expected;
++        })) {
++            return value;
++        }
++    }
++    return {};
++}
++
+ std::unique_ptr<server_res_generator> server_routes::handle_completions_impl(
+             const server_http_req & req,
+             server_task_type type,
+@@ -4220,6 +4250,21 @@
+     res->set_req(&req); // will also set spipe if needed
+
+     int32_t sse_ping_interval = params.sse_ping_interval;
++    const bool stream = json_value(data, "stream", false);
++    const std::string inference_id = res_type == TASK_RESPONSE_TYPE_OAI_CHAT &&
++            !stream && !params.api_keys.empty() && params.n_parallel == 1 && params.n_gpu_layers == 0
++        ? arsnova_inference_id_header(req)
++        : std::string();
++    const auto unregister = [this](const std::string * id) {
++        std::lock_guard<std::mutex> lock(mutex_arsnova_inferences);
++        const auto entry = arsnova_inferences.find(*id);
++        if (entry->second.cancellation_requested) {
++            // The inference may have finished as the cancellation error woke its reader.
++            queue_results.remove_waiting_task_id(entry->second.task_id);
++        }
++        arsnova_inferences.erase(entry);
++    };
++    std::unique_ptr<const std::string, decltype(unregister)> registration(nullptr, unregister);
+
+     try {
+         std::vector<server_task> tasks;
+@@ -4288,13 +4333,27 @@
+             tasks.push_back(std::move(task));
+         }
+
+-        rd.post_tasks(std::move(tasks));
++        if (inference_id.empty()) {
++            rd.post_tasks(std::move(tasks));
++        } else {
++            if (!is_arsnova_inference_id(inference_id) || tasks.size() != 1 || tasks.front().is_parent()) {
++                res->error(format_error_response("invalid inference ID or completion shape", ERROR_TYPE_INVALID_REQUEST));
++                return res;
++            }
++
++            // Publish the lookup only when posting the task has finished.
++            std::lock_guard<std::mutex> lock(mutex_arsnova_inferences);
++            if (!arsnova_inferences.emplace(inference_id, arsnova_inference{tasks.front().id}).second) {
++                res->error(format_error_response("inference ID already active", ERROR_TYPE_INVALID_REQUEST));
++                return res;
++            }
++            registration.reset(&inference_id);
++            rd.post_tasks(std::move(tasks));
++        }
+     } catch (const std::exception & e) {
+         res->error(format_error_response(e.what(), ERROR_TYPE_INVALID_REQUEST));
+         return res;
+     }
+-
+-    bool stream = json_value(data, "stream", false);
+
+     if (!stream) {
+         // non-stream, wait for the results
+@@ -4717,6 +4776,43 @@
+         return res;
+     };
+
++    this->post_arsnova_cancel = [this](const server_http_req & req) {
++        auto res = create_response(true);
++        const json body = json::parse(req.body, nullptr, false);
++        if (!body.is_object() || body.size() != 1 || !body.contains("inferenceId") ||
++                !body["inferenceId"].is_string() ||
++                !is_arsnova_inference_id(body["inferenceId"].get_ref<const std::string &>())) {
++            res->error(format_error_response("invalid inference ID", ERROR_TYPE_INVALID_REQUEST));
++            return res;
++        }
++
++        std::lock_guard<std::mutex> lock(mutex_arsnova_inferences);
++        const auto entry = arsnova_inferences.find(body["inferenceId"].get_ref<const std::string &>());
++        if (entry == arsnova_inferences.end()) {
++            res->ok({{"status", "unknown"}});
++            return res;
++        }
++
++        auto & inference = entry->second;
++        if (!inference.cancellation_requested) {
++            server_task cancel(SERVER_TASK_TYPE_CANCEL);
++            cancel.id = queue_tasks.get_new_id();
++            cancel.id_target = inference.task_id;
++            queue_tasks.post(std::move(cancel), true);
++            inference.cancellation_requested = true;
++
++            // Wake the HTTP reader too, including if its socket is still open.
++            auto error = std::make_unique<server_task_result_error>();
++            error->id = inference.task_id;
++            error->err_type = ERROR_TYPE_UNAVAILABLE;
++            error->err_msg = "inference cancelled";
++            queue_results.send(std::move(error));
++        }
++
++        res->ok({{"status", "accepted"}});
++        return res;
++    };
++
+     this->post_slots = [this](const server_http_req & req) {
+         auto res = create_response();
+         if (params.slot_save_path.empty()) {

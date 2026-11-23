@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { lookup as dnsLookup } from 'node:dns/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
@@ -7,6 +8,10 @@ import { z } from 'zod';
 import {
   createQaSummaryModelWireSchema,
   hasOnlyAllowedOpenWeightLlmReferences,
+  OPEN_WEIGHT_LLM_CANCEL_PATH,
+  OPEN_WEIGHT_LLM_INFERENCE_ID_HEADER,
+  OpenWeightLlmCancelRequestSchema,
+  OpenWeightLlmCancelResponseSchema,
   OpenWeightLlmLearningObjectivesOutputSchema,
   OpenWeightLlmOutputSchema,
   OpenWeightLlmRequestSchema,
@@ -137,7 +142,11 @@ type RuntimeTransportRequest = {
   readonly transport: OpenWeightLlmTransport;
   readonly resolvedAddress: LookupAddress | null;
   readonly method: 'GET' | 'POST';
-  readonly path: '/slots?fail_on_no_slot=1' | '/slots' | '/v1/chat/completions';
+  readonly path:
+    | '/slots?fail_on_no_slot=1'
+    | '/slots'
+    | '/v1/chat/completions'
+    | typeof OPEN_WEIGHT_LLM_CANCEL_PATH;
   readonly headers: Readonly<Record<string, string>>;
   readonly body: string | null;
   readonly signal: AbortSignal;
@@ -656,14 +665,42 @@ function readRuntimeSingleSlot(body: string) {
   }
 }
 
+async function requestInferenceCancellation(
+  inferenceId: string,
+  target: Pick<RuntimeTransportRequest, 'transport' | 'resolvedAddress' | 'headers'>,
+  signal: AbortSignal,
+): Promise<boolean> {
+  try {
+    const response = await waitForAbort(
+      hooks.request({
+        ...target,
+        method: 'POST',
+        path: OPEN_WEIGHT_LLM_CANCEL_PATH,
+        headers: { ...target.headers, 'content-type': 'application/json' },
+        body: JSON.stringify(OpenWeightLlmCancelRequestSchema.parse({ inferenceId })),
+        signal,
+      }),
+      signal,
+    );
+    if (response.status !== 200) return false;
+    const parsed = OpenWeightLlmCancelResponseSchema.safeParse(JSON.parse(response.body));
+    return parsed.success && parsed.data.status === 'accepted';
+  } catch {
+    // Older runtimes and ambiguous replies still use the socket-close recovery path.
+    return false;
+  }
+}
+
 async function waitForInterruptedPost(
+  inferenceId: string,
   previousBody: string,
   target: Pick<RuntimeTransportRequest, 'transport' | 'resolvedAddress' | 'headers'>,
 ): Promise<void> {
   const deadline = performance.now() + OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS;
+  const signal = AbortSignal.timeout(OPEN_WEIGHT_LLM_INTERRUPTED_POST_PROBE_MS);
+  if (await requestInferenceCancellation(inferenceId, target, signal)) return;
   const previous = readRuntimeSingleSlot(previousBody);
-  if (previous && !previous.is_processing) {
-    const signal = AbortSignal.timeout(OPEN_WEIGHT_LLM_INTERRUPTED_POST_PROBE_MS);
+  if (previous && !previous.is_processing && !signal.aborted) {
     try {
       const response = await waitForAbort(
         hooks.request({ ...target, method: 'GET', path: '/slots', body: null, signal }),
@@ -768,12 +805,17 @@ export async function runOpenWeightLlm(
         return { status: 'unavailable' };
       }
       admissionSignal.throwIfAborted();
-      interruptedPost = () => waitForInterruptedPost(slot.body, target);
+      const inferenceId = randomUUID();
+      interruptedPost = () => waitForInterruptedPost(inferenceId, slot.body, target);
       const completion = await hooks.request({
         ...target,
         method: 'POST',
         path: '/v1/chat/completions',
-        headers: { ...headers, 'content-type': 'application/json' },
+        headers: {
+          ...headers,
+          'content-type': 'application/json',
+          [OPEN_WEIGHT_LLM_INFERENCE_ID_HEADER]: inferenceId,
+        },
         body: requestBody,
         signal,
       });
