@@ -3,6 +3,8 @@ import {
   hasOnlyAllowedOpenWeightLlmReferences,
   OPEN_WEIGHT_LLM_MAX_REQUEST_BYTES,
   OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+  OpenWeightLlmCancelRequestSchema,
+  OpenWeightLlmCancelResponseSchema,
   OpenWeightLlmLearningObjectivesRequestSchema,
   OpenWeightLlmLearningObjectivesOutputSchema,
   OpenWeightLlmOutputSchema,
@@ -52,6 +54,24 @@ const learningRequest: OpenWeightLlmLearningObjectivesRequest = {
 };
 
 describe('open-weight LLM contracts', () => {
+  it('akzeptiert im privaten Abbruchvertrag genau eine Auftrags-ID der Version 4', () => {
+    const inferenceId = '12345678-90ab-4def-8abc-1234567890ab';
+    expect(OpenWeightLlmCancelRequestSchema.parse({ inferenceId })).toEqual({ inferenceId });
+    expect(
+      OpenWeightLlmCancelRequestSchema.safeParse({
+        inferenceId: '12345678-90ab-7def-8abc-1234567890ab',
+      }).success,
+    ).toBe(false);
+    expect(OpenWeightLlmCancelRequestSchema.safeParse({ inferenceId, slot: 0 }).success).toBe(
+      false,
+    );
+    expect(OpenWeightLlmCancelResponseSchema.safeParse({ status: 'accepted' }).success).toBe(true);
+    expect(OpenWeightLlmCancelResponseSchema.safeParse({ status: 'unknown' }).success).toBe(true);
+    expect(OpenWeightLlmCancelResponseSchema.safeParse({ status: 'cancelled' }).success).toBe(
+      false,
+    );
+  });
+
   it('erkennt alle drei versionierten Auftragstypen streng', () => {
     expect(OpenWeightLlmRequestSchema.parse(labelRequest).taskType).toBe('topic_label');
     expect(OpenWeightLlmRequestSchema.parse(summaryRequest).taskType).toBe('qa_summary');

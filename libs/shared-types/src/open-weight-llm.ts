@@ -30,6 +30,15 @@ import { QUIZ_QUESTION_TEXT_MAX_LENGTH, QUIZ_UPLOAD_MAX_QUESTIONS } from './quiz
  */
 export const OPEN_WEIGHT_LLM_SCHEMA_VERSION = 1 as const;
 export const OPEN_WEIGHT_LLM_SUMMARY_SCHEMA_VERSION_V2 = QA_SUMMARY_V2_SCHEMA_VERSION;
+
+/** Private app-to-runtime control contract. The ID belongs to one HTTP inference attempt. */
+export const OPEN_WEIGHT_LLM_INFERENCE_ID_HEADER = 'x-arsnova-inference-id';
+export const OPEN_WEIGHT_LLM_CANCEL_PATH = '/internal/arsnova/cancel';
+export const OpenWeightLlmCancelRequestSchema = z.strictObject({ inferenceId: z.uuidv4() });
+export const OpenWeightLlmCancelResponseSchema = z.strictObject({
+  status: z.enum(['accepted', 'unknown']),
+});
+
 /**
  * Upper bound for the complete UTF-8 JSON user message sent to llama.cpp.
  * Together with the fixed system/chat overhead and the largest 768-token

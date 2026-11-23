@@ -7,7 +7,10 @@ import {
   MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1,
   ModerationAnalysisContextV1Schema,
   ModerationPromptContextV1Schema,
+  OPEN_WEIGHT_LLM_CANCEL_PATH,
+  OPEN_WEIGHT_LLM_INFERENCE_ID_HEADER,
   OPEN_WEIGHT_LLM_SCHEMA_VERSION,
+  OpenWeightLlmCancelRequestSchema,
   type OpenWeightLlmLearningObjectivesOutput,
   type OpenWeightLlmLearningObjectivesRequest,
   type OpenWeightLlmOutput,
@@ -400,7 +403,8 @@ describe('openWeightLlmClient', () => {
       let postCalls = 0;
       resetOpenWeightLlmClientForTests({
         config: () => defaultConfig,
-        request: async ({ method }) => {
+        request: async ({ method, path }) => {
+          if (path === OPEN_WEIGHT_LLM_CANCEL_PATH) return { status: 404, body: '' };
           if (method === 'GET') return { status: slotBusy ? 503 : 200, body: '[]' };
           postCalls += 1;
           if (postCalls === 1) {
@@ -439,6 +443,74 @@ describe('openWeightLlmClient', () => {
     },
   );
 
+  it.each(Object.keys(requests) as OpenWeightLlmTaskType[])(
+    'adressiert nach Abbruch bei %s genau den gestarteten Modell-POST',
+    async (taskType) => {
+      vi.useFakeTimers();
+      vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+      redis.set.mockResolvedValue('OK');
+      redis.eval.mockResolvedValue(1);
+      const controller = new AbortController();
+      const inferenceIds: string[] = [];
+      let modelBusy = false;
+      const request = vi.fn(
+        async (input: {
+          path: string;
+          signal: AbortSignal;
+          headers: Readonly<Record<string, string>>;
+          body: string | null;
+        }) => {
+          if (input.path === OPEN_WEIGHT_LLM_CANCEL_PATH) {
+            expect(input.signal.aborted).toBe(false);
+            expect(input.headers.authorization).toBe(`Bearer ${defaultConfig.token}`);
+            expect(redis.eval).toHaveBeenCalledTimes(1);
+            expect(OpenWeightLlmCancelRequestSchema.parse(JSON.parse(input.body!))).toEqual({
+              inferenceId: inferenceIds[0],
+            });
+            return { status: 200, body: '{"status":"accepted"}' };
+          }
+          if (input.path === '/slots?fail_on_no_slot=1') {
+            // A cold slot has no previous task ID and can still be cancelled directly.
+            return { status: modelBusy ? 503 : 200, body: '[{"id":0,"is_processing":false}]' };
+          }
+          expect(input.path).toBe('/v1/chat/completions');
+          const { inferenceId } = OpenWeightLlmCancelRequestSchema.parse({
+            inferenceId: input.headers[OPEN_WEIGHT_LLM_INFERENCE_ID_HEADER],
+          });
+          inferenceIds.push(inferenceId);
+          if (inferenceIds.length === 1) {
+            modelBusy = true;
+            controller.abort();
+            throw new Error('socket disconnected');
+          }
+          return completionResponse(outputs[taskType]);
+        },
+      );
+      resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+
+      await expect(
+        runOpenWeightLlm(requests[taskType], { signal: controller.signal }),
+      ).resolves.toEqual({ status: 'aborted' });
+      const [key, owner] = redis.set.mock.calls[0]!;
+      expect(redis.eval).toHaveBeenNthCalledWith(2, expect.stringContaining('DEL'), 1, key, owner);
+      // Acceptance means the signal is queued. The next owner still observes the runtime slot.
+      await expect(runOpenWeightLlm(requests[taskType])).resolves.toMatchObject({ status: 'busy' });
+      modelBusy = false;
+      await expect(runOpenWeightLlm(requests[taskType])).resolves.toMatchObject({
+        status: 'completed',
+      });
+      expect(new Set(inferenceIds).size).toBe(2);
+      expect(request.mock.calls.map(([input]) => input.path)).toEqual([
+        '/slots?fail_on_no_slot=1',
+        '/v1/chat/completions',
+        OPEN_WEIGHT_LLM_CANCEL_PATH,
+        '/slots?fail_on_no_slot=1',
+        '/slots?fail_on_no_slot=1',
+        '/v1/chat/completions',
+      ]);
+    },
+  );
+
   it.each([true, false])(
     'gibt die Reservierung bei bestätigtem Modellauftrag ohne feste Wartezeit frei (Slot belegt: %s)',
     async (processingAfterAbort) => {
@@ -452,6 +524,9 @@ describe('openWeightLlmClient', () => {
       let posts = 0;
       const slotBody = () => JSON.stringify([{ id: 0, id_task: taskId, is_processing: slotBusy }]);
       const request = vi.fn(async (input: { path: string; signal: AbortSignal }) => {
+        if (input.path === OPEN_WEIGHT_LLM_CANCEL_PATH) {
+          return { status: 200, body: '{"status":"unknown"}' };
+        }
         if (input.path === '/slots') {
           expect(input.signal.aborted).toBe(false);
           expect(redis.eval).toHaveBeenCalledTimes(1);
@@ -478,6 +553,7 @@ describe('openWeightLlmClient', () => {
       expect(request.mock.calls.map(([input]) => input.path)).toEqual([
         '/slots?fail_on_no_slot=1',
         '/v1/chat/completions',
+        OPEN_WEIGHT_LLM_CANCEL_PATH,
         '/slots',
       ]);
       const [key, owner] = redis.set.mock.calls[0]!;
@@ -553,7 +629,7 @@ describe('openWeightLlmClient', () => {
 
       const operation = runOpenWeightLlmLearningObjectives(requests.learning_objectives);
       await vi.advanceTimersByTimeAsync(1_499);
-      expect(request).toHaveBeenCalledTimes(3);
+      expect(request).toHaveBeenCalledTimes(4);
       expect(probe.signal.aborted).toBe(true);
       expect(redis.eval).toHaveBeenCalledTimes(1);
       await vi.advanceTimersByTimeAsync(1);
