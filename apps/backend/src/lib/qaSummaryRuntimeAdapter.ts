@@ -25,6 +25,7 @@ import { DROPPED_UNSOURCED_QA_SUMMARY_LIMITATION } from './qaSummaryValidateV2';
 export type QaSummaryPreparedRun = Readonly<{
   output: QaSummaryModelOutputV2;
   execution: QaSummaryExecutionV2;
+  interruptedByPriority?: boolean;
 }>;
 
 function bindLegacyStatement(
@@ -163,10 +164,16 @@ export async function runPreparedQaSummary(
         }),
       };
     }
-    return extractiveRun(prepared, {
+    const fallback = extractiveRun(prepared, {
       attemptedMode: 'full-context',
-      reason: result.status === 'completed' ? 'invalid_response' : result.status,
+      reason:
+        result.status === 'completed'
+          ? 'invalid_response'
+          : result.status === 'preempted'
+            ? 'busy'
+            : result.status,
     });
+    return result.status === 'preempted' ? { ...fallback, interruptedByPriority: true } : fallback;
   }
 
   if (prepared.plan.selectedMode === 'legacy-text') {

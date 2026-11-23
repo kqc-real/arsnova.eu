@@ -1090,7 +1090,7 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(message).not.toMatch(/Token|Batch/i);
   });
 
-  it('setzt nach Zeitlimit und vorübergehend belegtem Modell bei den übrigen Fragen fort', async () => {
+  it.each(['timeout', 'preempted'] as const)('setzt bei %s fort', async (interruption) => {
     const store = TestBed.inject(QuizStoreService);
     const quiz = store.createQuiz({ name: 'Fortsetzen' });
     const first = store.addQuestion(quiz.id, {
@@ -1135,7 +1135,7 @@ describe('QuizLearningObjectivesComponent', () => {
             operationId: input.operationId,
             quizId: input.quizId,
             expectedBundleRevision: input.expectedBundleRevision,
-            status: 'timeout',
+            status: interruption,
             progress: {
               completedGroups: 1,
               totalGroups: 2,
@@ -1190,7 +1190,7 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.nativeElement.querySelector('#learning-objective-derive').textContent).toContain(
       'Automatisch aus Fragen formulieren',
     );
-    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe(interruption));
     fixture.detectChanges();
 
     const savedBundle = store.getLearningObjectiveBundle(quiz.id);
@@ -1200,9 +1200,20 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.componentInstance.derivationMessage()).toContain(
       'Die schon formulierten Lernziele stehen als Entwürfe in der Liste.',
     );
+    if (interruption === 'preempted') {
+      expect(fixture.componentInstance.derivationMessage()).toContain(
+        'Ein dringenderer Auftrag hat die Erstellung unterbrochen.',
+      );
+      const status = fixture.nativeElement.querySelector('#learning-objective-derivation-status');
+      expect(status.getAttribute('aria-live')).toBe('polite');
+      expect(status.classList.contains('learning-objectives__derivation-status--error')).toBe(
+        false,
+      );
+    }
     const resume = fixture.nativeElement.querySelector(
       '#learning-objective-derive',
     ) as HTMLButtonElement;
+    expect(resume.disabled).toBe(false);
     expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
     resume.click();
     await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('busy'));

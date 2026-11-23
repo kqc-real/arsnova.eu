@@ -1,3 +1,4 @@
+import { enrichCurrentTopicCloud } from '../session-present/word-cloud-topic-labels';
 import { animalIconUrl } from '../../../shared/animal-icon-url';
 import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
 import { CdkTrapFocus, LiveAnnouncer } from '@angular/cdk/a11y';
@@ -1125,6 +1126,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
   private wordCloudHttpAbortController = new AbortController();
+  private qaTopicLabelsAbort?: AbortController;
+  private freetextTopicLabelsAbort?: AbortController;
   private lastFreetextWordCloudProjectionKey: string | null = null;
   private freetextProjectionScope: string | null = null;
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
@@ -14843,6 +14846,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private invalidateQaWordCloudRequests(): void {
+    this.qaTopicLabelsAbort?.abort();
     this.qaWordCloudThemeAnalysisRunId += 1;
     this.qaWordCloudLemmaAnalysisRunId += 1;
     this.clearQaWordCloudThemeAnalysisTimer();
@@ -14855,6 +14859,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private invalidateFreetextWordCloudRequests(): void {
+    this.freetextTopicLabelsAbort?.abort();
     this.freetextWordCloudSemanticAnalysisRunId += 1;
     this.freetextWordCloudLemmaAnalysisRunId += 1;
     this.clearFreetextWordCloudSemanticAnalysisTimer();
@@ -15016,6 +15021,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     options: { readonly keepPrevious?: boolean } = {},
   ): Promise<void> {
     const runId = ++this.qaWordCloudThemeAnalysisRunId;
+    this.qaTopicLabelsAbort?.abort();
     this.qaWordCloudThemeAnalysisFailed.set(false);
     const listRevisionAtStart = this.qaListRankingRevision();
     const hadPreviousSemanticCloud =
@@ -15032,12 +15038,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const result = await this.analyzeCanonicalQaWordCloud(request);
+      const result = await this.analyzeCanonicalQaWordCloud(
+        request.mode === 'SEMANTIC' ? { ...request, topicLabels: 'preview' } : request,
+      );
       if (runId !== this.qaWordCloudThemeAnalysisRunId) {
         return;
       }
 
-      if (request.mode === 'SEMANTIC') {
+      if (request.mode === 'SEMANTIC' && !result.topicLabelsPending) {
         const elapsedMs = Date.now() - pendingStartedAt;
         // Wenn bereits eine Themenwolke sichtbar ist und der Sortierwechsel
         // aus dem Backend-Cluster-Cache schnell (< 250 ms) beantwortet wurde,
@@ -15067,6 +15075,31 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaWordCloudSemanticStale.set(
           !current || this.hasQaWordCloudSemanticChanges(current, this.qaListRankingRevision()),
         );
+        if (result.topicLabelsPending) {
+          const controller = new AbortController();
+          this.qaTopicLabelsAbort = controller;
+          const { items: _clientPage, ...canonical } = request;
+          void enrichCurrentTopicCloud({
+            base: result,
+            injector: this.injector,
+            signal: AbortSignal.any([controller.signal, this.wordCloudHttpAbortController.signal]),
+            isCurrent: () => {
+              const active = this.qaWordCloudAnalysisRequest();
+              return Boolean(
+                runId === this.qaWordCloudThemeAnalysisRunId &&
+                this.qaWordCloudThemeAnalysisResult() === result &&
+                active &&
+                !this.hasQaWordCloudSemanticChanges(active, this.qaListRankingRevision()),
+              );
+            },
+            fetch: (topicLabels, signal) =>
+              trpc.wordCloud.analyzeQa.mutate(
+                { ...canonical, refresh: undefined, topicLabels },
+                { signal },
+              ),
+            apply: (updated) => this.qaWordCloudThemeAnalysisResult.set(updated),
+          });
+        }
       }
     } catch {
       if (runId !== this.qaWordCloudThemeAnalysisRunId) {
@@ -15196,6 +15229,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     options: { readonly keepPrevious?: boolean } = {},
   ): Promise<void> {
     const runId = ++this.freetextWordCloudSemanticAnalysisRunId;
+    this.freetextTopicLabelsAbort?.abort();
     if (!options.keepPrevious) {
       this.freetextWordCloudSemanticAnalysisResult.set(null);
     }
@@ -15203,14 +15237,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const analyzedKey = wordCloudAnalysisRequestKey(request);
 
     try {
-      const result = await trpc.wordCloud.analyze.mutate(request, {
-        signal: this.wordCloudHttpAbortController.signal,
-      });
+      const result = await trpc.wordCloud.analyze.mutate(
+        { ...request, topicLabels: 'preview' },
+        {
+          signal: this.wordCloudHttpAbortController.signal,
+        },
+      );
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
       }
 
-      await holdSemanticPendingProgress(pendingStartedAt);
+      if (!result.topicLabelsPending) await holdSemanticPendingProgress(pendingStartedAt);
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
       }
@@ -15221,6 +15258,30 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey, {
         allowAutoRefreshOnResults: true,
       });
+      if (result.topicLabelsPending) {
+        const controller = new AbortController();
+        this.freetextTopicLabelsAbort = controller;
+        void enrichCurrentTopicCloud({
+          base: result,
+          injector: this.injector,
+          signal: AbortSignal.any([controller.signal, this.wordCloudHttpAbortController.signal]),
+          isCurrent: () => {
+            const active = this.buildFreetextWordCloudSemanticAnalysisRequest();
+            return Boolean(
+              runId === this.freetextWordCloudSemanticAnalysisRunId &&
+              this.freetextWordCloudSemanticAnalysisResult() === result &&
+              active &&
+              wordCloudAnalysisRequestKey(active) === analyzedKey,
+            );
+          },
+          fetch: (topicLabels, signal) =>
+            trpc.wordCloud.analyze.mutate(
+              { ...request, refresh: undefined, topicLabels },
+              { signal },
+            ),
+          apply: (updated) => this.freetextWordCloudSemanticAnalysisResult.set(updated),
+        });
+      }
     } catch {
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;

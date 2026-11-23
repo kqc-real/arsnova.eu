@@ -46,6 +46,7 @@ import { buildQuizLearningObjectiveBundleCreate } from '../lib/sessionLearningOb
 import {
   finalizeLearningObjectiveDerivationCapability,
   issueLearningObjectiveDerivationCapability,
+  isLearningObjectiveDerivationReserved,
   reserveLearningObjectiveDerivationCapability,
 } from '../lib/learningObjectiveDerivationCapability';
 import { deriveLearningObjectiveDrafts } from '../lib/learningObjectiveDerivation';
@@ -277,6 +278,7 @@ export const quizRouter = router({
       try {
         return await deriveLearningObjectiveDrafts(derivationInput, {
           signal,
+          verifyRetry: () => isLearningObjectiveDerivationReserved(capability).catch(() => false),
           onProgress: async (progress) => {
             await writeLearningObjectiveDerivationProgress({
               schemaVersion: LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,

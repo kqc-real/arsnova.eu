@@ -260,14 +260,18 @@ export function buildQaSemanticTopicSnapshot(
 
 export async function recordLatestQaSemanticTopicSnapshot(
   input: RecordLatestQaSemanticTopicSnapshotInput,
+  previous?: AnalyzeWordCloudOutput,
 ): Promise<QaSemanticTopicSnapshot | null> {
   const snapshot = buildQaSemanticTopicSnapshot(input);
   if (snapshot === null) {
     return null;
   }
+  const expected = previous ? buildQaSemanticTopicSnapshot({ ...input, analysis: previous }) : null;
   await Promise.all([
     input.cache.setQaSemanticTopicSnapshot(input.analysisInput, snapshot, input.scope),
-    input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope),
+    previous
+      ? expected && input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope, expected)
+      : input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope),
   ]);
   return snapshot;
 }

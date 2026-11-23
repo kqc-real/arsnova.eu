@@ -47,6 +47,7 @@ const SNAPSHOT_PURGE_DURABILITY_PREFIX = 'nlp:wc:purge-durability:v1';
 const LEGACY_SNAPSHOT_PURGE_SCAN_COUNT = 500;
 const ROLLOUT_CACHE_PURGE_PATTERNS = ['nlp:wc:snap*', `${TEXT_KEY_PREFIX}:*`] as const;
 const SNAPSHOT_INDEX_TTL_GRACE_SECONDS = 5 * 60;
+const LABEL_JOB_RESULT_TTL_SECONDS = 10;
 const SNAPSHOT_INDEX_MAX_ENTRIES = 2_048;
 const SNAPSHOT_PURGE_AOF_TIMEOUT_MS = 5_000;
 const SNAPSHOT_PURGE_MARKER_TTL_SECONDS = 5 * 60;
@@ -56,6 +57,9 @@ export const WORD_CLOUD_SNAPSHOT_PURGE_FENCE_TTL_SECONDS = 24 * 60 * 60;
 const WRITE_INDEXED_SNAPSHOT_LUA = `
 -- wordcloud_snapshot_write_v2
 if redis.call('EXISTS', KEYS[3]) == 1 then
+  return 0
+end
+if ARGV[5] and redis.call('GET', KEYS[1]) ~= ARGV[5] then
   return 0
 end
 if redis.call('SISMEMBER', KEYS[2], KEYS[1]) == 0
@@ -102,11 +106,13 @@ export interface WordCloudAnalysisCache {
   getSnapshot(
     input: AnalyzeWordCloudInput,
     scope?: WordCloudSnapshotCacheScope,
+    labelJobOwner?: string,
   ): Promise<AnalyzeWordCloudOutput | null>;
   setSnapshot(
     input: AnalyzeWordCloudInput,
     output: AnalyzeWordCloudOutput,
     scope?: WordCloudSnapshotCacheScope,
+    labelJobOwner?: string,
   ): Promise<void>;
   getQaSemanticTopicSnapshot(
     input: AnalyzeWordCloudInput,
@@ -123,6 +129,7 @@ export interface WordCloudAnalysisCache {
   setLatestQaSemanticTopicSnapshot(
     snapshot: QaSemanticTopicSnapshot,
     scope: WordCloudSnapshotCacheScope,
+    expected?: QaSemanticTopicSnapshot,
   ): Promise<void>;
 }
 
@@ -151,6 +158,7 @@ function snapshotCacheKeyParts(input: AnalyzeWordCloudInput): readonly string[] 
     String(input.maxNgramLength ?? 1),
     snapshotHash,
     topicLabelCacheSegment(),
+    ...(input.topicLabels === 'preview' ? ['label-preview'] : []),
   ];
 }
 
@@ -169,10 +177,14 @@ function snapshotSessionPrefix(sessionId: string): string {
 export function buildWordCloudSnapshotCacheKey(
   input: AnalyzeWordCloudInput,
   scope: WordCloudSnapshotCacheScope,
+  labelJobOwner?: string,
 ): string {
-  return [snapshotSessionPrefix(scope.sessionId), 'value', ...snapshotCacheKeyParts(input)].join(
-    ':',
-  );
+  return [
+    snapshotSessionPrefix(scope.sessionId),
+    'value',
+    ...snapshotCacheKeyParts(input),
+    ...(labelJobOwner ? ['label-result', labelJobOwner] : []),
+  ].join(':');
 }
 
 export function buildQaSemanticTopicSnapshotCacheKey(
@@ -456,6 +468,7 @@ export function shouldCacheWordCloudSnapshot(output: AnalyzeWordCloudOutput): bo
 }
 
 function snapshotTtlSeconds(input: AnalyzeWordCloudInput, lexicalTtlSeconds: number): number {
+  if (input.topicLabels === 'preview') return 180;
   if (input.mode === 'SEMANTIC') {
     return resolveWordCloudEncoderCacheTtlSeconds();
   }
@@ -485,8 +498,14 @@ export function createMemoryWordCloudAnalysisCache(
     { expiresAt: number; snapshot: QaSemanticTopicSnapshot }
   >();
   const ttlMs = ttlSeconds * 1000;
-  const memorySnapshotKey = (input: AnalyzeWordCloudInput) =>
-    [input.sessionCode.trim().toUpperCase(), ...snapshotCacheKeyParts(input)].join(':');
+  const memorySnapshotKey = (
+    input: AnalyzeWordCloudInput,
+    scope?: WordCloudSnapshotCacheScope,
+    labelJobOwner?: string,
+  ) =>
+    labelJobOwner && scope
+      ? buildWordCloudSnapshotCacheKey(input, scope, labelJobOwner)
+      : [input.sessionCode.trim().toUpperCase(), ...snapshotCacheKeyParts(input)].join(':');
   const memoryQaSemanticTopicSnapshotKey = (
     input: AnalyzeWordCloudInput,
     scope: WordCloudSnapshotCacheScope,
@@ -508,8 +527,9 @@ export function createMemoryWordCloudAnalysisCache(
         tokens,
       });
     },
-    async getSnapshot(input) {
-      const key = memorySnapshotKey(input);
+    async getSnapshot(input, scope, labelJobOwner) {
+      if (labelJobOwner && !scope) return null;
+      const key = memorySnapshotKey(input, scope, labelJobOwner);
       const entry = snapshots.get(key);
       if (!entry || entry.expiresAt <= Date.now()) {
         if (entry) snapshots.delete(key);
@@ -520,12 +540,13 @@ export function createMemoryWordCloudAnalysisCache(
       }
       return entry.output;
     },
-    async setSnapshot(input, output) {
-      if (!shouldCacheWordCloudSnapshot(output)) {
-        return;
-      }
-      snapshots.set(memorySnapshotKey(input), {
-        expiresAt: Date.now() + snapshotTtlSeconds(input, ttlSeconds) * 1000,
+    async setSnapshot(input, output, scope, labelJobOwner) {
+      if (labelJobOwner ? !scope : !shouldCacheWordCloudSnapshot(output)) return;
+      const ttl = labelJobOwner
+        ? LABEL_JOB_RESULT_TTL_SECONDS
+        : snapshotTtlSeconds(input, ttlSeconds);
+      snapshots.set(memorySnapshotKey(input, scope, labelJobOwner), {
+        expiresAt: Date.now() + ttl * 1000,
         output,
       });
     },
@@ -563,12 +584,21 @@ export function createMemoryWordCloudAnalysisCache(
       }
       return entry.snapshot;
     },
-    async setLatestQaSemanticTopicSnapshot(snapshot, scope) {
+    async setLatestQaSemanticTopicSnapshot(snapshot, scope, expected) {
       const parsed = QaSemanticTopicSnapshotSchema.safeParse(snapshot);
       if (!parsed.success) {
         return;
       }
-      latestQaSemanticTopicSnapshots.set(normalizeSnapshotSessionId(scope.sessionId), {
+      const key = normalizeSnapshotSessionId(scope.sessionId);
+      const current = latestQaSemanticTopicSnapshots.get(key);
+      if (
+        expected &&
+        (!current ||
+          current.expiresAt <= Date.now() ||
+          JSON.stringify(current.snapshot) !== JSON.stringify(expected))
+      )
+        return;
+      latestQaSemanticTopicSnapshots.set(key, {
         expiresAt: Date.now() + resolveWordCloudEncoderCacheTtlSeconds() * 1000,
         snapshot: parsed.data,
       });
@@ -617,12 +647,12 @@ export function createRedisWordCloudAnalysisCache(
       // Siehe getText: Der Rollout-Sweep entfernt bestehende nlp:wc:text:*
       // nach Writer-Drain; neue Prozesse erzeugen keine solchen Werte mehr.
     },
-    async getSnapshot(input, scope) {
+    async getSnapshot(input, scope, labelJobOwner) {
       if (!scope) return null;
       try {
         const [fence, raw] = await getRedis().mget(
           buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
-          buildWordCloudSnapshotCacheKey(input, scope),
+          buildWordCloudSnapshotCacheKey(input, scope, labelJobOwner),
         );
         if (fence !== null || raw === null) return null;
         const parsed = AnalyzeWordCloudOutputSchema.safeParse(JSON.parse(raw));
@@ -634,11 +664,11 @@ export function createRedisWordCloudAnalysisCache(
         return null;
       }
     },
-    async setSnapshot(input, output, scope) {
+    async setSnapshot(input, output, scope, labelJobOwner) {
       if (snapshotWritesDisabledForShutdown) {
         return;
       }
-      if (!shouldCacheWordCloudSnapshot(output)) {
+      if (!labelJobOwner && !shouldCacheWordCloudSnapshot(output)) {
         return;
       }
       if (!scope) {
@@ -646,11 +676,13 @@ export function createRedisWordCloudAnalysisCache(
         return;
       }
       try {
-        const ttl = snapshotTtlSeconds(input, ttlSeconds);
+        const ttl = labelJobOwner
+          ? LABEL_JOB_RESULT_TTL_SECONDS
+          : snapshotTtlSeconds(input, ttlSeconds);
         const result = await getRedis().eval(
           WRITE_INDEXED_SNAPSHOT_LUA,
           3,
-          buildWordCloudSnapshotCacheKey(input, scope),
+          buildWordCloudSnapshotCacheKey(input, scope, labelJobOwner),
           buildWordCloudSnapshotIndexKey(scope.sessionId),
           buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
           JSON.stringify(output),
@@ -732,7 +764,7 @@ export function createRedisWordCloudAnalysisCache(
         return null;
       }
     },
-    async setLatestQaSemanticTopicSnapshot(snapshot, scope) {
+    async setLatestQaSemanticTopicSnapshot(snapshot, scope, expected) {
       if (snapshotWritesDisabledForShutdown) {
         return;
       }
@@ -753,6 +785,7 @@ export function createRedisWordCloudAnalysisCache(
           String(ttl),
           String(ttl + SNAPSHOT_INDEX_TTL_GRACE_SECONDS),
           String(SNAPSHOT_INDEX_MAX_ENTRIES),
+          ...(expected ? [JSON.stringify(expected)] : []),
         );
         if (Number(result) === -1) {
           logger.warn('wordcloud:snapshot_cache_index_full', {

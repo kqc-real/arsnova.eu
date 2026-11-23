@@ -41,16 +41,20 @@ const { memoryRedis } = vi.hoisted(() => {
       async eval(_script: string, keyCount: number, ...args: Array<string | number>) {
         const keys = args.slice(0, keyCount).map(String);
         const argv = args.slice(keyCount).map(String);
-        const [capabilityKey, reservationKey] = keys;
+        const [capabilityKey, reservationKey, operationKey] = keys;
         const [expectedRaw, ttlRaw] = argv;
         const capabilityEntry = capabilityKey ? store.get(capabilityKey) : undefined;
         if (!alive(capabilityEntry) || capabilityEntry.value !== expectedRaw) return 0;
         const reservationEntry = reservationKey ? store.get(reservationKey) : undefined;
         if (alive(reservationEntry) || !reservationKey) return 0;
+        if (operationKey && alive(store.get(operationKey))) return 0;
         store.set(reservationKey, {
           value: '1',
           expiresAt: Date.now() + Number(ttlRaw) * 1000,
         });
+        if (operationKey) {
+          store.set(operationKey, { value: '1', expiresAt: Date.now() + Number(ttlRaw) * 1000 });
+        }
         store.delete(capabilityKey!);
         return 1;
       },
@@ -99,6 +103,20 @@ describe('learning-objective derivation capability', () => {
     expect([...memoryRedis.store.keys()]).toEqual([
       expect.stringMatching(/:capability:v1:[0-9a-f]{64}$/u),
     ]);
+  });
+
+  it('accepts only one capability for the same prioritized operation', async () => {
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    vi.stubEnv('OPEN_WEIGHT_LLM_PRIORITY_HANDOFF_ENABLED', 'true');
+    try {
+      const first = await issueLearningObjectiveDerivationCapability(binding);
+      const second = await issueLearningObjectiveDerivationCapability(binding);
+      await expect(reserveLearningObjectiveDerivationCapability(first)).resolves.toBe(true);
+      await finalizeLearningObjectiveDerivationCapability(first.capability);
+      await expect(reserveLearningObjectiveDerivationCapability(second)).resolves.toBe(false);
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('reserves exactly once atomically and finalize consumes all state', async () => {

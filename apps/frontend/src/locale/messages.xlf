@@ -31661,6 +31661,12 @@
       <trans-unit id="learningObjectives.derivationQueuedObjectives" datatype="html">
         <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
       </trans-unit>
+      <trans-unit id="learningObjectives.derivationWaitingForModel" datatype="html">
+        <source>Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: <x id="minutes" equiv-text="minutes"/>.</source>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPreemptedWhy" datatype="html">
+        <source>Ein dringenderer Auftrag hat die Erstellung unterbrochen.</source>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
         <source>Die Erstellung wurde abgebrochen.</source>
       </trans-unit>

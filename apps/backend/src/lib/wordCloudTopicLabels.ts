@@ -32,6 +32,7 @@ import {
   type OpenWeightLlmLiveResult,
   type OpenWeightLlmTelemetry,
 } from './openWeightLlmClient';
+import { isOpenWeightLlmPriorityEnabled } from './openWeightLlmPriority';
 import { analyzeSemanticWordCloudSnapshot } from './wordCloudSemanticAnalyze';
 import type { WordCloudNormalizationMeta } from './wordCloudNormalization';
 
@@ -57,6 +58,7 @@ const TOPIC_LABEL_CACHE_TTL_MS = 30 * 60_000;
 const TOPIC_LABEL_CACHE_MAX_ENTRIES = 512;
 const TRANSIENT_REASONS = new Set([
   'busy',
+  'preempted',
   'timeout',
   'aborted',
   'circuit_open',
@@ -451,6 +453,7 @@ export async function applyWordCloudTopicLabels(
   }
 
   const env = options.env ?? process.env;
+  const usePriorityScheduler = isOpenWeightLlmPriorityEnabled(env);
   if (!runtimeEnabled(env)) {
     return finish({
       ...output,
@@ -588,7 +591,8 @@ export async function applyWordCloudTopicLabels(
         }
         if (batchResult.status !== 'completed') {
           previousBatchAbortedOrTimedOut =
-            batchResult.status === 'aborted' || batchResult.status === 'timeout';
+            !usePriorityScheduler &&
+            (batchResult.status === 'aborted' || batchResult.status === 'timeout');
           if (TRANSIENT_REASONS.has(batchResult.status)) {
             transient = true;
           }
@@ -671,7 +675,8 @@ export async function applyWordCloudTopicLabels(
       signal: callSignal,
     });
     if (result.status === 'fallback') {
-      previousAbortedOrTimedOut = result.reason === 'aborted' || result.reason === 'timeout';
+      previousAbortedOrTimedOut =
+        !usePriorityScheduler && (result.reason === 'aborted' || result.reason === 'timeout');
     }
     if (
       !sessionSignal?.aborted &&

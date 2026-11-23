@@ -263,6 +263,7 @@ export type OpenWeightLlmOutput = z.infer<typeof OpenWeightLlmOutputSchema>;
 export const OPEN_WEIGHT_LLM_RESULT_FAILURE_STATUSES = [
   'disabled',
   'busy',
+  'preempted',
   'aborted',
   'timeout',
   'unavailable',

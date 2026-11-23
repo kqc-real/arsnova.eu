@@ -156,6 +156,8 @@ export const LearningObjectiveDerivationProgressSchema = z
     promptTokens: z.number().int().min(0),
     completionTokens: z.number().int().min(0),
     queuedObjectives: z.number().int().min(0).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
+    waitingForModel: z.boolean().optional(),
+    remainingBudgetMs: z.number().int().nonnegative().optional(),
     /** Drafts from finished batches, stable for the whole operation. */
     drafts: z.array(LearningObjectiveDerivedDraftSchema).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
     /** Every source question in a finished batch, including batches without a draft. */
@@ -226,7 +228,7 @@ const LearningObjectiveDerivationSimpleFailureResultSchema =
 
 const LearningObjectiveDerivationInterruptedResultSchema =
   LearningObjectiveDerivationCorrelationSchema.extend({
-    status: z.enum(['aborted', 'timeout']),
+    status: z.enum(['aborted', 'timeout', 'preempted']),
     progress: LearningObjectiveDerivationProgressSchema,
   }).strict();
 

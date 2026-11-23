@@ -338,7 +338,7 @@ describe('session.attachQuizToSession', () => {
           maximumDrafts: 4,
           locale: 'de',
         },
-        { signal: undefined },
+        { signal: undefined, verifyAuthorization: expect.any(Function) },
       );
     },
   );

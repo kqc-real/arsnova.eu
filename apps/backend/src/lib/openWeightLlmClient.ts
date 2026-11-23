@@ -3,6 +3,7 @@ import { lookup as dnsLookup } from 'node:dns/promises';
 import { request as httpRequest } from 'node:http';
 import { request as httpsRequest } from 'node:https';
 import { isIP } from 'node:net';
+import { setTimeout as delay } from 'node:timers/promises';
 import type { LookupAddress } from 'node:dns';
 import { z } from 'zod';
 import {
@@ -46,13 +47,22 @@ import {
   type OpenWeightLlmConfig,
   type OpenWeightLlmTransport,
 } from './openWeightLlmConfig';
+import {
+  admitOpenWeightLlmPriorityTicket,
+  beginOpenWeightLlmPriorityTicket,
+  finishOpenWeightLlmPriorityTicket,
+  isOpenWeightLlmPriorityEnabled,
+  OPEN_WEIGHT_LLM_LEASE_KEY,
+  OPEN_WEIGHT_LLM_TASK_PRIORITY,
+  type OpenWeightLlmPriorityTicket,
+} from './openWeightLlmPriority';
 import { acquireRedisLease, type RedisLease } from './redisLease';
 
 const OPEN_WEIGHT_LLM_MAX_RESPONSE_BYTES = 262_144;
-const OPEN_WEIGHT_LLM_LEASE_KEY = 'llm:inference:lease:v1';
 const OPEN_WEIGHT_LLM_LEASE_GRACE_MS = 15_000;
 const OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS = 1_000;
 const OPEN_WEIGHT_LLM_INTERRUPTED_POST_PROBE_MS = 250;
+const OPEN_WEIGHT_LLM_PRIORITY_POLL_MS = 50;
 
 const RuntimeSingleSlotSchema = z.tuple([
   z.object({
@@ -170,7 +180,7 @@ type CircuitState = {
 };
 
 const circuit: CircuitState = { failures: 0, openedAt: null };
-let inFlight = false;
+let inFlight = 0;
 
 function createDefaultHooks(): ClientHooks {
   return {
@@ -185,7 +195,7 @@ let hooks: ClientHooks = createDefaultHooks();
 
 export function resetOpenWeightLlmClientForTests(overrides?: Partial<ClientHooks>): void {
   hooks = { ...createDefaultHooks(), ...overrides };
-  inFlight = false;
+  inFlight = 0;
   circuit.failures = 0;
   circuit.openedAt = null;
 }
@@ -691,6 +701,90 @@ async function requestInferenceCancellation(
   }
 }
 
+function checkRuntimeSlot(
+  target: Pick<RuntimeTransportRequest, 'transport' | 'resolvedAddress' | 'headers'>,
+  signal: AbortSignal,
+): Promise<RuntimeTransportResponse> {
+  return hooks.request({
+    ...target,
+    method: 'GET',
+    path: '/slots?fail_on_no_slot=1',
+    body: null,
+    signal,
+  });
+}
+
+async function awaitPriorityAdmission(
+  ticket: OpenWeightLlmPriorityTicket,
+  target: Pick<RuntimeTransportRequest, 'transport' | 'resolvedAddress' | 'headers'>,
+  signal: AbortSignal,
+  deadline: number,
+): Promise<boolean> {
+  let confirmedOwner: string | undefined;
+  let interruptedOwner: string | undefined;
+  let interruptRequestedMs: number | undefined;
+  let interruptAcknowledgedMs: number | undefined;
+  let slotFreeMs: number | undefined;
+  const remaining = () => deadline - performance.now();
+  const elapsed = () => OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS - Math.round(remaining());
+  const admit = () => {
+    if (interruptedOwner) {
+      logger.info('llm:priority_handoff', {
+        taskType: ticket.taskType,
+        priority: OPEN_WEIGHT_LLM_TASK_PRIORITY[ticket.taskType],
+        queueWaitMs: elapsed(),
+        interruptRequestedMs,
+        interruptAcknowledgedMs,
+        slotFreeMs,
+        interruptionReason: 'higher_priority',
+      });
+    }
+    return true;
+  };
+  while (true) {
+    signal.throwIfAborted();
+    const decision = await waitForAbort(
+      admitOpenWeightLlmPriorityTicket(ticket, remaining()),
+      AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+    );
+    if (decision.status === 'admitted') return admit();
+    if (decision.status === 'rejected') return false;
+    if (decision.status === 'interrupt') {
+      if (interruptedOwner !== decision.owner) {
+        interruptedOwner = decision.owner;
+        interruptRequestedMs = elapsed();
+        interruptAcknowledgedMs = undefined;
+        slotFreeMs = undefined;
+      }
+      if (
+        confirmedOwner === decision.owner ||
+        (await requestInferenceCancellation(
+          decision.owner,
+          target,
+          AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_INTERRUPTED_POST_PROBE_MS)]),
+        ))
+      ) {
+        confirmedOwner = decision.owner;
+        interruptAcknowledgedMs ??= elapsed();
+        signal.throwIfAborted();
+        const slot = await checkRuntimeSlot(target, signal);
+        if (slot.status === 200) {
+          slotFreeMs ??= elapsed();
+          // The accepted cancellation proves that this exact POST reached the runtime.
+          // Redis still checks the owner and the queue head before replacing the lease.
+          const transfer = await waitForAbort(
+            admitOpenWeightLlmPriorityTicket(ticket, remaining(), decision.owner),
+            AbortSignal.any([signal, AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS)]),
+          );
+          if (transfer.status === 'admitted') return admit();
+          if (transfer.status === 'rejected') return false;
+        }
+      }
+    }
+    await delay(OPEN_WEIGHT_LLM_PRIORITY_POLL_MS, undefined, { signal });
+  }
+}
+
 async function waitForInterruptedPost(
   inferenceId: string,
   previousBody: string,
@@ -736,9 +830,12 @@ export async function runOpenWeightLlm(
   if (!config.transport || !config.token) return { status: 'misconfigured' };
   if (options.signal?.aborted) return { status: 'aborted' };
   if (isCircuitOpen(hooks.now())) return { status: 'circuit_open' };
-  if (inFlight) return { status: 'busy', retry: 'manual' };
+  const priorityTicket = isOpenWeightLlmPriorityEnabled()
+    ? { id: randomUUID(), taskType: request.data.taskType }
+    : undefined;
+  if (inFlight && !priorityTicket) return { status: 'busy', retry: 'manual' };
 
-  inFlight = true;
+  inFlight += 1;
   const startedAt = hooks.now();
   const taskTimeoutMs =
     request.data.taskType === 'topic_label' && request.data.schemaVersion === 2
@@ -754,29 +851,39 @@ export async function runOpenWeightLlm(
   const signal = options.signal ? AbortSignal.any([options.signal, timeoutSignal]) : timeoutSignal;
 
   const admissionTimeoutSignal = AbortSignal.timeout(OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS);
+  const admissionDeadline = performance.now() + OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS;
   const admissionSignal = AbortSignal.any([signal, admissionTimeoutSignal]);
-  let result: OpenWeightLlmRunResult;
+  let result: OpenWeightLlmRunResult = { status: 'unavailable' };
+  let priorityAttempted = false;
+  let priorityAdmitted = false;
   let lease: RedisLease | null = null;
   let interruptedPost: (() => Promise<void>) | undefined;
   try {
     const resolvedAddress = await resolvePrivateTarget(config.transport, admissionSignal);
-    if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
-      lease = await acquireInferenceLease(admissionSignal);
-      if (!lease) return { status: 'busy', retry: 'manual' };
-    }
-    admissionSignal.throwIfAborted();
     const headers = {
       accept: 'application/json',
       authorization: `Bearer ${config.token}`,
     };
     const target = { transport: config.transport, resolvedAddress, headers };
-    const slot = await hooks.request({
-      ...target,
-      method: 'GET',
-      path: '/slots?fail_on_no_slot=1',
-      body: null,
-      signal: admissionSignal,
-    });
+    if (priorityTicket) {
+      priorityAttempted = true;
+      priorityAdmitted = await awaitPriorityAdmission(
+        priorityTicket,
+        target,
+        admissionSignal,
+        admissionDeadline,
+      );
+      if (!priorityAdmitted) return { status: 'busy', retry: 'manual' };
+    } else if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
+      lease = await acquireInferenceLease(admissionSignal);
+      if (!lease) return { status: 'busy', retry: 'manual' };
+    }
+    admissionSignal.throwIfAborted();
+    let slot = await checkRuntimeSlot(target, admissionSignal);
+    while (priorityTicket && slot.status === 503) {
+      await delay(OPEN_WEIGHT_LLM_PRIORITY_POLL_MS, undefined, { signal: admissionSignal });
+      slot = await checkRuntimeSlot(target, admissionSignal);
+    }
     if (slot.status === 503) {
       result = { status: 'busy', retry: 'manual' };
     } else if (slot.status === 401 || slot.status === 403 || slot.status === 501) {
@@ -795,7 +902,24 @@ export async function runOpenWeightLlm(
         );
       }
       admissionSignal.throwIfAborted();
-      if (
+      if (priorityTicket) {
+        const ownership = await waitForAbort(
+          beginOpenWeightLlmPriorityTicket(
+            priorityTicket,
+            taskTimeoutMs + OPEN_WEIGHT_LLM_LEASE_GRACE_MS,
+          ),
+          admissionSignal,
+        );
+        if (ownership === 'preempted') return { status: 'preempted' };
+        if (ownership === 'lost') return { status: 'unavailable' };
+        logger.info('llm:priority_admitted', {
+          taskType: priorityTicket.taskType,
+          priority: OPEN_WEIGHT_LLM_TASK_PRIORITY[priorityTicket.taskType],
+          queueWaitMs:
+            OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS -
+            Math.round(admissionDeadline - performance.now()),
+        });
+      } else if (
         lease &&
         !(await waitForAbort(
           lease.refresh(taskTimeoutMs + OPEN_WEIGHT_LLM_LEASE_GRACE_MS),
@@ -805,7 +929,7 @@ export async function runOpenWeightLlm(
         return { status: 'unavailable' };
       }
       admissionSignal.throwIfAborted();
-      const inferenceId = randomUUID();
+      const inferenceId = priorityTicket?.id ?? randomUUID();
       interruptedPost = () => waitForInterruptedPost(inferenceId, slot.body, target);
       const completion = await hooks.request({
         ...target,
@@ -842,23 +966,51 @@ export async function runOpenWeightLlm(
       }
     }
   } catch (error) {
-    result = {
-      status: classifyCaughtError(
-        error,
-        options.signal,
-        timeoutSignal,
-        interruptedPost ? undefined : admissionTimeoutSignal,
-      ),
-    };
+    result =
+      priorityAttempted && !interruptedPost && admissionTimeoutSignal.aborted && !signal.aborted
+        ? { status: 'busy', retry: 'manual' }
+        : {
+            status: classifyCaughtError(
+              error,
+              options.signal,
+              timeoutSignal,
+              interruptedPost ? undefined : admissionTimeoutSignal,
+            ),
+          };
   } finally {
-    if (lease) {
+    if (priorityTicket && priorityAttempted) {
+      await interruptedPost?.();
+      try {
+        // The Lua command removes a waiter, or releases only this ticket's reservation.
+        // It also fences a late model reply from a previous reservation owner.
+        const ownership = await waitForAbort(
+          finishOpenWeightLlmPriorityTicket(priorityTicket, result.status === 'completed'),
+          AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS),
+        );
+        if (ownership === 'preempted') {
+          result = { status: 'preempted' };
+          logger.info('llm:priority_interrupted', {
+            taskType: priorityTicket.taskType,
+            priority: OPEN_WEIGHT_LLM_TASK_PRIORITY[priorityTicket.taskType],
+            interruptionReason: 'higher_priority',
+          });
+        }
+        if (ownership === 'lost' && priorityAdmitted && result.status === 'completed') {
+          result = { status: 'unavailable' };
+        }
+      } catch {
+        if (result.status === 'completed') result = { status: 'unavailable' };
+        logger.warn('LLM-Reservierung konnte nicht freigegeben werden und läuft ab.');
+      }
+      if (options.signal?.aborted) result = { status: 'aborted' };
+    } else if (lease) {
       await interruptedPost?.();
       await waitForAbort(
         lease.release(),
         AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS),
       ).catch(() => logger.warn('LLM-Reservierung konnte nicht freigegeben werden und läuft ab.'));
     }
-    inFlight = false;
+    inFlight -= 1;
   }
 
   if (result.status === 'completed') {
@@ -874,6 +1026,7 @@ export async function inspectOpenWeightLlmAvailability(
     readonly signal?: AbortSignal;
     readonly timeoutMs?: number;
     readonly reportBusy?: boolean;
+    readonly acceptOccupiedSlot?: boolean;
   } = {},
 ): Promise<OpenWeightLlmAvailabilityStatus> {
   let config: OpenWeightLlmConfig;
@@ -908,7 +1061,7 @@ export async function inspectOpenWeightLlmAvailability(
       body: null,
       signal,
     });
-    if (slot.status === 503) return 'busy';
+    if (slot.status === 503) return options.acceptOccupiedSlot ? 'ready' : 'busy';
     if (slot.status === 401 || slot.status === 403 || slot.status === 501) return 'misconfigured';
     if (slot.status !== 200) return 'unavailable';
     return 'ready';

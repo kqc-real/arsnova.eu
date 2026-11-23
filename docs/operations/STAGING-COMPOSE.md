@@ -292,6 +292,16 @@ oder fehlgeschlagener Freigabe läuft die Reservierung spätestens 315 Sekunden
 nach der letzten erfolgreichen Reservierung oder Besitzerprüfung ab.
 [LLM-Laufzeitvertrag](../features/open-weight-llm-runtime.md#laufzeitvertrag)
 
+### Prioritätsübergabe in Staging
+
+Mit `STAGING_LLM_PRIORITY_HANDOFF_ENABLED=true` aktivieren beide Apps die
+Prioritätsübergabe. Dafür ist eine Runtime mit dem gezielten Abbruchsignal
+(`POST /internal/arsnova/cancel`) erforderlich. Die Grundkonfiguration
+für den gemeinsamen Redis-Slot bleibt bestehen. Nach dem Wechsel beide Apps
+mit demselben Flag starten. Für die Rückkehr zum bisherigen Verhalten das
+Flag wieder auf `false` setzen und beide Apps neu erstellen.
+[LLM-Laufzeitvertrag](../features/open-weight-llm-runtime.md#prioritätsübergabe-zwischen-app-instanzen)
+
 ### Lokaler Test mit zwei konkurrierenden Aufträgen
 
 Am 19. November 2026 haben beide Apps über denselben Socket-Inode

@@ -142,15 +142,59 @@ Das Profil `llm-http` ist ausschließlich ein lokaler Laborpfad. Der Produktions
 
 ## Laufzeitvertrag
 
-- pro App-Prozess höchstens ein laufender Auftrag über alle drei Auftragstypen;
+- pro App-Prozess höchstens ein Inferenz-POST über alle drei Auftragstypen gleichzeitig;
 - im Betrieb mit mehreren App-Instanzen koordiniert die App den gemeinsamen Slot atomar über Redis (`OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED=true`). Nach DNS-Auflösung reserviert sie den Slot zunächst für 2,5 Sekunden. Erst unmittelbar vor dem POST verlängert sie ihn mit Besitzerprüfung auf das Auftrags-Timeout plus 15 Sekunden. Eine verspätet bestätigte erste Reservierung gibt die App frei. Die kurze TTL begrenzt die Wartezeit bei ausbleibender Bestätigung. Alle Apps an derselben Runtime verwenden denselben Redis und dieselbe Einstellung;
 - vor jedem Modellaufruf `GET /slots?fail_on_no_slot=1`. DNS, Reservierung und Slot-Sonde teilen sich ein Budget von höchstens 2,5 Sekunden;
 - maximal ein Inferenz-POST nach erfolgreicher Slot-Sonde, keine App-interne Modellqueue;
-- belegter Slot: Label und Summary liefern sofort ihren fachlichen Fallback, Lernzielableitung `{ status: "busy", retry: "manual" }`;
+- belegter Slot ohne Prioritätsübergabe: Label und Summary liefern sofort ihren fachlichen Fallback, Lernzielableitung `{ status: "busy", retry: "manual" }`;
 - Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung und brechen danach den HTTP-Aufruf ab. Im Replikabetrieb sendet die App für einen unterbrochenen Inferenz-POST ein gezieltes Abbruchsignal. Bei einer Bestätigung gibt sie die Redis-Reservierung frei. Fehlt die Bestätigung, prüft sie wie bisher einmalig den Slot. Beide Abfragen teilen sich ein Budget von 250 ms. Bestätigt der Slot mit einer neueren Aufgaben-ID die Übernahme des früheren POST, gibt die App die Reservierung frei. Bei unklarem Ausgang gilt die Frist von 1,5 Sekunden ab der Unterbrechung. Der nächste Auftrag prüft unter seiner eigenen Reservierung, ob der Modellslot frei ist. Bei einem App-Ausfall oder fehlgeschlagener Freigabe läuft die Reservierung nach dem Auftrags-Timeout plus 15 Sekunden ab der letzten Besitzerprüfung ab. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches;
 - Circuit Breaker öffnet nach drei Timeout-/Verfügbarkeits-/Antwortfehlern für 30 Sekunden;
 - URL-Hostnamen werden aufgelöst und auf ausschließlich Loopback/RFC1918/ULA geprüft; die Anfrage wird an die geprüfte IP gepinnt;
 - Telemetrie enthält nur Auftragstyp, Modellalias, Laufzeit und Tokenzahlen, keine Prompttexte.
+
+### Prioritätsübergabe zwischen App-Instanzen
+
+`OPEN_WEIGHT_LLM_PRIORITY_HANDOFF_ENABLED=true` aktiviert die Übergabe zusammen
+mit `OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED=true`. Alle App-Instanzen an derselben
+Runtime verwenden dasselbe Redis und beide Flags. Die Reihenfolge ist
+Themenlabels, Moderationszusammenfassung, Lernzielableitung. Innerhalb einer
+Priorität entscheidet die Reihenfolge der noch gültigen Redis-Einträge.
+Bis zu 16 Label-, 8 Summary- und 8 Lernzielanfragen können gleichzeitig warten.
+Die gemeinsame Zulassungsfrist von 2,5 Sekunden umfasst DNS, Redis und die
+Runtime-Sonde. Wartende Anfragen behalten diese Frist auch bei einer Übergabe.
+
+Ein höher priorisierter Auftrag kann den laufenden Auftrag anhand seiner
+Inferenz-ID gezielt abbrechen. Nach bestätigtem Abbruchsignal und erfolgreicher
+Sonde des freien Modellslots wechselt der Redis-Besitzer atomar zum ersten
+gültigen Auftrag. Bei einer Freigabe durch den bisherigen Besitzer hat der
+erste gültige Auftrag Vorrang; auch dann prüft er den Modellslot vor seinem
+POST. Ein abgelöster Besitzer kann dessen Reservierung weder löschen noch
+eine eigene verspätete Modellantwort übernehmen. Bei Redis-Fehler oder
+unbestätigter Slotfreigabe bleibt der neue Modell-POST aus. Die bestehenden
+Ablauffristen begrenzen die Reservierung bei App-Ausfall.
+
+Fertige Lernzielgruppen bleiben erhalten. Solange der Editorauftrag mit
+derselben Capability, denselben Quellen und derselben Revision läuft,
+wiederholt er nach einer Verdrängung ausschließlich die unterbrochene
+Gruppe. Das 20-Minuten-Budget bleibt bestehen. Die Summary-Queue prüft
+vor jeder erneuten Zulassung ihre Job-Generation, den aktuellen
+Kontext-Hash und den Host-Zugriff. Sie verwendet die Restzeit des
+ursprünglichen Durchlaufs. Je Gruppe beziehungsweise Summary sind
+höchstens zwei erneute Verdrängungen mit Fortsetzung benutzbar. Während
+ein höher priorisierter Auftrag läuft, sind pro Wiederaufnahme höchstens
+16 Zulassungsversuche möglich. Ein ausdrücklicher Abbruch beendet den
+laufenden Lernzielauftrag. Ein späterer manueller Start ist eine neue
+ausdrückliche Aktion.
+
+Host-Q&A und Host-Freitext zeigen nach der Encoder-Analyse extraktive
+oder bereits gecachte Modelllabels. Eine zweite Host-Anfrage reichert
+denselben Snapshot an. Gleichzeitige Anfragen für denselben Snapshot
+teilen das Ergebnis über Redis. Ändern sich Quellen, Filter, Sortierung
+oder die Session, bricht der Client die Labelanfrage ab. Für Q&A prüft
+die App zusätzlich die Korpusrevision, für beide Kanäle die
+Host-Berechtigung. Fortschritt, Auftragsart, Priorität, Wartezeit,
+Abbruch- und Wiederanlaufereignisse stehen in der Telemetrie. Die Logs
+enthalten keine Prompts oder Beitragstexte. [Issue #717](https://github.com/kqc-real/arsnova.eu/issues/717)
 
 ### Privates Abbruchsignal
 
