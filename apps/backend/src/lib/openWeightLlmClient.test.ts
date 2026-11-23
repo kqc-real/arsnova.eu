@@ -439,6 +439,131 @@ describe('openWeightLlmClient', () => {
     },
   );
 
+  it.each([true, false])(
+    'gibt die Reservierung bei bestätigtem Modellauftrag ohne feste Wartezeit frei (Slot belegt: %s)',
+    async (processingAfterAbort) => {
+      vi.useFakeTimers();
+      vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+      redis.set.mockResolvedValue('OK');
+      redis.eval.mockResolvedValue(1);
+      const controller = new AbortController();
+      let slotBusy = false;
+      let taskId = 40;
+      let posts = 0;
+      const slotBody = () => JSON.stringify([{ id: 0, id_task: taskId, is_processing: slotBusy }]);
+      const request = vi.fn(async (input: { path: string; signal: AbortSignal }) => {
+        if (input.path === '/slots') {
+          expect(input.signal.aborted).toBe(false);
+          expect(redis.eval).toHaveBeenCalledTimes(1);
+          return { status: 200, body: slotBody() };
+        }
+        if (input.path === '/slots?fail_on_no_slot=1') {
+          return { status: slotBusy ? 503 : 200, body: slotBody() };
+        }
+        posts += 1;
+        if (posts === 1) {
+          taskId += 1;
+          slotBusy = processingAfterAbort;
+          controller.abort();
+          throw new Error('socket disconnected');
+        }
+        return completionResponse(outputs.learning_objectives);
+      });
+      resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+
+      const operation = runOpenWeightLlmLearningObjectives(requests.learning_objectives, {
+        signal: controller.signal,
+      });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(request.mock.calls.map(([input]) => input.path)).toEqual([
+        '/slots?fail_on_no_slot=1',
+        '/v1/chat/completions',
+        '/slots',
+      ]);
+      const [key, owner] = redis.set.mock.calls[0]!;
+      expect(redis.eval).toHaveBeenNthCalledWith(2, expect.stringContaining('DEL'), 1, key, owner);
+      await expect(operation).resolves.toEqual({ status: 'aborted' });
+
+      if (processingAfterAbort) {
+        await expect(
+          runOpenWeightLlmLearningObjectives(requests.learning_objectives),
+        ).resolves.toEqual({ status: 'busy', retry: 'manual' });
+        expect(posts).toBe(1);
+        slotBusy = false;
+      }
+      await expect(
+        runOpenWeightLlmLearningObjectives(requests.learning_objectives),
+      ).resolves.toMatchObject({ status: 'completed' });
+      expect(posts).toBe(2);
+    },
+  );
+
+  it.each([
+    { id: 0, id_task: 40 },
+    { id: 0, id_task: 5 },
+    { id: 1, id_task: 41 },
+  ])('hält die Frist bei uneindeutigem Slot-Signal %j ein', async (slot) => {
+    vi.useFakeTimers();
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    redis.set.mockResolvedValue('OK');
+    redis.eval.mockResolvedValue(1);
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async ({ path }) => {
+        if (path === '/v1/chat/completions') throw new Error('socket disconnected');
+        return {
+          status: 200,
+          body: JSON.stringify([
+            { ...(path === '/slots' ? slot : { id: 0, id_task: 40 }), is_processing: false },
+          ]),
+        };
+      },
+    });
+
+    const operation = runOpenWeightLlmLearningObjectives(requests.learning_objectives);
+    await vi.advanceTimersByTimeAsync(1_499);
+    expect(redis.eval).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(redis.eval).toHaveBeenCalledTimes(2);
+    await expect(operation).resolves.toEqual({ status: 'unavailable' });
+  });
+
+  it('rechnet eine hängende Slot-Abfrage auf die 1,5-Sekunden-Frist an', async () => {
+    vi.useFakeTimers();
+    vi.stubEnv('OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED', 'true');
+    redis.set.mockResolvedValue('OK');
+    redis.eval.mockResolvedValue(1);
+    const nativeTimeout = AbortSignal.timeout.bind(AbortSignal);
+    const probe = new AbortController();
+    const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation((ms) => {
+      if (ms !== 250) return nativeTimeout(ms);
+      setTimeout(() => probe.abort(), ms);
+      return probe.signal;
+    });
+    try {
+      const request = vi.fn(async ({ path, signal }: { path: string; signal: AbortSignal }) => {
+        if (path === '/v1/chat/completions') throw new Error('socket disconnected');
+        if (path === '/slots') {
+          expect(signal).toBe(probe.signal);
+          return new Promise<never>(() => undefined);
+        }
+        return { status: 200, body: '[{"id":0,"id_task":40,"is_processing":false}]' };
+      });
+      resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+
+      const operation = runOpenWeightLlmLearningObjectives(requests.learning_objectives);
+      await vi.advanceTimersByTimeAsync(1_499);
+      expect(request).toHaveBeenCalledTimes(3);
+      expect(probe.signal.aborted).toBe(true);
+      expect(redis.eval).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(redis.eval).toHaveBeenCalledTimes(2);
+      await expect(operation).resolves.toEqual({ status: 'unavailable' });
+    } finally {
+      timeout.mockRestore();
+    }
+  });
+
   it('hält die dokumentierte Modellprobe synchron zum Backend-Translator', async () => {
     const fixture = JSON.parse(
       readFileSync(

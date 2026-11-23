@@ -282,8 +282,11 @@ Themenlabel und Zusammenfassung ihren fachlichen Fallback. Die
 Lernzielableitung meldet `busy` und erlaubt einen manuellen
 Wiederholungsversuch. Bei einem Redis-Fehler bleibt die Inferenzanfrage aus.
 Nach einer vollständigen Antwort gibt die App die Reservierung frei.
-Nach einem unterbrochenen POST wartet sie 1,5 Sekunden vor der Freigabe.
-Der nächste Auftrag prüft den Modellslot erneut. Bei einem Prozessausfall
+Nach einem unterbrochenen POST fragt sie den Modellslot einmal ab und gibt
+die Reservierung frei, sobald eine neuere Aufgaben-ID die Übernahme des
+POST bestätigt. Bei unklarem Ausgang gilt eine Frist von 1,5 Sekunden ab
+der Unterbrechung. Der nächste Auftrag prüft, ob der Modellslot frei ist.
+Bei einem Prozessausfall
 oder fehlgeschlagener Freigabe läuft die Reservierung spätestens 315 Sekunden
 nach der letzten erfolgreichen Reservierung oder Besitzerprüfung ab.
 [LLM-Laufzeitvertrag](../features/open-weight-llm-runtime.md#laufzeitvertrag)
