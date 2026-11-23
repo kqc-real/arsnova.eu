@@ -48,6 +48,7 @@ export type QaWordCloudDialogData = {
   analysisModelVersion?: () => string | null;
   labelModelId?: () => string | null;
   labelModelVersion?: () => string | null;
+  labelPromptVersion?: () => string | null;
   analysisVariant: () => WordCloudAnalysisVariant;
   displayMode?: () => WordCloudAnalysisVariant;
   analysisLanguage?: () => string;
@@ -123,6 +124,7 @@ export class QaWordCloudDialogComponent {
   readonly analysisModelVersion = computed(() => this.data.analysisModelVersion?.() ?? null);
   readonly labelModelId = computed(() => this.data.labelModelId?.() ?? null);
   readonly labelModelVersion = computed(() => this.data.labelModelVersion?.() ?? null);
+  readonly labelPromptVersion = computed(() => this.data.labelPromptVersion?.() ?? null);
   readonly displayMode = computed(() => this.data.displayMode?.() ?? 'LEXICAL');
   readonly eligibleQuestionCount = computed(() => this.data.eligibleQuestionCount());
   readonly analysisVariant = computed(() => this.data.analysisVariant());

@@ -17533,6 +17533,15 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackUnavailable" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade nicht erreichbar.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackSourceChanged" datatype="html">
+        <source>Die Daten haben sich seit der Anfrage geändert.</source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryTimeout" datatype="html">
         <source>Die Zusammenfassung hat zu lange gedauert.</source>
         <context-group purpose="location">

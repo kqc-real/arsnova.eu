@@ -40,9 +40,14 @@ import {
   evictWordCloudAnalysisSnapshotsForSessions,
   resetWordCloudAnalysisCacheMigrationForTests,
   shouldCacheWordCloudSnapshot,
+  topicLabelCacheSegment,
   WORD_CLOUD_SNAPSHOT_PURGE_BATCH_SIZE,
   WORD_CLOUD_SNAPSHOT_PURGE_FENCE_TTL_SECONDS,
 } from './wordCloudAnalysisCache';
+import {
+  OPEN_WEIGHT_LLM_MODEL_ALIAS,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+} from './openWeightLlmConfig';
 import type { QaSemanticTopicSnapshot } from './qaSemanticTopicSnapshot';
 
 const scope = { sessionId: '11111111-1111-4111-8111-111111111111' } as const;
@@ -124,6 +129,20 @@ describe('wordCloudAnalysisCache', () => {
     expect(key).toContain('nlp:wc:text:de:1.14b.15:');
     expect(key).toContain(textHash);
     expect(key).not.toContain('Häuser');
+  });
+
+  it('bindet Snapshot- und Label-Job-Schlüssel an Modell- und Promptversion', () => {
+    expect(topicLabelCacheSegment({})).toBe('topic-label:off');
+    vi.stubEnv('OPEN_WEIGHT_LLM_ENABLED', 'true');
+    const segment = topicLabelCacheSegment();
+    expect(segment.split(':')).toEqual([
+      'topic-label',
+      OPEN_WEIGHT_LLM_MODEL_ALIAS,
+      expect.stringMatching(/^[a-f0-9]{64}$/),
+      OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+    ]);
+    expect(buildWordCloudSnapshotCacheKey(input, scope, 'label-job-owner')).toContain(segment);
+    expect(buildQaSemanticTopicSnapshotCacheKey(input, scope)).toContain(segment);
   });
 
   it('bildet Snapshot-Schluessel aus Session, Modus und Hash', () => {

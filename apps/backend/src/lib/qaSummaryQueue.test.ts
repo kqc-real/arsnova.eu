@@ -13,6 +13,7 @@ import {
   prepareModerationSummaryContextFromAnalysis,
   type PreparedModerationSummaryContext,
 } from './moderationSummaryContext';
+import { logger } from './logger';
 import type { QaSummaryConfig } from './qaSummaryConfig';
 import {
   getQaSummaryRuntime,
@@ -278,11 +279,27 @@ describe('qaSummaryQueue V2', () => {
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
     current = after;
-    const delivered = await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
-    expect(delivered.result).toMatchObject({
-      snapshotHash: 'd'.repeat(64),
-      execution: { effectiveMode: 'extractive', fallback: { reason: 'source_changed' } },
-    });
+    const log = vi.spyOn(logger, 'info');
+    try {
+      const delivered = await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
+      expect(delivered.result).toMatchObject({
+        snapshotHash: 'd'.repeat(64),
+        execution: { effectiveMode: 'extractive', fallback: { reason: 'source_changed' } },
+      });
+      await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
+      expect(log.mock.calls.filter(([event]) => event === 'qa_summary:stale_on_read')).toEqual([
+        [
+          'qa_summary:stale_on_read',
+          {
+            fallbackReason: 'source_changed',
+            previousMode: 'full-context',
+            sourceCount: delivered.result?.sources.length,
+          },
+        ],
+      ]);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it('liefert kein Ergebnis aus, das während des Quellenabgleichs invalidiert wurde', async () => {

@@ -1021,6 +1021,48 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).not.toContain('Klär die Klausurfragen zuerst.');
   });
 
+  it('erklärt den Grund einer fertigen extraktiven Zusammenfassung', () => {
+    const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      runtime: v2Runtime({
+        inferenceConfigured: true,
+        result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
+          status: 'ready',
+          statements: [{ text: 'Wie berechnet man den Median?', sourceIds: [sourceId] }],
+          suggestedNextSteps: [],
+          limitations: ['Lokale Kurzfassung.'],
+          sources: [],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'extractive',
+            fallback: {
+              contractVersion: 'qa-summary-fallback-v1',
+              requestedRequestContract: 'qa-summary-context-v2',
+              requestedOutputContract: 'qa-summary-model-output-v3',
+              mode: 'extractive',
+              reason: 'source_changed',
+              retry: 'manual',
+            },
+          },
+        },
+      }),
+    });
+
+    fixture.nativeElement.querySelector('.moderation-compass-dialog__summary-button').click();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.moderation-compass-dialog__summary-limitations')
+        ?.textContent,
+    ).toContain('Die Daten haben sich seit der Anfrage geändert.');
+    expect(fixture.nativeElement.textContent).toContain('Wie berechnet man den Median?');
+  });
+
   it('zeigt failed ruhig und sperrt den Button während pending', () => {
     const pending = setup([], vi.fn(), 'rule-based', {
       enabled: true,

@@ -260,6 +260,12 @@ Anfrage kann den transienten Lauf erneut versuchen. Die Vorschau
 für den zweiten Schritt lebt dort höchstens drei Minuten und wird
 beim Session-Purge entfernt. [LLM-Laufzeitvertrag](open-weight-llm-runtime.md#prioritätsübergabe-zwischen-app-instanzen)
 
+Die Schlüssel für gecachte Modelllabels und Wortwolken-Snapshots enthalten
+die Modellidentität und die Promptversion. Der Kompass verwendet ältere
+Themen-Snapshots weiter mit extraktiven Labels, wenn die Modell- oder
+Promptversion fehlt, abweicht oder der LLM-Schalter aus ist. Der Host-CSV-Export
+enthält die Promptversion zusammen mit der Modellprovenienz.
+
 Bewusste Nicht-Ziele bleiben: 8.9b-Transformer auf dem LLM-Slot, SaaS-Fallback, Anheben von Angular-Initial-Bundle-`maximumError` sowie eine standardmäßige Produktivaktivierung der Kill-Switches im Repository.
 
 ## Verträge und Code

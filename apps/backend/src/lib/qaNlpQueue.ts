@@ -311,13 +311,15 @@ function rate(numerator: number, denominator: number): number {
 }
 
 export function getQaNlpMetrics(): QaNlpMetrics {
-  const settled = metrics.completed + metrics.failed;
+  const settled = metrics.completed + metrics.failed + metrics.skipped;
+  const unclassified = metrics.unclassified + metrics.skipped;
   return {
     ...metrics,
+    unclassified,
     queueLength: queue.length,
     earlyExitRate: rate(metrics.earlyExit, metrics.completed),
     fallbackRate: rate(metrics.fallback, metrics.completed),
-    unclassifiedRate: rate(metrics.unclassified, settled),
+    unclassifiedRate: rate(unclassified, settled),
   };
 }
 

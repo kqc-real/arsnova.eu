@@ -386,16 +386,13 @@ export async function loadQuickFeedbackModerationSnapshot(input: {
   const sourceId = `feedback-aggregate:${sha256(
     `${input.sessionId}:${parsed.type}:${parsed.roundStartedAt}`,
   )}`;
-  const observedAt = new Date(
-    Math.max(Date.parse(parsed.roundStartedAt), input.observedAt.getTime()),
-  ).toISOString();
   const source = ModerationPromptSourceSchema.parse({
     id: sourceId,
     kind: 'feedback-aggregate',
     label: `Quick feedback ${parsed.type}`,
     scope: {
       channel: 'quickFeedback',
-      timeWindow: { kind: 'interval', from: parsed.roundStartedAt, to: observedAt },
+      timeWindow: { kind: 'round', startedAt: parsed.roundStartedAt },
     },
     population: {
       kind: 'eligible-feedback-responses',

@@ -4597,6 +4597,7 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   labelSettlement: WordCloudLabelSettlementSchema.optional(),
   labelModelId: z.string().trim().min(1).max(220).nullable().optional(),
   labelModelVersion: z.string().trim().min(1).max(220).nullable().optional(),
+  labelPromptVersion: z.string().trim().min(1).max(120).nullable().optional(),
 });
 export type WordCloudAnalysisResultDTO = z.infer<typeof WordCloudAnalysisResultDTOSchema>;
 
@@ -6530,6 +6531,7 @@ export const QaNlpRuntimeMetricsSchema = z.object({
   unclassified: z.number().int().nonnegative(),
   earlyExitRate: z.number().min(0).max(1),
   fallbackRate: z.number().min(0).max(1),
+  /** Share of settled requests without classification, including queue-limit skips. */
   unclassifiedRate: z.number().min(0).max(1),
 });
 export type QaNlpRuntimeMetrics = z.infer<typeof QaNlpRuntimeMetricsSchema>;

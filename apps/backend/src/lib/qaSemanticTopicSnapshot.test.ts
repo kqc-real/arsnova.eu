@@ -139,6 +139,7 @@ describe('qaSemanticTopicSnapshot', () => {
         ...analysis,
         labelModelId: 'Qwen3-4B-Instruct-2507',
         labelModelVersion: 'sha256:topic-label-model',
+        labelPromptVersion: 'topic-label-system-v1',
         entries: [
           {
             ...analysis.entries[0],
@@ -155,6 +156,7 @@ describe('qaSemanticTopicSnapshot', () => {
       text: 'Vertrauliche Fragen',
       modelId: 'Qwen3-4B-Instruct-2507',
       modelVersion: 'sha256:topic-label-model',
+      generationVersion: 'topic-label-system-v1',
     });
   });
 

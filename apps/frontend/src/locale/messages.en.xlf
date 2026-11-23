@@ -19789,6 +19789,18 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
+        <target>The summary service is busy right now.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackUnavailable" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade nicht erreichbar.</source>
+        <target>The summary service is unavailable right now.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackSourceChanged" datatype="html">
+        <source>Die Daten haben sich seit der Anfrage geändert.</source>
+        <target>The data has changed since the request.</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryTimeout" datatype="html">
         <source>Die Zusammenfassung hat zu lange gedauert.</source>
         <target>The summary took too long.</target>

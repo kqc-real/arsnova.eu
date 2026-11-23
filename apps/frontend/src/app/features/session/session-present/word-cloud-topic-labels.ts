@@ -36,6 +36,7 @@ export async function enrichCurrentTopicCloud<T extends AnalyzeWordCloudOutput>(
       labelSettlement: result.labelSettlement,
       labelModelId: result.labelModelId,
       labelModelVersion: result.labelModelVersion,
+      labelPromptVersion: result.labelPromptVersion,
       entries: base.entries.map((entry) => ({ ...entry, ...labels.get(entry.key) })),
     });
   } catch {

@@ -44,7 +44,10 @@ import {
   type ModerationSummaryScanParts,
 } from './moderation-compass';
 import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
-import { localizeQaSummaryChromeLimitation } from './qa-summary-chrome-copy';
+import {
+  localizeQaSummaryChromeLimitation,
+  localizeQaSummaryFallbackReason,
+} from './qa-summary-chrome-copy';
 
 export type { ModerationCompassAnalysisMode };
 
@@ -400,9 +403,24 @@ export class ModerationCompassDialogComponent {
         .filter((item): item is string => Boolean(item))
         .map(normalizeSummaryNotice),
     );
-    return result.limitations
+    const limitations = result.limitations
       .map((item) => localizeQaSummaryChromeLimitation(item))
       .filter((item) => !skip.has(normalizeSummaryNotice(item)));
+    if (
+      result.status === 'ready' &&
+      'execution' in result &&
+      result.execution.effectiveMode === 'extractive' &&
+      result.execution.fallback
+    ) {
+      const reason = localizeQaSummaryFallbackReason(result.execution.fallback.reason);
+      if (
+        reason &&
+        !limitations.some((item) => normalizeSummaryNotice(item) === normalizeSummaryNotice(reason))
+      ) {
+        return [reason, ...limitations];
+      }
+    }
+    return limitations;
   }
 
   private genericSummaryStatus(status: CompatibleQaSummaryResult['status']): string | null {

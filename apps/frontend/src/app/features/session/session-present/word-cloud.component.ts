@@ -227,6 +227,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly analysisModelVersion = input<string | null>(null);
   readonly labelModelId = input<string | null>(null);
   readonly labelModelVersion = input<string | null>(null);
+  readonly labelPromptVersion = input<string | null>(null);
   readonly disableCloudLayout = input(false);
   readonly presentationMode = input(false);
   readonly outputOnly = input(false);
@@ -1543,7 +1544,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           includeSemanticMeta
             ? 'label,count,variants,basis,members,confidence,modelVersion'
             : 'label,count,variants,basis,members',
-          includeLabelModel ? 'labelOrigin,labelModelId,labelModelVersion' : '',
+          includeLabelModel ? 'labelOrigin,labelModelId,labelModelVersion,labelPromptVersion' : '',
         ]
           .filter((column) => column.length > 0)
           .join(','),
@@ -1565,6 +1566,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
                   this.escapeCsvField(entry.labelOrigin ?? 'extractive'),
                   this.escapeCsvField(this.labelModelId() ?? ''),
                   this.escapeCsvField(this.labelModelVersion() ?? ''),
+                  this.escapeCsvField(this.labelPromptVersion() ?? ''),
                 ]
               : []),
           ].join(','),
