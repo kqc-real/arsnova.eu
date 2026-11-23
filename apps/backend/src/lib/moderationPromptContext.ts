@@ -30,6 +30,7 @@ import {
 } from './moderationQaContext';
 import { buildAuthorizedModerationTeachingSignals } from './moderationTeachingSignals';
 import { getSessionLearningObjectivesSnapshotWithDb } from './sessionLearningObjectives';
+import { parseSessionQuestionProgress } from './sessionQuestionProgress';
 import type { WordCloudAnalysisCache } from './wordCloudAnalysisCache';
 
 export const MODERATION_ANALYSIS_VERSION = 'moderation-analysis-builder-v1' as const;
@@ -252,11 +253,13 @@ function projectLearningContext(input: {
     input.snapshot.availableQuizTasks.map((task) => [task.questionId, task] as const),
   );
   const qaTasksById = new Map(input.authorizedQaTasks.map((task) => [task.id, task] as const));
+  const questionProgress = parseSessionQuestionProgress(input.state.questionProgress);
   const additionalSources = new Map<string, ModerationPromptSource>();
   const projectedObjectives: ModerationLearningObjective[] = [];
   const budgetOmittedObjectiveIds = new Set(input.qaReferenceBudgetOmittedObjectiveIds);
   let redactedObjectives = 0;
   let budgetOmittedObjectives = 0;
+  let unreleasedObjectives = 0;
 
   const lookupSource = (sourceId: string): ModerationPromptSource | undefined =>
     additionalSources.get(sourceId) ?? input.sourceById.get(sourceId);
@@ -371,6 +374,26 @@ function projectLearningContext(input: {
       continue;
     }
 
+    // The preparation model sees correct answers. A derived objective can
+    // repeat one in prose, so its text needs the same release boundary.
+    if (
+      objective.origin.kind === 'model-derived' &&
+      (objective.origin.derivedFrom.some(
+        (reference) =>
+          reference.kind !== 'quiz-question' ||
+          questionProgress[reference.questionId]?.state !== 'COMPLETED',
+      ) ||
+        (objective.scope.kind === 'question-set' &&
+          objective.scope.taskReferences.some(
+            (reference) =>
+              reference.kind === 'quiz-question' &&
+              questionProgress[reference.questionId]?.state !== 'COMPLETED',
+          )))
+    ) {
+      unreleasedObjectives += 1;
+      continue;
+    }
+
     const objectiveSource = ModerationPromptSourceSchema.parse({
       id: learningObjectiveSourceId(objective.id),
       kind: 'learning-objective',
@@ -407,6 +430,15 @@ function projectLearningContext(input: {
       ...(redactedObjectives > 0 ? [sourceRedactionLimitation(redactedObjectives)] : []),
       ...(budgetOmittedObjectives > 0
         ? [qaReferenceBudgetLimitation(budgetOmittedObjectives)]
+        : []),
+      ...(unreleasedObjectives > 0
+        ? [
+            ModerationPromptLimitationSchema.parse({
+              code: 'not-released',
+              section: 'learning-context',
+              detail: `${unreleasedObjectives} model-derived learning objective(s) withheld until their quiz questions are released.`,
+            }),
+          ]
         : []),
     ],
     revision: {

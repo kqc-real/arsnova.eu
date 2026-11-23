@@ -6,6 +6,30 @@ import test from 'node:test';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
 
+test('Encoder-Build lädt genau die artefaktgebundenen Dateien aus einer festen Revision', () => {
+  const directory = join(repoRoot, 'docker/wordcloud-encoder');
+  const dockerfile = readFileSync(join(directory, 'Dockerfile'), 'utf8');
+  const manifest = readFileSync(join(directory, 'model.sha256'), 'utf8').trim().split('\n');
+  const files = manifest.map((line) => {
+    const match = /^([a-f0-9]{64}) {2}(\S+)$/.exec(line);
+    assert.ok(match, `Ungültiges SHA-256-Manifest: ${line}`);
+    return match[2];
+  });
+  assert.deepEqual(files.sort(), [
+    'config.json',
+    'onnx/model.onnx',
+    'onnx/model_quantized.onnx',
+    'tokenizer.json',
+    'tokenizer_config.json',
+  ]);
+  assert.match(dockerfile, /snapshot_download\([^\n]*revision='[a-f0-9]{40}'/);
+  assert.match(dockerfile, /allow_patterns=\[[^\n]*Path\('model\.sha256'\)/);
+  assert.match(
+    dockerfile,
+    /cd \/models\/e5-small && sha256sum --strict --check \/app\/model\.sha256/,
+  );
+});
+
 function readCompose(fileName) {
   return readFileSync(join(repoRoot, fileName), 'utf8');
 }

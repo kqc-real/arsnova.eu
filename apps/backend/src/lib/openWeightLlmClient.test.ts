@@ -2317,6 +2317,26 @@ describe('openWeightLlmClient', () => {
     },
   );
 
+  it('lässt nach wiederholt ungültigen Themenlabels weiterhin eine Summary zu', async () => {
+    const request = vi.fn(async (input: { path: string; body: string | null }) => {
+      if (input.path.startsWith('/slots')) return { status: 200, body: '[]' };
+      return completionResponse(
+        input.body?.includes('Ist Kapitel 4 klausurrelevant?') ? outputs.qa_summary : {},
+      );
+    });
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+    for (let index = 0; index < 3; index += 1) {
+      await expect(runOpenWeightLlm(requests.topic_label)).resolves.toEqual({
+        status: 'invalid_response',
+      });
+    }
+    await expect(runOpenWeightLlm(requests.qa_summary)).resolves.toMatchObject({
+      status: 'completed',
+      output: outputs.qa_summary,
+    });
+    expect(request).toHaveBeenCalledTimes(8);
+  });
+
   it('öffnet nach drei Laufzeitfehlern den Circuit Breaker ohne weiteren Request', async () => {
     const request = vi.fn(async () => ({ status: 500, body: '' }));
     resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });

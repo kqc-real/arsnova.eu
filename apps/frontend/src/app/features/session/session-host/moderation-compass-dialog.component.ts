@@ -613,7 +613,7 @@ export class ModerationCompassDialogComponent {
       case 'module-unavailable':
         return $localize`:@@sessionHost.moderationPreviewLimitationModuleUnavailable:Dieser Bereich ist in der Session nicht vorhanden.`;
       case 'not-released':
-        return $localize`:@@sessionHost.moderationPreviewLimitationNotReleased:Diese Ergebnisse sind noch nicht freigegeben.`;
+        return $localize`:@@sessionHost.moderationPreviewLimitationNotReleased:Diese Inhalte sind noch nicht freigegeben.`;
       case 'budget-truncated':
         return $localize`:@@sessionHost.moderationPreviewLimitationBudgetTruncated:Nur die wichtigsten Beiträge wurden ausgewählt.`;
       default:

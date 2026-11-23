@@ -458,7 +458,7 @@ Der Dienst begrenzt eine Anfrage auf 1 MiB, 500 Texte und 4.000 Zeichen je Text.
 
 Der private ONNX-Encoder erzeugt mit einem E5-small-Modell Vektoren. Die eigentliche Gruppenbildung erfolgt anschließend deterministisch im TypeScript-Backend. Ein LLM entscheidet nicht über die Mitgliedschaft der Beiträge.
 
-Konkret verwendet `docker/wordcloud-encoder/embed.py` `intfloat/multilingual-e5-small` mit Apache-2.0-Lizenz und dem CPU-Provider von ONNX Runtime. Wenn vorhanden, wird die quantisierte ONNX-Datei bevorzugt. Der Modellversionswert enthält einen SHA-256-basierten Artefaktbezug.
+Konkret verwendet `docker/wordcloud-encoder/embed.py` die gepinnte Xenova-ONNX-Konvertierung von `intfloat/multilingual-e5-small` mit dem CPU-Provider von ONNX Runtime. Die Lizenzangaben stehen im [Encoder-NOTICE](../../docker/wordcloud-encoder/NOTICE). Wenn vorhanden, wird die quantisierte ONNX-Datei bevorzugt. Der Modellversionswert enthält einen SHA-256-basierten Artefaktbezug.
 
 Jeder Text erhält das E5-Präfix `query: `. Der Tokenizer begrenzt Sequenzen auf 512 Tokens und füllt nur bis zur längsten Sequenz des jeweiligen Batches auf. Batches von 16 vermeiden einen einzelnen sehr großen Forward-Pass. Aus tokenweisen Hidden States entsteht durch attention-maskiertes Mean Pooling ein Satzvektor; anschließend wird dieser L2-normalisiert. Damit sind Paddingtokens nicht Teil des gemittelten Textinhalts.
 

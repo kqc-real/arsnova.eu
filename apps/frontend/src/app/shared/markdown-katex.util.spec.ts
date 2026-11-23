@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { QA_QUESTION_TEXT_MAX_CODE_POINTS, QA_REDACTION_CHAR } from '@arsnova/shared-types';
 import {
   absolutizeMarkdownHtmlRootAssetImgSrc,
   appendMotdContentVersionToAssetImgSrc,
@@ -102,6 +103,27 @@ describe('renderMarkdownWithKatex', () => {
     expect(blocks.html.match(/class="qa-redacted-char"/g)?.length).toBe(5);
     expect(blocks.html.match(/\u25A0/g)?.length).toBe(5);
     expect(blocks.html).not.toContain('\u2588');
+  });
+
+  it.each([
+    ['mit KaTeX', (text: string) => renderMarkdownWithKatex(text).html],
+    ['ohne KaTeX', (text: string) => renderMarkdownWithoutKatex(text)],
+  ] as const)('bindet Schwärzungsmarken an die aktuelle Eingabe (%s)', (_mode, render) => {
+    const literal = '\uE000ARSNOVA_QA_REDACTED_RUN:7\uE001';
+    const html = render(`${literal} **${QA_REDACTION_CHAR.repeat(3)}**`);
+
+    expect(html).toContain(literal);
+    expect(html.match(/class="qa-redacted-char"/g)).toHaveLength(3);
+    expect(html).toContain('<strong><span class="qa-redacted-passage" role="img" aria-label=');
+    expect(html).toContain('aria-hidden="true"');
+  });
+
+  it('begrenzt die erzeugten Schwärzungselemente über mehrere Stellen hinweg', () => {
+    const run = QA_REDACTION_CHAR.repeat(QA_QUESTION_TEXT_MAX_CODE_POINTS);
+    const html = renderMarkdownWithKatex(`${run} Text ${run}`).html;
+
+    expect(html.match(/class="qa-redacted-char"/g)).toHaveLength(QA_QUESTION_TEXT_MAX_CODE_POINTS);
+    expect(html).toContain(' Text ');
   });
 
   it('bewahrt führende Zahlen in Ordering-/Kurzlabels (kein Strip von „9. November“)', () => {

@@ -662,10 +662,6 @@ async function acquireInferenceLease(signal: AbortSignal): Promise<RedisLease | 
   }
 }
 
-function failureCountsForCircuit(status: OpenWeightLlmFailureResult['status']): boolean {
-  return status === 'timeout' || status === 'unavailable' || status === 'invalid_response';
-}
-
 function readRuntimeSingleSlot(body: string) {
   try {
     const parsed = RuntimeSingleSlotSchema.safeParse(JSON.parse(body));
@@ -1013,9 +1009,11 @@ export async function runOpenWeightLlm(
     inFlight -= 1;
   }
 
-  if (result.status === 'completed') {
+  // A completed HTTP response establishes runtime availability even when its
+  // model output fails the consumer contract.
+  if (result.status === 'completed' || result.status === 'invalid_response') {
     recordCircuitSuccess();
-  } else if (failureCountsForCircuit(result.status)) {
+  } else if (result.status === 'timeout' || result.status === 'unavailable') {
     recordCircuitFailure(hooks.now());
   }
   return result;

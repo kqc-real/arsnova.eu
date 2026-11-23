@@ -72,6 +72,8 @@ const QA_SOURCE_ID =
   MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1.context.questions.items[0]!.sourceId;
 const QA_QUESTION_ID = QA_SOURCE_ID.slice('qa-question:'.length);
 const REFERENCE_CONTEXT = MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1.context;
+const QUESTION_OPENED_AT = '2026-10-05T09:40:00.000Z';
+const QUESTION_COMPLETED_AT = '2026-10-05T09:45:00.000Z';
 
 function state(overrides: Partial<AuthorizedModerationState> = {}): AuthorizedModerationState {
   return {
@@ -81,7 +83,13 @@ function state(overrides: Partial<AuthorizedModerationState> = {}): AuthorizedMo
     status: 'ACTIVE',
     currentQuestion: 0,
     currentRound: 1,
-    questionProgress: {},
+    questionProgress: {
+      [QUIZ_QUESTION_ID]: {
+        state: 'COMPLETED',
+        openedAt: QUESTION_OPENED_AT,
+        completedAt: QUESTION_COMPLETED_AT,
+      },
+    },
     questionProgressComplete: true,
     quizId: QUIZ_ID,
     endedAt: null,
@@ -362,6 +370,50 @@ describe('buildModerationPromptContext', () => {
       `learning-objective:${assignmentId}`,
     );
   });
+
+  it.each([null, 'OPENED', 'SKIPPED'] as const)(
+    'withholds model-derived objective text for a quiz question with progress %s',
+    async (progress) => {
+      const sessionState = state({
+        questionProgress: progress
+          ? {
+              [QUIZ_QUESTION_ID]: {
+                state: progress,
+                openedAt: QUESTION_OPENED_AT,
+                ...(progress === 'SKIPPED' ? { skippedAt: QUESTION_COMPLETED_AT } : {}),
+              },
+            }
+          : null,
+      });
+      loadStateMock.mockResolvedValue(sessionState);
+      buildQaMock.mockResolvedValue(qaContext({ state: sessionState }));
+      buildTeachingMock.mockResolvedValue(teachingSignals({ state: sessionState }));
+      const snapshot = learningSnapshot();
+      const solutionText = 'Die richtige Antwort lautet 42.';
+      loadLearningMock.mockResolvedValue({
+        ...snapshot,
+        objectives: snapshot.objectives.map((objective) =>
+          objective.id === DERIVED_OBJECTIVE_ID ? { ...objective, text: solutionText } : objective,
+        ),
+      });
+
+      const result = await buildModerationPromptContext({
+        sessionId: SESSION_ID,
+        locale: 'de',
+        access: { hostToken: 'host-token' },
+      });
+
+      expect(result.context.learningContext).toEqual({
+        state: 'available',
+        objectives: [expect.objectContaining({ sourceId: `learning-objective:${OBJECTIVE_ID}` })],
+      });
+      expect(result.context.limitations).toContainEqual(
+        expect.objectContaining({ code: 'not-released', section: 'learning-context' }),
+      );
+      expect(JSON.stringify(result.context)).not.toContain(solutionText);
+      expect(JSON.stringify(result.context)).not.toContain(DERIVED_OBJECTIVE_ID);
+    },
+  );
 
   it('assembles and validates the complete authorized, solution-free analysis graph', async () => {
     const result = await buildModerationPromptContext({
