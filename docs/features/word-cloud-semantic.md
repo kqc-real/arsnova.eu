@@ -252,8 +252,11 @@ Eine zweite Anfrage ergänzt generative Labels für denselben Snapshot,
 ohne Cluster, Sortierung, Filter und Mitgliedschaften zu ersetzen.
 Bei einem Snapshotwechsel bricht der Client die Labelanfrage ab. Die
 App prüft zusätzlich Host-Zugriff und Q&A-Korpusrevision. Gleichzeitige
-Labelanfragen für denselben Snapshot teilen eine Redis-Reservierung;
-sie verwenden dasselbe Ergebnis aus dem Session-Cache. Die Vorschau
+Labelanfragen für denselben Snapshot teilen eine Redis-Reservierung.
+Wartende Anfragen erhalten auch bereits validierte Modelllabels aus
+einem transient abgeschlossenen Lauf. Dieses Ergebnis bleibt für die
+Generation der Reservierung zehn Sekunden im Session-Cache. Eine neue
+Anfrage kann den transienten Lauf erneut versuchen. Die Vorschau
 für den zweiten Schritt lebt dort höchstens drei Minuten und wird
 beim Session-Purge entfernt. [LLM-Laufzeitvertrag](open-weight-llm-runtime.md#prioritätsübergabe-zwischen-app-instanzen)
 

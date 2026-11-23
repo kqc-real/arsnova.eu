@@ -5,20 +5,27 @@ import type { applyWordCloudTopicLabels } from '../lib/wordCloudTopicLabels';
 import type { analyzeSemanticWordCloudSnapshot } from '../lib/wordCloudSemanticAnalyze';
 import { createMemoryWordCloudAnalysisCache } from '../lib/wordCloudAnalysisCache';
 
-const lease = vi.hoisted(() => ({ held: false }));
+const lease = vi.hoisted(() => ({ owner: null as string | null, generation: 0, joined: 0 }));
 vi.mock('../lib/redisLease', () => ({
-  acquireRedisLease: async () => {
-    if (lease.held) return null;
-    lease.held = true;
+  claimRedisLease: async () => {
+    if (lease.owner) {
+      lease.joined += 1;
+      return { owner: lease.owner, lease: null };
+    }
+    const owner = String(++lease.generation);
+    lease.owner = owner;
     return {
-      release: async () => {
-        lease.held = false;
+      owner,
+      lease: {
+        release: async () => {
+          lease.owner = null;
+        },
       },
     };
   },
 }));
 vi.mock('../redis', () => ({
-  getRedis: () => ({ exists: async () => Number(lease.held) }),
+  getRedis: () => ({ get: async () => lease.owner }),
 }));
 
 const env = {
@@ -73,44 +80,57 @@ function fixture() {
 describe('getrennte Cluster- und Labelphase', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
-    lease.held = false;
+    lease.owner = null;
+    lease.joined = 0;
   });
 
-  it('liefert Cluster vor Inferenz, bündelt Anfragen und nutzt das gemeinsame Ergebnis', async () => {
-    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
-    const options = fixture();
-    const base = await analyzeWordCloudSnapshot(request, options);
-    expect(base.topicLabelsPending).toBe(true);
-    expect(base.entries[0]?.labelOrigin).toBe('extractive');
-    const requestLabels = { ...request, topicLabels: { snapshotHash: base.snapshotHash } };
-    let complete = () => {};
-    const finish = new Promise<void>((resolve) => {
-      complete = resolve;
-    });
-    const labelTopics = vi.fn<typeof applyWordCloudTopicLabels>(async (_input, result) => {
-      await finish;
-      return {
-        ...result,
-        labelSettlement: 'complete',
-        entries: result.entries.map((entry) => ({
-          ...entry,
-          label: 'Statistische Vorhersage',
-          labelOrigin: 'model',
-        })),
-      };
-    });
-    const first = analyzeWordCloudSnapshot(requestLabels, { ...options, labelTopics });
-    await vi.waitFor(() => expect(labelTopics).toHaveBeenCalledOnce());
-    const concurrent = analyzeWordCloudSnapshot(requestLabels, { ...options, labelTopics });
-    complete();
-    const results = await Promise.all([first, concurrent]);
-    expect(results.map((item) => item.entries[0]?.label)).toEqual([
-      'Statistische Vorhersage',
-      'Statistische Vorhersage',
-    ]);
-    expect(labelTopics).toHaveBeenCalledOnce();
-    expect(options.encode).toHaveBeenCalledOnce();
-  });
+  it.each(['complete', 'transient'] as const)(
+    'liefert Cluster vor Inferenz und teilt das gemeinsame Ergebnis (%s)',
+    async (labelSettlement) => {
+      vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+      const options = fixture();
+      const base = await analyzeWordCloudSnapshot(request, options);
+      expect(base.topicLabelsPending).toBe(true);
+      expect(base.entries[0]?.labelOrigin).toBe('extractive');
+      const requestLabels = { ...request, topicLabels: { snapshotHash: base.snapshotHash } };
+      let complete = () => {};
+      const finish = new Promise<void>((resolve) => {
+        complete = resolve;
+      });
+      const labelTopics = vi.fn<typeof applyWordCloudTopicLabels>(async (_input, result) => {
+        await finish;
+        return {
+          ...result,
+          labelSettlement,
+          entries: result.entries.map((entry) => ({
+            ...entry,
+            label: 'Statistische Vorhersage',
+            labelOrigin: 'model',
+          })),
+        };
+      });
+      const first = analyzeWordCloudSnapshot(requestLabels, { ...options, labelTopics });
+      await vi.waitFor(() => expect(labelTopics).toHaveBeenCalledOnce());
+      const concurrent = analyzeWordCloudSnapshot(requestLabels, { ...options, labelTopics });
+      await vi.waitFor(() => expect(lease.joined).toBe(1));
+      complete();
+      const results = await Promise.all([first, concurrent]);
+      expect(results.map((item) => item.entries[0]?.label)).toEqual([
+        'Statistische Vorhersage',
+        'Statistische Vorhersage',
+      ]);
+      expect(labelTopics).toHaveBeenCalledOnce();
+      expect(options.encode).toHaveBeenCalledOnce();
+      if (labelSettlement === 'transient') {
+        const independent = await analyzeWordCloudSnapshot(requestLabels, {
+          ...options,
+          labelTopics,
+        });
+        expect(independent.labelSettlement).toBe('transient');
+        expect(labelTopics).toHaveBeenCalledTimes(2);
+      }
+    },
+  );
 
   it('verwirft Korpuswechsel und Rechteverlust vor der Label-Inferenz', async () => {
     vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');

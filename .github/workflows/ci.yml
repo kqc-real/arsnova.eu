@@ -1222,7 +1222,8 @@ jobs:
   # ─── WebKit Safari MOTD and participant vote ──────────────────────────────
   webkit-e2e:
     name: WebKit MOTD & Tab E2E
-    runs-on: ubuntu-latest
+    # Keep WebKit on the Noble dependency set while ubuntu-latest rolls forward.
+    runs-on: ubuntu-24.04
     needs: [changes, build]
     if: github.event_name != 'schedule'
     timeout-minutes: 30

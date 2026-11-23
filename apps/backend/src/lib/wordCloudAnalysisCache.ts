@@ -47,6 +47,7 @@ const SNAPSHOT_PURGE_DURABILITY_PREFIX = 'nlp:wc:purge-durability:v1';
 const LEGACY_SNAPSHOT_PURGE_SCAN_COUNT = 500;
 const ROLLOUT_CACHE_PURGE_PATTERNS = ['nlp:wc:snap*', `${TEXT_KEY_PREFIX}:*`] as const;
 const SNAPSHOT_INDEX_TTL_GRACE_SECONDS = 5 * 60;
+const LABEL_JOB_RESULT_TTL_SECONDS = 10;
 const SNAPSHOT_INDEX_MAX_ENTRIES = 2_048;
 const SNAPSHOT_PURGE_AOF_TIMEOUT_MS = 5_000;
 const SNAPSHOT_PURGE_MARKER_TTL_SECONDS = 5 * 60;
@@ -105,11 +106,13 @@ export interface WordCloudAnalysisCache {
   getSnapshot(
     input: AnalyzeWordCloudInput,
     scope?: WordCloudSnapshotCacheScope,
+    labelJobOwner?: string,
   ): Promise<AnalyzeWordCloudOutput | null>;
   setSnapshot(
     input: AnalyzeWordCloudInput,
     output: AnalyzeWordCloudOutput,
     scope?: WordCloudSnapshotCacheScope,
+    labelJobOwner?: string,
   ): Promise<void>;
   getQaSemanticTopicSnapshot(
     input: AnalyzeWordCloudInput,
@@ -174,10 +177,14 @@ function snapshotSessionPrefix(sessionId: string): string {
 export function buildWordCloudSnapshotCacheKey(
   input: AnalyzeWordCloudInput,
   scope: WordCloudSnapshotCacheScope,
+  labelJobOwner?: string,
 ): string {
-  return [snapshotSessionPrefix(scope.sessionId), 'value', ...snapshotCacheKeyParts(input)].join(
-    ':',
-  );
+  return [
+    snapshotSessionPrefix(scope.sessionId),
+    'value',
+    ...snapshotCacheKeyParts(input),
+    ...(labelJobOwner ? ['label-result', labelJobOwner] : []),
+  ].join(':');
 }
 
 export function buildQaSemanticTopicSnapshotCacheKey(
@@ -491,8 +498,14 @@ export function createMemoryWordCloudAnalysisCache(
     { expiresAt: number; snapshot: QaSemanticTopicSnapshot }
   >();
   const ttlMs = ttlSeconds * 1000;
-  const memorySnapshotKey = (input: AnalyzeWordCloudInput) =>
-    [input.sessionCode.trim().toUpperCase(), ...snapshotCacheKeyParts(input)].join(':');
+  const memorySnapshotKey = (
+    input: AnalyzeWordCloudInput,
+    scope?: WordCloudSnapshotCacheScope,
+    labelJobOwner?: string,
+  ) =>
+    labelJobOwner && scope
+      ? buildWordCloudSnapshotCacheKey(input, scope, labelJobOwner)
+      : [input.sessionCode.trim().toUpperCase(), ...snapshotCacheKeyParts(input)].join(':');
   const memoryQaSemanticTopicSnapshotKey = (
     input: AnalyzeWordCloudInput,
     scope: WordCloudSnapshotCacheScope,
@@ -514,8 +527,9 @@ export function createMemoryWordCloudAnalysisCache(
         tokens,
       });
     },
-    async getSnapshot(input) {
-      const key = memorySnapshotKey(input);
+    async getSnapshot(input, scope, labelJobOwner) {
+      if (labelJobOwner && !scope) return null;
+      const key = memorySnapshotKey(input, scope, labelJobOwner);
       const entry = snapshots.get(key);
       if (!entry || entry.expiresAt <= Date.now()) {
         if (entry) snapshots.delete(key);
@@ -526,12 +540,13 @@ export function createMemoryWordCloudAnalysisCache(
       }
       return entry.output;
     },
-    async setSnapshot(input, output) {
-      if (!shouldCacheWordCloudSnapshot(output)) {
-        return;
-      }
-      snapshots.set(memorySnapshotKey(input), {
-        expiresAt: Date.now() + snapshotTtlSeconds(input, ttlSeconds) * 1000,
+    async setSnapshot(input, output, scope, labelJobOwner) {
+      if (labelJobOwner ? !scope : !shouldCacheWordCloudSnapshot(output)) return;
+      const ttl = labelJobOwner
+        ? LABEL_JOB_RESULT_TTL_SECONDS
+        : snapshotTtlSeconds(input, ttlSeconds);
+      snapshots.set(memorySnapshotKey(input, scope, labelJobOwner), {
+        expiresAt: Date.now() + ttl * 1000,
         output,
       });
     },
@@ -632,12 +647,12 @@ export function createRedisWordCloudAnalysisCache(
       // Siehe getText: Der Rollout-Sweep entfernt bestehende nlp:wc:text:*
       // nach Writer-Drain; neue Prozesse erzeugen keine solchen Werte mehr.
     },
-    async getSnapshot(input, scope) {
+    async getSnapshot(input, scope, labelJobOwner) {
       if (!scope) return null;
       try {
         const [fence, raw] = await getRedis().mget(
           buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
-          buildWordCloudSnapshotCacheKey(input, scope),
+          buildWordCloudSnapshotCacheKey(input, scope, labelJobOwner),
         );
         if (fence !== null || raw === null) return null;
         const parsed = AnalyzeWordCloudOutputSchema.safeParse(JSON.parse(raw));
@@ -649,11 +664,11 @@ export function createRedisWordCloudAnalysisCache(
         return null;
       }
     },
-    async setSnapshot(input, output, scope) {
+    async setSnapshot(input, output, scope, labelJobOwner) {
       if (snapshotWritesDisabledForShutdown) {
         return;
       }
-      if (!shouldCacheWordCloudSnapshot(output)) {
+      if (!labelJobOwner && !shouldCacheWordCloudSnapshot(output)) {
         return;
       }
       if (!scope) {
@@ -661,11 +676,13 @@ export function createRedisWordCloudAnalysisCache(
         return;
       }
       try {
-        const ttl = snapshotTtlSeconds(input, ttlSeconds);
+        const ttl = labelJobOwner
+          ? LABEL_JOB_RESULT_TTL_SECONDS
+          : snapshotTtlSeconds(input, ttlSeconds);
         const result = await getRedis().eval(
           WRITE_INDEXED_SNAPSHOT_LUA,
           3,
-          buildWordCloudSnapshotCacheKey(input, scope),
+          buildWordCloudSnapshotCacheKey(input, scope, labelJobOwner),
           buildWordCloudSnapshotIndexKey(scope.sessionId),
           buildWordCloudSnapshotPurgeFenceKey(scope.sessionId),
           JSON.stringify(output),

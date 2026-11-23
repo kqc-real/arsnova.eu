@@ -22,7 +22,7 @@ import { logger } from '../lib/logger';
 import { isHostSessionTokenValid } from '../lib/hostAuth';
 import { isOpenWeightLlmEnabled } from '../lib/openWeightLlmConfig';
 import { isOpenWeightLlmPriorityEnabled } from '../lib/openWeightLlmPriority';
-import { acquireRedisLease } from '../lib/redisLease';
+import { claimRedisLease } from '../lib/redisLease';
 import { getRedis } from '../redis';
 import {
   buildQaRankingMetricOrderSql,
@@ -176,26 +176,25 @@ async function enrichWordCloudSnapshot(
     return { ...output, effectiveMode: getWordCloudResultDisplayMode(output) };
   };
 
-  const lease = await acquireRedisLease(key, budgetMs + 5_000).catch(() => null);
+  const claim = await claimRedisLease(key, budgetMs + 5_000).catch(() => null);
+  if (!claim) return view(base);
+  const { lease, owner } = claim;
   if (!lease) {
-    // Another replica owns this exact snapshot. Read its shared cache without
-    // submitting a second inference, even if its result is only transient.
+    const readResult = async () =>
+      (await cache.getSnapshot(input, scope, owner)) ?? (await cache.getSnapshot(input, scope));
     while (!signal.aborted && (await isCurrent())) {
-      const settled = await cache.getSnapshot(input, scope);
+      const settled = await readResult();
       if (settled) return settled;
       if (
-        !(await getRedis()
-          .exists(key)
-          .catch(() => 0))
-      ) {
-        const completed = await cache.getSnapshot(input, scope);
-        if (completed) return completed;
+        (await getRedis()
+          .get(key)
+          .catch(() => null)) !== owner
+      )
         break;
-      }
       await wait(250, undefined, { signal }).catch(() => undefined);
     }
     if (!(await isCurrent())) throw obsolete();
-    return view(base);
+    return (await readResult()) ?? view(base);
   }
 
   let checkingCurrent = false;
@@ -234,6 +233,11 @@ async function enrichWordCloudSnapshot(
     if (!(await isCurrent())) throw obsolete();
     const result = view(raw);
     if (!timeout.aborted) await cache.setSnapshot(input, result, scope);
+    // Waiters joined this lease generation. Retain valid partial labels briefly
+    // without letting a later, independent request reuse a transient result.
+    if (timeout.aborted || result.labelSettlement === 'transient') {
+      await cache.setSnapshot(input, result, scope, owner);
+    }
     return result;
   } finally {
     if (watcher) clearInterval(watcher);

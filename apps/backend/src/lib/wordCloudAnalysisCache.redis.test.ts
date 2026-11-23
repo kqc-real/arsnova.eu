@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
 import { closeRedis, getRedis } from '../redis';
 import {
+  buildWordCloudSnapshotCacheKey,
   buildWordCloudSnapshotIndexKey,
   buildWordCloudSnapshotPurgeFenceKey,
   createRedisWordCloudAnalysisCache,
@@ -115,6 +116,32 @@ describe.skipIf(!RUN_REDIS)('Word-Cloud Snapshot-Fence mit echtem Redis 7', () =
     expect(await getRedis().ttl(buildWordCloudSnapshotPurgeFenceKey(SESSION_A))).toBeGreaterThan(
       WORD_CLOUD_SNAPSHOT_PURGE_FENCE_TTL_SECONDS - 10,
     );
+  });
+
+  it('teilt ein transientes Labelergebnis kurzzeitig mit seiner Lease-Generation und löscht es beim Purge', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    try {
+      const cache = createRedisWordCloudAnalysisCache(90);
+      const scope = { sessionId: SESSION_A };
+      const semantic = { ...input, mode: 'SEMANTIC' } as const;
+      const result = { ...output, mode: 'SEMANTIC', labelSettlement: 'transient' } as const;
+      await cache.setSnapshot(semantic, result, scope);
+      await cache.setSnapshot(semantic, result, scope, 'owner-1');
+
+      expect(await cache.getSnapshot(semantic, scope)).toBeNull();
+      expect(await cache.getSnapshot(semantic, scope, 'owner-2')).toBeNull();
+      expect(await cache.getSnapshot(semantic, { sessionId: SESSION_B }, 'owner-1')).toBeNull();
+      expect(await cache.getSnapshot(semantic, scope, 'owner-1')).toEqual(result);
+      const resultKey = buildWordCloudSnapshotCacheKey(semantic, scope, 'owner-1');
+      expect(await getRedis().ttl(resultKey)).toBeGreaterThan(0);
+      expect(await getRedis().ttl(resultKey)).toBeLessThanOrEqual(10);
+
+      await evictWordCloudAnalysisSnapshotsForSession(SESSION_A);
+      expect(await getRedis().exists(resultKey)).toBe(0);
+      expect(await cache.getSnapshot(semantic, scope, 'owner-1')).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it('entfernt den v1-Namespace global und lässt v2 sowie Text-Cache unangetastet', async () => {
