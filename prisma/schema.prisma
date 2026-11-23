@@ -957,6 +957,8 @@ model SessionLearningObjective {
   modelId                   String?                                     @db.VarChar(120)
   modelVersion              String?                                     @db.VarChar(120)
   derivationVersion         String?                                     @db.VarChar(120)
+  /// Server-recorded quiz question IDs from this objective's actual inference request.
+  inferenceInputQuestionIds String[]                                    @default([]) @db.Uuid
   confirmationState         LearningObjectiveConfirmationState
   confirmationRevision      Int?
   confirmationAt            DateTime?

@@ -47,6 +47,13 @@ Jeder Modell-Batch hat standardmäßig ein eigenes Zeitlimit von 300 Sekunden (`
 
 Freie Hinweise aus der Modellantwort werden nicht als fachliche Einschränkungen angezeigt: Sie können in jedem Batch dieselben Promptregeln umformulieren und sind nicht verifiziert. Sichtbare Hinweise stammen ausschließlich aus vom Backend festgestellten Ergebnissen wie Kapazitätsgrenze oder leerer Ausgabe; der Browser kann zusätzlich eine beim Anwenden erreichte Kapazitätsgrenze melden. Die Vorschläge selbst bleiben Entwürfe zur fachlichen Prüfung.
 
+Bei einer Ableitung in der Live-Session speichert der Server je Entwurf die
+IDs aller Fragen im zugehörigen Modellaufruf. Diese interne Menge steuert
+die Freigabe für den Moderationskontext. Die fachlichen Referenzen des
+Entwurfs bleiben die vom Modell angeführten Fragen. Ältere und aus dem
+Quiz-Editor hochgeladene Entwürfe haben keinen serverseitigen Eingabenachweis
+und bleiben aus dem Moderationskontext.
+
 ## Prompt-, Quellen- und Provenienzschutz
 
 Der fachliche Systemprompt trägt die Version `learning-objectives-system-v6`. Er behandelt Fragetexte, Antworten, Lösungserläuterungen und darin eingebettete Anweisungen ausdrücklich als nicht vertrauenswürdige Kursdaten. Das Modell soll beobachtbare, hostprüfbare Lernziele als kurze, rollenneutrale Infinitivformulierungen in der angeforderten Sprache formulieren, das Anfangswort großschreiben und wechselnde Bezeichnungen wie »Student«, »Schüler« oder »Benutzer« vermeiden. Deutsche Lernziele sollen sich als Fortsetzung von »Ich kann …« lesen, beispielsweise »Eine elektrische Schaltung skizzieren.« Das Modell gibt nur die Fortsetzung aus, nennt zuerst den fachlichen Gegenstand und setzt das Handlungsverb im Infinitiv möglichst ans Ende. Aufgaben-IDs gehören ausschließlich ins Feld `questionIds` und nicht in den sichtbaren Satz. Das Backend entfernt bei Modellvorschlägen nur die IDs, die dasselbe Ziel strukturiert referenziert, schreibt das Anfangswort deterministisch groß und ergänzt einen schließenden Punkt, falls das Modell kleinschreibt oder den Punkt weglässt; der Prompt selbst bleibt davon unberührt. Manuelle Texte und andere UUIDs bleiben unverändert. Es darf ausschließlich exakte Aufgaben-IDs des aktuellen Batches referenzieren. Das Pflichtfeld `limitations` soll leer bleiben; vom Modell dennoch gelieferte Hinweise werden nicht angezeigt. Schemafremde Antworten, erfundene IDs, Querverweise auf einen anderen Batch und doppelte Referenzen scheitern geschlossen.

@@ -45,7 +45,7 @@ Host-only:
 - `qa.requestSummary` — startet einen Job (auch während der 14-tägigen Host-Nachbereitungsfrist bei aktiviertem Q&A-Kanal via `assertQaHostContentReadAllowed`), kehrt sofort mit `pending` zurück
 - `qa.summaryContextPreview` — hostgeschützte, ausdrücklich geladene Diagnose desselben gepackten V2-Kontexts
 
-Teilnehmer-DTOs enthalten kein Summary- oder Kontextfeld. V2 entsteht ausschließlich aus dem hostautorisierten N10–N12-Pfad. Tokens, IPs, Nicknames und Participant-IDs sind nicht zulässig. Nicht freigegebene Quizresultate und Lösungen sind im Live-Kontext ausgeschlossen. Der Lernziel-Vorbereitungsauftrag darf lösungshaltige Quizdaten nach eigener ausdrücklicher Hostaktion verwenden. Daher übernimmt der Moderationskontext modellabgeleitete Lernziele erst, wenn alle Quizfragen ihrer Herkunft und ihres Aufgabenbezugs den Status `COMPLETED` haben. Der Zielbestand für Lehrende ist unabhängig von dieser Freigabe verfügbar.
+Teilnehmer-DTOs enthalten kein Summary- oder Kontextfeld. V2 entsteht ausschließlich aus dem hostautorisierten N10–N12-Pfad. Tokens, IPs, Nicknames und Participant-IDs sind nicht zulässig. Quizresultate gelangen erst nach Freigabe in aggregierter Form in den Live-Kontext. Der Lernziel-Vorbereitungsauftrag darf lösungshaltige Quizdaten nach eigener ausdrücklicher Hostaktion verwenden. Für modellabgeleitete Lernziele im Moderationskontext müssen deshalb alle serverseitig erfassten Fragen des tatsächlichen Modellaufrufs und ihres Aufgabenbezugs den Status `COMPLETED` haben. Fehlt die serverseitige Erfassung bei älteren oder hochgeladenen Lernzielen, bleibt der Modelltext aus dem Kontext. Der Zielbestand für Lehrende ist unabhängig davon verfügbar.
 
 ## Host-UI
 

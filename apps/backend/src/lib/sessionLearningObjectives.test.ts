@@ -41,6 +41,7 @@ import {
   deriveSessionLearningObjectives,
   getSessionForumAssignments,
   getSessionLearningObjectives,
+  getSessionLearningObjectivesForModerationWithDb,
   getSessionLearningObjectivesSnapshotWithDb,
   replaceSessionQuizLearningObjectives,
   saveSessionLearningObjectives,
@@ -169,26 +170,32 @@ describe('session learning-objective service', () => {
     };
     prismaMock.session.findUnique.mockResolvedValue(sessionRow());
     prismaMock.session.update.mockResolvedValue(sessionRow({ learningContextRevision: 5 }));
-    prismaMock.question.findMany.mockResolvedValue([question]);
+    prismaMock.question.findMany.mockResolvedValue([
+      question,
+      { ...question, id: NEW_QUESTION_ID, sourceQuestionId: NEW_QUESTION_ID, order: 1 },
+    ]);
     prismaMock.sessionLearningObjective.findMany.mockResolvedValue([]);
-    deriveMock.mockResolvedValue({
-      status: 'completed',
-      batchCount: 1,
-      limitations: [],
-      drafts: [
-        {
-          id: OBJECTIVE_ID,
-          text: 'Steigungen aus Funktionsgleichungen ablesen.',
-          scope: { kind: 'question-set', sourceQuestionIds: [OLD_QUESTION_ID] },
-          origin: {
-            kind: 'model-derived',
-            modelId: 'model-a',
-            modelVersion: '1',
-            derivationVersion: 'learning-objectives-v1',
-            derivedFromSourceQuestionIds: [OLD_QUESTION_ID],
+    deriveMock.mockImplementationOnce(async (_input, hooks) => {
+      hooks.onDraftInferenceInputs(new Map([[OBJECTIVE_ID, [OLD_QUESTION_ID, NEW_QUESTION_ID]]]));
+      return {
+        status: 'completed',
+        batchCount: 1,
+        limitations: [],
+        drafts: [
+          {
+            id: OBJECTIVE_ID,
+            text: 'Steigungen aus Funktionsgleichungen ablesen.',
+            scope: { kind: 'question-set', sourceQuestionIds: [OLD_QUESTION_ID] },
+            origin: {
+              kind: 'model-derived',
+              modelId: 'model-a',
+              modelVersion: '1',
+              derivationVersion: 'learning-objectives-v1',
+              derivedFromSourceQuestionIds: [OLD_QUESTION_ID],
+            },
           },
-        },
-      ],
+        ],
+      };
     });
 
     const result = await deriveSessionLearningObjectives(
@@ -219,6 +226,7 @@ describe('session learning-objective service', () => {
       data: expect.objectContaining({
         objectiveId: OBJECTIVE_ID,
         origin: 'MODEL_DERIVED',
+        inferenceInputQuestionIds: [OLD_QUESTION_ID, NEW_QUESTION_ID],
         confirmationState: 'DRAFT',
         references: {
           create: [
@@ -228,6 +236,28 @@ describe('session learning-objective service', () => {
         },
       }),
     });
+  });
+
+  it('exposes stored inference inputs to moderation while keeping the host DTO unchanged', async () => {
+    const tx = txMock();
+    tx.session.findUnique.mockResolvedValue(sessionRow());
+    tx.sessionLearningObjective.findMany.mockResolvedValue([
+      objectiveRow({ inferenceInputQuestionIds: [OLD_QUESTION_ID, NEW_QUESTION_ID] }),
+    ]);
+    tx.question.findMany.mockResolvedValue([]);
+    const moderation = await getSessionLearningObjectivesForModerationWithDb(
+      tx as unknown as Prisma.TransactionClient,
+      SESSION_ID,
+      NOW,
+    );
+    expect(moderation.inferenceInputsByObjectiveId.get(OBJECTIVE_ID)).toEqual([
+      OLD_QUESTION_ID,
+      NEW_QUESTION_ID,
+    ]);
+    expect(moderation.snapshot.objectives[0]?.origin).not.toHaveProperty(
+      'inferenceInputQuestionIds',
+    );
+    expect(moderation.snapshot.objectives[0]).not.toHaveProperty('inferenceInputQuestionIds');
   });
 
   it('creates manual session task references without repeating the parent relation key', async () => {

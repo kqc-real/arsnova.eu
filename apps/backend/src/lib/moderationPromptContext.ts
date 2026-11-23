@@ -29,7 +29,7 @@ import {
   type AuthorizedModerationState,
 } from './moderationQaContext';
 import { buildAuthorizedModerationTeachingSignals } from './moderationTeachingSignals';
-import { getSessionLearningObjectivesSnapshotWithDb } from './sessionLearningObjectives';
+import { getSessionLearningObjectivesForModerationWithDb } from './sessionLearningObjectives';
 import { parseSessionQuestionProgress } from './sessionQuestionProgress';
 import type { WordCloudAnalysisCache } from './wordCloudAnalysisCache';
 
@@ -235,6 +235,7 @@ function compareLearningObjectivePriority(
 
 function projectLearningContext(input: {
   readonly snapshot: SessionLearningObjectivesSnapshot;
+  readonly inferenceInputsByObjectiveId: ReadonlyMap<string, readonly string[]>;
   readonly state: AuthorizedModerationState;
   readonly sourceById: Map<string, ModerationPromptSource>;
   readonly authorizedQaTasks: readonly AuthorizedLearningQaTask[];
@@ -374,15 +375,15 @@ function projectLearningContext(input: {
       continue;
     }
 
-    // The preparation model sees correct answers. A derived objective can
-    // repeat one in prose, so its text needs the same release boundary.
+    // Model citations can omit questions that were present in the inference input.
+    const inferenceInputs = input.inferenceInputsByObjectiveId.get(objective.id);
     if (
       objective.origin.kind === 'model-derived' &&
-      (objective.origin.derivedFrom.some(
-        (reference) =>
-          reference.kind !== 'quiz-question' ||
-          questionProgress[reference.questionId]?.state !== 'COMPLETED',
-      ) ||
+      (!inferenceInputs?.length ||
+        inferenceInputs.some(
+          (questionId) =>
+            !quizTasksById.has(questionId) || questionProgress[questionId]?.state !== 'COMPLETED',
+        ) ||
         (objective.scope.kind === 'question-set' &&
           objective.scope.taskReferences.some(
             (reference) =>
@@ -436,7 +437,7 @@ function projectLearningContext(input: {
             ModerationPromptLimitationSchema.parse({
               code: 'not-released',
               section: 'learning-context',
-              detail: `${unreleasedObjectives} model-derived learning objective(s) withheld until their quiz questions are released.`,
+              detail: `${unreleasedObjectives} model-derived learning objective(s) withheld because their inference inputs are unknown or their quiz questions are unreleased.`,
             }),
           ]
         : []),
@@ -591,11 +592,12 @@ export async function buildModerationPromptContext(input: {
   assertModerationStateStillCurrent(initial, beforeLearning);
   const learningRead = await prisma.$transaction(
     async (tx) => {
-      const snapshot = await getSessionLearningObjectivesSnapshotWithDb(
-        tx,
-        input.sessionId,
-        beforeLearning.authorizedAt,
-      );
+      const { snapshot, inferenceInputsByObjectiveId } =
+        await getSessionLearningObjectivesForModerationWithDb(
+          tx,
+          input.sessionId,
+          beforeLearning.authorizedAt,
+        );
       const qaReferenceSelection = selectReferencedQaQuestions(snapshot);
       const authorizedQaTasks =
         qaReferenceSelection.questionIds.length === 0
@@ -609,7 +611,7 @@ export async function buildModerationPromptContext(input: {
               select: { id: true },
               orderBy: { id: 'asc' },
             });
-      return { snapshot, authorizedQaTasks, qaReferenceSelection };
+      return { snapshot, inferenceInputsByObjectiveId, authorizedQaTasks, qaReferenceSelection };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
   );
@@ -623,6 +625,7 @@ export async function buildModerationPromptContext(input: {
   const sourceById = registerUniqueSources([...qa.sources, ...teaching.sources]);
   const learning = projectLearningContext({
     snapshot: learningSnapshot,
+    inferenceInputsByObjectiveId: learningRead.inferenceInputsByObjectiveId,
     state: final,
     sourceById,
     authorizedQaTasks: learningRead.authorizedQaTasks,
