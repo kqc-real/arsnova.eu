@@ -73,15 +73,15 @@ Statisch gezählt, nicht ausgeführt: Zeilen, die mit `test(` oder `it(`
 beginnen (node:test, Vitest), bei Pester mit `It '…'`. Tests in Schleifen
 zählen einmal. Gezählt werden getrackte und nicht ignorierte Dateien des
 Checkouts. „Neu“ und „geändert“ beziehen sich auf den letzten Upstream-Stand im
-Fork, `21734265` (`git merge-base upstream/main HEAD`); bei geänderten Dateien
+Fork, `491292fc` (`git merge-base upstream/main HEAD`); bei geänderten Dateien
 zählt die Differenz der Testzeilen.
 
 | Kennzahl            | Wert                                        | Dateien                                                                   |
 | ------------------- | ------------------------------------------- | ------------------------------------------------------------------------- |
 | Messwerkzeuge 1B/1C | 128 (23 Dateien)                            | `docs/referat-thema-1/evidenz/**/*.test.mjs`                              |
 | Pester 1B (Windows) | 57 (3 Dateien)                              | `docs/referat-thema-1/evidenz/1B/**/*.Tests.ps1`                          |
-| 1A Lastwerkzeuge    | 108 (16 neue Dateien)                       | `scripts/load/**/*.test.mjs`, neu seit `21734265`                         |
-| Backend 1C          | 35 (4 neue Dateien, netto +1 in geänderten) | `apps/backend/src/__tests__/*.test.ts`, neu oder geändert seit `21734265` |
+| 1A Lastwerkzeuge    | 108 (16 neue Dateien)                       | `scripts/load/**/*.test.mjs`, neu seit `491292fc`                         |
+| Backend 1C          | 35 (4 neue Dateien, netto +1 in geänderten) | `apps/backend/src/__tests__/*.test.ts`, neu oder geändert seit `491292fc` |
 
 Nicht in den Kopfzahlen: die Tests des Abgabe-Builds unter `abgabe/` (Folien,
 Handout, Deck). Sie prüfen die Präsentation, nicht die Belege, und ändern sich

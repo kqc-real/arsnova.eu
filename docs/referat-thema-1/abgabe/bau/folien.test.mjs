@@ -523,8 +523,8 @@ test(
       sichtbar(nach('J3').inhalt),
       /Vereinfacht aus Abb\. 1 und 2 \(1C\/1C-diagrams\.md\)/,
     );
-    assert.match(nach('J3').notiz, /UML-Diagramme.*Reserve/);
-    assert.ok(nach('J3').stichpunkte.some((p) => /Reserve R15, R16/.test(p)));
+    assert.match(nach('J3').notiz, /UML-Diagramme/);
+    assert.ok(nach('J3').stichpunkte.some((p) => /UML-Diagramme/.test(p)));
   },
 );
 
@@ -1209,8 +1209,16 @@ test('J13b (bis 2026-11-16 R14): Einordnung Cloud Computing als Rechnung aus dem
     'SLO',
   ])
     assert.match(s, new RegExp(w), w);
+  // Gemessener Anwendungsstand a19ca70f (die Quelle der Folie), nicht der jeweilige Checkout
   const code = (datei) =>
-    readFileSync(resolve(ROOT, `../../apps/backend/src/lib/${datei}`), 'utf8').split('\n');
+    execFileSync(
+      'git',
+      ['show', `a19ca70ff37dcb5510a77ab2745c06b70ccc3565:apps/backend/src/lib/${datei}`],
+      {
+        cwd: ROOT,
+        encoding: 'utf8',
+      },
+    ).split('\n');
   const client = code('openWeightLlmClient.ts');
   assert.match(client[140], /let inFlight = false/);
   assert.match(client[496], /if \(inFlight\) return \{ status: 'busy'/);

@@ -901,11 +901,18 @@ test(
   },
 );
 
-test('M2: zitierte Codezeilen stimmen am Checkout (Breaker zählt aborted nicht)', async () => {
+// Gemessener Anwendungsstand: die Folien zitieren Zeilen aus a19ca70f, nicht aus dem jeweiligen Checkout
+// (seit dem Abgleich mit kqc-real/main am 2026-11-22 verschieben sich die Zeilen dort).
+const MESSSTAND = 'a19ca70ff37dcb5510a77ab2745c06b70ccc3565';
+
+test('M2: zitierte Codezeilen stimmen am Messstand a19ca70f (Breaker zählt aborted nicht)', async () => {
   const { CODE_BELEGE_1B34 } = await import('./folien-1b34.mjs');
-  const repo = join(ROOT, '..', '..');
+  const { execFileSync } = await import('node:child_process');
   for (const [datei, zeile, inhalt] of CODE_BELEGE_1B34) {
-    const z = readFileSync(join(repo, datei), 'utf8').split('\n')[zeile - 1];
+    const z = execFileSync('git', ['show', `${MESSSTAND}:${datei}`], {
+      cwd: ROOT,
+      encoding: 'utf8',
+    }).split('\n')[zeile - 1];
     assert.ok(z.includes(inhalt), `${datei}:${zeile}: ${z.trim()}`);
   }
   const m2 = n1b.find((f) => f.id === 'M2');

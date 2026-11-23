@@ -32,7 +32,7 @@ import { baueDeck } from './deck.mjs';
 import { DIAGRAMME, FESTWERTE, NACHWEIS, folien, ladeFolienDaten } from './folien.mjs';
 import { niklasSeiten } from './niklas-seiten.mjs';
 import { mitNotizen } from './notizen.mjs';
-import { baueHeftHtml, baueReferentHtml, heftEintraege, ladeHeft } from './sprechheft.mjs';
+import * as heftModul from './sprechheft.mjs';
 import { eingabenNiklas, niklasTeile } from './teile.mjs';
 
 const HIER = dirname(fileURLToPath(import.meta.url));
@@ -41,6 +41,11 @@ const REPO = resolve(ROOT, '../..');
 const requireRepo = createRequire(resolve(REPO, 'package.json'));
 
 const STANDARD_AUSGABE = join(HIER, '..');
+// Lokale Fassung von Heft und Referentenansicht (privat/sprechheft.mjs), falls vorhanden; sonst die öffentliche.
+const LOKALES_HEFT = join(HIER, '..', '..', 'privat', 'sprechheft.mjs');
+const { baueHeftHtml, baueReferentHtml, heftEintraege, ladeHeft } = existsSync(LOKALES_HEFT)
+  ? await import(pathToFileURL(LOKALES_HEFT).href)
+  : heftModul;
 
 /** Ergebnis-JSONs, Antwort-Ausschnitt und Belege, aus denen folien.mjs/zahlen.mjs lesen (relativ zu ROOT). */
 const DATEN = [

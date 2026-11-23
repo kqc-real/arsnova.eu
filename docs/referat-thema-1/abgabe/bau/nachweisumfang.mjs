@@ -19,10 +19,10 @@ const REPO = resolve(REFERAT, '../..');
 
 /**
  * Letzter Upstream-Stand im Fork (`git merge-base upstream/main HEAD`,
- * Stand 16.11.2026). Fest eingetragen, damit die Zählung ohne Remote
+ * Stand 22.11.2026, nach dem Abgleich mit kqc-real/main). Fest eingetragen, damit die Zählung ohne Remote
  * `upstream` läuft. Neue bzw. geänderte Tests zählen gegen diesen Stand.
  */
-export const BASIS = '21734265a5d2e77976168da0d5a84469320178f0';
+export const BASIS = '491292fcc93aaec0160e700b4a55fba0807dff32';
 
 /** Zeilen, die mit test( oder it( beginnen (node:test, Vitest). */
 const TEST_ZEILE = /^\s*(test|it)\(/;
