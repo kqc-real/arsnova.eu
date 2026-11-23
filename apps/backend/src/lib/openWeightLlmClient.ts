@@ -47,6 +47,15 @@ const OPEN_WEIGHT_LLM_MAX_RESPONSE_BYTES = 262_144;
 const OPEN_WEIGHT_LLM_LEASE_KEY = 'llm:inference:lease:v1';
 const OPEN_WEIGHT_LLM_LEASE_GRACE_MS = 15_000;
 const OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS = 1_000;
+const OPEN_WEIGHT_LLM_INTERRUPTED_POST_PROBE_MS = 250;
+
+const RuntimeSingleSlotSchema = z.tuple([
+  z.object({
+    id: z.number().int().nonnegative(),
+    id_task: z.number().int().nonnegative(),
+    is_processing: z.boolean(),
+  }),
+]);
 
 /** Audit-visible prompt contract; changes require a derivation contract review. */
 export const OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION = 'topic-label-system-v1';
@@ -128,7 +137,7 @@ type RuntimeTransportRequest = {
   readonly transport: OpenWeightLlmTransport;
   readonly resolvedAddress: LookupAddress | null;
   readonly method: 'GET' | 'POST';
-  readonly path: '/slots?fail_on_no_slot=1' | '/v1/chat/completions';
+  readonly path: '/slots?fail_on_no_slot=1' | '/slots' | '/v1/chat/completions';
   readonly headers: Readonly<Record<string, string>>;
   readonly body: string | null;
   readonly signal: AbortSignal;
@@ -638,6 +647,41 @@ function failureCountsForCircuit(status: OpenWeightLlmFailureResult['status']): 
   return status === 'timeout' || status === 'unavailable' || status === 'invalid_response';
 }
 
+function readRuntimeSingleSlot(body: string) {
+  try {
+    const parsed = RuntimeSingleSlotSchema.safeParse(JSON.parse(body));
+    return parsed.success ? parsed.data[0] : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function waitForInterruptedPost(
+  previousBody: string,
+  target: Pick<RuntimeTransportRequest, 'transport' | 'resolvedAddress' | 'headers'>,
+): Promise<void> {
+  const deadline = performance.now() + OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS;
+  const previous = readRuntimeSingleSlot(previousBody);
+  if (previous && !previous.is_processing) {
+    const signal = AbortSignal.timeout(OPEN_WEIGHT_LLM_INTERRUPTED_POST_PROBE_MS);
+    try {
+      const response = await waitForAbort(
+        hooks.request({ ...target, method: 'GET', path: '/slots', body: null, signal }),
+        signal,
+      );
+      const current = response.status === 200 ? readRuntimeSingleSlot(response.body) : undefined;
+      // While we own the shared lease, only this POST can advance the slot's task ID.
+      // The next owner still checks the runtime before posting, including when it is busy.
+      if (current?.id === previous.id && current.id_task > previous.id_task) return;
+    } catch {
+      // An unreachable runtime leaves the old POST outcome unconfirmed.
+    }
+  }
+
+  const remaining = deadline - performance.now();
+  if (remaining > 0) await new Promise<void>((resolve) => setTimeout(resolve, remaining));
+}
+
 export async function runOpenWeightLlm(
   rawRequest: OpenWeightLlmRequest,
   options: { readonly signal?: AbortSignal } = {},
@@ -676,7 +720,7 @@ export async function runOpenWeightLlm(
   const admissionSignal = AbortSignal.any([signal, admissionTimeoutSignal]);
   let result: OpenWeightLlmRunResult;
   let lease: RedisLease | null = null;
-  let postOutcomeUnconfirmed = false;
+  let interruptedPost: (() => Promise<void>) | undefined;
   try {
     const resolvedAddress = await resolvePrivateTarget(config.transport, admissionSignal);
     if (process.env['OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED'] === 'true') {
@@ -688,12 +732,11 @@ export async function runOpenWeightLlm(
       accept: 'application/json',
       authorization: `Bearer ${config.token}`,
     };
+    const target = { transport: config.transport, resolvedAddress, headers };
     const slot = await hooks.request({
-      transport: config.transport,
-      resolvedAddress,
+      ...target,
       method: 'GET',
       path: '/slots?fail_on_no_slot=1',
-      headers,
       body: null,
       signal: admissionSignal,
     });
@@ -725,17 +768,16 @@ export async function runOpenWeightLlm(
         return { status: 'unavailable' };
       }
       admissionSignal.throwIfAborted();
-      postOutcomeUnconfirmed = true;
+      interruptedPost = () => waitForInterruptedPost(slot.body, target);
       const completion = await hooks.request({
-        transport: config.transport,
-        resolvedAddress,
+        ...target,
         method: 'POST',
         path: '/v1/chat/completions',
         headers: { ...headers, 'content-type': 'application/json' },
         body: requestBody,
         signal,
       });
-      postOutcomeUnconfirmed = false;
+      interruptedPost = undefined;
       if (debugLearningObjectives) {
         logger.info(
           JSON.stringify({
@@ -763,16 +805,12 @@ export async function runOpenWeightLlm(
         error,
         options.signal,
         timeoutSignal,
-        postOutcomeUnconfirmed ? undefined : admissionTimeoutSignal,
+        interruptedPost ? undefined : admissionTimeoutSignal,
       ),
     };
   } finally {
     if (lease) {
-      if (postOutcomeUnconfirmed) {
-        // Give llama-server time to observe the closed connection. The next
-        // owner still has to check /slots under its own lease before posting.
-        await new Promise((resolve) => setTimeout(resolve, OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS));
-      }
+      await interruptedPost?.();
       await waitForAbort(
         lease.release(),
         AbortSignal.timeout(OPEN_WEIGHT_LLM_REDIS_TIMEOUT_MS),
