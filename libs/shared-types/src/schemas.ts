@@ -4531,6 +4531,13 @@ export const AnalyzeWordCloudInputSchema = z.object({
       z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[2]),
     ])
     .optional(),
+  /** Erst Cluster liefern, danach ausschließlich Labels für diesen Snapshot anfordern. */
+  topicLabels: z
+    .union([
+      z.literal('preview'),
+      z.object({ snapshotHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
+    ])
+    .optional(),
   /** Host-Neuanalyse: Snapshot-Cache umgehen, Hash bleibt gleich. */
   refresh: z.boolean().optional(),
   /** Serverseitige Q&A-Korpusrevision; trennt fachlich veraltete Cacheeinträge. */
@@ -4586,6 +4593,7 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   modelId: z.string().min(1).max(128).nullable(),
   snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
   entries: z.array(WordCloudAnalysisEntryDTOSchema),
+  topicLabelsPending: z.boolean().optional(),
   labelSettlement: WordCloudLabelSettlementSchema.optional(),
   labelModelId: z.string().trim().min(1).max(220).nullable().optional(),
   labelModelVersion: z.string().trim().min(1).max(220).nullable().optional(),

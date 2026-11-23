@@ -537,6 +537,32 @@ Der [optionale E5-Modelltest](features/word-cloud-semantic.md) benötigt echte
 ONNX-Gewichte. Der lokale Hörsaallastlauf deckte die Klassifikationsqueue sowie
 spaCy- und Encoder-Aufträge ab. Qwen lief in separaten Einzelproben.
 
+### Gemeinsame LLM-Prioritätsübergabe (#717)
+
+Der Redis-Test braucht eine isolierte Redis-Instanz. Er prüft die Besitzerkennung
+bei Übergabe, den Abbruch vor dem Modellaufruf, die Reihenfolge der Aufträge
+den begrenzten Wartebereich pro Priorität, Abbruchsignalverlust und Redis-Ausfall.
+
+```bash
+REDIS_URL=redis://127.0.0.1:6379 RUN_REDIS_LLM_PRIORITY_TESTS=1 \
+  npm run test -w @arsnova/backend -- --run src/lib/openWeightLlmPriority.redis.test.ts
+```
+
+Für die Modellabnahme beide Backends mit aktivierter Prioritätsübergabe und
+gemeinsamer Runtime starten. Auf App A eine Lernzielableitung mit mindestens
+zwei Fragegruppen auslösen. Sobald die erste Gruppe übernommen wurde, auf
+App B ein Themenlabel anfordern, während die zweite Gruppe im Prefill bzw.
+in der Token-Generierung läuft. Die Zeit ab der Labelanfrage bis zur
+beobachteten Übernahme des Modellslots getrennt von der Zeit bis zum fertigen
+Label erfassen. Der Inferenzaufruf meldet `preempted`. Der laufende Lernzielauftrag
+behält seine fertigen Entwürfe und wiederholt nur die unterbrochene Gruppe
+innerhalb des ursprünglichen Budgets. Die Wortwolke muss bereits vor Abschluss
+der Modelllabels bedienbar sein. Für die weiteren Kombinationen eine laufende
+Zusammenfassung durch Themenlabels beziehungsweise einen Lernziel-Batch durch
+eine Zusammenfassung verdrängen. Freie Slots als Vergleich messen und p50, p95
+und Maximum pro Kombination angeben.
+[Staging-Konfiguration](operations/STAGING-COMPOSE.md#prioritätsübergabe-in-staging) · [Messung auf dem CPU-Zielhost](operations/LLM-PRIORITY-717.md)
+
 ### Private Open-Weight-LLM-Runtime (Story 8.9d)
 
 ```bash

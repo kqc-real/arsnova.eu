@@ -8748,6 +8748,94 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt die Freitext-Wolke vor Modelllabels und übernimmt anschließend nur den Namen', async () => {
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 5,
+      text: 'Was hilft beim Lernen?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    const responses = ['Lineare Regression im Projekt', 'Lineare Regression hilft'];
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId,
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Was hilft beim Lernen?',
+      responses,
+    });
+    const entries = [
+      {
+        key: 'regression',
+        label: 'lineare Regression',
+        labelOrigin: 'extractive',
+        count: 2,
+        basisLabel: 'lineare Regression',
+        variants: [],
+        confidence: 1,
+        members: responses.map((text, index) => ({
+          sourceId: `response-${index}`,
+          text,
+          weight: 1,
+        })),
+      },
+    ];
+    const base = {
+      ...wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        status: 'ready',
+        fallbackUsed: false,
+        snapshotHash: 'a'.repeat(64),
+      }),
+      entries,
+      topicLabelsPending: true,
+    };
+    let finish = (_result: typeof base) => {};
+    const enrichment = new Promise<typeof base>((resolve) => {
+      finish = resolve;
+    });
+    wordCloudAnalyzeQueryMock.mockImplementation((request: { topicLabels?: unknown }) =>
+      typeof request.topicLabels === 'object' ? enrichment : Promise.resolve(base),
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitUntil(() => component.displayedFreetextResponses().length === 2);
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+    await vi.waitFor(
+      () => {
+        expect(
+          wordCloudAnalyzeQueryMock.mock.calls.some(
+            ([request]) => typeof request.topicLabels === 'object',
+          ),
+        ).toBe(true);
+        expect(component.displayedFreetextAnalysisEntries()?.[0]?.label).toBe('lineare Regression');
+        expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(false);
+      },
+      { timeout: 5000 },
+    );
+    finish({
+      ...base,
+      topicLabelsPending: false,
+      entries: [{ ...base.entries[0]!, label: 'Statistisches Lernen', labelOrigin: 'model' }],
+    });
+    await vi.waitFor(() => {
+      expect(component.displayedFreetextAnalysisEntries()?.[0]).toMatchObject({
+        label: 'Statistisches Lernen',
+        count: 2,
+      });
+    });
+    fixture.destroy();
+  });
+
   it('zeigt ohne Freitext-Beiträge keinen Fehler und startet keine Themenanalyse', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({

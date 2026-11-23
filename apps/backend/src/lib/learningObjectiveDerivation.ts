@@ -1,3 +1,4 @@
+import { setTimeout as wait } from 'node:timers/promises';
 import { createHash } from 'node:crypto';
 import {
   hasOnlyAllowedOpenWeightLlmReferences,
@@ -33,6 +34,7 @@ import {
   type OpenWeightLlmAvailabilityStatus,
 } from './openWeightLlmClient';
 import { OPEN_WEIGHT_LLM_MODEL_ID, OPEN_WEIGHT_LLM_MODEL_VERSION } from './openWeightLlmConfig';
+import { isOpenWeightLlmPriorityEnabled } from './openWeightLlmPriority';
 import { logger } from './logger';
 
 /** One explicit host action has one wall-clock budget across every deterministic batch. */
@@ -69,6 +71,10 @@ type LearningObjectiveRuntimeResult = Awaited<
   ReturnType<typeof runOpenWeightLlmLearningObjectives>
 >;
 
+const MAX_PRIORITY_RETRIES_PER_GROUP = 2;
+const MAX_PRIORITY_ADMISSION_RETRIES = 16;
+const PRIORITY_RETRY_DELAY_MS = 125;
+
 type DerivationHooks = {
   readonly run?: (
     request: OpenWeightLlmLearningObjectivesRequest,
@@ -80,6 +86,8 @@ type DerivationHooks = {
   readonly modelVersion?: string;
   readonly signal?: AbortSignal;
   readonly overallTimeoutMs?: number;
+  readonly retryAfterPreemption?: boolean;
+  readonly verifyRetry?: () => Promise<boolean>;
   readonly onProgress?: (progress: LearningObjectiveDerivationProgress) => void | Promise<void>;
   readonly preflight?: (options: {
     readonly signal?: AbortSignal;
@@ -506,12 +514,21 @@ export async function deriveLearningObjectiveDrafts(
   const resultCorrelation = correlation(input);
   const startedAtMs = (hooks.now ?? (() => new Date()))().getTime();
   const createdAt = new Date(startedAtMs).toISOString();
+  const retryAfterPreemption = hooks.retryAfterPreemption ?? isOpenWeightLlmPriorityEnabled();
+  const budgetMs = Math.max(
+    1,
+    hooks.overallTimeoutMs ?? LEARNING_OBJECTIVE_DERIVATION_OVERALL_TIMEOUT_MS,
+  );
+  const budgetStartedAt = performance.now();
   const completed: CompletedLearningObjectiveBatch[] = [];
   let canonicalById = new Map<string, CanonicalQuestion>();
   let totalGroups = 0;
   let promptTokens = 0;
   let completionTokens = 0;
-  const snapshot = (completedGroups: number): LearningObjectiveDerivationProgress => {
+  const snapshot = (
+    completedGroups: number,
+    waitingForModel = false,
+  ): LearningObjectiveDerivationProgress => {
     const committed = commitLearningObjectiveDrafts({
       operation: input,
       completed,
@@ -527,6 +544,15 @@ export async function deriveLearningObjectiveDrafts(
       promptTokens,
       completionTokens,
       queuedObjectives: committed.drafts.length,
+      ...(retryAfterPreemption
+        ? {
+            waitingForModel,
+            remainingBudgetMs: Math.max(
+              0,
+              Math.ceil(budgetMs - (performance.now() - budgetStartedAt)),
+            ),
+          }
+        : {}),
       drafts: committed.drafts,
       coveredSourceQuestionIds: committed.coveredSourceQuestionIds,
     });
@@ -539,7 +565,7 @@ export async function deriveLearningObjectiveDrafts(
     }
   };
   const interrupted = async (
-    status: 'aborted' | 'timeout',
+    status: 'aborted' | 'timeout' | 'preempted',
     completedGroups = 0,
   ): Promise<LearningObjectiveDerivationResult> => {
     const progress = snapshot(completedGroups);
@@ -579,7 +605,7 @@ export async function deriveLearningObjectiveDrafts(
 
   const run = hooks.run ?? runOpenWeightLlmLearningObjectives;
   const deadlineSignal = AbortSignal.timeout(
-    Math.max(1, hooks.overallTimeoutMs ?? LEARNING_OBJECTIVE_DERIVATION_OVERALL_TIMEOUT_MS),
+    Math.max(1, Math.ceil(budgetMs - (performance.now() - budgetStartedAt))),
   );
   const runSignal = hooks.signal ? AbortSignal.any([hooks.signal, deadlineSignal]) : deadlineSignal;
   const preflight =
@@ -590,6 +616,7 @@ export async function deriveLearningObjectiveDrafts(
           inspectOpenWeightLlmAvailability({
             signal: options.signal,
             timeoutMs: OPEN_WEIGHT_LLM_AVAILABILITY_PREFLIGHT_MS,
+            acceptOccupiedSlot: isOpenWeightLlmPriorityEnabled(),
           }));
   const availability = await preflight({ signal: runSignal });
   if (runSignal.aborted) {
@@ -629,7 +656,31 @@ export async function deriveLearningObjectiveDrafts(
       });
       return interrupted(interruptedStatus(hooks.signal, deadlineSignal), completed.length);
     }
-    const batchResult = await run(request, { signal: runSignal });
+    let batchResult = await run(request, { signal: runSignal });
+    if (retryAfterPreemption && batchResult.status === 'preempted') {
+      let preemptions = 1;
+      let admissions = 0;
+      await publish(snapshot(completed.length, true));
+      while (
+        !runSignal.aborted &&
+        (batchResult.status === 'preempted' || batchResult.status === 'busy') &&
+        preemptions <= MAX_PRIORITY_RETRIES_PER_GROUP &&
+        admissions < MAX_PRIORITY_ADMISSION_RETRIES
+      ) {
+        await wait(PRIORITY_RETRY_DELAY_MS, undefined, { signal: runSignal }).catch(
+          () => undefined,
+        );
+        if (runSignal.aborted) break;
+        if (hooks.verifyRetry && !(await hooks.verifyRetry())) {
+          return interrupted('aborted', completed.length);
+        }
+        if (runSignal.aborted) break;
+        admissions += 1;
+        logger.info('llm:priority_retry', { taskType: 'learning_objectives', retry: admissions });
+        batchResult = await run(request, { signal: runSignal });
+        if (batchResult.status === 'preempted') preemptions += 1;
+      }
+    }
     if (runSignal.aborted) {
       logger.warn('learning_objectives:batch_failed', {
         batch,
@@ -644,7 +695,11 @@ export async function deriveLearningObjectiveDrafts(
         batchCount,
         status: batchResult.status,
       });
-      if (batchResult.status === 'aborted' || batchResult.status === 'timeout') {
+      if (
+        batchResult.status === 'aborted' ||
+        batchResult.status === 'timeout' ||
+        batchResult.status === 'preempted'
+      ) {
         return interrupted(batchResult.status, completed.length);
       }
       return partialFailure(batchResult.status === 'busy' ? 'busy' : batchResult.status);

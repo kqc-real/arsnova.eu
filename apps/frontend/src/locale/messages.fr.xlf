@@ -35832,6 +35832,14 @@
         <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
         <target><x id="count" equiv-text="count"/> objectifs d’apprentissage figurent déjà comme brouillons dans la liste.</target>
         </trans-unit>
+      <trans-unit id="learningObjectives.derivationWaitingForModel" datatype="html">
+        <source>Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: <x id="minutes" equiv-text="minutes"/>.</source>
+        <target>Une demande plus urgente est en cours. La génération reprendra automatiquement. Temps restant en minutes : <x id="minutes" equiv-text="minutes"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPreemptedWhy" datatype="html">
+        <source>Ein dringenderer Auftrag hat die Erstellung unterbrochen.</source>
+        <target>Une demande prioritaire a interrompu la génération.</target>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
         <source>Die Erstellung wurde abgebrochen.</source>
         <target>La création a été interrompue.</target>

@@ -513,6 +513,20 @@ describe('createRedisWordCloudAnalysisCache', () => {
     expect(await cache.getSnapshot(semanticInput, scope)).toBeNull();
   });
 
+  it('lässt verspätete Labels einen neueren Latest-Snapshot nicht ersetzen', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createMemoryWordCloudAnalysisCache();
+    const original = latestQaSemanticTopicSnapshot;
+    const newer = { ...original, corpusRevision: 'revision-newer' };
+    const enriched = { ...original, status: 'uncertain' as const };
+    await cache.setLatestQaSemanticTopicSnapshot(original, scope);
+    await cache.setLatestQaSemanticTopicSnapshot(newer, scope);
+    await cache.setLatestQaSemanticTopicSnapshot(enriched, scope, original);
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toEqual(newer);
+    await cache.setLatestQaSemanticTopicSnapshot(original, scope, newer);
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toEqual(original);
+  });
+
   it('liest und überschreibt den Latest-Q&A-Semantik-Snapshot in O(1) unter demselben Index und Fence', async () => {
     vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
     vi.stubEnv('WORD_CLOUD_ENCODER_CACHE_TTL_SECONDS', '120');

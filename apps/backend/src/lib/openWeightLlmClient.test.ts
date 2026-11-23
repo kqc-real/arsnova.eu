@@ -2137,6 +2137,15 @@ describe('openWeightLlmClient', () => {
     await expect(inspectOpenWeightLlmAvailability()).resolves.toBe('ready');
   });
 
+  it('lässt einen belegten Modellslot zur gemeinsamen Prioritätszulassung durch', async () => {
+    const request = vi.fn(async () => ({ status: 503, body: '' }));
+    resetOpenWeightLlmClientForTests({ config: () => defaultConfig, request });
+    await expect(inspectOpenWeightLlmAvailability()).resolves.toBe('busy');
+    await expect(inspectOpenWeightLlmAvailability({ acceptOccupiedSlot: true })).resolves.toBe(
+      'ready',
+    );
+  });
+
   it.each(ORDERED_DISTINCT_TASK_PAIRS)(
     'isoliert den gemeinsamen Slot: %s belegt vor %s',
     async (firstType, secondType) => {

@@ -73,6 +73,13 @@ Die Adapterwahl ist ausdrücklich und nachvollziehbar:
 
 Öffentliche SaaS-Ziele werden abgelehnt. Die Legacy-URL wird nie auf llama.cpp `/v1/chat/completions` umgelegt; `openWeightLlmClient` übersetzt den V2-Vertrag. Der extraktive Fallback lebt in der Backend-Queue und ist in allen fünf Locales quellengebunden. Timeout, voller Queue, belegter Runtime-Slot, ungültige Antwort oder während des Auftrags veränderte Quellen führen nicht zu einer leeren Modellkarte, sondern zu einem typisierten Fallback. Rechteentzug liefert dagegen keine alten Quellen.
 
+Wenn ein Themenlabel die laufende Moderationszusammenfassung verdrängt,
+prüft die Queue vor der erneuten Zulassung die Job-Generation, den
+aktuellen Kontext-Hash und die Host-Berechtigung. Die erneute Inferenz
+verwendet die Restzeit des ursprünglichen Zeitbudgets. Bei geändertem
+Kontext kann der extraktive Fallback den aktuellen Stand liefern. Bei
+Rechteentzug enthält die Antwort keine Quellen.
+
 Vor dem Modelllauf baut die Queue den Kontext frisch auf; danach folgen derselbe erneute Kontextaufbau und ein Hashvergleich. Eine Quellenänderung verwirft die Modellantwort und bindet den Fallback an den neuen Stand. `summaryRuntime` prüft fertige Ergebnisse vor der nächsten Auslieferung erneut. Session-Purge löscht Ergebnis, Warteschlangeneintrag und flüchtiges Host-Credential und bricht einen laufenden Auftrag ab.
 
 Das technische Profil verwendet 8.192 konservative Budgeteinheiten, 192 Antwortreserve (synchron mit dem V2-Ausgabelimit `max_tokens = 192`) und 128 Sicherheitsmarge (unter dem praxisnahen 8k-Arbeitsfenster von Qwen3-4B Q4; nie Modelldefault). Passen Basismetadaten trotzdem nicht, degradiert der Packer sichtbar auf eine Q&A-Textbaseline bzw. Force-Fit-Mindestbelege. Das ist ein sicherer Betriebszustand, aber **keine bestandene Full-context- oder CPU-Prefill-Abnahme**. Details und offene Nachweise stehen in [Issue #456 – Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md).

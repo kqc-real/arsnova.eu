@@ -58,6 +58,9 @@ const WRITE_INDEXED_SNAPSHOT_LUA = `
 if redis.call('EXISTS', KEYS[3]) == 1 then
   return 0
 end
+if ARGV[5] and redis.call('GET', KEYS[1]) ~= ARGV[5] then
+  return 0
+end
 if redis.call('SISMEMBER', KEYS[2], KEYS[1]) == 0
   and redis.call('SCARD', KEYS[2]) >= tonumber(ARGV[4]) then
   return -1
@@ -123,6 +126,7 @@ export interface WordCloudAnalysisCache {
   setLatestQaSemanticTopicSnapshot(
     snapshot: QaSemanticTopicSnapshot,
     scope: WordCloudSnapshotCacheScope,
+    expected?: QaSemanticTopicSnapshot,
   ): Promise<void>;
 }
 
@@ -151,6 +155,7 @@ function snapshotCacheKeyParts(input: AnalyzeWordCloudInput): readonly string[] 
     String(input.maxNgramLength ?? 1),
     snapshotHash,
     topicLabelCacheSegment(),
+    ...(input.topicLabels === 'preview' ? ['label-preview'] : []),
   ];
 }
 
@@ -456,6 +461,7 @@ export function shouldCacheWordCloudSnapshot(output: AnalyzeWordCloudOutput): bo
 }
 
 function snapshotTtlSeconds(input: AnalyzeWordCloudInput, lexicalTtlSeconds: number): number {
+  if (input.topicLabels === 'preview') return 180;
   if (input.mode === 'SEMANTIC') {
     return resolveWordCloudEncoderCacheTtlSeconds();
   }
@@ -563,12 +569,21 @@ export function createMemoryWordCloudAnalysisCache(
       }
       return entry.snapshot;
     },
-    async setLatestQaSemanticTopicSnapshot(snapshot, scope) {
+    async setLatestQaSemanticTopicSnapshot(snapshot, scope, expected) {
       const parsed = QaSemanticTopicSnapshotSchema.safeParse(snapshot);
       if (!parsed.success) {
         return;
       }
-      latestQaSemanticTopicSnapshots.set(normalizeSnapshotSessionId(scope.sessionId), {
+      const key = normalizeSnapshotSessionId(scope.sessionId);
+      const current = latestQaSemanticTopicSnapshots.get(key);
+      if (
+        expected &&
+        (!current ||
+          current.expiresAt <= Date.now() ||
+          JSON.stringify(current.snapshot) !== JSON.stringify(expected))
+      )
+        return;
+      latestQaSemanticTopicSnapshots.set(key, {
         expiresAt: Date.now() + resolveWordCloudEncoderCacheTtlSeconds() * 1000,
         snapshot: parsed.data,
       });
@@ -732,7 +747,7 @@ export function createRedisWordCloudAnalysisCache(
         return null;
       }
     },
-    async setLatestQaSemanticTopicSnapshot(snapshot, scope) {
+    async setLatestQaSemanticTopicSnapshot(snapshot, scope, expected) {
       if (snapshotWritesDisabledForShutdown) {
         return;
       }
@@ -753,6 +768,7 @@ export function createRedisWordCloudAnalysisCache(
           String(ttl),
           String(ttl + SNAPSHOT_INDEX_TTL_GRACE_SECONDS),
           String(SNAPSHOT_INDEX_MAX_ENTRIES),
+          ...(expected ? [JSON.stringify(expected)] : []),
         );
         if (Number(result) === -1) {
           logger.warn('wordcloud:snapshot_cache_index_full', {

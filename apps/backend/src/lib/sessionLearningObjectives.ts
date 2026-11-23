@@ -1493,7 +1493,11 @@ export async function getSessionForumAssignments(sessionId: string): Promise<str
 
 export async function deriveSessionLearningObjectives(
   input: DeriveSessionLearningObjectivesInput,
-  options: { readonly signal?: AbortSignal; readonly now?: Date } = {},
+  options: {
+    readonly signal?: AbortSignal;
+    readonly now?: Date;
+    readonly verifyAuthorization?: () => Promise<boolean>;
+  } = {},
 ): Promise<DeriveSessionLearningObjectivesResult> {
   const now = options.now ?? new Date();
   const baseCorrelation = {
@@ -1533,6 +1537,7 @@ export async function deriveSessionLearningObjectives(
     });
   }
 
+  const quizId = session.quizId;
   const storedQuestions = await prisma.question.findMany({
     where: {
       quizId: session.quizId,
@@ -1563,11 +1568,46 @@ export async function deriveSessionLearningObjectives(
       maximumDrafts: input.maximumDrafts,
       questions: derivationQuestions,
     },
-    { signal: options.signal, now: () => now },
+    {
+      signal: options.signal,
+      now: () => now,
+      verifyRetry: async () => {
+        if (options.verifyAuthorization && !(await options.verifyAuthorization())) return false;
+        const current = await prisma.session.findUnique({
+          where: { id: session.id },
+          select: {
+            status: true,
+            endedAt: true,
+            expiresAt: true,
+            quizId: true,
+            learningContextRevision: true,
+          },
+        });
+        if (
+          !current ||
+          current.quizId !== session.quizId ||
+          current.learningContextRevision !== input.expectedLearningContextRevision ||
+          isSessionEffectivelyFinished(current, options.now ?? new Date())
+        )
+          return false;
+        const currentQuestions = await prisma.question.findMany({
+          where: {
+            quizId,
+            ...(input.questionId ? { id: input.questionId } : {}),
+          },
+          select: learningSourceQuestionSelect,
+          orderBy: [{ order: 'asc' }, { id: 'asc' }],
+        });
+        const currentSources = currentQuestions
+          .map(mapStoredQuestionToDerivationQuestion)
+          .filter((question) => question !== null);
+        return JSON.stringify(currentSources) === JSON.stringify(derivationQuestions);
+      },
+    },
   );
 
   if (derivationResult.status !== 'completed') {
-    if (derivationResult.status === 'busy') {
+    if (derivationResult.status === 'busy' || derivationResult.status === 'preempted') {
       return DeriveSessionLearningObjectivesResultSchema.parse({
         ...baseCorrelation,
         status: 'busy',
@@ -1586,6 +1626,11 @@ export async function deriveSessionLearningObjectives(
       status: derivationResult.status,
     });
   }
+
+  if (options.verifyAuthorization && !(await options.verifyAuthorization())) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Die Host-Berechtigung ist abgelaufen.' });
+  }
+  options.signal?.throwIfAborted();
 
   const questionById = new Map(storedQuestions.map((question) => [question.id, question]));
 

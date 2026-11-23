@@ -244,6 +244,19 @@ Im Repo implementiert. Derselbe Encoder, dieselbe Complete-Linkage-Schwelle 0,87
 
 Stufe 2 ist hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) gemäß [WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md](../implementation/WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md) implementiert: Ist `OPEN_WEIGHT_LLM_ENABLED=true`, ersetzt dasselbe Modell in Host-Q&A und Host-Freitext (einschließlich der Presenter-Projektion der aktiven Host-Ansicht) ausschließlich den sichtbaren Namen (`labelOrigin: 'model'`), während die Cluster-Mitgliedschaft unverändert aus Stufe 1 stammt und ein fehlendes Modelllabel deterministisch beim extraktiven Mitgliedstext bleibt. `OPEN_WEIGHT_LLM_ENABLED=false` lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
 
+Bei aktiver gemeinsamer Prioritätsübergabe können Themenlabels eine laufende
+Moderationszusammenfassung oder einen Lernzielauftrag auf derselben Runtime
+unterbrechen. Die Encoder-Analyse liefert zuerst die Wolke mit
+extraktiven oder gecachten Labels. Der Host kann sie sofort benutzen.
+Eine zweite Anfrage ergänzt generative Labels für denselben Snapshot,
+ohne Cluster, Sortierung, Filter und Mitgliedschaften zu ersetzen.
+Bei einem Snapshotwechsel bricht der Client die Labelanfrage ab. Die
+App prüft zusätzlich Host-Zugriff und Q&A-Korpusrevision. Gleichzeitige
+Labelanfragen für denselben Snapshot teilen eine Redis-Reservierung;
+sie verwenden dasselbe Ergebnis aus dem Session-Cache. Die Vorschau
+für den zweiten Schritt lebt dort höchstens drei Minuten und wird
+beim Session-Purge entfernt. [LLM-Laufzeitvertrag](open-weight-llm-runtime.md#prioritätsübergabe-zwischen-app-instanzen)
+
 Bewusste Nicht-Ziele bleiben: 8.9b-Transformer auf dem LLM-Slot, SaaS-Fallback, Anheben von Angular-Initial-Bundle-`maximumError` sowie eine standardmäßige Produktivaktivierung der Kill-Switches im Repository.
 
 ## Verträge und Code

@@ -1,5 +1,6 @@
 import {
   afterNextRender,
+  effect,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -195,6 +196,11 @@ export class QuizLearningObjectivesComponent {
   private readonly questionMarkdownCache = new Map<string, SafeHtml>();
   private readonly objectiveMarkdownCache = new Map<string, SafeHtml>();
   private derivationAbortController: AbortController | null = null;
+  private derivationSourceScope: {
+    quizId: string;
+    focusedQuestionId: string | null;
+    questionCount: number;
+  } | null = null;
   private derivationSequence = 0;
   private derivationProgressPollSequence = 0;
   private derivationProgressAppliedPollSequence = 0;
@@ -280,6 +286,12 @@ export class QuizLearningObjectivesComponent {
     const total = formatLocaleCount(progress.totalGroups, this.locale);
     return $localize`:@@learningObjectives.derivationGroupsScale:Fertig sind ${completed}:completed: von ${total}:total: Fragegruppen.`;
   });
+  readonly derivationWaitingLabel = computed(() => {
+    const progress = this.derivationProgress();
+    if (!progress?.waitingForModel || progress.remainingBudgetMs === undefined) return null;
+    const minutes = formatLocaleCount(Math.ceil(progress.remainingBudgetMs / 60_000), this.locale);
+    return $localize`:@@learningObjectives.derivationWaitingForModel:Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: ${minutes}:minutes:.`;
+  });
   readonly derivationRemainingEstimate = computed(() => {
     const minutes = estimateRemainingDerivationMinutes(
       estimateRemainingDerivationMs(this.derivationProgress()),
@@ -338,6 +350,7 @@ export class QuizLearningObjectivesComponent {
   readonly derivationCanRetry = computed(() =>
     [
       'busy',
+      'preempted',
       'aborted',
       'timeout',
       'unavailable',
@@ -353,6 +366,30 @@ export class QuizLearningObjectivesComponent {
     bindUpdateBannerSuppression(this.updateBannerSuppression, 'learning-objective-draft', () =>
       this.learningObjectiveDraftBlocksUpdateBanner(),
     );
+    effect(() => {
+      if (!this.derivationIsPending()) return;
+      const snapshots = this.currentDerivationSourceSnapshots();
+      const revision = this.bundle().revision;
+      const scope = this.derivationSourceScope;
+      const sourceChanged =
+        !scope ||
+        scope.quizId !== this.quizId() ||
+        scope.focusedQuestionId !== this.focusedQuestionId() ||
+        (!scope.focusedQuestionId && scope.questionCount !== snapshots.size) ||
+        [...this.derivationSourceSnapshots].some(([id, source]) => snapshots.get(id) !== source);
+      const revisionChanged =
+        this.derivationAcceptedBundleRevision !== null &&
+        revision !== this.derivationAcceptedBundleRevision;
+      if (!sourceChanged && !revisionChanged) return;
+      this.derivationSequence += 1;
+      this.derivationAbortController?.abort();
+      this.finishDerivation(
+        'unavailable',
+        sourceChanged
+          ? this.derivationSourceChangedMessage()
+          : $localize`:@@learningObjectives.derivationBundleConflict:Die Lernziele wurden während der automatischen Herleitung geändert. Deine Änderungen bleiben erhalten. Starte die Herleitung erneut.`,
+      );
+    });
     this.destroyRef.onDestroy(() => {
       this.derivationSequence += 1;
       this.stopDerivationProgressPolling();
@@ -433,6 +470,11 @@ export class QuizLearningObjectivesComponent {
       return;
     }
 
+    this.derivationSourceScope = {
+      quizId: this.quizId(),
+      focusedQuestionId: this.focusedQuestionId(),
+      questionCount: this.questions().length,
+    };
     this.derivationSourceSnapshots = new Map(
       questions.map((question) => [question.sourceQuestionId, JSON.stringify(question)]),
     );
@@ -1135,6 +1177,8 @@ export class QuizLearningObjectivesComponent {
         return $localize`:@@learningObjectives.derivationDisabled:Automatische Vorschläge sind auf diesem System nicht aktiviert. Du kannst Lernziele weiterhin manuell formulieren.`;
       case 'aborted':
         return this.derivationInterruptedMessage('aborted', result.progress);
+      case 'preempted':
+        return this.derivationInterruptedMessage('preempted', result.progress);
       case 'timeout':
         return this.derivationInterruptedMessage('timeout', result.progress);
       case 'unavailable':
@@ -1171,13 +1215,15 @@ export class QuizLearningObjectivesComponent {
   }
 
   private derivationInterruptedMessage(
-    reason: 'aborted' | 'timeout',
+    reason: 'aborted' | 'timeout' | 'preempted',
     progress: LearningObjectiveDerivationProgress | null,
   ): string {
     const why =
       reason === 'timeout'
         ? $localize`:@@learningObjectives.derivationTimeoutWhy:Die Zeit für die gesamte Erstellung ist abgelaufen.`
-        : $localize`:@@learningObjectives.derivationAbortedWhy:Die Erstellung wurde abgebrochen.`;
+        : reason === 'preempted'
+          ? $localize`:@@learningObjectives.derivationPreemptedWhy:Ein dringenderer Auftrag hat die Erstellung unterbrochen.`
+          : $localize`:@@learningObjectives.derivationAbortedWhy:Die Erstellung wurde abgebrochen.`;
     const unchanged = $localize`:@@learningObjectives.derivationUnchanged:Deine Lernziele bleiben unverändert.`;
     const retention = this.derivationRetentionSentence(progress);
     if (!progress || (progress.totalGroups <= 0 && progress.elapsedMs <= 0 && !retention)) {
@@ -1293,6 +1339,13 @@ export class QuizLearningObjectivesComponent {
     }
   }
 
+  private derivationSourceChangedMessage(): string {
+    return this.derivationAcceptedDraftIds.size > 0 ||
+      this.derivationResumeCoveredSourceQuestionIds.size > 0
+      ? $localize`:@@learningObjectives.derivationSourceChangedPartial:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Schon übernommene Entwürfe bleiben in der Liste.`
+      : $localize`:@@learningObjectives.derivationSourceChanged:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Deine Lernziele bleiben unverändert. Starte die Herleitung erneut.`;
+  }
+
   private currentDerivationSourceSnapshots(): Map<string, string> {
     try {
       return new Map(
@@ -1328,11 +1381,7 @@ export class QuizLearningObjectivesComponent {
         this.derivationSourceSnapshots.get(questionId) !== currentSourceSnapshots.get(questionId),
     );
     if (sourceChanged) {
-      this.derivationApplyBlockedMessage =
-        this.derivationAcceptedDraftIds.size > 0 ||
-        this.derivationResumeCoveredSourceQuestionIds.size > 0
-          ? $localize`:@@learningObjectives.derivationSourceChangedPartial:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Schon übernommene Entwürfe bleiben in der Liste.`
-          : $localize`:@@learningObjectives.derivationSourceChanged:Mindestens eine verwendete Frage wurde während der automatischen Herleitung geändert oder deaktiviert. Deine Lernziele bleiben unverändert. Starte die Herleitung erneut.`;
+      this.derivationApplyBlockedMessage = this.derivationSourceChangedMessage();
       return;
     }
 
