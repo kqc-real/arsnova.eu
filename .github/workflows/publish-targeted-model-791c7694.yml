@@ -1,0 +1,35 @@
+name: Publish targeted cancellation runtime
+
+on:
+  push:
+    branches: [codex/publish-targeted-model-791c7694]
+    paths: [.github/workflows/publish-targeted-model-791c7694.yml]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    env:
+      IMAGE: ghcr.io/kqc-real/arsnova-open-weight-llm:server-b10524-targeted-791c7694
+    steps:
+      - name: Checkout the verified sources
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          ref: 791c7694d839c87838d5fce2b0d100257497ec41
+          persist-credentials: false
+      - name: Build the pinned model runtime
+        run: |
+          docker build --platform linux/arm64 --tag "$IMAGE" docker/open-weight-llm
+          test "$(docker image inspect --format '{{.Os}}/{{.Architecture}}' "$IMAGE")" = linux/arm64
+          docker run --rm --entrypoint sha256sum "$IMAGE" /app/libllama-server-impl.so
+      - name: Publish the ARM64 image
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker push "$IMAGE"
+          docker image inspect --format '{{range .RepoDigests}}{{println .}}{{end}}' "$IMAGE"
