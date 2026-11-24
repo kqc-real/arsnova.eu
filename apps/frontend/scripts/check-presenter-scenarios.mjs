@@ -234,6 +234,16 @@ try {
         '.session-present__lobby-code',
         async (page) => {
           assert.equal(await page.locator('.session-present__lobby-code').count(), 1);
+          const audienceCountClear = await page
+            .locator('.session-present__lobby-audience-count')
+            .evaluate((label) => {
+              const count = label.getBoundingClientRect();
+              const actions = label.ownerDocument
+                .querySelector('.session-present__host-return')
+                .getBoundingClientRect();
+              return count.width > 0 && count.height > 0 && count.top >= actions.bottom;
+            });
+          assert.ok(audienceCountClear, 'Lobby participant count appears below the host controls');
           if (total === 200)
             assert.equal(await page.locator('.session-present__audience-summary').count(), 1);
         },
@@ -324,6 +334,7 @@ try {
       });
     await host.session.revealResults.mutate({ code: session.code });
     await check(session, host, preset, 'freetext-results', '.word-cloud__word', async (page) => {
+      assert.equal(await page.getByTestId('presenter-quiz-pages').count(), 0);
       await page.waitForTimeout(500);
       const boxes = await page.locator('.word-cloud__word').evaluateAll((nodes) =>
         nodes.map((el) => {
@@ -528,6 +539,15 @@ try {
     await check(session, host, preset, 'finale', '.session-present__board-item', async (page) => {
       assert.ok((await page.locator('.session-present__board-item').count()) <= 8);
       assert.equal(await page.locator('.session-present__board-page').count(), 1);
+      const rowsFit = await page.locator('.session-present__board-item').evaluateAll((rows) => {
+        const viewport = rows[0]?.ownerDocument
+          .querySelector('.session-present__finish')
+          ?.getBoundingClientRect();
+        return (
+          viewport && rows.every((row) => row.getBoundingClientRect().bottom <= viewport.bottom + 1)
+        );
+      });
+      assert.ok(rowsFit, 'The last leaderboard row fits inside the projection');
     });
     await host.session.end.mutate({ code: session.code });
     await host.session.dismissFinishProjection.mutate({ code: session.code });

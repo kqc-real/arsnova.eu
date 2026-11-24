@@ -1132,7 +1132,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     const page = this.session()?.presenterPage;
-    if (!page || !this.showQuizControlFooter()) {
+    if (!page || !this.showQuizPageNav()) {
       return;
     }
     const count = Math.max(1, page.count);
@@ -2221,7 +2221,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     return this.presentedQuizQuestion() !== null;
   });
   readonly showQuizPageNav = computed(() => {
-    if (!this.showQuizControlFooter()) {
+    if (!this.showQuizControlFooter() || this.showPresenterFreetextResultsStage()) {
       return false;
     }
     const page = this.session()?.presenterPage;
@@ -2504,12 +2504,24 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
     effect(
       () => {
-        if (!this.showQaProjection()) {
+        const qa = this.showQaProjection();
+        const singlePageWordCloud =
+          this.showQuizControlFooter() && this.showPresenterFreetextResultsStage();
+        const count = qa ? this.qaQueuePageCount() : singlePageWordCloud ? 1 : null;
+        if (count === null || !this.session()?.presenterPage) {
           return;
         }
-        const count = this.qaQueuePageCount();
         untracked(() => {
-          void this.reportProjectionPages(count);
+          if (singlePageWordCloud) {
+            const trigger = this.quizActionTrigger();
+            if (
+              !this.earlierQuizResult() &&
+              trigger?.closest('[data-testid="presenter-quiz-pages"]')
+            ) {
+              this.scheduleQuizControlFocus(trigger);
+            }
+          }
+          void this.reportProjectionPages(qa ? count : { count, sectionStarts: null });
         });
       },
       { injector: this.injector },

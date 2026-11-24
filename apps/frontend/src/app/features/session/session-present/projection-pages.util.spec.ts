@@ -166,7 +166,7 @@ describe('semantic projection pages', () => {
 
   it('retains all answer labels and reveals no removed status content', () => {
     const source = root(
-      '<p data-projection-status>Countdown 20</p><ol><li>A: First</li><li>B: Second</li><li>C: Third</li></ol>',
+      '<p data-projection-status>Countdown 20</p><ol start="3"><li>A: First</li><li>B: Second</li><li>C: Third</li></ol>',
     );
     const pages = paginateProjection(source, (page) => page.textContent!.length <= 12);
     expect(copy(pages)).toBe('A: FirstB: SecondC: Third');
@@ -175,7 +175,7 @@ describe('semantic projection pages', () => {
         .filter((li) => li.textContent)
         .map((li) => li.value),
     );
-    expect(numbers).toEqual([1, 2, 3]);
+    expect(numbers).toEqual([3, 4, 5]);
     expect(pages.every((page) => !page.querySelector('[data-projection-status]'))).toBe(true);
   });
 

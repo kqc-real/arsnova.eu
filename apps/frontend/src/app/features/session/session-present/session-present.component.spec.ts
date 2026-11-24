@@ -1182,6 +1182,52 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('meldet die Freitext-Wortwolke als einzelne Seite und ignoriert veraltete Seitenbefehle', async () => {
+    const session = await getInfoQueryMock();
+    const page = { context: 'quiz:1:RESULTS', index: 1, count: 2 };
+    getInfoQueryMock.mockResolvedValue({
+      ...session,
+      status: 'RESULTS',
+      currentQuestion: 1,
+      currentRound: 1,
+      presenterPage: page,
+    });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      ...TIMED_PRESENTER_QUESTION,
+      questionId: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      type: 'FREETEXT',
+      answers: [],
+    });
+    const singlePage = { ...page, index: 0, count: 1 };
+    setPresenterSurfaceMutateMock.mockResolvedValue({
+      presenterSurface: 'default',
+      presenterPage: singlePage,
+    });
+
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(fixture.componentInstance.showPresenterFreetextResultsStage()).toBe(true);
+      expect(fixture.componentInstance.session()?.presenterPage).toEqual(singlePage);
+    });
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('[data-testid="presenter-quiz-pages"]')).toBeNull();
+    expect(root.querySelector('[data-testid="presenter-quiz-controls"]')).not.toBeNull();
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledWith(
+      { code: 'ABC123', page: { context: page.context, count: 1, sectionStarts: null } },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+
+    const calls = setPresenterSurfaceMutateMock.mock.calls.length;
+    fixture.componentInstance.session.update((current) => ({ ...current!, presenterPage: page }));
+    await fixture.componentInstance.changeQuizProjectionPage(-1);
+    expect(setPresenterSurfaceMutateMock).toHaveBeenCalledTimes(calls);
+    fixture.destroy();
+  });
+
   it('ignoriert einen alten Themenfehler, solange noch keine Freitext-Beiträge vorliegen', async () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
