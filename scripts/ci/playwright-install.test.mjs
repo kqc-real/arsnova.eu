@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,11 +9,12 @@ import test from 'node:test';
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 const script = join(repoRoot, 'scripts/ci/playwright-install.sh');
 
-function runInstall(args, env = {}) {
-  return spawnSync('bash', [script, ...args], {
+function runInstall(args, env = {}, scriptPath = script) {
+  return spawnSync('bash', [scriptPath, ...args], {
     encoding: 'utf8',
     env: {
       ...process.env,
+      GITHUB_ACTIONS: 'false',
       PLAYWRIGHT_INSTALL_RETRY_SLEEP_SEC: '0',
       ...env,
     },
@@ -67,6 +68,60 @@ test('playwright-install rejects missing Playwright CLI', () => {
   });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Playwright CLI nicht gefunden/);
+});
+
+test('playwright-install uses the Ubuntu archive for Azure and EC2 mirrors in CI', () => {
+  const stub = makeTimeoutStub(1);
+  const aptDir = join(stub.dir, 'apt');
+  const sourcesDir = join(aptDir, 'sources.list.d');
+  const sourcesFile = join(sourcesDir, 'ubuntu.sources');
+  const mirrorFile = join(aptDir, 'apt-mirrors.txt');
+  const scriptPath = join(stub.dir, 'playwright-install.sh');
+  mkdirSync(sourcesDir, { recursive: true });
+  writeFileSync(
+    sourcesFile,
+    'URIs: http://us-east-2.ec2.archive.ubuntu.com/ubuntu/ http://security.ubuntu.com/ubuntu/\n',
+  );
+  writeFileSync(mirrorFile, 'https://azure.archive.ubuntu.com/ubuntu/\n');
+  writeFileSync(scriptPath, readFileSync(script, 'utf8').replaceAll('/etc/apt', aptDir));
+
+  // Exercise the actual sed expression against fixtures without running privileged commands.
+  const sudoPath = join(stub.dir, 'sudo');
+  writeFileSync(
+    sudoPath,
+    [
+      '#!/usr/bin/env bash',
+      'set -euo pipefail',
+      '[[ "$1" == sed && "$2" == -E && "$3" == -i ]]',
+      'pattern="$4"',
+      'shift 4',
+      'for file; do',
+      '  [[ "$file" == "$PLAYWRIGHT_TEST_APT_ROOT/"* ]]',
+      '  sed -E "$pattern" "$file" > "$file.tmp"',
+      '  mv "$file.tmp" "$file"',
+      'done',
+      '',
+    ].join('\n'),
+  );
+  chmodSync(sudoPath, 0o755);
+
+  const result = runInstall(
+    ['webkit'],
+    {
+      GITHUB_ACTIONS: 'true',
+      PATH: stub.dir + ':' + process.env.PATH,
+      PLAYWRIGHT_TEST_APT_ROOT: aptDir,
+      PLAYWRIGHT_CLI: stub.cliPath,
+      PLAYWRIGHT_TIMEOUT_BIN: stub.timeoutPath,
+    },
+    scriptPath,
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(
+    readFileSync(sourcesFile, 'utf8'),
+    'URIs: http://archive.ubuntu.com/ubuntu/ http://security.ubuntu.com/ubuntu/\n',
+  );
+  assert.equal(readFileSync(mirrorFile, 'utf8'), 'https://archive.ubuntu.com/ubuntu/\n');
 });
 
 test('playwright-install downloads the browser without --with-deps then installs OS deps', () => {
