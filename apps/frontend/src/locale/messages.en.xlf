@@ -450,6 +450,14 @@
           <context context-type="linenumber">61</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionVote.feedbackDisabled" datatype="html">
+        <source>Die Quiz-Bewertung ist deaktiviert.</source>
+        <target>Quiz rating is turned off.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/core/localize-known-server-message.ts</context>
+          <context context-type="linenumber">109</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="errors.sessionAlreadyLive" datatype="html">
         <source>Für dieses Quiz läuft bereits eine Sitzung.</source>
         <target>A session for this quiz is already running.</target>
@@ -20905,38 +20913,6 @@
           <context context-type="linenumber">1113</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.finishedConfidencePriorities" datatype="html">
-        <source> Priorität für die Nachbesprechung</source>
-        <target>Debriefing priorities</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1123,1125</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.finishedConfidenceWrongHigh" datatype="html">
-        <source>falsch + hohe Antwortsicherheit</source>
-        <target>incorrect + high answer confidence</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1159</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.finishedConfidenceIncorrectOverall" datatype="html">
-        <source>insgesamt falsch</source>
-        <target>all incorrect answers</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1173</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.finishedConfidenceTopSignal" datatype="html">
-        <source>⚠ Nachbesprechungsimpuls:</source>
-        <target>Most common incorrect high-confidence answer:</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1180</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.finishedConfidenceSuppressed" datatype="html">
         <source> Fragen mit weniger als 5 Antworten mit Selbsteinschätzung werden nicht aggregiert ausgewiesen.</source>
         <target>Questions with fewer than 5 responses with self-rated confidence are not included in the aggregate results.</target>
@@ -37249,31 +37225,19 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningOverviewMedian" datatype="html">
-        <source>Median</source>
-        <target>Median</target>
+        <source>Richtige Antworten im Median</source>
+        <target>Median correct answers</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1348,1350</context>
+          <context context-type="linenumber">1359</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningOverviewMedianValue" datatype="html">
-        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong
-                                    &gt;"/><x id="INTERPOLATION" equiv-text="{{ formatDecimal(overview.medianCorrectCount) }}"/> von <x id="INTERPOLATION_1" equiv-text="{{ formatCount(overview.questionCount) }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong
-                                  &gt;"/> richtigen Antworten </source>
-        <target><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong
-                                    &gt;"/><x id="INTERPOLATION" equiv-text="{{ formatDecimal(overview.medianCorrectCount) }}"/> out of <x id="INTERPOLATION_1" equiv-text="{{ formatCount(overview.questionCount) }}"/><x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong
-                                  &gt;"/> correct answers</target>
+        <source><x id="INTERPOLATION"/> von <x id="INTERPOLATION_1"/></source>
+        <target><x id="INTERPOLATION"/> of <x id="INTERPOLATION_1"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1356,1359</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.learningOverviewMedianHint" datatype="html">
-        <source> Die Mitte, wenn du die Ergebnisse nach richtigen Antworten sortierst. </source>
-        <target>The middle when you sort the results by number of correct answers.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1365,1366</context>
+          <context context-type="linenumber">1365</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningOverviewNoAnswers" datatype="html">
@@ -37285,19 +37249,35 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningOverviewRespondents" datatype="html">
-        <source> Mit gewerteter Antwort </source>
-        <target>With an answer counted</target>
+        <source>Personen mit gewerteter Antwort</source>
+        <target>People with a scored answer</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1367,1368</context>
+          <context context-type="linenumber">1377</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.learningOverviewNoResponse" datatype="html">
-        <source> Ohne gewertete Antwort </source>
-        <target>Without an answer counted</target>
+      <trans-unit id="sessionHost.learningOverviewParticipationValue" datatype="html">
+        <source><x id="INTERPOLATION"/> von <x id="INTERPOLATION_1"/></source>
+        <target><x id="INTERPOLATION"/> of <x id="INTERPOLATION_1"/></target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">1373,1374</context>
+          <context context-type="linenumber">1382</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewQuestionText" datatype="html">
+        <source>Fragetext</source>
+        <target>Question text</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1437</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningPromptAria" datatype="html">
+        <source>Fragetext zu Frage <x id="questionNumber"/></source>
+        <target>Question text for question <x id="questionNumber"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
+          <context context-type="linenumber">1211</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningOverviewDistribution" datatype="html">
@@ -37330,6 +37310,30 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">1407,1408</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewMisconceptionBasis" datatype="html">
+        <source>Für Hinweise auf Fehlvorstellungen zählen nur Antworten mit Selbsteinschätzung.</source>
+        <target>Only answers with a confidence rating count towards misconception signals.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1173</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewMisconception" datatype="html">
+        <source>Hinweis auf verbreitete Fehlvorstellung</source>
+        <target>Possible widespread misconception</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1217</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="sessionHost.learningOverviewConfidentWrong" datatype="html">
+        <source><x id="INTERPOLATION"/> von <x id="INTERPOLATION_1"/> falsch und sicher</source>
+        <target><x id="INTERPOLATION"/> of <x id="INTERPOLATION_1"/> confidently incorrect</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
+          <context context-type="linenumber">1199</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.learningOverviewCorrectOf" datatype="html">
@@ -37386,6 +37390,14 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1187</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="quizSettings.enableSessionFeedback" datatype="html">
+        <source>Quiz-Bewertung im Gesamtergebnis anbieten</source>
+        <target>Offer a quiz rating on the final results screen</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-edit/quiz-edit.component.html</context>
+          <context context-type="linenumber">235</context>
         </context-group>
       </trans-unit>
       <trans-unit id="quizSettings.enableLearningDebrief" datatype="html">

@@ -312,6 +312,7 @@ function formatNumericPreviewValue(
 
 type QuizSettingsFormGroup = FormGroup<{
   showLeaderboard: FormControl<boolean>;
+  enableSessionFeedback: FormControl<boolean>;
   enableLearningDebrief: FormControl<boolean>;
   enablePeerInstruction: FormControl<boolean>;
   allowCustomNicknames: FormControl<boolean>;
@@ -748,6 +749,7 @@ export class QuizEditComponent implements OnDestroy {
 
   readonly settingsForm: QuizSettingsFormGroup = this.formBuilder.group({
     showLeaderboard: this.formBuilder.control(true),
+    enableSessionFeedback: this.formBuilder.control(false),
     enableLearningDebrief: this.formBuilder.control(true),
     enablePeerInstruction: this.formBuilder.control(true),
     allowCustomNicknames: this.formBuilder.control(false),
@@ -2964,6 +2966,7 @@ export class QuizEditComponent implements OnDestroy {
     this.settingsForm.setValue(
       {
         showLeaderboard: settings.showLeaderboard,
+        enableSessionFeedback: settings.enableSessionFeedback ?? false,
         enableLearningDebrief: settings.enableLearningDebrief ?? true,
         enablePeerInstruction: settings.enablePeerInstruction ?? true,
         ...quizParticipantNameFlags(
@@ -3003,6 +3006,7 @@ export class QuizEditComponent implements OnDestroy {
   private readSettingsFromForm(): QuizSettings {
     return {
       showLeaderboard: this.settingsForm.controls.showLeaderboard.value,
+      enableSessionFeedback: this.settingsForm.controls.enableSessionFeedback.value,
       enableLearningDebrief: this.settingsForm.controls.enableLearningDebrief.value,
       enablePeerInstruction: this.settingsForm.controls.enablePeerInstruction.value,
       ...quizParticipantNameFlags(this.participantNameMode()),
@@ -3072,6 +3076,7 @@ export class QuizEditComponent implements OnDestroy {
   private toComparableSettings(settings: QuizSettings): QuizSettings {
     return {
       showLeaderboard: settings.showLeaderboard,
+      enableSessionFeedback: settings.enableSessionFeedback ?? false,
       enableLearningDebrief: settings.enableLearningDebrief ?? true,
       enablePeerInstruction: settings.enablePeerInstruction ?? true,
       ...quizParticipantNameFlags(

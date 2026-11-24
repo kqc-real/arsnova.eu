@@ -646,7 +646,7 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
         `Host-UI zeigt nicht ${expectedResponses} Antworten mit Selbsteinschätzung an.`,
       );
     }
-    if (!bodyText.includes('Priorität für die Nachbesprechung')) {
+    if (!bodyText.includes('Hinweis auf verbreitete Fehlvorstellung')) {
       throw new Error('Host-UI zeigt keine priorisierten Fragen an.');
     }
     if (!bodyText.includes(`Nachbesprechung empfohlen: ${expectedPriorityQuestions}`)) {
@@ -678,11 +678,16 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
     ) {
       throw new Error('Host-UI zeigt die Verteilung zur erneuten Teilnahme nicht korrekt an.');
     }
-    const renderedQuestion = page
-      .locator('.session-host__finished-confidence-question-markdown')
-      .filter({ hasText: 'Welche dieser Einsätze eignen sich gut' })
-      .first();
-    await renderedQuestion.locator('h4').waitFor({ state: 'visible', timeout: 10_000 });
+    const reviewItems = page.locator('.session-host__learning-overview-review > li');
+    const reviewCount = await reviewItems.count();
+    if (reviewCount < 1 || reviewCount > 3) {
+      throw new Error(`Die Nachbesprechung zeigt ${reviewCount} statt höchstens drei Fragen.`);
+    }
+    const reviewItem = reviewItems.filter({ hasText: 'Welche dieser Einsätze eignen sich gut' });
+    const disclosure = reviewItem.locator('summary');
+    if (await disclosure.count()) await disclosure.click();
+    const renderedQuestion = reviewItem.locator('.session-host__learning-overview-question-text');
+    await renderedQuestion.locator('h5').waitFor({ state: 'visible', timeout: 10_000 });
     const renderedQuestionText = await renderedQuestion.innerText();
     if (!renderedQuestionText.includes('Mehrere Antworten möglich.')) {
       throw new Error(
@@ -693,23 +698,20 @@ async function verifyHostUiAndCsv(code, hostToken, expectedResponses, expectedPr
       throw new Error('Markdown-Steuerzeichen sind in der gerenderten Auswertung sichtbar.');
     }
     const metricRects = await page
-      .locator('.session-host__finished-confidence-question-metric')
+      .locator('.session-host__learning-overview-rate')
       .evaluateAll((elements) =>
         elements.map((element) => {
           const rect = element.getBoundingClientRect();
           return { left: rect.left, width: rect.width };
         }),
       );
-    for (const columnIndex of [0, 1]) {
-      const column = metricRects.filter((_, index) => index % 2 === columnIndex);
-      const leftEdges = column.map((rect) => rect.left);
-      const widths = column.map((rect) => rect.width);
-      if (
-        Math.max(...leftEdges) - Math.min(...leftEdges) > 1 ||
-        Math.max(...widths) - Math.min(...widths) > 1
-      ) {
-        throw new Error(`Kennzahlenspalte ${columnIndex + 1} hat keine durchgehende Fluchtlinie.`);
-      }
+    const leftEdges = metricRects.map((rect) => rect.left);
+    const widths = metricRects.map((rect) => rect.width);
+    if (
+      Math.max(...leftEdges) - Math.min(...leftEdges) > 1 ||
+      Math.max(...widths) - Math.min(...widths) > 1
+    ) {
+      throw new Error('Die Kennzahlenspalte hat keine durchgehende Fluchtlinie.');
     }
     await page.screenshot({ path: HOST_SCREENSHOT, fullPage: true });
 
@@ -781,9 +783,15 @@ async function run() {
     if (sessionInfo.status === 'FINISHED') {
       throw new Error(`Session ${code} ist bereits abgeschlossen (FINISHED).`);
     }
+    if (sessionInfo.enableSessionFeedback !== true) {
+      throw new Error(`Für Session ${code} muss die Quiz-Bewertung aktiviert sein.`);
+    }
     quizId = null;
   } else {
-    ({ quizId } = await publicTrpc.quiz.upload.mutate(uploadPayload));
+    ({ quizId } = await publicTrpc.quiz.upload.mutate({
+      ...uploadPayload,
+      enableSessionFeedback: true,
+    }));
     ({ code, hostToken } = await publicTrpc.session.create.mutate({
       quizId,
       type: 'QUIZ',

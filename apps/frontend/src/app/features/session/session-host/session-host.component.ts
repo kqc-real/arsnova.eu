@@ -1,6 +1,12 @@
 import { enrichCurrentTopicCloud } from '../session-present/word-cloud-topic-labels';
 import { animalIconUrl } from '../../../shared/animal-icon-url';
-import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
+import {
+  DecimalPipe,
+  DOCUMENT,
+  formatNumber,
+  NgTemplateOutlet,
+  PercentPipe,
+} from '@angular/common';
 import { CdkTrapFocus, LiveAnnouncer } from '@angular/cdk/a11y';
 import {
   getDocumentFullscreenElement,
@@ -179,7 +185,6 @@ import {
   type AnalyzeWordCloudInput,
   AnalyzeWordCloudOutput,
   ConfidenceResultDTO,
-  ConfidenceQuestionSummaryDTO,
   HostCurrentQuestionDTO,
   HostVoteProgressDTO,
   LeaderboardEntryDTO,
@@ -228,7 +233,6 @@ import {
   confirmedLearningObjectiveAppliesToQuestion,
   isConfirmedDisplayedLearningObjective,
   learningObjectiveMisconceptionLinks,
-  type LearningObjectiveMisconceptionLink,
 } from './session-learning-objective-match';
 import {
   isDisplayableThemeWordCloudEntry,
@@ -614,6 +618,8 @@ function musicTracksForPhase(
   standalone: true,
   imports: [
     DecimalPipe,
+    NgTemplateOutlet,
+    PercentPipe,
     MatButton,
     MatIconButton,
     MatButtonToggle,
@@ -1185,6 +1191,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private recoveryCardDialogOpened = false;
   readonly feedbackSummary = signal<SessionFeedbackSummary | null>(null);
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
+  readonly finishedConfidenceLoading = signal(false);
+  private finishedConfidenceRequest: AbortController | null = null;
   readonly learningDebriefEnabled = computed(() => this.session()?.enableLearningDebrief !== false);
   readonly learningOverview = signal<SessionLearningOverviewDTO | null>(null);
   readonly learningOverviewLoading = signal(false);
@@ -1206,9 +1214,37 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     $localize`:@@sessionHost.learningOverviewBand4:75 bis 100 %`,
   ];
   readonly learningOverviewReviewQuestions = computed(() => {
+    const maxItems = 3;
     const objectives = this.sessionLearningObjectives();
-    return (this.learningOverview()?.reviewQuestions ?? []).map((question) => ({
+    const lowAccuracy = this.learningOverview()?.reviewQuestions ?? [];
+    const priorities = selectConfidencePriorityQuestions(
+      this.finishedConfidenceSummary()?.questions ?? [],
+      maxItems,
+    );
+    const priorityIds = new Set(priorities.map(({ questionId }) => questionId));
+    const questions = [
+      ...priorities.map((question) => ({
+        questionId: question.questionId,
+        questionOrder: question.questionOrder,
+        text: question.questionTextShort,
+        count: question.result.crossTab.incorrectHigh,
+        responseCount: question.responseCount,
+        misconception: true,
+        wrongOption: question.result.highConfidenceWrongOptions?.[0]?.text ?? null,
+      })),
+      ...lowAccuracy
+        .filter(({ questionId }) => !priorityIds.has(questionId))
+        .slice(0, maxItems - priorities.length)
+        .map(({ correctCount, ...question }) => ({
+          ...question,
+          count: correctCount,
+          misconception: false,
+          wrongOption: null,
+        })),
+    ];
+    return questions.map((question) => ({
       ...question,
+      questionTextLabel: $localize`:@@sessionHost.learningPromptAria:Fragetext zu Frage ${this.formatCount(question.questionOrder + 1)}:questionNumber:`,
       objectives: objectives
         .filter(
           (objective) =>
@@ -4896,10 +4932,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.showLearningOverviewRetry.set(false);
       });
     });
-    effect(() => {
+    effect((onCleanup) => {
       const finished = this.effectiveStatus() === 'FINISHED';
       if (finished && this.learningDebriefEnabled()) {
-        void this.loadFinishedConfidenceSummary();
+        untracked(() => void this.loadFinishedConfidenceSummary());
+        onCleanup(() => {
+          this.finishedConfidenceRequest?.abort();
+          this.finishedConfidenceRequest = null;
+          this.finishedConfidenceSummary.set(null);
+          this.finishedConfidenceLoading.set(false);
+        });
       }
       if (finished && !this.previousFinishedForAutoScroll) {
         untracked(() => this.scrollHostFinishedIntoView());
@@ -5457,29 +5499,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return total > 0 ? Math.round((count / total) * 100) : 0;
   }
 
-  finishedConfidencePriorityQuestions(
-    summary: SessionConfidenceSummaryDTO,
-  ): ConfidenceQuestionSummaryDTO[] {
-    return selectConfidencePriorityQuestions(summary.questions, 3);
-  }
-
-  finishedConfidenceObjectiveLinks(
-    question: ConfidenceQuestionSummaryDTO,
-  ): LearningObjectiveMisconceptionLink[] {
-    return learningObjectiveMisconceptionLinks({
-      objectives: this.sessionLearningObjectives(),
-      questions: [
-        {
-          questionId: question.questionId,
-          questionOrder: question.questionOrder,
-          responseCount: question.responseCount,
-          incorrectHigh: question.result.crossTab.incorrectHigh,
-          topWrongOption: question.result.highConfidenceWrongOptions?.[0]?.text ?? null,
-        },
-      ],
-    });
-  }
-
   quoteLabel(text: string): string {
     const plain = markdownToReadableText(text).trim().replace(/\s+/g, ' ');
     return $localize`:@@sessionHost.quotedLabel:»${plain}:text:«`;
@@ -5497,15 +5516,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   learningObjectiveMisconceptionOption(option: string): string {
     const quoted = this.quoteLabel(option);
     return $localize`:@@sessionHost.learningObjectiveMisconceptionOption:Häufigste falsche Option: ${quoted}:option:`;
-  }
-
-  finishedConfidenceIncorrectCount(question: ConfidenceQuestionSummaryDTO): number {
-    const crossTab = question.result.crossTab;
-    return crossTab.incorrectHigh + crossTab.incorrectMid + crossTab.incorrectLow;
-  }
-
-  finishedConfidenceTopWrongOption(question: ConfidenceQuestionSummaryDTO): string | null {
-    return question.result.highConfidenceWrongOptions?.[0]?.text ?? null;
   }
 
   confidenceCrossTabCellIntensity(count: number, total: number): 0 | 1 | 2 | 3 {
@@ -6613,6 +6623,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               current
                 ? { ...current, enableTimerAccommodation: data.enableTimerAccommodation }
                 : current,
+            );
+          }
+          if (data.enableSessionFeedback !== undefined) {
+            this.session.update((current) =>
+              current ? { ...current, enableSessionFeedback: data.enableSessionFeedback } : current,
             );
           }
           if (update.status === 'LOBBY' || update.status === 'FINISHED') {
@@ -10447,7 +10462,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   /** Markdown + KaTeX für Frage- und Antworttexte (wie Quiz-Vorschau). */
   renderMarkdown(
     value: string,
-    headingStartLevel: 3 | 4 = 3,
+    headingStartLevel: 3 | 4 | 5 = 3,
     { escapeListMarkers = headingStartLevel >= 4, focusableDisplayMath = false } = {},
   ): SafeHtml {
     const cacheKey = `${headingStartLevel}\u0000${escapeListMarkers}\u0000${focusableDisplayMath}\u0000${value}`;
@@ -15869,14 +15884,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async loadFinishedConfidenceSummary(): Promise<void> {
     if (!this.code) return;
+    this.finishedConfidenceRequest?.abort();
+    const request = new AbortController();
+    this.finishedConfidenceRequest = request;
+    this.finishedConfidenceLoading.set(true);
     try {
-      const summary = await trpc.session.getSessionConfidenceSummary.query({
-        code: this.code.toUpperCase(),
-        anonymousClientId: getAnonymousClientId(),
-      });
-      this.finishedConfidenceSummary.set(summary);
+      const summary = await trpc.session.getSessionConfidenceSummary.query(
+        { code: this.code.toUpperCase(), anonymousClientId: getAnonymousClientId() },
+        { signal: AbortSignal.any([request.signal, AbortSignal.timeout(10_000)]) },
+      );
+      if (!request.signal.aborted) this.finishedConfidenceSummary.set(summary);
     } catch {
-      this.finishedConfidenceSummary.set(null);
+      if (!request.signal.aborted) this.finishedConfidenceSummary.set(null);
+    } finally {
+      if (this.finishedConfidenceRequest === request) {
+        this.finishedConfidenceRequest = null;
+        this.finishedConfidenceLoading.set(false);
+      }
     }
   }
 
@@ -15908,7 +15932,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   async loadFeedbackSummary(): Promise<void> {
-    if (!this.code) return;
+    if (!this.code || this.session()?.enableSessionFeedback !== true) return;
     try {
       const summary = await trpc.session.getSessionFeedbackSummary.query({
         code: this.code.toUpperCase(),

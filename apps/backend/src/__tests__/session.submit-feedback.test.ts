@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock } = vi.hoisted(() => ({
@@ -71,7 +71,7 @@ describe('session.submitSessionFeedback', () => {
       procedure: 'session.submitSessionFeedback',
       case: 'happy',
       mode: 'direct',
-      title: 'speichert Bewertungen nach einem gestarteten Quiz',
+      title: 'speichert Bewertungen nach einem gestarteten Quiz mit aktivierter Abschlussbewertung',
     },
     async () => {
       prismaMock.session.findUnique.mockResolvedValue({
@@ -79,6 +79,7 @@ describe('session.submitSessionFeedback', () => {
         status: 'FINISHED',
         quizStarted: true,
         hostEnded: false,
+        quiz: { enableSessionFeedback: true },
       });
       prismaMock.sessionFeedback.findUnique.mockResolvedValue(null);
       prismaMock.sessionFeedback.create.mockResolvedValue({ id: 'feedback-1' });
@@ -96,6 +97,26 @@ describe('session.submitSessionFeedback', () => {
     },
   );
 
+  it.each([{ enableSessionFeedback: false }, {}, null])(
+    'lehnt Bewertungen ohne aktivierte Abschlussbewertung ab (%j)',
+    async (quiz) => {
+      prismaMock.session.findUnique.mockResolvedValue({
+        id: 'sess-1',
+        status: 'FINISHED',
+        quizStarted: true,
+        hostEnded: false,
+        quiz,
+      });
+
+      await expect(caller.submitSessionFeedback(feedbackInput)).rejects.toMatchObject({
+        code: 'BAD_REQUEST',
+        message: 'Quiz-Bewertung ist deaktiviert.',
+      });
+      expect(prismaMock.sessionFeedback.findUnique).not.toHaveBeenCalled();
+      expect(prismaMock.sessionFeedback.create).not.toHaveBeenCalled();
+    },
+  );
+
   trpcDodIt(
     {
       procedure: 'session.submitSessionFeedback',
@@ -110,6 +131,7 @@ describe('session.submitSessionFeedback', () => {
         status: 'FINISHED',
         quizStarted: true,
         hostEnded: true,
+        quiz: { enableSessionFeedback: true },
       });
 
       await expect(caller.submitSessionFeedback(feedbackInput)).rejects.toMatchObject({

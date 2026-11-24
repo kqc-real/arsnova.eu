@@ -94,6 +94,7 @@ describe('quiz.upload (Story 2.1a)', () => {
       expect(prismaMock.quiz.create).toHaveBeenCalledTimes(1);
       const createCall = prismaMock.quiz.create.mock.calls[0]![0];
       expect(createCall.data.name).toBe('Test-Quiz');
+      expect(createCall.data.enableSessionFeedback).toBe(false);
       expect(createCall.data.enableLearningDebrief).toBe(true);
       expect(createCall.data.enablePeerInstruction).toBe(true);
       expect(createCall.data.questions.create).toHaveLength(1);
@@ -109,10 +110,12 @@ describe('quiz.upload (Story 2.1a)', () => {
       await caller.upload({
         ...input,
         preset: 'SERIOUS',
+        enableSessionFeedback: true,
         enableLearningDebrief: false,
         enablePeerInstruction: false,
       });
       expect(prismaMock.quiz.create.mock.lastCall?.[0].data).toMatchObject({
+        enableSessionFeedback: true,
         enableLearningDebrief: false,
         enablePeerInstruction: false,
       });

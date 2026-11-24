@@ -2532,7 +2532,10 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     () => this.showSessionEndGate() && Boolean(this.bonusToken()),
   );
   readonly sessionFeedbackAvailable = computed(
-    () => this.sessionSettings().quizStarted === true && this.sessionSettings().hostEnded !== true,
+    () =>
+      this.sessionSettings().enableSessionFeedback === true &&
+      this.sessionSettings().quizStarted === true &&
+      this.sessionSettings().hostEnded !== true,
   );
   readonly showSessionEndGateFeedbackAction = computed(
     () => this.showSessionEndGate() && this.sessionFeedbackAvailable() && !this.feedbackSubmitted(),
@@ -4379,27 +4382,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
           void this.refreshSessionInfoFallback();
           void this.refreshQuestion();
         },
-        onData: (data: {
-          status: string;
-          currentQuestion: number | null;
-          activeAt?: string;
-          timer?: number | null;
-          currentRound?: number;
-          pausedFromStatus?: 'QUESTION_OPEN' | 'ACTIVE' | null;
-          channels?: SessionChannelsDTO;
-          preferredChannel?: SessionLiveChannel;
-          presenterSurface?: SessionInfoDTO['presenterSurface'];
-          presenterPage?: SessionInfoDTO['presenterPage'];
-          serverTime?: string;
-          serverNow?: string;
-          expiresAt?: string;
-          sessionLifecycleRevision?: number;
-          endedAt?: string | null;
-          hostEnded?: boolean;
-          skippedQuestionId?: string;
-          questionSkippedAt?: string;
-          enableTimerAccommodation?: boolean;
-        }) => {
+        onData: (data) => {
           if (data.serverTime) {
             recordServerTimeIso(data.serverTime);
           }
@@ -4424,6 +4407,12 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
             this.sessionSettings.update((settings) => ({
               ...settings,
               hostEnded: data.hostEnded,
+            }));
+          }
+          if (data.enableSessionFeedback !== undefined) {
+            this.sessionSettings.update((settings) => ({
+              ...settings,
+              enableSessionFeedback: data.enableSessionFeedback,
             }));
           }
           if (data.enableTimerAccommodation !== undefined) {
@@ -4501,7 +4490,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
               this.sessionTimerSeconds.set(null);
             }
             this.startCountdownFromSessionTimer(data.timer, data.activeAt);
-          } else if (data.status !== 'ACTIVE') {
+          } else {
             this.stopCountdown();
             this.countdownDeadlineMs = null;
             this.countdownSeconds.set(null);

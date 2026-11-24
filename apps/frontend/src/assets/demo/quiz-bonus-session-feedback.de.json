@@ -3,8 +3,9 @@
   "exportedAt": "2026-03-29T12:00:00.000Z",
   "quiz": {
     "name": "Kurztest: Bonus & Session-Feedback",
-    "description": "**Ziel:** Schneller Live-Durchlauf mit **Bonus-Codes** (Top-Platzierungen) und **Session-Feedback** nach dem Ende.\n\n**Ablauf:**\n1. Diese Datei in der Quiz-Sammlung über **Importieren** laden.\n2. **Starten** → Live-Session mit aktivem Quiz-Kanal.\n3. Zwei Fragen durchspielen, Session als Host **beenden**.\n4. Als Teilnehmer:in nach dem Ende die **Session-Bewertung** (Sterne) abgeben.\n5. In der Sammlung: **Bonus-Codes** und **Letztes Feedback** auf der Quiz-Karte (nach erstem Upload/Lauf; Feedback erst wenn mindestens eine Bewertung da ist).\n\nNur zwei kurze Fragen – ideal zum Ausprobieren.",
+    "description": "**Ziel:** Schneller Live-Durchlauf mit **Bonus-Codes** (Top-Platzierungen) und **Session-Feedback** im Quiz-Gesamtergebnis.\n\n**Ablauf:**\n1. Diese Datei in der Quiz-Sammlung über **Importieren** laden.\n2. **Starten** → Live-Session mit aktivem Quiz-Kanal.\n3. Zwei Fragen durchspielen und als Host das **Gesamtergebnis** öffnen.\n4. Als teilnehmende Person die **Quiz-Bewertung** (Sterne) abgeben, bevor der Host die Session beendet.\n5. In der Sammlung: **Bonus-Codes** und **Letztes Feedback** auf der Quiz-Karte (nach erstem Upload/Lauf; Feedback erst wenn mindestens eine Bewertung da ist).\n\nNur zwei kurze Fragen – ideal zum Ausprobieren.",
     "showLeaderboard": true,
+    "enableSessionFeedback": true,
     "allowCustomNicknames": true,
     "defaultTimer": 45,
     "enableSoundEffects": true,

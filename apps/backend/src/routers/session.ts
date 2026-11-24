@@ -429,6 +429,7 @@ type StatusSnapshotPayload = {
   skippedQuestionId?: string;
   questionSkippedAt?: string;
   enableTimerAccommodation?: boolean;
+  enableSessionFeedback?: boolean;
 };
 
 type VoteSummary = {
@@ -1031,6 +1032,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
               defaultTimer: true,
               timerScaleByDifficulty: true,
               enableTimerAccommodation: true,
+              enableSessionFeedback: true,
               questions: {
                 orderBy: { order: 'asc' },
                 select: { timer: true, difficulty: true },
@@ -1103,6 +1105,7 @@ async function fetchStatusSnapshot(code: string): Promise<StatusSnapshotPayload>
           timer: currentTimer,
         }),
         enableTimerAccommodation: session.quiz?.enableTimerAccommodation ?? true,
+        enableSessionFeedback: session.quiz?.enableSessionFeedback === true,
       };
     },
   );
@@ -5704,6 +5707,7 @@ async function resolvePublicSessionInfo(
                 allowCustomNicknames: true,
                 anonymousMode: true,
                 showLeaderboard: true,
+                enableSessionFeedback: true,
                 enableLearningDebrief: true,
                 enableSoundEffects: true,
                 enableRewardEffects: true,
@@ -5784,6 +5788,7 @@ async function resolvePublicSessionInfo(
         teamNames: onboardingProfile.teamMode ? buildEffectiveTeamNames(onboardingProfile) : [],
         ...(q && {
           showLeaderboard: q.showLeaderboard,
+          enableSessionFeedback: q.enableSessionFeedback === true,
           ...(q.enableLearningDebrief === false && { enableLearningDebrief: false }),
           enableSoundEffects: q.enableSoundEffects,
           enableRewardEffects: q.enableRewardEffects,
@@ -12054,7 +12059,13 @@ const sessionCoreRouter = router({
     .mutation(async ({ input, ctx }) => {
       const session = await prisma.session.findUnique({
         where: { code: input.code.toUpperCase() },
-        select: { id: true, status: true, quizStarted: true, hostEnded: true },
+        select: {
+          id: true,
+          status: true,
+          quizStarted: true,
+          hostEnded: true,
+          quiz: { select: { enableSessionFeedback: true } },
+        },
       });
       if (!session) {
         return rejectInvalidSessionCode(undefined, input.code.toUpperCase(), 'other');
@@ -12081,6 +12092,9 @@ const sessionCoreRouter = router({
           code: 'BAD_REQUEST',
           message: 'Bewertung nach globalem Session-Ende nicht mehr möglich.',
         });
+      }
+      if (session.quiz?.enableSessionFeedback !== true) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Quiz-Bewertung ist deaktiviert.' });
       }
 
       const existing = await prisma.sessionFeedback.findUnique({

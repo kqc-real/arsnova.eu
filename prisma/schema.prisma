@@ -20,6 +20,7 @@ model Quiz {
   motifImageUrl              String? // HTTPS-URL, optionales Motivbild (Host, Quiz-Kanal)
   motifImageCredit           String? // Optionaler Bildnachweis zum Motivbild (Lobby / Quizstart)
   showLeaderboard            Boolean                      @default(true) // Story 1.4: Leaderboard an/aus
+  enableSessionFeedback      Boolean                      @default(false) // Freiwillige Bewertung im Quiz-Gesamtergebnis
   enableLearningDebrief      Boolean                      @default(true)
   enablePeerInstruction      Boolean                      @default(true)
   allowCustomNicknames       Boolean                      @default(true) // Story 1.4: Eigene Pseudonyme erlauben

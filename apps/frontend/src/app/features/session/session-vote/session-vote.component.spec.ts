@@ -3485,7 +3485,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
   it('rendert die Sternebewertung als konsistente Radiogruppen', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
     const component = fixture.componentInstance;
-    component.sessionSettings.set({ quizStarted: true });
+    component.sessionSettings.set({ quizStarted: true, enableSessionFeedback: true });
     component.showSessionEndGate.set(true);
     fixture.detectChanges();
 
@@ -4315,11 +4315,12 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('merkt sich nach einer gestarteten Frage den Quizstart aus dem Live-Status', () => {
+  it('übernimmt Quizstart und Abschlussbewertung aus dem Live-Status', () => {
     type StatusPayload = {
       status: string;
       currentQuestion: number | null;
       currentRound?: number;
+      enableSessionFeedback?: boolean;
     };
     let onStatusChanged: ((data: StatusPayload) => void) | undefined;
     statusChangedSubscribeMock.mockImplementation(
@@ -4343,6 +4344,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       status: 'QUESTION_OPEN',
       currentQuestion: 0,
       currentRound: 1,
+      enableSessionFeedback: true,
     });
 
     expect(component.sessionFeedbackAvailable()).toBe(true);
@@ -4497,6 +4499,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       participantCount: 6,
       teamMode: false,
       quizStarted: true,
+      enableSessionFeedback: true,
       preset: 'PLAYFUL',
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -4531,49 +4534,62 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt nach Quiz-FINISHED die Bewertung, auch wenn Q&A noch offen ist', async () => {
-    getInfoQueryMock.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      serverTime: MOCK_SERVER_TIME,
-      code: 'ABC123',
-      type: 'QUIZ',
-      status: 'FINISHED',
-      quizName: 'Team-Quiz',
-      title: null,
-      participantCount: 6,
-      teamMode: false,
-      quizStarted: true,
-      preset: 'PLAYFUL',
-      qaClosesAt: '2027-09-20T08:00:00.000Z',
-      channels: {
-        quiz: { enabled: true },
-        qa: {
-          enabled: true,
-          open: true,
-          title: 'Fragen',
-          moderationMode: true,
-          state: 'OPEN',
-          closesAt: '2027-09-20T08:00:00.000Z',
+  it.each([true, false, undefined])(
+    'zeigt das Gesamtergebnis bei offenem Q&A mit Bewertungsoption %s',
+    async (enableSessionFeedback) => {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'FINISHED',
+        quizName: 'Team-Quiz',
+        title: null,
+        participantCount: 6,
+        teamMode: false,
+        quizStarted: true,
+        enableSessionFeedback,
+        preset: 'PLAYFUL',
+        qaClosesAt: '2027-09-20T08:00:00.000Z',
+        channels: {
+          quiz: { enabled: true },
+          qa: {
+            enabled: true,
+            open: true,
+            title: 'Fragen',
+            moderationMode: true,
+            state: 'OPEN',
+            closesAt: '2027-09-20T08:00:00.000Z',
+          },
+          quickFeedback: { enabled: false, open: false },
         },
-        quickFeedback: { enabled: false, open: false },
-      },
-    });
-    currentQuestionQueryMock.mockResolvedValue(null);
+      });
+      currentQuestionQueryMock.mockResolvedValue(null);
 
-    const fixture = TestBed.createComponent(SessionVoteComponent);
-    fixture.detectChanges();
-    await flushComponentAfterStable(fixture, 80);
-    fixture.detectChanges();
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 80);
+      fixture.detectChanges();
 
-    const inst = fixture.componentInstance;
-    expect(inst.isFinished()).toBe(false);
-    expect(inst.qaStillJoinable()).toBe(true);
-    expect(inst.showQuizFinishedWrapUp()).toBe(true);
-    expect(inst.sessionFeedbackAvailable()).toBe(true);
-    expect(inst.showSessionEndGate()).toBe(false);
-    expect(fixture.nativeElement.textContent).toMatch(/Kurzes Feedback\?|Deine Meinung zählt/);
-    fixture.destroy();
-  });
+      const inst = fixture.componentInstance;
+      expect(inst.isFinished()).toBe(false);
+      expect(inst.qaStillJoinable()).toBe(true);
+      expect(inst.showQuizFinishedWrapUp()).toBe(true);
+      expect(inst.showSessionEndGate()).toBe(false);
+      const host = fixture.nativeElement as HTMLElement;
+      const shouldShowFeedback = enableSessionFeedback === true;
+      expect(inst.sessionFeedbackAvailable()).toBe(shouldShowFeedback);
+      expect(host.querySelector('.vote-feedback-card') !== null).toBe(shouldShowFeedback);
+      expect(host.querySelector('.vote-feedback-card__submit') !== null).toBe(shouldShowFeedback);
+      if (!shouldShowFeedback) {
+        expect(getHasSubmittedFeedbackQueryMock).not.toHaveBeenCalled();
+        inst.setFeedbackOverall(4);
+        await inst.submitFeedback();
+        expect(submitSessionFeedbackMutateMock).not.toHaveBeenCalled();
+      }
+      fixture.destroy();
+    },
+  );
 
   it('bleibt nach Quiz-FINISHED ohne Q&A im Wrap-up, solange expiresAt in der Zukunft liegt', () => {
     const fixture = TestBed.createComponent(SessionVoteComponent);
@@ -4921,6 +4937,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       participantCount: 6,
       teamMode: false,
       quizStarted: true,
+      enableSessionFeedback: true,
       preset: 'PLAYFUL',
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -4969,6 +4986,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       participantCount: 6,
       teamMode: false,
       quizStarted: true,
+      enableSessionFeedback: true,
       preset: 'PLAYFUL',
     });
     currentQuestionQueryMock.mockResolvedValue(null);
@@ -5005,6 +5023,7 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
       participantCount: 6,
       teamMode: false,
       quizStarted: false,
+      enableSessionFeedback: true,
       preset: 'PLAYFUL',
     });
     currentQuestionQueryMock.mockResolvedValue(null);
