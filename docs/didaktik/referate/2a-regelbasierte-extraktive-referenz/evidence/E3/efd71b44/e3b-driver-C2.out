@@ -1,0 +1,21 @@
+[C2] setup ok session=2X8QXS {"createMs":103,"joinMs":3901,"submitMs":88,"voteMs":1342}
+[C2] burst-01: extractive/unavailable enq=116.8ms term=314.6ms polls=4 server=125 immediate=false
+[C2] burst-02: extractive/unavailable enq=73.2ms term=225.2ms polls=3 server=102 immediate=false
+[C2] burst-03: extractive/unavailable enq=78ms term=279ms polls=4 server=140 immediate=false
+[C2] burst-04: extractive/circuit_open enq=75.5ms term=209.7ms polls=3 server=92 immediate=false
+[C2] burst-05: extractive/circuit_open enq=63.5ms term=210.5ms polls=3 server=83 immediate=false
+[C2] burst-06: extractive/circuit_open enq=77.4ms term=215.6ms polls=3 server=89 immediate=false
+[C2] burst-07: extractive/circuit_open enq=76.9ms term=227.3ms polls=3 server=84 immediate=false
+[C2] burst-08: extractive/circuit_open enq=66.1ms term=215.8ms polls=3 server=87 immediate=false
+[C2] burst-09: extractive/circuit_open enq=55.8ms term=198.4ms polls=3 server=87 immediate=false
+[C2] burst-10: extractive/circuit_open enq=62.5ms term=209.6ms polls=3 server=88 immediate=false
+[C2] spaced-01: extractive/unavailable enq=105.6ms term=315.1ms polls=4 server=134 immediate=false
+[C2] spaced-02: extractive/unavailable enq=61.4ms term=206ms polls=3 server=93 immediate=false
+[C2] spaced-03: extractive/unavailable enq=71.5ms term=240.7ms polls=3 server=96 immediate=false
+[C2] spaced-04: extractive/circuit_open enq=66.7ms term=218.4ms polls=3 server=98 immediate=false
+[C2] spaced-05: extractive/unavailable enq=77.7ms term=226.8ms polls=3 server=101 immediate=false
+[C2] spaced-06: extractive/unavailable enq=87ms term=279ms polls=4 server=110 immediate=false
+[C2] spaced-07: extractive/unavailable enq=64.4ms term=207.6ms polls=3 server=97 immediate=false
+[C2] spaced-08: extractive/circuit_open enq=64.8ms term=258ms polls=4 server=129 immediate=false
+[C2] spaced-09: extractive/unavailable enq=102.8ms term=261.2ms polls=3 server=105 immediate=false
+[C2] wrote <repo>/docs/didaktik/referate/2a-regelbasierte-extraktive-referenz/harness/../evidence/E3/e3b-raw-C2.json

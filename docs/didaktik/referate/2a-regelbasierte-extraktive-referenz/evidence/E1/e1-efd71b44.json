@@ -1,0 +1,1242 @@
+{
+  "env": {
+    "commit": "efd71b44d4fd32d711cd483606ce5eefd1e9af5b",
+    "commitShort": "efd71b44",
+    "workingTreeClean": true,
+    "rulesVersion": "moderation-compass-rules-v1",
+    "node": "v24.18.0",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700F @ 2.50GHz",
+    "cpuCount": 4,
+    "memoryGb": 8,
+    "platform": "linux 6.6.87.2-microsoft-standard-WSL2",
+    "timestamp": "2026-11-08T14:29:33.350Z"
+  },
+  "signals": {
+    "S0_fixture/N=50": [
+      {
+        "key": "A",
+        "status": "PENDING",
+        "votes": "80/30",
+        "net": 50,
+        "bestScore": "0.637",
+        "controversyScore": "0.522",
+        "isControversial": true
+      },
+      {
+        "key": "B",
+        "status": "ACTIVE",
+        "votes": "10/0",
+        "net": 10,
+        "bestScore": "0.722",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PINNED",
+        "votes": "30/0",
+        "net": 30,
+        "bestScore": "0.886",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "PENDING",
+        "votes": "12/0",
+        "net": 12,
+        "bestScore": "0.757",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "ACTIVE",
+        "votes": "40/40",
+        "net": 0,
+        "bestScore": "0.393",
+        "controversyScore": "0.941",
+        "isControversial": true
+      },
+      {
+        "key": "F",
+        "status": "PENDING",
+        "votes": "20/20",
+        "net": 0,
+        "bestScore": "0.352",
+        "controversyScore": "0.889",
+        "isControversial": true
+      }
+    ],
+    "S0_fixture/N=200": [
+      {
+        "key": "A",
+        "status": "PENDING",
+        "votes": "80/30",
+        "net": 50,
+        "bestScore": "0.637",
+        "controversyScore": "0.462",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "ACTIVE",
+        "votes": "10/0",
+        "net": 10,
+        "bestScore": "0.722",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PINNED",
+        "votes": "30/0",
+        "net": 30,
+        "bestScore": "0.886",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "PENDING",
+        "votes": "12/0",
+        "net": 12,
+        "bestScore": "0.757",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "ACTIVE",
+        "votes": "40/40",
+        "net": 0,
+        "bestScore": "0.393",
+        "controversyScore": "0.800",
+        "isControversial": true
+      },
+      {
+        "key": "F",
+        "status": "PENDING",
+        "votes": "20/20",
+        "net": 0,
+        "bestScore": "0.352",
+        "controversyScore": "0.667",
+        "isControversial": true
+      }
+    ],
+    "S0_fixture/N=1000": [
+      {
+        "key": "A",
+        "status": "PENDING",
+        "votes": "80/30",
+        "net": 50,
+        "bestScore": "0.637",
+        "controversyScore": "0.286",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "ACTIVE",
+        "votes": "10/0",
+        "net": 10,
+        "bestScore": "0.722",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PINNED",
+        "votes": "30/0",
+        "net": 30,
+        "bestScore": "0.886",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "PENDING",
+        "votes": "12/0",
+        "net": 12,
+        "bestScore": "0.757",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "ACTIVE",
+        "votes": "40/40",
+        "net": 0,
+        "bestScore": "0.393",
+        "controversyScore": "0.444",
+        "isControversial": false
+      },
+      {
+        "key": "F",
+        "status": "PENDING",
+        "votes": "20/20",
+        "net": 0,
+        "bestScore": "0.352",
+        "controversyScore": "0.286",
+        "isControversial": false
+      }
+    ],
+    "S1_all_approved/N=50": [
+      {
+        "key": "A",
+        "status": "ACTIVE",
+        "votes": "80/30",
+        "net": 50,
+        "bestScore": "0.637",
+        "controversyScore": "0.522",
+        "isControversial": true
+      },
+      {
+        "key": "B",
+        "status": "ACTIVE",
+        "votes": "10/0",
+        "net": 10,
+        "bestScore": "0.722",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PINNED",
+        "votes": "30/0",
+        "net": 30,
+        "bestScore": "0.886",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "ACTIVE",
+        "votes": "12/0",
+        "net": 12,
+        "bestScore": "0.757",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "ACTIVE",
+        "votes": "40/40",
+        "net": 0,
+        "bestScore": "0.393",
+        "controversyScore": "0.941",
+        "isControversial": true
+      },
+      {
+        "key": "F",
+        "status": "ACTIVE",
+        "votes": "20/20",
+        "net": 0,
+        "bestScore": "0.352",
+        "controversyScore": "0.889",
+        "isControversial": true
+      }
+    ],
+    "S1_all_approved/N=200": [
+      {
+        "key": "A",
+        "status": "ACTIVE",
+        "votes": "80/30",
+        "net": 50,
+        "bestScore": "0.637",
+        "controversyScore": "0.462",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "ACTIVE",
+        "votes": "10/0",
+        "net": 10,
+        "bestScore": "0.722",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PINNED",
+        "votes": "30/0",
+        "net": 30,
+        "bestScore": "0.886",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "ACTIVE",
+        "votes": "12/0",
+        "net": 12,
+        "bestScore": "0.757",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "ACTIVE",
+        "votes": "40/40",
+        "net": 0,
+        "bestScore": "0.393",
+        "controversyScore": "0.800",
+        "isControversial": true
+      },
+      {
+        "key": "F",
+        "status": "ACTIVE",
+        "votes": "20/20",
+        "net": 0,
+        "bestScore": "0.352",
+        "controversyScore": "0.667",
+        "isControversial": true
+      }
+    ],
+    "S1_all_approved/N=1000": [
+      {
+        "key": "A",
+        "status": "ACTIVE",
+        "votes": "80/30",
+        "net": 50,
+        "bestScore": "0.637",
+        "controversyScore": "0.286",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "ACTIVE",
+        "votes": "10/0",
+        "net": 10,
+        "bestScore": "0.722",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PINNED",
+        "votes": "30/0",
+        "net": 30,
+        "bestScore": "0.886",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "ACTIVE",
+        "votes": "12/0",
+        "net": 12,
+        "bestScore": "0.757",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "ACTIVE",
+        "votes": "40/40",
+        "net": 0,
+        "bestScore": "0.393",
+        "controversyScore": "0.444",
+        "isControversial": false
+      },
+      {
+        "key": "F",
+        "status": "ACTIVE",
+        "votes": "20/20",
+        "net": 0,
+        "bestScore": "0.352",
+        "controversyScore": "0.286",
+        "isControversial": false
+      }
+    ],
+    "S2_unreviewed_no_votes/N=50": [
+      {
+        "key": "A",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "F",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      }
+    ],
+    "S2_unreviewed_no_votes/N=200": [
+      {
+        "key": "A",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "F",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      }
+    ],
+    "S2_unreviewed_no_votes/N=1000": [
+      {
+        "key": "A",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "B",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "C",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "D",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "E",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      },
+      {
+        "key": "F",
+        "status": "PENDING",
+        "votes": "0/0",
+        "net": 0,
+        "bestScore": "0.000",
+        "controversyScore": "0.000",
+        "isControversial": false
+      }
+    ]
+  },
+  "rows": [
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[D,A,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[D,A,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[F,A,D]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[F,A,D]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[D,A,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[D,A,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[F,A,D]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[F,A,D]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "friction[E] | clarification[A,D,F]→pending-qa",
+      "nextStepVisible": true,
+      "frictionKeys": ["E"],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "clarification[D,A,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "clarification[D,A,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,D,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "clarification[A,D,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,F,D]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "clarification[A,F,D]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,D,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S0_fixture",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "clarification[A,D,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "friction[E,F,A]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F", "A"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "friction[E,F]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "friction[E,F]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "friction[E,F]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "friction[E,F]→controversy | topics[»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "friction[E,F]→controversy | topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": true,
+      "frictionKeys": ["E", "F"],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "topics[»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "topics[»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "topics[»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "topics[»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S1_all_approved",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "topics[»linearen Regression«,»linearen«,»Regression«]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": ["linearen Regression (df=2)", "linearen (df=2)", "Regression (df=2)"]
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 50,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 200,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "BEST",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TOP",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "CONTROVERSIAL",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "LEXICAL",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    },
+    {
+      "statusVariant": "S2_unreviewed_no_votes",
+      "N": 1000,
+      "sortMode": "TIME",
+      "variant": "THEME",
+      "cards": "clarification[A,B,C,D,E,F]",
+      "nextStepVisible": false,
+      "frictionKeys": [],
+      "topicTerms": []
+    }
+  ]
+}

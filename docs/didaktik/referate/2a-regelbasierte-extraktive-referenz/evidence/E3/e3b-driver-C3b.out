@@ -1,0 +1,21 @@
+[C3b] setup ok session=VFN4HC {"createMs":116,"joinMs":5804,"submitMs":142,"voteMs":2200}
+[C3b] burst-01: extractive/timeout enq=145.8ms term=1419.4ms polls=33 server=1173 immediate=false
+[C3b] burst-02: extractive/timeout enq=91ms term=1345.8ms polls=32 server=1166 immediate=false
+[C3b] burst-03: extractive/timeout enq=87.1ms term=1384.8ms polls=33 server=1190 immediate=false
+[C3b] burst-04: extractive/circuit_open enq=162.5ms term=489.1ms polls=5 server=185 immediate=false
+[C3b] burst-05: extractive/circuit_open enq=125.7ms term=390.9ms polls=5 server=172 immediate=false
+[C3b] burst-06: extractive/circuit_open enq=87.4ms term=341.1ms polls=5 server=161 immediate=false
+[C3b] burst-07: extractive/circuit_open enq=91ms term=364.6ms polls=5 server=202 immediate=false
+[C3b] burst-08: extractive/circuit_open enq=98.8ms term=382.4ms polls=5 server=184 immediate=false
+[C3b] burst-09: extractive/circuit_open enq=89.6ms term=306.4ms polls=4 server=148 immediate=false
+[C3b] burst-10: extractive/circuit_open enq=88.4ms term=348.2ms polls=5 server=154 immediate=false
+[C3b] spaced-01: extractive/timeout enq=122.5ms term=1383.8ms polls=32 server=1180 immediate=false
+[C3b] spaced-02: extractive/timeout enq=74.3ms term=1368.8ms polls=32 server=1196 immediate=false
+[C3b] spaced-03: extractive/timeout enq=77.9ms term=1299.6ms polls=33 server=1136 immediate=false
+[C3b] spaced-04: extractive/circuit_open enq=78.7ms term=273.9ms polls=4 server=129 immediate=false
+[C3b] spaced-05: extractive/timeout enq=124.8ms term=1412.9ms polls=33 server=1186 immediate=false
+[C3b] spaced-06: extractive/timeout enq=89.5ms term=1305.5ms polls=32 server=1155 immediate=false
+[C3b] spaced-07: extractive/timeout enq=79.2ms term=1359.4ms polls=33 server=1190 immediate=false
+[C3b] spaced-08: extractive/circuit_open enq=65.8ms term=267.1ms polls=4 server=130 immediate=false
+[C3b] spaced-09: extractive/timeout enq=110.3ms term=1354.8ms polls=33 server=1168 immediate=false
+[C3b] wrote <referat-2a>/evidence/E3/e3b-raw-C3b.json

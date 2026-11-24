@@ -1,0 +1,21 @@
+[C3b] setup ok session=6K6VFB {"createMs":114,"joinMs":3939,"submitMs":98,"voteMs":1403}
+[C3b] burst-01: extractive/timeout enq=100.4ms term=1295ms polls=29 server=1122 immediate=false
+[C3b] burst-02: extractive/timeout enq=59.4ms term=1243.4ms polls=29 server=1114 immediate=false
+[C3b] burst-03: extractive/timeout enq=56.6ms term=1207.4ms polls=28 server=1099 immediate=false
+[C3b] burst-04: extractive/circuit_open enq=55.1ms term=203.7ms polls=3 server=96 immediate=false
+[C3b] burst-05: extractive/circuit_open enq=98.1ms term=283.2ms polls=4 server=111 immediate=false
+[C3b] burst-06: extractive/circuit_open enq=84ms term=226.7ms polls=3 server=95 immediate=false
+[C3b] burst-07: extractive/circuit_open enq=69.9ms term=213.4ms polls=3 server=92 immediate=false
+[C3b] burst-08: extractive/circuit_open enq=72.5ms term=215.2ms polls=3 server=88 immediate=false
+[C3b] burst-09: extractive/circuit_open enq=76.2ms term=214.9ms polls=3 server=97 immediate=false
+[C3b] burst-10: extractive/circuit_open enq=56.5ms term=199.4ms polls=3 server=93 immediate=false
+[C3b] spaced-01: extractive/timeout enq=74ms term=1264ms polls=29 server=1112 immediate=false
+[C3b] spaced-02: extractive/timeout enq=95.8ms term=1270.1ms polls=29 server=1119 immediate=false
+[C3b] spaced-03: extractive/timeout enq=63ms term=1209.7ms polls=28 server=1106 immediate=false
+[C3b] spaced-04: extractive/circuit_open enq=88.9ms term=279.1ms polls=4 server=101 immediate=false
+[C3b] spaced-05: extractive/timeout enq=80.9ms term=1262.2ms polls=29 server=1103 immediate=false
+[C3b] spaced-06: extractive/timeout enq=120.6ms term=1312.8ms polls=29 server=1127 immediate=false
+[C3b] spaced-07: extractive/timeout enq=63.5ms term=1237ms polls=29 server=1102 immediate=false
+[C3b] spaced-08: extractive/circuit_open enq=73.2ms term=229ms polls=3 server=86 immediate=false
+[C3b] spaced-09: extractive/timeout enq=84.3ms term=1273.6ms polls=29 server=1118 immediate=false
+[C3b] wrote <repo>/docs/didaktik/referate/2a-regelbasierte-extraktive-referenz/harness/../evidence/E3/e3b-raw-C3b.json

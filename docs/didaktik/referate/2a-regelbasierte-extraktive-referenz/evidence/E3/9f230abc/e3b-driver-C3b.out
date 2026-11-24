@@ -1,0 +1,23 @@
+[C3b] setup ok session=FSJCK7 {"createMs":175,"joinMs":8038,"submitMs":257,"voteMs":5844}
+[C3b] burst-01: extractive/timeout enq=84ms term=1308ms polls=32 server=1139 immediate=false
+[C3b] burst-02: extractive/timeout enq=143.7ms term=1360.8ms polls=32 server=1162 immediate=false
+[C3b] burst-03: extractive/timeout enq=75.9ms term=1263.3ms polls=32 server=1131 immediate=false
+[C3b] burst-04: extractive/circuit_open enq=55.7ms term=223.2ms polls=3 server=104 immediate=false
+[C3b] burst-05: extractive/circuit_open enq=63.9ms term=311.4ms polls=3 server=133 immediate=false
+[C3b] burst-06: extractive/circuit_open enq=72.8ms term=264.5ms polls=4 server=118 immediate=false
+[C3b] burst-07: extractive/circuit_open enq=72.3ms term=265.4ms polls=4 server=118 immediate=false
+[C3b] burst-08: extractive/circuit_open enq=68.9ms term=270.8ms polls=4 server=117 immediate=false
+[C3b] burst-09: extractive/circuit_open enq=56ms term=218.1ms polls=3 server=106 immediate=false
+[C3b] burst-10: extractive/circuit_open enq=62.7ms term=222.8ms polls=3 server=106 immediate=false
+[C3b] spaced-01: extractive/timeout enq=73.1ms term=1305.7ms polls=32 server=1152 immediate=false
+[C3b] spaced-02: extractive/timeout enq=72.9ms term=1330.6ms polls=33 server=1197 immediate=false
+[C3b] spaced-03: extractive/timeout enq=67.2ms term=1241.2ms polls=32 server=1113 immediate=false
+[C3b] spaced-04: extractive/circuit_open enq=83.9ms term=275ms polls=4 server=112 immediate=false
+[C3b] spaced-05: extractive/circuit_open enq=75.3ms term=301.7ms polls=5 server=155 immediate=false
+[C3b] spaced-06: extractive/timeout enq=97.2ms term=1354.8ms polls=32 server=1144 immediate=false
+[C3b] spaced-07: extractive/timeout enq=56.7ms term=1240.4ms polls=32 server=1121 immediate=false
+[C3b] spaced-08: extractive/timeout enq=96.8ms term=1341.3ms polls=34 server=1168 immediate=false
+[C3b] spaced-09: extractive/circuit_open enq=67.9ms term=274.2ms polls=4 server=116 immediate=false
+[C3b] spaced-10: extractive/circuit_open enq=74.1ms term=261.3ms polls=3 server=124 immediate=false
+[C3b] spaced-11: extractive/timeout enq=97.8ms term=1301.1ms polls=31 server=1147 immediate=false
+[C3b] wrote <evidence>/E3/e3b-raw-C3b.json
