@@ -1,0 +1,865 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-05T11:06:14.854Z",
+    "commit": "b2234149443e9baca44fe4f8250432c9edf9d40d",
+    "node": "v24.22.2",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "repeats": 20,
+    "queueLimit": {
+      "enabled": true,
+      "timeoutMs": 2000,
+      "queueLimit": 100,
+      "concurrency": 1,
+      "minConfidence": 0.55
+    }
+  },
+  "summary": {
+    "200": {
+      "runs": 20,
+      "runsWithOverflow": 0,
+      "overflowShare": 0,
+      "overflowWilson95": [0, 0.16113012549493322],
+      "runsNotSorted": 0,
+      "finalStatusLines": {
+        "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.": 20
+      },
+      "rejectedPerRun": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "maxPendingPerRun": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
+      "maxEventLoopGapMs": [
+        40.8, 20.3, 20.7, 22.8, 21.7, 21.6, 24.2, 25, 23.4, 22, 21.1, 30.3, 23, 21.6, 20.9, 24,
+        21.7, 20.8, 21, 21.5
+      ]
+    },
+    "1000": {
+      "runs": 20,
+      "runsWithOverflow": 4,
+      "overflowShare": 0.2,
+      "overflowWilson95": [0.0806563532712, 0.41602172202575993],
+      "runsNotSorted": 4,
+      "finalStatusLines": {
+        "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.": 16,
+        "Die automatische Sortierung ist gerade nicht verfügbar.": 4
+      },
+      "rejectedPerRun": [0, 88, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 86, 0, 0, 0, 0, 60, 24, 0],
+      "maxPendingPerRun": [
+        32, 107, 49, 19, 27, 34, 24, 26, 36, 27, 18, 66, 112, 26, 23, 51, 23, 111, 104, 23
+      ],
+      "maxEventLoopGapMs": [
+        29, 19.4, 19.6, 31.1, 20.4, 35.4, 27.6, 31, 26.8, 26.4, 25, 32.1, 20.4, 31, 23.1, 29.8,
+        27.9, 20.7, 23.1, 24.8
+      ]
+    }
+  },
+  "runs": {
+    "200": [
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5220,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 1075,
+          "classified": 1115
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 40.8
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5224.6,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 890,
+          "classified": 1045
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 20.3
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5228.8,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 960,
+          "classified": 1030
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 20.7
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5213.3,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 1035,
+          "pending": 1105
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 22.8
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5245.8,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 855,
+          "classified": 950
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21.7
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5208.7,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 855,
+          "classified": 1035
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21.6
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5183,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 890,
+          "classified": 1525
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 24.2
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5223.8,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 885,
+          "classified": 1180
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 25
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5243.4,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 835,
+          "classified": 870
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 23.4
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5246.3,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 835,
+          "classified": 910
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 22
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5209.6,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 1080,
+          "pending": 955
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21.1
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5230.3,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 1010,
+          "pending": 945
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 30.3
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5247.3,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 885,
+          "pending": 835
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 23
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5243.5,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 840,
+          "classified": 900
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21.6
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5260.7,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 870,
+          "pending": 835
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 20.9
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5234.1,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 905,
+          "pending": 845
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 24
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5241.1,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 815,
+          "classified": 960
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21.7
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5256.4,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 880,
+          "pending": 835
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 20.8
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5253.2,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 900,
+          "pending": 830
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5239.5,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 830,
+          "classified": 905
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 21.5
+      }
+    ],
+    "1000": [
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1046.4,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 535,
+          "classified": 45
+        },
+        "maxPending": 32,
+        "maxEventLoopGapMs": 29
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1094.5,
+        "statuses": {
+          "classified": 348,
+          "uncertain": 64,
+          "failed": 88
+        },
+        "rejectedAtEnqueue": 88,
+        "finalStatusMode": "failed",
+        "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+        "classifiedShownInCompass": 348,
+        "statusLineTimeMs": {
+          "pending": 630,
+          "failed": 15
+        },
+        "maxPending": 107,
+        "maxEventLoopGapMs": 19.4
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 982.9,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 565,
+          "classified": 20
+        },
+        "maxPending": 49,
+        "maxEventLoopGapMs": 19.6
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 994,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 525,
+          "classified": 30
+        },
+        "maxPending": 19,
+        "maxEventLoopGapMs": 31.1
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 971.2,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 530,
+          "classified": 25
+        },
+        "maxPending": 27,
+        "maxEventLoopGapMs": 20.4
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1029.9,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 530,
+          "classified": 40
+        },
+        "maxPending": 34,
+        "maxEventLoopGapMs": 35.4
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 970.4,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 540,
+          "classified": 20
+        },
+        "maxPending": 24,
+        "maxEventLoopGapMs": 27.6
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1060.7,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 550,
+          "classified": 35
+        },
+        "maxPending": 26,
+        "maxEventLoopGapMs": 31
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 998.9,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 540,
+          "classified": 20
+        },
+        "maxPending": 36,
+        "maxEventLoopGapMs": 26.8
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 969.4,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 530,
+          "classified": 20
+        },
+        "maxPending": 27,
+        "maxEventLoopGapMs": 26.4
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 994.8,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 505,
+          "classified": 55
+        },
+        "maxPending": 18,
+        "maxEventLoopGapMs": 25
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1094.9,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 615,
+          "classified": 30
+        },
+        "maxPending": 66,
+        "maxEventLoopGapMs": 32.1
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1045.5,
+        "statuses": {
+          "classified": 349,
+          "uncertain": 65,
+          "failed": 86
+        },
+        "rejectedAtEnqueue": 86,
+        "finalStatusMode": "failed",
+        "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+        "classifiedShownInCompass": 349,
+        "statusLineTimeMs": {
+          "pending": 580,
+          "failed": 15
+        },
+        "maxPending": 112,
+        "maxEventLoopGapMs": 20.4
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1016.5,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 520,
+          "classified": 35
+        },
+        "maxPending": 26,
+        "maxEventLoopGapMs": 31
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 969.8,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 525,
+          "classified": 35
+        },
+        "maxPending": 23,
+        "maxEventLoopGapMs": 23.1
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1039.6,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 555,
+          "classified": 25
+        },
+        "maxPending": 51,
+        "maxEventLoopGapMs": 29.8
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 971.9,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 525,
+          "classified": 30
+        },
+        "maxPending": 23,
+        "maxEventLoopGapMs": 27.9
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1109.2,
+        "statuses": {
+          "classified": 373,
+          "uncertain": 67,
+          "failed": 60
+        },
+        "rejectedAtEnqueue": 60,
+        "finalStatusMode": "failed",
+        "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+        "classifiedShownInCompass": 373,
+        "statusLineTimeMs": {
+          "pending": 625,
+          "classified": 5,
+          "failed": 15
+        },
+        "maxPending": 111,
+        "maxEventLoopGapMs": 20.7
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1043.4,
+        "statuses": {
+          "classified": 404,
+          "uncertain": 72,
+          "failed": 24
+        },
+        "rejectedAtEnqueue": 24,
+        "finalStatusMode": "failed",
+        "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+        "classifiedShownInCompass": 404,
+        "statusLineTimeMs": {
+          "pending": 580,
+          "failed": 15
+        },
+        "maxPending": 104,
+        "maxEventLoopGapMs": 23.1
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 984,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 515,
+          "classified": 45
+        },
+        "maxPending": 23,
+        "maxEventLoopGapMs": 24.8
+      }
+    ]
+  }
+}

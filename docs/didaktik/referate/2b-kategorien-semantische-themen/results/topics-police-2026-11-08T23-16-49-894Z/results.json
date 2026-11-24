@@ -1,0 +1,2817 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-08T23:16:49.894Z",
+    "commit": "74091b0a646868b81e300edbde7a2da7c36a5e57",
+    "describe": "v1.3.0-364-g74091b0a-dirty",
+    "wordCloudSourcesDirty": false,
+    "node": "v24.22.2",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "reference": {
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87",
+      "items": 150,
+      "itemsInFile": 723,
+      "locales": ["de", "en", "fr", "es"],
+      "domain": "police"
+    },
+    "encoder": {
+      "modelId": "intfloat/multilingual-e5-small",
+      "modelVersion": "intfloat/multilingual-e5-small@sha256:f80102d3f2a1229f",
+      "dimensions": 384,
+      "image": "arsnova-wordcloud-encoder:e5-small sha256:245b8f96e7255b8e0ae01bef6b1daeaa5c17a7d44579df4df92097f85502eecd",
+      "imageSizeMB": 1496.828619,
+      "limits": "cpus=1000000000 mem=2147483648",
+      "transport": "loopback HTTP http://127.0.0.1:8790/embed (Labor; Produktion: Unix-Socket, network_mode none)"
+    },
+    "releaseConstants": {
+      "WORD_CLOUD_SEMANTIC_COSINE_THRESHOLD": 0.87,
+      "WORD_CLOUD_SEMANTIC_MAX_TOPICS": 12,
+      "WORD_CLOUD_SEMANTIC_LOCALES": ["de", "en"],
+      "reliableGate": "mind. 1 Cluster ≥ 2 Mitglieder und Konfidenz ≥ 0,65",
+      "readyStatus": "mind. 1 Cluster mit Konfidenz ≥ 0,85"
+    },
+    "settings": {
+      "RUNS": 10,
+      "SWEEP": [0.8, 0.82, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.92]
+    }
+  },
+  "results": {
+    "mixed": {
+      "label": "Gesamtset (de/en/fr/es), Session-Locale de",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 150,
+        "goldTopics": 48,
+        "goldMultiTopics": 18,
+        "predictedTopics": 97,
+        "predictedMultiTopics": 35,
+        "missedSingletonRate": 0.375,
+        "ari": 0.2833545478395212,
+        "nmi": 0.8530472217023182,
+        "bcubed": {
+          "precision": 0.9277777777777777,
+          "recall": 0.44549206349206355,
+          "f1": 0.6019467176270543
+        },
+        "pairRecall": 0.17681159420289855,
+        "monolingualPairRecall": 0.24444444444444444,
+        "crossLingualPairRecall": 0.15294117647058825,
+        "falseMergePairs": 13,
+        "falseMerges": [
+          ["Q632", "Q667"],
+          ["Q634", "Q667"],
+          ["Q635", "Q721"],
+          ["Q642", "Q705"],
+          ["Q649", "Q713"],
+          ["Q671", "Q697"],
+          ["Q672", "Q697"],
+          ["Q673", "Q697"],
+          ["Q690", "Q707"],
+          ["Q694", "Q708"],
+          ["Q710", "Q715"],
+          ["Q716", "Q717"],
+          ["Q718", "Q723"]
+        ],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 12,
+          "multiMemberTopicsShown": 12,
+          "itemsInShownMultiTopics": 0.26
+        },
+        "clusters": [
+          {
+            "label": "Le simulateur d'intervention ne démarre pas, l'écran reste noir.",
+            "confidence": 0.949,
+            "members": ["Q674", "Q675", "Q676"],
+            "families": ["P-SIM"]
+          },
+          {
+            "label": "What if they refuse?",
+            "confidence": 0.937,
+            "members": ["Q716", "Q717"],
+            "families": ["S-P-AMB-08", "S-P-AMB-09"]
+          },
+          {
+            "label": "El vídeo de la cámara corporal del ejercicio no se reproduce.",
+            "confidence": 0.927,
+            "members": ["Q692", "Q693"],
+            "families": ["P-BODYCAM"]
+          },
+          {
+            "label": "À quel moment faut-il informer une personne de ses droits en tant que suspect et non plus comme témoin ?",
+            "confidence": 0.914,
+            "members": ["Q602", "Q603"],
+            "families": ["P-BELEHRUNG"]
+          },
+          {
+            "label": "Comment s'adresser à une personne agitée pour éviter que la situation dégénère ?",
+            "confidence": 0.914,
+            "members": ["Q622", "Q623"],
+            "families": ["P-DEESK"]
+          },
+          {
+            "label": "Is there a make-up date for the fitness test if I was ill?",
+            "confidence": 0.911,
+            "members": ["Q643", "Q644"],
+            "families": ["P-SPORT"]
+          },
+          {
+            "label": "No puedo entrar en el sistema de gestión de expedientes de formación, rechaza la contraseña.",
+            "confidence": 0.918,
+            "members": ["Q681", "Q680", "Q682"],
+            "families": ["P-VBS"]
+          },
+          {
+            "label": "Wo steht das?",
+            "confidence": 0.91,
+            "members": ["Q710", "Q715"],
+            "families": ["S-P-AMB-02", "S-P-AMB-07"]
+          },
+          {
+            "label": "¿Qué requisitos deben cumplirse para usar el arma de fuego contra una persona?",
+            "confidence": 0.907,
+            "members": ["Q609", "Q610"],
+            "families": ["P-UZWANG"]
+          },
+          {
+            "label": "Welche Gesetzestexte dürfen wir in die Klausur mitnehmen?",
+            "confidence": 0.907,
+            "members": ["Q659", "Q660"],
+            "families": ["P-GESETZ"]
+          },
+          {
+            "label": "Pouvez-vous réexpliquer la différence entre légitime défense et état de nécessité ?",
+            "confidence": 0.905,
+            "members": ["Q579", "Q580"],
+            "families": ["P-NOTWEHR"]
+          },
+          {
+            "label": "Faut-il porter l'uniforme pendant les cours théoriques ?",
+            "confidence": 0.91,
+            "members": ["Q658", "Q656", "Q657"],
+            "families": ["P-UNIFORM"]
+          },
+          {
+            "label": "Wie fit muss man für den Sporttest wirklich sein?",
+            "confidence": 0.903,
+            "members": ["Q642", "Q705"],
+            "families": ["P-SPORT", "S-P-NM-12"]
+          },
+          {
+            "label": "The bodycam footage from the role play won't play.",
+            "confidence": 0.902,
+            "members": ["Q689", "Q691"],
+            "families": ["P-BODYCAM"]
+          },
+          {
+            "label": "Das Video von der Bodycam bricht nach ein paar Sekunden ab.",
+            "confidence": 0.901,
+            "members": ["Q690", "Q707"],
+            "families": ["P-BODYCAM", "S-P-NM-14"]
+          },
+          {
+            "label": "In welcher Reihenfolge werden Spuren am Tatort gesichert?",
+            "confidence": 0.907,
+            "members": ["Q611", "Q612", "Q614"],
+            "families": ["P-SPUREN"]
+          },
+          {
+            "label": "Das Funkgerät zeigt nur »kein Netz« an, obwohl wir im Übungsgelände sind.",
+            "confidence": 0.9,
+            "members": ["Q684", "Q685"],
+            "families": ["P-FUNK"]
+          },
+          {
+            "label": "Und im Praktikum?",
+            "confidence": 0.898,
+            "members": ["Q649", "Q713"],
+            "families": ["P-PRAKT", "S-P-AMB-05"]
+          },
+          {
+            "label": "¡Gracias, muy claro!",
+            "confidence": 0.895,
+            "members": ["Q718", "Q723"],
+            "families": ["S-P-NOISE-01", "S-P-NOISE-06"]
+          },
+          {
+            "label": "Welche Voraussetzungen müssen für den Schusswaffengebrauch gegen Personen vorliegen?",
+            "confidence": 0.901,
+            "members": ["Q607", "Q604", "Q605"],
+            "families": ["P-UZWANG"]
+          },
+          {
+            "label": "Comment préserver les traces sur une scène de crime sans les contaminer ?",
+            "confidence": 0.893,
+            "members": ["Q615", "Q616"],
+            "families": ["P-SPUREN"]
+          },
+          {
+            "label": "vorgangsbearbeitung schulung login geht nicht",
+            "confidence": 0.899,
+            "members": ["Q678", "Q677", "Q679"],
+            "families": ["P-VBS"]
+          },
+          {
+            "label": "Kann man sich die Dienststelle für das Praktikum wünschen?",
+            "confidence": 0.9,
+            "members": ["Q648", "Q646", "Q647"],
+            "families": ["P-PRAKT"]
+          },
+          {
+            "label": "Beim Schießsimulator werden die Treffer gerade nicht mehr erkannt.",
+            "confidence": 0.896,
+            "members": ["Q672", "Q697", "Q671", "Q673"],
+            "families": ["P-SIM", "S-P-NM-04"]
+          },
+          {
+            "label": "Kommt die Prüfung der Notwehr in der Klausur dran?",
+            "confidence": 0.885,
+            "members": ["Q694", "Q708"],
+            "families": ["S-P-NM-01", "S-P-NM-15"]
+          },
+          {
+            "label": "Where do we meet for the operational training in the training hall?",
+            "confidence": 0.894,
+            "members": ["Q665", "Q668", "Q669", "Q670"],
+            "families": ["P-HALLE"]
+          },
+          {
+            "label": "Fällt das Schießtraining am Freitag wegen der Prüfungswoche aus?",
+            "confidence": 0.89,
+            "members": ["Q667", "Q632", "Q634"],
+            "families": ["P-HALLE", "P-SCHIESS"]
+          },
+          {
+            "label": "schiesstraining morgen wo treffpunkt",
+            "confidence": 0.88,
+            "members": ["Q635", "Q721"],
+            "families": ["P-SCHIESS", "S-P-NOISE-04"]
+          },
+          {
+            "label": "Welche Zeiten muss man beim Sporttest für die Laufstrecke schaffen?",
+            "confidence": 0.88,
+            "members": ["Q639", "Q640"],
+            "families": ["P-SPORT"]
+          },
+          {
+            "label": "Où se situe la limite entre l'obligation de poursuivre et le pouvoir d'appréciation de la police ?",
+            "confidence": 0.879,
+            "members": ["Q630", "Q631"],
+            "families": ["P-LEGAL"]
+          },
+          {
+            "label": "How do I check whether a police measure is proportionate?",
+            "confidence": 0.898,
+            "members": ["Q596", "Q593", "Q595"],
+            "families": ["P-VERHAELT"]
+          },
+          {
+            "label": "Quelle est la différence entre l'arrestation par un citoyen et celle par la police ?",
+            "confidence": 0.896,
+            "members": ["Q588", "Q586", "Q587"],
+            "families": ["P-FESTNAHME"]
+          },
+          {
+            "label": "Quand et où a lieu le prochain entraînement au tir ?",
+            "confidence": 0.897,
+            "members": ["Q636", "Q637", "Q638"],
+            "families": ["P-SCHIESS"]
+          },
+          {
+            "label": "notwehr oder notstand was is der unterschied",
+            "confidence": 0.891,
+            "members": ["Q575", "Q574", "Q577"],
+            "families": ["P-NOTWEHR"]
+          },
+          {
+            "label": "Nos radios d'entraînement n'arrivent pas à se connecter.",
+            "confidence": 0.899,
+            "members": ["Q683", "Q688", "Q686", "Q687"],
+            "families": ["P-FUNK"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 150,
+        "goldTopics": 48,
+        "goldMultiTopics": 18,
+        "predictedTopics": 82,
+        "predictedMultiTopics": 31,
+        "missedSingletonRate": 0.3,
+        "ari": 0.17125856939593845,
+        "nmi": 0.7808221196490519,
+        "bcubed": {
+          "precision": 0.699111111111111,
+          "recall": 0.4085555555555558,
+          "f1": 0.5157250587933707
+        },
+        "pairRecall": 0.12753623188405797,
+        "monolingualPairRecall": 0.37777777777777777,
+        "crossLingualPairRecall": 0.0392156862745098,
+        "falseMergePairs": 86,
+        "falseMerges": [
+          ["Q578", "Q594"],
+          ["Q579", "Q588"],
+          ["Q579", "Q631"],
+          ["Q580", "Q588"],
+          ["Q580", "Q631"],
+          ["Q581", "Q701"],
+          ["Q584", "Q597"],
+          ["Q584", "Q625"],
+          ["Q585", "Q701"],
+          ["Q586", "Q593"],
+          ["Q586", "Q595"],
+          ["Q586", "Q629"],
+          ["Q586", "Q630"],
+          ["Q587", "Q593"],
+          ["Q587", "Q595"],
+          ["Q587", "Q629"],
+          ["Q587", "Q630"],
+          ["Q588", "Q631"],
+          ["Q589", "Q703"],
+          ["Q591", "Q608"],
+          ["Q591", "Q618"],
+          ["Q591", "Q620"],
+          ["Q591", "Q622"],
+          ["Q593", "Q629"],
+          ["Q593", "Q630"],
+          ["Q595", "Q629"],
+          ["Q595", "Q630"],
+          ["Q596", "Q603"],
+          ["Q596", "Q617"],
+          ["Q596", "Q624"],
+          ["Q597", "Q625"],
+          ["Q599", "Q698"],
+          ["Q599", "Q709"],
+          ["Q601", "Q656"],
+          ["Q602", "Q609"],
+          ["Q602", "Q623"],
+          ["Q602", "Q717"],
+          ["Q603", "Q617"],
+          ["Q603", "Q624"],
+          ["Q608", "Q618"],
+          ["Q608", "Q620"],
+          ["Q608", "Q622"],
+          ["Q609", "Q623"],
+          ["Q609", "Q717"],
+          ["Q610", "Q645"],
+          ["Q610", "Q670"],
+          ["Q617", "Q624"],
+          ["Q623", "Q717"],
+          ["Q632", "Q702"],
+          ["Q634", "Q702"],
+          ["Q635", "Q702"],
+          ["Q637", "Q687"],
+          ["Q638", "Q652"],
+          ["Q639", "Q705"],
+          ["Q640", "Q705"],
+          ["Q641", "Q705"],
+          ["Q642", "Q705"],
+          ["Q644", "Q669"],
+          ["Q645", "Q670"],
+          ["Q646", "Q713"],
+          ["Q647", "Q713"],
+          ["Q648", "Q713"],
+          ["Q649", "Q713"],
+          ["Q659", "Q694"],
+          ["Q659", "Q708"],
+          ["Q660", "Q694"],
+          ["Q660", "Q708"],
+          ["Q661", "Q694"],
+          ["Q661", "Q708"],
+          ["Q665", "Q696"],
+          ["Q666", "Q696"],
+          ["Q667", "Q696"],
+          ["Q668", "Q674"],
+          ["Q668", "Q680"],
+          ["Q668", "Q686"],
+          ["Q673", "Q697"],
+          ["Q674", "Q680"],
+          ["Q674", "Q686"],
+          ["Q677", "Q699"],
+          ["Q678", "Q699"],
+          ["Q679", "Q699"],
+          ["Q680", "Q686"],
+          ["Q685", "Q720"],
+          ["Q691", "Q695"],
+          ["Q694", "Q708"],
+          ["Q698", "Q709"]
+        ],
+        "clusters": [
+          {
+            "label": "police",
+            "members": ["Q595", "Q593", "Q630", "Q587", "Q586", "Q629"],
+            "families": ["P-VERHAELT", "P-LEGAL", "P-FESTNAHME"]
+          },
+          {
+            "label": "Klausur",
+            "members": ["Q660", "Q661", "Q708", "Q694", "Q659"],
+            "families": ["P-GESETZ", "S-P-NM-15", "S-P-NM-01"]
+          },
+          {
+            "label": "Person",
+            "members": ["Q622", "Q591", "Q608", "Q618", "Q620"],
+            "families": ["P-DEESK", "P-VERHAELT", "P-UZWANG"]
+          },
+          {
+            "label": "Praktikum",
+            "members": ["Q647", "Q648", "Q713", "Q646", "Q649"],
+            "families": ["P-PRAKT", "S-P-AMB-05"]
+          },
+          {
+            "label": "Sporttest",
+            "members": ["Q640", "Q705", "Q639", "Q642", "Q641"],
+            "families": ["P-SPORT", "S-P-NM-12"]
+          },
+          {
+            "label": "Cómo",
+            "members": ["Q596", "Q624", "Q617", "Q603"],
+            "families": ["P-VERHAELT", "P-DEESK", "P-SPUREN", "P-BELEHRUNG"]
+          },
+          {
+            "label": "Einsatztraining",
+            "members": ["Q667", "Q666", "Q696", "Q665"],
+            "families": ["P-HALLE", "S-P-NM-03"]
+          },
+          {
+            "label": "entre",
+            "members": ["Q631", "Q580", "Q588", "Q579"],
+            "families": ["P-LEGAL", "P-NOTWEHR", "P-FESTNAHME"]
+          },
+          {
+            "label": "personne",
+            "members": ["Q602", "Q623", "Q717", "Q609"],
+            "families": ["P-BELEHRUNG", "P-DEESK", "S-P-AMB-09", "P-UZWANG"]
+          },
+          {
+            "label": "Schießtraining",
+            "members": ["Q634", "Q702", "Q635", "Q632"],
+            "families": ["P-SCHIESS", "S-P-NM-09"]
+          },
+          {
+            "label": "training",
+            "members": ["Q680", "Q686", "Q674", "Q668"],
+            "families": ["P-VBS", "P-FUNK", "P-SIM", "P-HALLE"]
+          },
+          {
+            "label": "Vorgangsbearbeitung",
+            "members": ["Q678", "Q677", "Q699", "Q679"],
+            "families": ["P-VBS", "S-P-NM-06"]
+          },
+          {
+            "label": "Festnahme",
+            "members": ["Q585", "Q701", "Q581"],
+            "families": ["P-FESTNAHME", "S-P-NM-08"]
+          },
+          {
+            "label": "genau",
+            "members": ["Q597", "Q584", "Q625"],
+            "families": ["P-BELEHRUNG", "P-FESTNAHME", "P-LEGAL"]
+          },
+          {
+            "label": "Gilt",
+            "members": ["Q709", "Q599", "Q698"],
+            "families": ["S-P-AMB-01", "P-BELEHRUNG", "S-P-NM-05"]
+          },
+          {
+            "label": "para",
+            "members": ["Q670", "Q645", "Q610"],
+            "families": ["P-HALLE", "P-SPORT", "P-UZWANG"]
+          },
+          {
+            "label": "Schusswaffengebrauch",
+            "members": ["Q607", "Q605", "Q604"],
+            "families": ["P-UZWANG"]
+          },
+          {
+            "label": "Tatort",
+            "members": ["Q612", "Q614", "Q611"],
+            "families": ["P-SPUREN"]
+          },
+          {
+            "label": "vidéo",
+            "members": ["Q690", "Q693", "Q692"],
+            "families": ["P-BODYCAM"]
+          },
+          {
+            "label": "belehrung",
+            "members": ["Q600", "Q598"],
+            "families": ["P-BELEHRUNG"]
+          },
+          {
+            "label": "bodycam",
+            "members": ["Q695", "Q691"],
+            "families": ["S-P-NM-02", "P-BODYCAM"]
+          },
+          {
+            "label": "Cuándo",
+            "members": ["Q652", "Q638"],
+            "families": ["P-PRAKT", "P-SCHIESS"]
+          },
+          {
+            "label": "difference",
+            "members": ["Q578", "Q594"],
+            "families": ["P-NOTWEHR", "P-VERHAELT"]
+          },
+          {
+            "label": "entraînement",
+            "members": ["Q687", "Q637"],
+            "families": ["P-FUNK", "P-SCHIESS"]
+          },
+          {
+            "label": "examen",
+            "members": ["Q664", "Q663"],
+            "families": ["P-GESETZ"]
+          },
+          {
+            "label": "Gruppe",
+            "members": ["Q685", "Q720"],
+            "families": ["P-FUNK", "S-P-NOISE-03"]
+          },
+          {
+            "label": "have",
+            "members": ["Q656", "Q601"],
+            "families": ["P-UNIFORM", "P-BELEHRUNG"]
+          },
+          {
+            "label": "notwehr",
+            "members": ["Q574", "Q577"],
+            "families": ["P-NOTWEHR"]
+          },
+          {
+            "label": "pour",
+            "members": ["Q669", "Q644"],
+            "families": ["P-HALLE", "P-SPORT"]
+          },
+          {
+            "label": "Simulator",
+            "members": ["Q673", "Q697"],
+            "families": ["P-SIM", "S-P-NM-04"]
+          },
+          {
+            "label": "Verhältnismäßigkeit",
+            "members": ["Q703", "Q589"],
+            "families": ["S-P-NM-10", "P-VERHAELT"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.3049459520204912,
+          "bcubedF1": 0.5628354838407406,
+          "bcubedP": 0.5966666666666665,
+          "bcubedR": 0.5326349206349205,
+          "predictedMultiTopics": 36,
+          "falseMergePairs": 201,
+          "crossLingualPairRecall": 0.23921568627450981
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.33607655121254215,
+          "bcubedF1": 0.5877631732500085,
+          "bcubedP": 0.6836031746031743,
+          "bcubedR": 0.5154920634920633,
+          "predictedMultiTopics": 40,
+          "falseMergePairs": 110,
+          "crossLingualPairRecall": 0.21568627450980393
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.36547316826569076,
+          "bcubedF1": 0.6195033354372332,
+          "bcubedP": 0.7917142857142853,
+          "bcubedR": 0.5088253968253966,
+          "predictedMultiTopics": 43,
+          "falseMergePairs": 59,
+          "crossLingualPairRecall": 0.20784313725490197
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.3469933691909275,
+          "bcubedF1": 0.6133930789275015,
+          "bcubedP": 0.8099999999999996,
+          "bcubedR": 0.4935873015873015,
+          "predictedMultiTopics": 45,
+          "falseMergePairs": 49,
+          "crossLingualPairRecall": 0.19215686274509805
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.30259982615144276,
+          "bcubedF1": 0.6016112019492803,
+          "bcubedP": 0.8566666666666665,
+          "bcubedR": 0.4635873015873016,
+          "predictedMultiTopics": 40,
+          "falseMergePairs": 33,
+          "crossLingualPairRecall": 0.1607843137254902
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.2833545478395212,
+          "bcubedF1": 0.6019467176270543,
+          "bcubedP": 0.9277777777777777,
+          "bcubedR": 0.44549206349206355,
+          "predictedMultiTopics": 35,
+          "falseMergePairs": 13,
+          "crossLingualPairRecall": 0.15294117647058825
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.23357737138062942,
+          "bcubedF1": 0.580728081036041,
+          "bcubedP": 0.9277777777777777,
+          "bcubedR": 0.42263492063492064,
+          "predictedMultiTopics": 34,
+          "falseMergePairs": 13,
+          "crossLingualPairRecall": 0.11372549019607843
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.18909456461453134,
+          "bcubedF1": 0.5626955848179704,
+          "bcubedP": 0.9533333333333334,
+          "bcubedR": 0.39914285714285713,
+          "predictedMultiTopics": 33,
+          "falseMergePairs": 7,
+          "crossLingualPairRecall": 0.09019607843137255
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0.1387221583933742,
+          "bcubedF1": 0.5420351507416948,
+          "bcubedP": 0.9666666666666667,
+          "bcubedR": 0.3766031746031746,
+          "predictedMultiTopics": 26,
+          "falseMergePairs": 5,
+          "crossLingualPairRecall": 0.08235294117647059
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0.054375665812915065,
+          "bcubedF1": 0.5076212456478463,
+          "bcubedP": 0.9933333333333333,
+          "bcubedR": 0.3409206349206349,
+          "predictedMultiTopics": 9,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": 0.03529411764705882
+        }
+      ]
+    },
+    "de": {
+      "label": "nur Deutsch",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 90,
+        "goldTopics": 43,
+        "goldMultiTopics": 18,
+        "predictedTopics": 64,
+        "predictedMultiTopics": 18,
+        "missedSingletonRate": 0.49230769230769234,
+        "ari": 0.3629764065335753,
+        "nmi": 0.8951176400745661,
+        "bcubed": {
+          "precision": 0.8907407407407406,
+          "recall": 0.6222222222222222,
+          "f1": 0.7326533387732898
+        },
+        "pairRecall": 0.25842696629213485,
+        "monolingualPairRecall": 0.25842696629213485,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 12,
+        "falseMerges": [
+          ["Q632", "Q667"],
+          ["Q634", "Q667"],
+          ["Q635", "Q721"],
+          ["Q642", "Q705"],
+          ["Q649", "Q713"],
+          ["Q671", "Q697"],
+          ["Q672", "Q697"],
+          ["Q673", "Q697"],
+          ["Q690", "Q707"],
+          ["Q694", "Q708"],
+          ["Q710", "Q715"],
+          ["Q718", "Q720"]
+        ],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 12,
+          "multiMemberTopicsShown": 12,
+          "itemsInShownMultiTopics": 0.35555555555555557
+        },
+        "clusters": [
+          {
+            "label": "Wo steht das?",
+            "confidence": 0.91,
+            "members": ["Q710", "Q715"],
+            "families": ["S-P-AMB-02", "S-P-AMB-07"]
+          },
+          {
+            "label": "Welche Gesetzestexte dürfen wir in die Klausur mitnehmen?",
+            "confidence": 0.907,
+            "members": ["Q659", "Q660"],
+            "families": ["P-GESETZ"]
+          },
+          {
+            "label": "Wie fit muss man für den Sporttest wirklich sein?",
+            "confidence": 0.903,
+            "members": ["Q642", "Q705"],
+            "families": ["P-SPORT", "S-P-NM-12"]
+          },
+          {
+            "label": "Das Video von der Bodycam bricht nach ein paar Sekunden ab.",
+            "confidence": 0.901,
+            "members": ["Q690", "Q707"],
+            "families": ["P-BODYCAM", "S-P-NM-14"]
+          },
+          {
+            "label": "In welcher Reihenfolge werden Spuren am Tatort gesichert?",
+            "confidence": 0.907,
+            "members": ["Q611", "Q612", "Q614"],
+            "families": ["P-SPUREN"]
+          },
+          {
+            "label": "Das Funkgerät zeigt nur »kein Netz« an, obwohl wir im Übungsgelände sind.",
+            "confidence": 0.9,
+            "members": ["Q684", "Q685"],
+            "families": ["P-FUNK"]
+          },
+          {
+            "label": "Und im Praktikum?",
+            "confidence": 0.898,
+            "members": ["Q649", "Q713"],
+            "families": ["P-PRAKT", "S-P-AMB-05"]
+          },
+          {
+            "label": "Welche Voraussetzungen müssen für den Schusswaffengebrauch gegen Personen vorliegen?",
+            "confidence": 0.901,
+            "members": ["Q607", "Q604", "Q605"],
+            "families": ["P-UZWANG"]
+          },
+          {
+            "label": "vorgangsbearbeitung schulung login geht nicht",
+            "confidence": 0.899,
+            "members": ["Q678", "Q677", "Q679"],
+            "families": ["P-VBS"]
+          },
+          {
+            "label": "Kann man sich die Dienststelle für das Praktikum wünschen?",
+            "confidence": 0.9,
+            "members": ["Q648", "Q646", "Q647"],
+            "families": ["P-PRAKT"]
+          },
+          {
+            "label": "Beim Schießsimulator werden die Treffer gerade nicht mehr erkannt.",
+            "confidence": 0.896,
+            "members": ["Q672", "Q697", "Q671", "Q673"],
+            "families": ["P-SIM", "S-P-NM-04"]
+          },
+          {
+            "label": "Kommt die Prüfung der Notwehr in der Klausur dran?",
+            "confidence": 0.885,
+            "members": ["Q694", "Q708"],
+            "families": ["S-P-NM-01", "S-P-NM-15"]
+          },
+          {
+            "label": "Fällt das Schießtraining am Freitag wegen der Prüfungswoche aus?",
+            "confidence": 0.89,
+            "members": ["Q667", "Q632", "Q634"],
+            "families": ["P-HALLE", "P-SCHIESS"]
+          },
+          {
+            "label": "Wo treffen wir uns für das Einsatztraining in der Trainingshalle?",
+            "confidence": 0.883,
+            "members": ["Q665", "Q666"],
+            "families": ["P-HALLE"]
+          },
+          {
+            "label": "schiesstraining morgen wo treffpunkt",
+            "confidence": 0.88,
+            "members": ["Q635", "Q721"],
+            "families": ["P-SCHIESS", "S-P-NOISE-04"]
+          },
+          {
+            "label": "Welche Zeiten muss man beim Sporttest für die Laufstrecke schaffen?",
+            "confidence": 0.88,
+            "members": ["Q639", "Q640"],
+            "families": ["P-SPORT"]
+          },
+          {
+            "label": "Respekt an Gruppe 2, starke Übung",
+            "confidence": 0.875,
+            "members": ["Q718", "Q720"],
+            "families": ["S-P-NOISE-01", "S-P-NOISE-03"]
+          },
+          {
+            "label": "notwehr oder notstand was is der unterschied",
+            "confidence": 0.891,
+            "members": ["Q575", "Q574", "Q577"],
+            "families": ["P-NOTWEHR"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 90,
+        "goldTopics": 43,
+        "goldMultiTopics": 18,
+        "predictedTopics": 52,
+        "predictedMultiTopics": 17,
+        "missedSingletonRate": 0.35384615384615387,
+        "ari": 0.4134315670161519,
+        "nmi": 0.8794160387528377,
+        "bcubed": {
+          "precision": 0.775925925925926,
+          "recall": 0.6822222222222222,
+          "f1": 0.7260632743487709
+        },
+        "pairRecall": 0.38202247191011235,
+        "monolingualPairRecall": 0.38202247191011235,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 37,
+        "falseMerges": [
+          ["Q581", "Q701"],
+          ["Q584", "Q597"],
+          ["Q584", "Q625"],
+          ["Q585", "Q701"],
+          ["Q589", "Q703"],
+          ["Q591", "Q618"],
+          ["Q591", "Q620"],
+          ["Q597", "Q625"],
+          ["Q599", "Q698"],
+          ["Q599", "Q709"],
+          ["Q632", "Q702"],
+          ["Q634", "Q702"],
+          ["Q635", "Q702"],
+          ["Q639", "Q705"],
+          ["Q640", "Q705"],
+          ["Q641", "Q705"],
+          ["Q642", "Q705"],
+          ["Q646", "Q713"],
+          ["Q647", "Q713"],
+          ["Q648", "Q713"],
+          ["Q649", "Q713"],
+          ["Q659", "Q694"],
+          ["Q659", "Q708"],
+          ["Q660", "Q694"],
+          ["Q660", "Q708"],
+          ["Q661", "Q694"],
+          ["Q661", "Q708"],
+          ["Q665", "Q696"],
+          ["Q666", "Q696"],
+          ["Q667", "Q696"],
+          ["Q673", "Q697"],
+          ["Q677", "Q699"],
+          ["Q678", "Q699"],
+          ["Q679", "Q699"],
+          ["Q685", "Q720"],
+          ["Q694", "Q708"],
+          ["Q698", "Q709"]
+        ],
+        "clusters": [
+          {
+            "label": "Klausur",
+            "members": ["Q660", "Q661", "Q708", "Q694", "Q659"],
+            "families": ["P-GESETZ", "S-P-NM-15", "S-P-NM-01"]
+          },
+          {
+            "label": "Praktikum",
+            "members": ["Q647", "Q648", "Q713", "Q646", "Q649"],
+            "families": ["P-PRAKT", "S-P-AMB-05"]
+          },
+          {
+            "label": "Sporttest",
+            "members": ["Q640", "Q705", "Q639", "Q642", "Q641"],
+            "families": ["P-SPORT", "S-P-NM-12"]
+          },
+          {
+            "label": "Einsatztraining",
+            "members": ["Q667", "Q666", "Q696", "Q665"],
+            "families": ["P-HALLE", "S-P-NM-03"]
+          },
+          {
+            "label": "Schießtraining",
+            "members": ["Q634", "Q702", "Q635", "Q632"],
+            "families": ["P-SCHIESS", "S-P-NM-09"]
+          },
+          {
+            "label": "Vorgangsbearbeitung",
+            "members": ["Q678", "Q677", "Q699", "Q679"],
+            "families": ["P-VBS", "S-P-NM-06"]
+          },
+          {
+            "label": "Festnahme",
+            "members": ["Q585", "Q701", "Q581"],
+            "families": ["P-FESTNAHME", "S-P-NM-08"]
+          },
+          {
+            "label": "genau",
+            "members": ["Q597", "Q584", "Q625"],
+            "families": ["P-BELEHRUNG", "P-FESTNAHME", "P-LEGAL"]
+          },
+          {
+            "label": "Gilt",
+            "members": ["Q709", "Q599", "Q698"],
+            "families": ["S-P-AMB-01", "P-BELEHRUNG", "S-P-NM-05"]
+          },
+          {
+            "label": "Person",
+            "members": ["Q591", "Q618", "Q620"],
+            "families": ["P-VERHAELT", "P-DEESK"]
+          },
+          {
+            "label": "Schusswaffengebrauch",
+            "members": ["Q607", "Q605", "Q604"],
+            "families": ["P-UZWANG"]
+          },
+          {
+            "label": "Tatort",
+            "members": ["Q612", "Q614", "Q611"],
+            "families": ["P-SPUREN"]
+          },
+          {
+            "label": "belehrung",
+            "members": ["Q600", "Q598"],
+            "families": ["P-BELEHRUNG"]
+          },
+          {
+            "label": "Gruppe",
+            "members": ["Q685", "Q720"],
+            "families": ["P-FUNK", "S-P-NOISE-03"]
+          },
+          {
+            "label": "notwehr",
+            "members": ["Q574", "Q577"],
+            "families": ["P-NOTWEHR"]
+          },
+          {
+            "label": "Simulator",
+            "members": ["Q673", "Q697"],
+            "families": ["P-SIM", "S-P-NM-04"]
+          },
+          {
+            "label": "Verhältnismäßigkeit",
+            "members": ["Q703", "Q589"],
+            "families": ["S-P-NM-10", "P-VERHAELT"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.2948384701076866,
+          "bcubedF1": 0.5662978003059224,
+          "bcubedP": 0.44439153439153484,
+          "bcubedR": 0.7803703703703704,
+          "predictedMultiTopics": 18,
+          "falseMergePairs": 171,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.3969849246231156,
+          "bcubedF1": 0.654207241941254,
+          "bcubedP": 0.5785714285714291,
+          "bcubedR": 0.7525925925925928,
+          "predictedMultiTopics": 23,
+          "falseMergePairs": 84,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.45756182428234127,
+          "bcubedF1": 0.7231824738037484,
+          "bcubedP": 0.7091534391534392,
+          "bcubedR": 0.7377777777777779,
+          "predictedMultiTopics": 25,
+          "falseMergePairs": 51,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.4499664204163868,
+          "bcubedF1": 0.7273934560674188,
+          "bcubedP": 0.7396296296296294,
+          "bcubedR": 0.7155555555555556,
+          "predictedMultiTopics": 26,
+          "falseMergePairs": 41,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.4238975817923187,
+          "bcubedF1": 0.7392443783068782,
+          "bcubedP": 0.8211111111111107,
+          "bcubedR": 0.6722222222222223,
+          "predictedMultiTopics": 22,
+          "falseMergePairs": 23,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.3629764065335753,
+          "bcubedF1": 0.7326533387732898,
+          "bcubedP": 0.8907407407407406,
+          "bcubedR": 0.6222222222222222,
+          "predictedMultiTopics": 18,
+          "falseMergePairs": 12,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0.3393421297156662,
+          "bcubedF1": 0.728546171630627,
+          "bcubedP": 0.9018518518518518,
+          "bcubedR": 0.6111111111111112,
+          "predictedMultiTopics": 17,
+          "falseMergePairs": 11,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0.2692702980472765,
+          "bcubedF1": 0.7126577126577126,
+          "bcubedP": 0.9444444444444444,
+          "bcubedR": 0.5722222222222222,
+          "predictedMultiTopics": 14,
+          "falseMergePairs": 5,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0.11724915445321307,
+          "bcubedF1": 0.6691295829834872,
+          "bcubedP": 0.9555555555555556,
+          "bcubedR": 0.5148148148148147,
+          "predictedMultiTopics": 10,
+          "falseMergePairs": 4,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0.021739130434782608,
+          "bcubedF1": 0.6516853932584269,
+          "bcubedP": 1,
+          "bcubedR": 0.48333333333333334,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "en": {
+      "label": "nur Englisch",
+      "productRunsEncoder": true,
+      "encoder": {
+        "n": 22,
+        "goldTopics": 21,
+        "goldMultiTopics": 1,
+        "predictedTopics": 17,
+        "predictedMultiTopics": 4,
+        "missedSingletonRate": 0,
+        "ari": 0.2803738317757009,
+        "nmi": 0.9522790659944974,
+        "bcubed": {
+          "precision": 0.8181818181818182,
+          "recall": 1,
+          "f1": 0.9
+        },
+        "pairRecall": 1,
+        "monolingualPairRecall": 1,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 5,
+        "falseMerges": [
+          ["Q586", "Q629"],
+          ["Q601", "Q615"],
+          ["Q674", "Q680"],
+          ["Q674", "Q686"],
+          ["Q680", "Q686"]
+        ],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 12,
+          "multiMemberTopicsShown": 4,
+          "itemsInShownMultiTopics": 0.4090909090909091
+        },
+        "clusters": [
+          {
+            "label": "When do I have to caution someone as a suspect instead of a witness?",
+            "confidence": 0.888,
+            "members": ["Q601", "Q615"],
+            "families": ["P-BELEHRUNG", "P-SPUREN"]
+          },
+          {
+            "label": "What's the difference between a citizen's arrest and an arrest by the police?",
+            "confidence": 0.882,
+            "members": ["Q586", "Q629"],
+            "families": ["P-FESTNAHME", "P-LEGAL"]
+          },
+          {
+            "label": "How do I check whether a police measure is proportionate?",
+            "confidence": 0.876,
+            "members": ["Q593", "Q594"],
+            "families": ["P-VERHAELT"]
+          },
+          {
+            "label": "The training simulator will not start, the screen stays black.",
+            "confidence": 0.881,
+            "members": ["Q680", "Q674", "Q686"],
+            "families": ["P-VBS", "P-SIM", "P-FUNK"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 22,
+        "goldTopics": 21,
+        "goldMultiTopics": 1,
+        "predictedTopics": 14,
+        "predictedMultiTopics": 5,
+        "missedSingletonRate": 0,
+        "ari": -0.008056394763343404,
+        "nmi": 0.8817116423484207,
+        "bcubed": {
+          "precision": 0.6363636363636364,
+          "recall": 0.9545454545454546,
+          "f1": 0.7636363636363637
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": 0,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 12,
+        "falseMerges": [
+          ["Q578", "Q586"],
+          ["Q578", "Q594"],
+          ["Q586", "Q594"],
+          ["Q593", "Q629"],
+          ["Q608", "Q622"],
+          ["Q650", "Q704"],
+          ["Q668", "Q674"],
+          ["Q668", "Q680"],
+          ["Q668", "Q686"],
+          ["Q674", "Q680"],
+          ["Q674", "Q686"],
+          ["Q680", "Q686"]
+        ],
+        "clusters": [
+          {
+            "label": "training",
+            "members": ["Q680", "Q686", "Q674", "Q668"],
+            "families": ["P-VBS", "P-FUNK", "P-SIM", "P-HALLE"]
+          },
+          {
+            "label": "difference",
+            "members": ["Q578", "Q594", "Q586"],
+            "families": ["P-NOTWEHR", "P-VERHAELT", "P-FESTNAHME"]
+          },
+          {
+            "label": "person",
+            "members": ["Q622", "Q608"],
+            "families": ["P-DEESK", "P-UZWANG"]
+          },
+          {
+            "label": "police",
+            "members": ["Q593", "Q629"],
+            "families": ["P-VERHAELT", "P-LEGAL"]
+          },
+          {
+            "label": "will",
+            "members": ["Q650", "Q704"],
+            "families": ["P-PRAKT", "S-P-NM-11"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0.05084745762711865,
+          "bcubedF1": 0.5806451612903226,
+          "bcubedP": 0.4090909090909091,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 32,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0.09786354238456238,
+          "bcubedF1": 0.6666666666666666,
+          "bcubedP": 0.49999999999999994,
+          "bcubedR": 1,
+          "predictedMultiTopics": 7,
+          "falseMergePairs": 17,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0.1470292044310171,
+          "bcubedF1": 0.7777777777777779,
+          "bcubedP": 0.6363636363636365,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 11,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0.2161900145419292,
+          "bcubedF1": 0.8421052631578948,
+          "bcubedP": 0.7272727272727273,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 7,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0.24427480916030536,
+          "bcubedF1": 0.8717948717948718,
+          "bcubedP": 0.7727272727272727,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 6,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0.2803738317757009,
+          "bcubedF1": 0.9,
+          "bcubedP": 0.8181818181818182,
+          "bcubedR": 1,
+          "predictedMultiTopics": 4,
+          "falseMergePairs": 5,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": -0.006535947712418301,
+          "bcubedF1": 0.9068181818181819,
+          "bcubedP": 0.8636363636363636,
+          "bcubedR": 0.9545454545454546,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0,
+          "bcubedF1": 0.9767441860465117,
+          "bcubedP": 1,
+          "bcubedR": 0.9545454545454546,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0,
+          "bcubedF1": 0.9767441860465117,
+          "bcubedP": 1,
+          "bcubedR": 0.9545454545454546,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0,
+          "bcubedF1": 0.9767441860465117,
+          "bcubedP": 1,
+          "bcubedR": 0.9545454545454546,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "fr": {
+      "label": "nur Französisch",
+      "productRunsEncoder": false,
+      "encoder": {
+        "n": 19,
+        "goldTopics": 19,
+        "goldMultiTopics": 0,
+        "predictedTopics": 10,
+        "predictedMultiTopics": 6,
+        "missedSingletonRate": 0,
+        "ari": 0,
+        "nmi": 0.8524530826277535,
+        "bcubed": {
+          "precision": 0.5263157894736842,
+          "recall": 1,
+          "f1": 0.6896551724137931
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 13,
+        "falseMerges": [
+          ["Q587", "Q630"],
+          ["Q602", "Q609"],
+          ["Q623", "Q717"],
+          ["Q637", "Q669"],
+          ["Q644", "Q657"],
+          ["Q644", "Q663"],
+          ["Q657", "Q663"],
+          ["Q675", "Q681"],
+          ["Q675", "Q687"],
+          ["Q675", "Q692"],
+          ["Q681", "Q687"],
+          ["Q681", "Q692"],
+          ["Q687", "Q692"]
+        ],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 10,
+          "multiMemberTopicsShown": 6,
+          "itemsInShownMultiTopics": 0.7894736842105263
+        },
+        "clusters": [
+          {
+            "label": "Quand et où a lieu le prochain entraînement au tir ?",
+            "confidence": 0.911,
+            "members": ["Q637", "Q669"],
+            "families": ["P-SCHIESS", "P-HALLE"]
+          },
+          {
+            "label": "À quel moment faut-il informer une personne de ses droits en tant que suspect et non plus comme témoin ?",
+            "confidence": 0.898,
+            "members": ["Q602", "Q609"],
+            "families": ["P-BELEHRUNG", "P-UZWANG"]
+          },
+          {
+            "label": "Comment s'adresser à une personne agitée pour éviter que la situation dégénère ?",
+            "confidence": 0.891,
+            "members": ["Q623", "Q717"],
+            "families": ["P-DEESK", "S-P-AMB-09"]
+          },
+          {
+            "label": "Où se situe la limite entre l'obligation de poursuivre et le pouvoir d'appréciation de la police ?",
+            "confidence": 0.883,
+            "members": ["Q587", "Q630"],
+            "families": ["P-FESTNAHME", "P-LEGAL"]
+          },
+          {
+            "label": "Nos radios d'entraînement n'arrivent pas à se connecter.",
+            "confidence": 0.901,
+            "members": ["Q675", "Q692", "Q681", "Q687"],
+            "families": ["P-SIM", "P-BODYCAM", "P-VBS", "P-FUNK"]
+          },
+          {
+            "label": "Quels codes avons-nous le droit d'apporter à l'examen ?",
+            "confidence": 0.879,
+            "members": ["Q657", "Q644", "Q663"],
+            "families": ["P-UNIFORM", "P-SPORT", "P-GESETZ"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 19,
+        "goldTopics": 19,
+        "goldMultiTopics": 0,
+        "predictedTopics": 12,
+        "predictedMultiTopics": 3,
+        "missedSingletonRate": 0,
+        "ari": 0,
+        "nmi": 0.8783295386900206,
+        "bcubed": {
+          "precision": 0.631578947368421,
+          "recall": 1,
+          "f1": 0.7741935483870968
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 12,
+        "falseMerges": [
+          ["Q587", "Q595"],
+          ["Q587", "Q630"],
+          ["Q595", "Q630"],
+          ["Q602", "Q609"],
+          ["Q602", "Q623"],
+          ["Q602", "Q717"],
+          ["Q609", "Q623"],
+          ["Q609", "Q717"],
+          ["Q623", "Q717"],
+          ["Q637", "Q669"],
+          ["Q637", "Q687"],
+          ["Q669", "Q687"]
+        ],
+        "clusters": [
+          {
+            "label": "personne",
+            "members": ["Q602", "Q623", "Q717", "Q609"],
+            "families": ["P-BELEHRUNG", "P-DEESK", "S-P-AMB-09", "P-UZWANG"]
+          },
+          {
+            "label": "entraînement",
+            "members": ["Q687", "Q669", "Q637"],
+            "families": ["P-FUNK", "P-HALLE", "P-SCHIESS"]
+          },
+          {
+            "label": "police",
+            "members": ["Q595", "Q630", "Q587"],
+            "families": ["P-VERHAELT", "P-LEGAL", "P-FESTNAHME"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0,
+          "bcubedF1": 0.09999999999999996,
+          "bcubedP": 0.0526315789473684,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 171,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0,
+          "bcubedF1": 0.27272727272727276,
+          "bcubedP": 0.15789473684210528,
+          "bcubedR": 1,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 57,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0,
+          "bcubedF1": 0.4166666666666666,
+          "bcubedP": 0.26315789473684204,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 33,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0,
+          "bcubedF1": 0.5384615384615384,
+          "bcubedP": 0.3684210526315789,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 20,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0,
+          "bcubedF1": 0.6428571428571429,
+          "bcubedP": 0.47368421052631576,
+          "bcubedR": 1,
+          "predictedMultiTopics": 7,
+          "falseMergePairs": 14,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0,
+          "bcubedF1": 0.6896551724137931,
+          "bcubedP": 0.5263157894736842,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 13,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0,
+          "bcubedF1": 0.7333333333333334,
+          "bcubedP": 0.5789473684210527,
+          "bcubedR": 1,
+          "predictedMultiTopics": 6,
+          "falseMergePairs": 11,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0,
+          "bcubedF1": 0.8484848484848484,
+          "bcubedP": 0.7368421052631579,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 5,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 0,
+          "bcubedF1": 0.9142857142857143,
+          "bcubedP": 0.8421052631578947,
+          "bcubedR": 1,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 3,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 0,
+          "bcubedF1": 0.972972972972973,
+          "bcubedP": 0.9473684210526315,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        }
+      ]
+    },
+    "es": {
+      "label": "nur Spanisch",
+      "productRunsEncoder": false,
+      "encoder": {
+        "n": 19,
+        "goldTopics": 19,
+        "goldMultiTopics": 0,
+        "predictedTopics": 18,
+        "predictedMultiTopics": 1,
+        "missedSingletonRate": 0,
+        "ari": 0,
+        "nmi": 0.9874546206586762,
+        "bcubed": {
+          "precision": 0.9473684210526315,
+          "recall": 1,
+          "f1": 0.972972972972973
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 1,
+        "falseMerges": [["Q676", "Q693"]],
+        "product": {
+          "reliableGatePassed": true,
+          "status": "ready",
+          "topicsShown": 12,
+          "multiMemberTopicsShown": 1,
+          "itemsInShownMultiTopics": 0.10526315789473684
+        },
+        "clusters": [
+          {
+            "label": "El simulador de intervención no arranca, la pantalla sigue en negro.",
+            "confidence": 0.892,
+            "members": ["Q676", "Q693"],
+            "families": ["P-SIM", "P-BODYCAM"]
+          }
+        ]
+      },
+      "lexical": {
+        "n": 19,
+        "goldTopics": 19,
+        "goldMultiTopics": 0,
+        "predictedTopics": 13,
+        "predictedMultiTopics": 5,
+        "missedSingletonRate": 0,
+        "ari": 0,
+        "nmi": 0.9142046144601348,
+        "bcubed": {
+          "precision": 0.6842105263157895,
+          "recall": 1,
+          "f1": 0.8125000000000001
+        },
+        "pairRecall": 0,
+        "monolingualPairRecall": null,
+        "crossLingualPairRecall": null,
+        "falseMergePairs": 7,
+        "falseMerges": [
+          ["Q588", "Q596"],
+          ["Q588", "Q631"],
+          ["Q596", "Q631"],
+          ["Q610", "Q624"],
+          ["Q638", "Q670"],
+          ["Q652", "Q688"],
+          ["Q658", "Q664"]
+        ],
+        "clusters": [
+          {
+            "label": "policial",
+            "members": ["Q596", "Q631", "Q588"],
+            "families": ["P-VERHAELT", "P-LEGAL", "P-FESTNAHME"]
+          },
+          {
+            "label": "entrenamiento",
+            "members": ["Q638", "Q670"],
+            "families": ["P-SCHIESS", "P-HALLE"]
+          },
+          {
+            "label": "llevar",
+            "members": ["Q664", "Q658"],
+            "families": ["P-GESETZ", "P-UNIFORM"]
+          },
+          {
+            "label": "persona",
+            "members": ["Q624", "Q610"],
+            "families": ["P-DEESK", "P-UZWANG"]
+          },
+          {
+            "label": "prácticas",
+            "members": ["Q652", "Q688"],
+            "families": ["P-PRAKT", "P-FUNK"]
+          }
+        ]
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": 0,
+          "bcubedF1": 0.5925925925925926,
+          "bcubedP": 0.42105263157894735,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 19,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.82,
+          "ari": 0,
+          "bcubedF1": 0.6896551724137931,
+          "bcubedP": 0.5263157894736842,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 15,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.84,
+          "ari": 0,
+          "bcubedF1": 0.7741935483870968,
+          "bcubedP": 0.631578947368421,
+          "bcubedR": 1,
+          "predictedMultiTopics": 5,
+          "falseMergePairs": 10,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.85,
+          "ari": 0,
+          "bcubedF1": 0.8484848484848484,
+          "bcubedP": 0.7368421052631579,
+          "bcubedR": 1,
+          "predictedMultiTopics": 3,
+          "falseMergePairs": 8,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.86,
+          "ari": 0,
+          "bcubedF1": 0.9444444444444444,
+          "bcubedP": 0.8947368421052632,
+          "bcubedR": 1,
+          "predictedMultiTopics": 2,
+          "falseMergePairs": 2,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.87,
+          "ari": 0,
+          "bcubedF1": 0.972972972972973,
+          "bcubedP": 0.9473684210526315,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.88,
+          "ari": 0,
+          "bcubedF1": 0.972972972972973,
+          "bcubedP": 0.9473684210526315,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.89,
+          "ari": 0,
+          "bcubedF1": 0.972972972972973,
+          "bcubedP": 0.9473684210526315,
+          "bcubedR": 1,
+          "predictedMultiTopics": 1,
+          "falseMergePairs": 1,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.9,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        },
+        {
+          "threshold": 0.92,
+          "ari": 1,
+          "bcubedF1": 1,
+          "bcubedP": 1,
+          "bcubedR": 1,
+          "predictedMultiTopics": 0,
+          "falseMergePairs": 0,
+          "crossLingualPairRecall": null
+        }
+      ]
+    }
+  },
+  "stability": {
+    "_vectorDrift": {
+      "description": "1 - cos zwischen Gesamtanfrage und inkrementellen Läufen",
+      "median": 0.00330122415574724,
+      "min": 0.001067461619441601,
+      "max": 0.009472553513990678
+    },
+    "mixed": {
+      "ari": {
+        "median": 0.2692600211441577,
+        "min": 0.26070349077445154,
+        "max": 0.29136325606105434
+      },
+      "bcubedF1": {
+        "median": 0.5914060070680854,
+        "min": 0.5881733835589811,
+        "max": 0.60338277016175
+      },
+      "falseMergePairs": {
+        "median": 15.5,
+        "min": 14,
+        "max": 26
+      },
+      "predictedMultiTopics": {
+        "median": 38,
+        "min": 36,
+        "max": 39
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.3362754319264637,
+            "min": 0.2975501885771306,
+            "max": 0.396208226946512
+          },
+          "bcubedF1": {
+            "median": 0.5741279120964113,
+            "min": 0.5458276225344473,
+            "max": 0.609275259092185
+          },
+          "falseMergePairs": {
+            "median": 187,
+            "min": 140,
+            "max": 226
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.3365736021768353,
+            "min": 0.3314899074873325,
+            "max": 0.38784189841421307
+          },
+          "bcubedF1": {
+            "median": 0.5899843737404573,
+            "min": 0.5788625072212592,
+            "max": 0.6203665370828494
+          },
+          "falseMergePairs": {
+            "median": 109,
+            "min": 95,
+            "max": 121
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.3666067660491922,
+            "min": 0.3530486130953381,
+            "max": 0.40914680483592397
+          },
+          "bcubedF1": {
+            "median": 0.6162956275968757,
+            "min": 0.609334832995909,
+            "max": 0.6436880898711673
+          },
+          "falseMergePairs": {
+            "median": 60,
+            "min": 46,
+            "max": 70
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.3399237861492178,
+            "min": 0.3247238966867602,
+            "max": 0.3793319648547208
+          },
+          "bcubedF1": {
+            "median": 0.613919635925929,
+            "min": 0.6038083965612707,
+            "max": 0.6345609566629785
+          },
+          "falseMergePairs": {
+            "median": 43,
+            "min": 34,
+            "max": 52
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.3087082162043953,
+            "min": 0.29740083003867573,
+            "max": 0.329441183066228
+          },
+          "bcubedF1": {
+            "median": 0.6034258982697296,
+            "min": 0.5989888183958776,
+            "max": 0.6171081704151464
+          },
+          "falseMergePairs": {
+            "median": 30,
+            "min": 23,
+            "max": 33
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.2692600211441577,
+            "min": 0.26070349077445154,
+            "max": 0.29136325606105434
+          },
+          "bcubedF1": {
+            "median": 0.5914060070680854,
+            "min": 0.5881733835589811,
+            "max": 0.60338277016175
+          },
+          "falseMergePairs": {
+            "median": 15.5,
+            "min": 14,
+            "max": 26
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.22535038904544819,
+            "min": 0.21702574881765632,
+            "max": 0.23924795771263815
+          },
+          "bcubedF1": {
+            "median": 0.5768775602427447,
+            "min": 0.5727031752031752,
+            "max": 0.5851261745729178
+          },
+          "falseMergePairs": {
+            "median": 12,
+            "min": 10,
+            "max": 13
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.1862006987813903,
+            "min": 0.17935860949819482,
+            "max": 0.20263819916923914
+          },
+          "bcubedF1": {
+            "median": 0.5618387712624275,
+            "min": 0.559152770601406,
+            "max": 0.5692878331347956
+          },
+          "falseMergePairs": {
+            "median": 7,
+            "min": 6,
+            "max": 9
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0.13389003748666423,
+            "min": 0.12854241569606809,
+            "max": 0.15307826210522577
+          },
+          "bcubedF1": {
+            "median": 0.5393206074692483,
+            "min": 0.5360512954973422,
+            "max": 0.5482546330062975
+          },
+          "falseMergePairs": {
+            "median": 5,
+            "min": 4,
+            "max": 6
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0.062307809218431764,
+            "min": 0.054375665812915065,
+            "max": 0.06494258056758057
+          },
+          "bcubedF1": {
+            "median": 0.5107809253914974,
+            "min": 0.5076212456478462,
+            "max": 0.5121819777508954
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        }
+      ]
+    },
+    "de": {
+      "ari": {
+        "median": 0.3629764065335753,
+        "min": 0.3466424682395644,
+        "max": 0.3907738592679258
+      },
+      "bcubedF1": {
+        "median": 0.7301353013530135,
+        "min": 0.7263196447374446,
+        "max": 0.7378055419456693
+      },
+      "falseMergePairs": {
+        "median": 13,
+        "min": 12,
+        "max": 19
+      },
+      "predictedMultiTopics": {
+        "median": 19.5,
+        "min": 18,
+        "max": 20
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.3247830580266087,
+            "min": 0.30499219968798746,
+            "max": 0.37097534160515155
+          },
+          "bcubedF1": {
+            "median": 0.5861621766276974,
+            "min": 0.5601718428253085,
+            "max": 0.5994079605165193
+          },
+          "falseMergePairs": {
+            "median": 158,
+            "min": 146,
+            "max": 168
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.4082467463729722,
+            "min": 0.39499739447628973,
+            "max": 0.44954128440366975
+          },
+          "bcubedF1": {
+            "median": 0.6608616536187448,
+            "min": 0.6430705812521071,
+            "max": 0.6970862132388531
+          },
+          "falseMergePairs": {
+            "median": 81.5,
+            "min": 70,
+            "max": 91
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.48696846475712086,
+            "min": 0.4662309368191721,
+            "max": 0.5134832856965329
+          },
+          "bcubedF1": {
+            "median": 0.734218386205366,
+            "min": 0.7122019608407993,
+            "max": 0.7493144674783372
+          },
+          "falseMergePairs": {
+            "median": 48,
+            "min": 43,
+            "max": 54
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.4756356136503198,
+            "min": 0.42662269524808877,
+            "max": 0.5388945013710491
+          },
+          "bcubedF1": {
+            "median": 0.7470136911444927,
+            "min": 0.7223119286890364,
+            "max": 0.7728716326946413
+          },
+          "falseMergePairs": {
+            "median": 33,
+            "min": 24,
+            "max": 43
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.446890052287539,
+            "min": 0.41916747337850924,
+            "max": 0.48747152619589973
+          },
+          "bcubedF1": {
+            "median": 0.7503281643519413,
+            "min": 0.7373233074422958,
+            "max": 0.7699948658027052
+          },
+          "falseMergePairs": {
+            "median": 21,
+            "min": 20,
+            "max": 23
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.3629764065335753,
+            "min": 0.3466424682395644,
+            "max": 0.3907738592679258
+          },
+          "bcubedF1": {
+            "median": 0.7301353013530135,
+            "min": 0.7263196447374446,
+            "max": 0.7378055419456693
+          },
+          "falseMergePairs": {
+            "median": 13,
+            "min": 12,
+            "max": 19
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0.33707363732855683,
+            "min": 0.30313588850174217,
+            "max": 0.3456090651558073
+          },
+          "bcubedF1": {
+            "median": 0.7291489506911784,
+            "min": 0.7165298303229338,
+            "max": 0.7356922664522181
+          },
+          "falseMergePairs": {
+            "median": 10,
+            "min": 8,
+            "max": 11
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0.2665036674816626,
+            "min": 0.23475736209041892,
+            "max": 0.27208627125673995
+          },
+          "bcubedF1": {
+            "median": 0.7097783217734258,
+            "min": 0.7000320468800074,
+            "max": 0.7142335766423357
+          },
+          "falseMergePairs": {
+            "median": 5.5,
+            "min": 4,
+            "max": 6
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0.1375422773393461,
+            "min": 0.11885245901639345,
+            "max": 0.19149868536371603
+          },
+          "bcubedF1": {
+            "median": 0.676546284765463,
+            "min": 0.6702544847726325,
+            "max": 0.6920049200492004
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 2,
+            "max": 4
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0.04302126619408458,
+            "min": 0.021739130434782608,
+            "max": 0.06386066763425254
+          },
+          "bcubedF1": {
+            "median": 0.6567164179104478,
+            "min": 0.6516853932584269,
+            "max": 0.6617100371747212
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "en": {
+      "ari": {
+        "median": 0.32848837209302323,
+        "min": 0.24427480916030536,
+        "max": 0.3958151700087184
+      },
+      "bcubedF1": {
+        "median": 0.9,
+        "min": 0.8717948717948718,
+        "max": 0.9268292682926829
+      },
+      "falseMergePairs": {
+        "median": 4,
+        "min": 3,
+        "max": 6
+      },
+      "predictedMultiTopics": {
+        "median": 4.5,
+        "min": 4,
+        "max": 5
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0.05084745762711865,
+            "min": 0.04067724416994995,
+            "max": 0.07228915662650602
+          },
+          "bcubedF1": {
+            "median": 0.5806451612903226,
+            "min": 0.456140350877193,
+            "max": 0.5806451612903226
+          },
+          "falseMergePairs": {
+            "median": 32,
+            "min": 23,
+            "max": 39
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0.110397946084724,
+            "min": 0.09786354238456238,
+            "max": 0.110397946084724
+          },
+          "bcubedF1": {
+            "median": 0.7058823529411764,
+            "min": 0.6666666666666666,
+            "max": 0.7058823529411764
+          },
+          "falseMergePairs": {
+            "median": 15,
+            "min": 15,
+            "max": 17
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0.1470292044310171,
+            "min": 0.1470292044310171,
+            "max": 0.17532725109083697
+          },
+          "bcubedF1": {
+            "median": 0.7777777777777779,
+            "min": 0.7777777777777779,
+            "max": 0.8108108108108109
+          },
+          "falseMergePairs": {
+            "median": 11,
+            "min": 9,
+            "max": 11
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0.23023241185111729,
+            "min": 0.193717277486911,
+            "max": 0.24427480916030536
+          },
+          "bcubedF1": {
+            "median": 0.8569500674763832,
+            "min": 0.8421052631578948,
+            "max": 0.8717948717948718
+          },
+          "falseMergePairs": {
+            "median": 6.5,
+            "min": 6,
+            "max": 8
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0.24427480916030536,
+            "min": 0.24427480916030536,
+            "max": 0.24427480916030536
+          },
+          "bcubedF1": {
+            "median": 0.8717948717948718,
+            "min": 0.8717948717948718,
+            "max": 0.8717948717948718
+          },
+          "falseMergePairs": {
+            "median": 6,
+            "min": 6,
+            "max": 6
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0.32848837209302323,
+            "min": 0.24427480916030536,
+            "max": 0.3958151700087184
+          },
+          "bcubedF1": {
+            "median": 0.9,
+            "min": 0.8717948717948718,
+            "max": 0.9268292682926829
+          },
+          "falseMergePairs": {
+            "median": 4,
+            "min": 3,
+            "max": 6
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": -0.005805515239477504,
+            "min": -0.006535947712418301,
+            "max": -0.005805515239477504
+          },
+          "bcubedF1": {
+            "median": 0.9312638580931263,
+            "min": 0.9068181818181819,
+            "max": 0.9312638580931263
+          },
+          "falseMergePairs": {
+            "median": 2,
+            "min": 2,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9767441860465117,
+            "min": 0.9767441860465117,
+            "max": 0.9767441860465117
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9767441860465117,
+            "min": 0.9767441860465117,
+            "max": 0.9767441860465117
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9767441860465117,
+            "min": 0.9767441860465117,
+            "max": 0.9767441860465117
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    },
+    "fr": {
+      "ari": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "bcubedF1": {
+        "median": 0.7333333333333334,
+        "min": 0.6896551724137931,
+        "max": 0.7333333333333335
+      },
+      "falseMergePairs": {
+        "median": 12,
+        "min": 12,
+        "max": 14
+      },
+      "predictedMultiTopics": {
+        "median": 5,
+        "min": 5,
+        "max": 6
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.1904761904761905,
+            "min": 0.1904761904761905,
+            "max": 0.1904761904761905
+          },
+          "falseMergePairs": {
+            "median": 111,
+            "min": 111,
+            "max": 111
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.3478260869565217,
+            "min": 0.27272727272727265,
+            "max": 0.34782608695652173
+          },
+          "falseMergePairs": {
+            "median": 44,
+            "min": 39,
+            "max": 57
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.48000000000000004,
+            "min": 0.4166666666666666,
+            "max": 0.48000000000000004
+          },
+          "falseMergePairs": {
+            "median": 29,
+            "min": 24,
+            "max": 32
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.5655270655270656,
+            "min": 0.48000000000000004,
+            "max": 0.5925925925925926
+          },
+          "falseMergePairs": {
+            "median": 20.5,
+            "min": 18,
+            "max": 29
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.6428571428571429,
+            "min": 0.6428571428571429,
+            "max": 0.6896551724137931
+          },
+          "falseMergePairs": {
+            "median": 15,
+            "min": 13,
+            "max": 16
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.7333333333333334,
+            "min": 0.6896551724137931,
+            "max": 0.7333333333333335
+          },
+          "falseMergePairs": {
+            "median": 12,
+            "min": 12,
+            "max": 14
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.7537634408602152,
+            "min": 0.7333333333333334,
+            "max": 0.8125000000000001
+          },
+          "falseMergePairs": {
+            "median": 10.5,
+            "min": 8,
+            "max": 12
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8484848484848484,
+            "min": 0.8125000000000001,
+            "max": 0.8823529411764706
+          },
+          "falseMergePairs": {
+            "median": 5,
+            "min": 4,
+            "max": 6
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9142857142857143,
+            "min": 0.9142857142857143,
+            "max": 0.9444444444444444
+          },
+          "falseMergePairs": {
+            "median": 3,
+            "min": 2,
+            "max": 3
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.972972972972973,
+            "min": 0.972972972972973,
+            "max": 0.972972972972973
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        }
+      ]
+    },
+    "es": {
+      "ari": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "bcubedF1": {
+        "median": 0.972972972972973,
+        "min": 0.9444444444444444,
+        "max": 0.972972972972973
+      },
+      "falseMergePairs": {
+        "median": 1,
+        "min": 1,
+        "max": 2
+      },
+      "predictedMultiTopics": {
+        "median": 1,
+        "min": 1,
+        "max": 2
+      },
+      "sweep": [
+        {
+          "threshold": 0.8,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.5384615384615385,
+            "min": 0.4799999999999999,
+            "max": 0.5925925925925926
+          },
+          "falseMergePairs": {
+            "median": 22,
+            "min": 19,
+            "max": 28
+          }
+        },
+        {
+          "threshold": 0.82,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.6896551724137931,
+            "min": 0.6428571428571429,
+            "max": 0.7333333333333335
+          },
+          "falseMergePairs": {
+            "median": 13.5,
+            "min": 11,
+            "max": 16
+          }
+        },
+        {
+          "threshold": 0.84,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8125000000000001,
+            "min": 0.8125000000000001,
+            "max": 0.8484848484848484
+          },
+          "falseMergePairs": {
+            "median": 9,
+            "min": 8,
+            "max": 9
+          }
+        },
+        {
+          "threshold": 0.85,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.8823529411764706,
+            "min": 0.8823529411764706,
+            "max": 0.9142857142857143
+          },
+          "falseMergePairs": {
+            "median": 7,
+            "min": 4,
+            "max": 7
+          }
+        },
+        {
+          "threshold": 0.86,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.9142857142857143,
+            "min": 0.8823529411764706,
+            "max": 0.9444444444444444
+          },
+          "falseMergePairs": {
+            "median": 4,
+            "min": 2,
+            "max": 7
+          }
+        },
+        {
+          "threshold": 0.87,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.972972972972973,
+            "min": 0.9444444444444444,
+            "max": 0.972972972972973
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 2
+          }
+        },
+        {
+          "threshold": 0.88,
+          "ari": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          },
+          "bcubedF1": {
+            "median": 0.972972972972973,
+            "min": 0.972972972972973,
+            "max": 0.972972972972973
+          },
+          "falseMergePairs": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.89,
+          "ari": {
+            "median": 1,
+            "min": 0,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 0.972972972972973,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 1
+          }
+        },
+        {
+          "threshold": 0.9,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        {
+          "threshold": 0.92,
+          "ari": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bcubedF1": {
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "falseMergePairs": {
+            "median": 0,
+            "min": 0,
+            "max": 0
+          }
+        }
+      ]
+    }
+  },
+  "similarity": {
+    "sameFamily": {
+      "n": 345,
+      "min": 0.7399198333904331,
+      "p10": 0.7749793446713198,
+      "p50": 0.8335764267488495,
+      "p90": 0.8999787402565655,
+      "max": 0.9575210811004935
+    },
+    "differentFamily": {
+      "n": 10830,
+      "min": 0.6705989769967067,
+      "p10": 0.7373639255237542,
+      "p50": 0.7787002759721408,
+      "p90": 0.8196716726108746,
+      "max": 0.9371311531178932
+    },
+    "differentFamilyFramePairs": {
+      "n": 0
+    },
+    "differentFamilyAboveThreshold": 82,
+    "sameFamilyBelowThreshold": 249
+  },
+  "runtime": {
+    "coldStartToHealthyMs": 1695.4841999999999,
+    "firstEmbedCallMs": 2459.035,
+    "embedLatency": [
+      {
+        "items": 16,
+        "runs": 10,
+        "p50Ms": 275.9438000000009,
+        "p95Ms": 379.5792999999976,
+        "maxMs": 379.5792999999976,
+        "msPerItemP50": 17.246487500000057
+      },
+      {
+        "items": 56,
+        "runs": 10,
+        "p50Ms": 898.9827000000005,
+        "p95Ms": 993.6348999999973,
+        "maxMs": 993.6348999999973,
+        "msPerItemP50": 16.05326250000001
+      },
+      {
+        "items": 150,
+        "runs": 10,
+        "p50Ms": 2480.113799999992,
+        "p95Ms": 2579.7304999999906,
+        "maxMs": 2579.7304999999906,
+        "msPerItemP50": 16.534091999999944
+      }
+    ],
+    "containerStatsAfterLoad": "477.8MiB / 2GiB|0.01%",
+    "clusterTiming": [
+      {
+        "items": 100,
+        "ms": 49.07880000000296
+      },
+      {
+        "items": 250,
+        "ms": 319.51149999999325
+      },
+      {
+        "items": 500,
+        "ms": 1843.2471000000078
+      }
+    ]
+  }
+}

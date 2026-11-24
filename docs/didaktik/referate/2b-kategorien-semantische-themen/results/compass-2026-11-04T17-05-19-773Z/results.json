@@ -1,0 +1,2818 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-04T17:05:19.773Z",
+    "commit": "84a5614ead769da526e233e60eea7ca44560363f",
+    "describe": "v1.3.0-326-g84a5614e-dirty",
+    "sourcesDirty": false,
+    "node": "v24.12.0",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "reference": {
+      "path": "referat-2b/reference-dataset.v2.2.json",
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87"
+    },
+    "releaseConstants": {
+      "visibleSources": 3,
+      "storedSources": 8,
+      "qaNlpQueueLimit": 100,
+      "qaNlpConcurrency": 1,
+      "semanticLocales": ["de", "en"]
+    }
+  },
+  "subjects": {
+    "statistics": {
+      "n": 201,
+      "nlpStatuses": {
+        "classified": 163,
+        "uncertain": 38
+      },
+      "semantic": {
+        "status": "ready",
+        "fallbackUsed": false,
+        "encoderCalled": true,
+        "ms": 3065.3
+      },
+      "variants": {
+        "V0": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 5,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Klausur",
+              "n": 13,
+              "dominantFamily": "O-REG",
+              "purity": 0.23076923076923078,
+              "families": 8
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Vorlesung",
+              "n": 12,
+              "dominantFamily": "O-CANC",
+              "purity": 0.3333333333333333,
+              "families": 6
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Folie",
+              "n": 9,
+              "dominantFamily": "C-DERIV",
+              "purity": 0.5555555555555556,
+              "families": 5
+            }
+          ],
+          "reachableShare": 0.1691542288557214,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 0
+        },
+        "V1": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 8,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 61",
+              "n": 61,
+              "correct": 46,
+              "precision": 0.7540983606557377,
+              "wrongExamples": [
+                "Muss ich den t-Test für die Prüfung können?",
+                "Wird Kapitel 5 mit den Tests abgefragt?",
+                "Wie groß muss meine Stichprobe mindestens sein?"
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 54",
+              "n": 54,
+              "correct": 40,
+              "precision": 0.7407407407407407,
+              "wrongExamples": [
+                "Dürfen wir in der Klausur eine Formelsammlung benutzen?",
+                "Ist ein selbst geschriebener Spickzettel in der Klausur erlaubt?",
+                "Welche Hilfsmittel sind in der Klausur zugelassen?"
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Kategorie",
+              "label": "Technische Fragen · 48",
+              "n": 48,
+              "correct": 37,
+              "precision": 0.7708333333333334,
+              "wrongExamples": [
+                "Checkt jemand den p-Wert? Ich raff das nicht.",
+                "Overfitting?? check ich nicht",
+                "Den Schritt von Zeile 2 auf Zeile 3 in der Herleitung auf Folie 17 verstehe ich nicht."
+              ]
+            }
+          ],
+          "reachableShare": 0.8109452736318408,
+          "categoryVisiblePrecision": 0.754601226993865,
+          "categoryShownWrong": 40,
+          "termVisible": 0,
+          "termCoherent": 0
+        },
+        "V2": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 5,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+              "n": 8,
+              "dominantFamily": "O-CANC",
+              "purity": 0.5,
+              "families": 4
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Wann ist Ihre Sprechstunde?",
+              "n": 5,
+              "dominantFamily": "O-OFFICE",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Noch ein Regressionsbeispiel?",
+              "n": 5,
+              "dominantFamily": "C-REG",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 0.08955223880597014,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 2
+        },
+        "V3": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 8,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 61",
+              "n": 61,
+              "correct": 46,
+              "precision": 0.7540983606557377,
+              "wrongExamples": [
+                "Muss ich den t-Test für die Prüfung können?",
+                "Wird Kapitel 5 mit den Tests abgefragt?",
+                "Wie groß muss meine Stichprobe mindestens sein?"
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 54",
+              "n": 54,
+              "correct": 40,
+              "precision": 0.7407407407407407,
+              "wrongExamples": [
+                "Dürfen wir in der Klausur eine Formelsammlung benutzen?",
+                "Ist ein selbst geschriebener Spickzettel in der Klausur erlaubt?",
+                "Welche Hilfsmittel sind in der Klausur zugelassen?"
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Kategorie",
+              "label": "Technische Fragen · 48",
+              "n": 48,
+              "correct": 37,
+              "precision": 0.7708333333333334,
+              "wrongExamples": [
+                "Checkt jemand den p-Wert? Ich raff das nicht.",
+                "Overfitting?? check ich nicht",
+                "Den Schritt von Zeile 2 auf Zeile 3 in der Herleitung auf Folie 17 verstehe ich nicht."
+              ]
+            }
+          ],
+          "reachableShare": 0.8109452736318408,
+          "categoryVisiblePrecision": 0.754601226993865,
+          "categoryShownWrong": 40,
+          "termVisible": 0,
+          "termCoherent": 0
+        }
+      }
+    },
+    "botany": {
+      "n": 16,
+      "nlpStatuses": {
+        "classified": 14,
+        "uncertain": 2
+      },
+      "semantic": {
+        "status": "ready",
+        "fallbackUsed": false,
+        "encoderCalled": true,
+        "ms": 194
+      },
+      "variants": {
+        "V0": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 3,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Exkursion",
+              "n": 3,
+              "dominantFamily": "B-TRIP",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Lichtreaktion",
+              "n": 3,
+              "dominantFamily": "B-PHOTO",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Herbarium",
+              "n": 2,
+              "dominantFamily": "B-HERB",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 0.5,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 3
+        },
+        "V1": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 6,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 6",
+              "n": 6,
+              "correct": 4,
+              "precision": 0.6666666666666666,
+              "wrongExamples": [
+                "Ist die Exkursion zum Botanischen Garten verpflichtend?",
+                "Die Übertragung vom Mikroskop ist nur noch schwarz."
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 5",
+              "n": 5,
+              "correct": 3,
+              "precision": 0.6,
+              "wrongExamples": [
+                "Woran erkenne ich, ob eine Pflanze monokotyl oder dikotyl ist?",
+                "Ist die parallele Blattaderung wirklich das sicherste Merkmal für Einkeimblättrige?"
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Kategorie",
+              "label": "Technische Fragen · 3",
+              "n": 3,
+              "correct": 1,
+              "precision": 0.3333333333333333,
+              "wrongExamples": [
+                "Wozu braucht der Calvin-Zyklus eigentlich das ATP aus der Lichtreaktion?",
+                "lichtreaktion vs calvin zyklus versteh ich nicht"
+              ]
+            }
+          ],
+          "reachableShare": 0.875,
+          "categoryVisiblePrecision": 0.5714285714285714,
+          "categoryShownWrong": 6,
+          "termVisible": 0,
+          "termCoherent": 0
+        },
+        "V2": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 5,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Können Sie den Unterschied zwischen Lichtreaktion und Calvin-Zyklus nochmal erklären?",
+              "n": 3,
+              "dominantFamily": "B-PHOTO",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Wann ist die Exkursion in den Botanischen Garten und wo treffen wir uns?",
+              "n": 2,
+              "dominantFamily": "B-TRIP",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Die Übertragung vom Mikroskop ist nur noch schwarz.",
+              "n": 2,
+              "dominantFamily": "B-MICRO",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 0.4375,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 3
+        },
+        "V3": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 8,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 6",
+              "n": 6,
+              "correct": 4,
+              "precision": 0.6666666666666666,
+              "wrongExamples": [
+                "Ist die Exkursion zum Botanischen Garten verpflichtend?",
+                "Die Übertragung vom Mikroskop ist nur noch schwarz."
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 5",
+              "n": 5,
+              "correct": 3,
+              "precision": 0.6,
+              "wrongExamples": [
+                "Woran erkenne ich, ob eine Pflanze monokotyl oder dikotyl ist?",
+                "Ist die parallele Blattaderung wirklich das sicherste Merkmal für Einkeimblättrige?"
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Kategorie",
+              "label": "Technische Fragen · 3",
+              "n": 3,
+              "correct": 1,
+              "precision": 0.3333333333333333,
+              "wrongExamples": [
+                "Wozu braucht der Calvin-Zyklus eigentlich das ATP aus der Lichtreaktion?",
+                "lichtreaktion vs calvin zyklus versteh ich nicht"
+              ]
+            }
+          ],
+          "reachableShare": 0.875,
+          "categoryVisiblePrecision": 0.5714285714285714,
+          "categoryShownWrong": 6,
+          "termVisible": 0,
+          "termCoherent": 0
+        }
+      }
+    },
+    "history": {
+      "n": 15,
+      "nlpStatuses": {
+        "classified": 14,
+        "uncertain": 1
+      },
+      "semantic": {
+        "status": "ready",
+        "fallbackUsed": false,
+        "encoderCalled": true,
+        "ms": 296.7
+      },
+      "variants": {
+        "V0": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 4,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Westfälische Frieden",
+              "n": 3,
+              "dominantFamily": "H-WESTF",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Hausarbeit",
+              "n": 2,
+              "dominantFamily": "H-ESSAY",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Primär- Sekundärquelle",
+              "n": 2,
+              "dominantFamily": "H-SOURCE",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 0.4666666666666667,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 3
+        },
+        "V1": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 6,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 7",
+              "n": 7,
+              "correct": 6,
+              "precision": 0.8571428571428571,
+              "wrongExamples": [
+                "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite."
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 7",
+              "n": 7,
+              "correct": 4,
+              "precision": 0.5714285714285714,
+              "wrongExamples": [
+                "Zählt ein Zeitzeugeninterview von 1990 als Primärquelle?",
+                "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+                "Die Zeitungsdatenbank für die Übung lädt seit heute Morgen nicht."
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Westfälische Frieden",
+              "n": 3,
+              "dominantFamily": "H-WESTF",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 1,
+          "categoryVisiblePrecision": 0.7142857142857143,
+          "categoryShownWrong": 4,
+          "termVisible": 1,
+          "termCoherent": 1
+        },
+        "V2": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 4,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Warum gilt der Westfälische Frieden als Beginn des modernen Staatensystems?",
+              "n": 3,
+              "dominantFamily": "H-WESTF",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+              "n": 2,
+              "dominantFamily": "H-SOURCE",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite.",
+              "n": 2,
+              "dominantFamily": "H-DB",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 0.4666666666666667,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 3
+        },
+        "V3": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 6,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 7",
+              "n": 7,
+              "correct": 6,
+              "precision": 0.8571428571428571,
+              "wrongExamples": [
+                "Beim Öffnen der digitalen Zeitungsarchive kommt nur eine Fehlerseite."
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 7",
+              "n": 7,
+              "correct": 4,
+              "precision": 0.5714285714285714,
+              "wrongExamples": [
+                "Zählt ein Zeitzeugeninterview von 1990 als Primärquelle?",
+                "Ist ein Schulbuch von 1935 eine Primär- oder eine Sekundärquelle?",
+                "Die Zeitungsdatenbank für die Übung lädt seit heute Morgen nicht."
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Warum gilt der Westfälische Frieden als Beginn des modernen Staatensystems?",
+              "n": 3,
+              "dominantFamily": "H-WESTF",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 1,
+          "categoryVisiblePrecision": 0.7142857142857143,
+          "categoryShownWrong": 4,
+          "termVisible": 1,
+          "termCoherent": 1
+        }
+      }
+    },
+    "police": {
+      "n": 90,
+      "nlpStatuses": {
+        "classified": 82,
+        "uncertain": 8
+      },
+      "semantic": {
+        "status": "ready",
+        "fallbackUsed": false,
+        "encoderCalled": true,
+        "ms": 1683.2
+      },
+      "variants": {
+        "V0": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 5,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Klausur",
+              "n": 5,
+              "dominantFamily": "P-GESETZ",
+              "purity": 0.6,
+              "families": 3
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "Praktikum",
+              "n": 5,
+              "dominantFamily": "P-PRAKT",
+              "purity": 0.8,
+              "families": 2
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Sporttest",
+              "n": 5,
+              "dominantFamily": "P-SPORT",
+              "purity": 0.8,
+              "families": 2
+            }
+          ],
+          "reachableShare": 0.16666666666666666,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 2
+        },
+        "V1": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 8,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 41",
+              "n": 41,
+              "correct": 17,
+              "precision": 0.4146341463414634,
+              "wrongExamples": [
+                "Ist die vorläufige Festnahme basically dasselbe wie eine Ingewahrsamnahme?",
+                "Wie prüfe ich die Verhältnismäßigkeit einer Maßnahme Schritt für Schritt?",
+                "Ist eine Identitätsfeststellung schon unverhältnismäßig, wenn die Person kooperiert?"
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 24",
+              "n": 24,
+              "correct": 17,
+              "precision": 0.7083333333333334,
+              "wrongExamples": [
+                "Wann ist das nächste Schießtraining und auf welchem Schießstand?",
+                "Wann ist die nächste Ausgabe der Ausrüstung in der Kleiderkammer?",
+                "Ist ein Kommentar zum Polizeigesetz in der Klausur erlaubt?"
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Kategorie",
+              "label": "Technische Fragen · 17",
+              "n": 17,
+              "correct": 8,
+              "precision": 0.47058823529411764,
+              "wrongExamples": [
+                "Wann ist eine Notwehrhandlung nicht mehr geboten?",
+                "Braucht die Polizei für § 127 Abs. 2 StPO immer Gefahr im Verzug?",
+                "Was macht man, wenn einer total austickt und gar nicht mehr zuhört?"
+              ]
+            }
+          ],
+          "reachableShare": 0.9111111111111111,
+          "categoryVisiblePrecision": 0.5121951219512195,
+          "categoryShownWrong": 40,
+          "termVisible": 0,
+          "termCoherent": 0
+        },
+        "V2": {
+          "statusMode": "disabled",
+          "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 5,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Thema/Term",
+              "label": "Im Simulator ist das Bild so verzerrt, dass man die Waffe des Gegenübers nicht erkennt.",
+              "n": 4,
+              "dominantFamily": "P-SIM",
+              "purity": 0.75,
+              "families": 2
+            },
+            {
+              "rank": 2,
+              "kind": "Thema/Term",
+              "label": "In welcher Reihenfolge werden Spuren am Tatort gesichert?",
+              "n": 3,
+              "dominantFamily": "P-SPUREN",
+              "purity": 1,
+              "families": 1
+            },
+            {
+              "rank": 3,
+              "kind": "Thema/Term",
+              "label": "Kann man sich die Dienststelle für das Praktikum wünschen?",
+              "n": 3,
+              "dominantFamily": "P-PRAKT",
+              "purity": 1,
+              "families": 1
+            }
+          ],
+          "reachableShare": 0.1111111111111111,
+          "categoryVisiblePrecision": null,
+          "categoryShownWrong": 0,
+          "termVisible": 3,
+          "termCoherent": 2
+        },
+        "V3": {
+          "statusMode": "classified",
+          "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+          "recommendation": "topics",
+          "cards": 1,
+          "storedSources": 8,
+          "visible": [
+            {
+              "rank": 1,
+              "kind": "Kategorie",
+              "label": "Fragen zum Ablauf · 41",
+              "n": 41,
+              "correct": 17,
+              "precision": 0.4146341463414634,
+              "wrongExamples": [
+                "Ist die vorläufige Festnahme basically dasselbe wie eine Ingewahrsamnahme?",
+                "Wie prüfe ich die Verhältnismäßigkeit einer Maßnahme Schritt für Schritt?",
+                "Ist eine Identitätsfeststellung schon unverhältnismäßig, wenn die Person kooperiert?"
+              ]
+            },
+            {
+              "rank": 2,
+              "kind": "Kategorie",
+              "label": "Inhaltliche Fragen · 24",
+              "n": 24,
+              "correct": 17,
+              "precision": 0.7083333333333334,
+              "wrongExamples": [
+                "Wann ist das nächste Schießtraining und auf welchem Schießstand?",
+                "Wann ist die nächste Ausgabe der Ausrüstung in der Kleiderkammer?",
+                "Ist ein Kommentar zum Polizeigesetz in der Klausur erlaubt?"
+              ]
+            },
+            {
+              "rank": 3,
+              "kind": "Kategorie",
+              "label": "Technische Fragen · 17",
+              "n": 17,
+              "correct": 8,
+              "precision": 0.47058823529411764,
+              "wrongExamples": [
+                "Wann ist eine Notwehrhandlung nicht mehr geboten?",
+                "Braucht die Polizei für § 127 Abs. 2 StPO immer Gefahr im Verzug?",
+                "Was macht man, wenn einer total austickt und gar nicht mehr zuhört?"
+              ]
+            }
+          ],
+          "reachableShare": 0.9111111111111111,
+          "categoryVisiblePrecision": 0.5121951219512195,
+          "categoryShownWrong": 40,
+          "termVisible": 0,
+          "termCoherent": 0
+        }
+      }
+    }
+  },
+  "languages": {
+    "statistics": {
+      "de": {
+        "n": 201,
+        "nlpStatuses": {
+          "classified": 163,
+          "uncertain": 38
+        },
+        "semantic": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "encoderCalled": true,
+          "ms": 2638.8
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "Klausur",
+                "n": 13,
+                "dominantFamily": "O-REG",
+                "purity": 0.23076923076923078,
+                "families": 8
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "Vorlesung",
+                "n": 12,
+                "dominantFamily": "O-CANC",
+                "purity": 0.3333333333333333,
+                "families": 6
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "Folie",
+                "n": 9,
+                "dominantFamily": "C-DERIV",
+                "purity": 0.5555555555555556,
+                "families": 5
+              }
+            ],
+            "reachableShare": 0.1691542288557214,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 61",
+                "n": 61,
+                "correct": 46,
+                "precision": 0.7540983606557377,
+                "wrongExamples": [
+                  "Muss ich den t-Test für die Prüfung können?",
+                  "Wird Kapitel 5 mit den Tests abgefragt?",
+                  "Wie groß muss meine Stichprobe mindestens sein?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 54",
+                "n": 54,
+                "correct": 40,
+                "precision": 0.7407407407407407,
+                "wrongExamples": [
+                  "Dürfen wir in der Klausur eine Formelsammlung benutzen?",
+                  "Ist ein selbst geschriebener Spickzettel in der Klausur erlaubt?",
+                  "Welche Hilfsmittel sind in der Klausur zugelassen?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 48",
+                "n": 48,
+                "correct": 37,
+                "precision": 0.7708333333333334,
+                "wrongExamples": [
+                  "Checkt jemand den p-Wert? Ich raff das nicht.",
+                  "Overfitting?? check ich nicht",
+                  "Den Schritt von Zeile 2 auf Zeile 3 in der Herleitung auf Folie 17 verstehe ich nicht."
+                ]
+              }
+            ],
+            "reachableShare": 0.8109452736318408,
+            "categoryVisiblePrecision": 0.754601226993865,
+            "categoryShownWrong": 40,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "Findet nächsten Donnerstag überhaupt Vorlesung statt?",
+                "n": 8,
+                "dominantFamily": "O-CANC",
+                "purity": 0.5,
+                "families": 4
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "Wann ist Ihre Sprechstunde?",
+                "n": 5,
+                "dominantFamily": "O-OFFICE",
+                "purity": 1,
+                "families": 1
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "Noch ein Regressionsbeispiel?",
+                "n": 5,
+                "dominantFamily": "C-REG",
+                "purity": 1,
+                "families": 1
+              }
+            ],
+            "reachableShare": 0.08955223880597014,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 2
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 61",
+                "n": 61,
+                "correct": 46,
+                "precision": 0.7540983606557377,
+                "wrongExamples": [
+                  "Muss ich den t-Test für die Prüfung können?",
+                  "Wird Kapitel 5 mit den Tests abgefragt?",
+                  "Wie groß muss meine Stichprobe mindestens sein?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 54",
+                "n": 54,
+                "correct": 40,
+                "precision": 0.7407407407407407,
+                "wrongExamples": [
+                  "Dürfen wir in der Klausur eine Formelsammlung benutzen?",
+                  "Ist ein selbst geschriebener Spickzettel in der Klausur erlaubt?",
+                  "Welche Hilfsmittel sind in der Klausur zugelassen?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 48",
+                "n": 48,
+                "correct": 37,
+                "precision": 0.7708333333333334,
+                "wrongExamples": [
+                  "Checkt jemand den p-Wert? Ich raff das nicht.",
+                  "Overfitting?? check ich nicht",
+                  "Den Schritt von Zeile 2 auf Zeile 3 in der Herleitung auf Folie 17 verstehe ich nicht."
+                ]
+              }
+            ],
+            "reachableShare": 0.8109452736318408,
+            "categoryVisiblePrecision": 0.754601226993865,
+            "categoryShownWrong": 40,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "en": {
+        "n": 120,
+        "nlpStatuses": {
+          "classified": 103,
+          "uncertain": 17
+        },
+        "semantic": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "encoderCalled": true,
+          "ms": 1657.9
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "exam",
+                "n": 12,
+                "dominantFamily": "O-AIDS",
+                "purity": 0.25,
+                "families": 7
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "example",
+                "n": 6,
+                "dominantFamily": "C-BAYES",
+                "purity": 0.5,
+                "families": 3
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "back",
+                "n": 5,
+                "dominantFamily": "T-LIGHT",
+                "purity": 0.4,
+                "families": 4
+              }
+            ],
+            "reachableShare": 0.19166666666666668,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 40",
+                "n": 40,
+                "correct": 22,
+                "precision": 0.55,
+                "wrongExamples": [
+                  "What's the due date for problem set two?",
+                  "Can we bring a cheat sheet to the exam?",
+                  "Will the recording be uploaded afterwards?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 38",
+                "n": 38,
+                "correct": 27,
+                "precision": 0.7105263157894737,
+                "wrongExamples": [
+                  "Can we do one more regression example step by step?",
+                  "Will hypothesis testing be on the final exam?",
+                  "Will we be tested on the t-test?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 25",
+                "n": 25,
+                "correct": 19,
+                "precision": 0.76,
+                "wrongExamples": [
+                  "Could you walk us through another linear regression example?",
+                  "How large does my sample need to be?",
+                  "Can I book a slot in your office hours?"
+                ]
+              }
+            ],
+            "reachableShare": 0.8583333333333333,
+            "categoryVisiblePrecision": 0.6601941747572816,
+            "categoryShownWrong": 35,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "Is this going to be on it?",
+                "n": 5,
+                "dominantFamily": "S-AMB-3",
+                "purity": 0.2,
+                "families": 5
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "When are your office hours?",
+                "n": 4,
+                "dominantFamily": "O-OFFICE",
+                "purity": 0.75,
+                "families": 2
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "Does correlation imply causation here?",
+                "n": 3,
+                "dominantFamily": "C-CORR",
+                "purity": 0.6666666666666666,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.1,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 40",
+                "n": 40,
+                "correct": 22,
+                "precision": 0.55,
+                "wrongExamples": [
+                  "What's the due date for problem set two?",
+                  "Can we bring a cheat sheet to the exam?",
+                  "Will the recording be uploaded afterwards?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 38",
+                "n": 38,
+                "correct": 27,
+                "precision": 0.7105263157894737,
+                "wrongExamples": [
+                  "Can we do one more regression example step by step?",
+                  "Will hypothesis testing be on the final exam?",
+                  "Will we be tested on the t-test?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 25",
+                "n": 25,
+                "correct": 19,
+                "precision": 0.76,
+                "wrongExamples": [
+                  "Could you walk us through another linear regression example?",
+                  "How large does my sample need to be?",
+                  "Can I book a slot in your office hours?"
+                ]
+              }
+            ],
+            "reachableShare": 0.8583333333333333,
+            "categoryVisiblePrecision": 0.6601941747572816,
+            "categoryShownWrong": 35,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "fr": {
+        "n": 82,
+        "nlpStatuses": {
+          "classified": 65,
+          "uncertain": 17
+        },
+        "semantic": {
+          "status": "fallback",
+          "fallbackUsed": true,
+          "encoderCalled": false,
+          "ms": 1.6
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "examen",
+                "n": 9,
+                "dominantFamily": "O-AIDS",
+                "purity": 0.2222222222222222,
+                "families": 6
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "cours",
+                "n": 7,
+                "dominantFamily": "O-ATT",
+                "purity": 0.2857142857142857,
+                "families": 5
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "diapo",
+                "n": 3,
+                "dominantFamily": "C-DERIV",
+                "purity": 0.6666666666666666,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.23170731707317074,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 38",
+                "n": 38,
+                "correct": 18,
+                "precision": 0.47368421052631576,
+                "wrongExamples": [
+                  "Quelle est la date de rendu de la deuxième feuille d'exercices ?",
+                  "On doit rendre la feuille 2 quand ?",
+                  "La présence en cours est-elle obligatoire ?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 14",
+                "n": 14,
+                "correct": 11,
+                "precision": 0.7857142857142857,
+                "wrongExamples": [
+                  "Il y a cours jeudi malgré le jour férié ?",
+                  "Les points bonus comptent-ils aussi pour le rattrapage ?",
+                  "Faut-il s'inscrire sur Moodle pour le TD ?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 13",
+                "n": 13,
+                "correct": 6,
+                "precision": 0.46153846153846156,
+                "wrongExamples": [
+                  "Faut-il réviser le chapitre 5 pour l'examen ?",
+                  "Comment savoir si un modèle fait du surapprentissage ?",
+                  "Quelle différence entre surapprentissage et sous-apprentissage ?"
+                ]
+              }
+            ],
+            "reachableShare": 0.7926829268292683,
+            "categoryVisiblePrecision": 0.5384615384615384,
+            "categoryShownWrong": 30,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "examen",
+                "n": 9,
+                "dominantFamily": "O-AIDS",
+                "purity": 0.2222222222222222,
+                "families": 6
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "cours",
+                "n": 7,
+                "dominantFamily": "O-ATT",
+                "purity": 0.2857142857142857,
+                "families": 5
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "diapo",
+                "n": 3,
+                "dominantFamily": "C-DERIV",
+                "purity": 0.6666666666666666,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.23170731707317074,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 38",
+                "n": 38,
+                "correct": 18,
+                "precision": 0.47368421052631576,
+                "wrongExamples": [
+                  "Quelle est la date de rendu de la deuxième feuille d'exercices ?",
+                  "On doit rendre la feuille 2 quand ?",
+                  "La présence en cours est-elle obligatoire ?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 14",
+                "n": 14,
+                "correct": 11,
+                "precision": 0.7857142857142857,
+                "wrongExamples": [
+                  "Il y a cours jeudi malgré le jour férié ?",
+                  "Les points bonus comptent-ils aussi pour le rattrapage ?",
+                  "Faut-il s'inscrire sur Moodle pour le TD ?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 13",
+                "n": 13,
+                "correct": 6,
+                "precision": 0.46153846153846156,
+                "wrongExamples": [
+                  "Faut-il réviser le chapitre 5 pour l'examen ?",
+                  "Comment savoir si un modèle fait du surapprentissage ?",
+                  "Quelle différence entre surapprentissage et sous-apprentissage ?"
+                ]
+              }
+            ],
+            "reachableShare": 0.7926829268292683,
+            "categoryVisiblePrecision": 0.5384615384615384,
+            "categoryShownWrong": 30,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "es": {
+        "n": 81,
+        "nlpStatuses": {
+          "classified": 63,
+          "uncertain": 18
+        },
+        "semantic": {
+          "status": "fallback",
+          "fallbackUsed": true,
+          "encoderCalled": false,
+          "ms": 1.3
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "examen",
+                "n": 8,
+                "dominantFamily": "O-REG",
+                "purity": 0.25,
+                "families": 5
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "puedo",
+                "n": 7,
+                "dominantFamily": "O-TUT",
+                "purity": 0.2857142857142857,
+                "families": 6
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "clase",
+                "n": 5,
+                "dominantFamily": "O-CANC",
+                "purity": 0.4,
+                "families": 4
+              }
+            ],
+            "reachableShare": 0.24691358024691357,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 34",
+                "n": 34,
+                "correct": 13,
+                "precision": 0.38235294117647056,
+                "wrongExamples": [
+                  "¿La entrega de la segunda hoja es el viernes?",
+                  "¿Se permite llevar un formulario al examen?",
+                  "¿Se cancela la clase del jueves por el festivo?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 15",
+                "n": 15,
+                "correct": 8,
+                "precision": 0.5333333333333333,
+                "wrongExamples": [
+                  "¿Podemos resolver otro ejercicio de regresión lineal?",
+                  "¿Entran los contrastes de hipótesis en el examen?",
+                  "¿Hay que estudiar el capítulo 5 para el examen?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 14",
+                "n": 14,
+                "correct": 9,
+                "precision": 0.6428571428571429,
+                "wrongExamples": [
+                  "¿Qué diferencia hay entre sobreajuste y subajuste?",
+                  "¿Pasan lista en clase?",
+                  "¿Subirán la grabación a Moodle?"
+                ]
+              }
+            ],
+            "reachableShare": 0.7777777777777778,
+            "categoryVisiblePrecision": 0.47619047619047616,
+            "categoryShownWrong": 33,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "examen",
+                "n": 8,
+                "dominantFamily": "O-REG",
+                "purity": 0.25,
+                "families": 5
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "puedo",
+                "n": 7,
+                "dominantFamily": "O-TUT",
+                "purity": 0.2857142857142857,
+                "families": 6
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "clase",
+                "n": 5,
+                "dominantFamily": "O-CANC",
+                "purity": 0.4,
+                "families": 4
+              }
+            ],
+            "reachableShare": 0.24691358024691357,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 34",
+                "n": 34,
+                "correct": 13,
+                "precision": 0.38235294117647056,
+                "wrongExamples": [
+                  "¿La entrega de la segunda hoja es el viernes?",
+                  "¿Se permite llevar un formulario al examen?",
+                  "¿Se cancela la clase del jueves por el festivo?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 15",
+                "n": 15,
+                "correct": 8,
+                "precision": 0.5333333333333333,
+                "wrongExamples": [
+                  "¿Podemos resolver otro ejercicio de regresión lineal?",
+                  "¿Entran los contrastes de hipótesis en el examen?",
+                  "¿Hay que estudiar el capítulo 5 para el examen?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 14",
+                "n": 14,
+                "correct": 9,
+                "precision": 0.6428571428571429,
+                "wrongExamples": [
+                  "¿Qué diferencia hay entre sobreajuste y subajuste?",
+                  "¿Pasan lista en clase?",
+                  "¿Subirán la grabación a Moodle?"
+                ]
+              }
+            ],
+            "reachableShare": 0.7777777777777778,
+            "categoryVisiblePrecision": 0.47619047619047616,
+            "categoryShownWrong": 33,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "mixed": {
+        "n": 16,
+        "nlpStatuses": {
+          "classified": 12,
+          "uncertain": 4
+        },
+        "semantic": {
+          "status": "fallback",
+          "fallbackUsed": true,
+          "encoderCalled": true,
+          "ms": 77.3
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 1,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "genau",
+                "n": 2,
+                "dominantFamily": "C-PVAL",
+                "purity": 0.5,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.125,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 1,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 4,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 6",
+                "n": 6,
+                "correct": 4,
+                "precision": 0.6666666666666666,
+                "wrongExamples": [
+                  "Können wir noch ein regression example machen?",
+                  "Wie rechnet man den z-score aus?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 3",
+                "n": 3,
+                "correct": 3,
+                "precision": 1,
+                "wrongExamples": []
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 3",
+                "n": 3,
+                "correct": 3,
+                "precision": 1,
+                "wrongExamples": []
+              }
+            ],
+            "reachableShare": 0.75,
+            "categoryVisiblePrecision": 0.8333333333333334,
+            "categoryShownWrong": 2,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 1,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "genau",
+                "n": 2,
+                "dominantFamily": "C-PVAL",
+                "purity": 0.5,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.125,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 1,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 4,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 6",
+                "n": 6,
+                "correct": 4,
+                "precision": 0.6666666666666666,
+                "wrongExamples": [
+                  "Können wir noch ein regression example machen?",
+                  "Wie rechnet man den z-score aus?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 3",
+                "n": 3,
+                "correct": 3,
+                "precision": 1,
+                "wrongExamples": []
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 3",
+                "n": 3,
+                "correct": 3,
+                "precision": 1,
+                "wrongExamples": []
+              }
+            ],
+            "reachableShare": 0.75,
+            "categoryVisiblePrecision": 0.8333333333333334,
+            "categoryShownWrong": 2,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      }
+    },
+    "police": {
+      "de": {
+        "n": 90,
+        "nlpStatuses": {
+          "classified": 82,
+          "uncertain": 8
+        },
+        "semantic": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "encoderCalled": true,
+          "ms": 1334.9
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "Klausur",
+                "n": 5,
+                "dominantFamily": "P-GESETZ",
+                "purity": 0.6,
+                "families": 3
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "Praktikum",
+                "n": 5,
+                "dominantFamily": "P-PRAKT",
+                "purity": 0.8,
+                "families": 2
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "Sporttest",
+                "n": 5,
+                "dominantFamily": "P-SPORT",
+                "purity": 0.8,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.16666666666666666,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 2
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 41",
+                "n": 41,
+                "correct": 17,
+                "precision": 0.4146341463414634,
+                "wrongExamples": [
+                  "Ist die vorläufige Festnahme basically dasselbe wie eine Ingewahrsamnahme?",
+                  "Wie prüfe ich die Verhältnismäßigkeit einer Maßnahme Schritt für Schritt?",
+                  "Ist eine Identitätsfeststellung schon unverhältnismäßig, wenn die Person kooperiert?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 24",
+                "n": 24,
+                "correct": 17,
+                "precision": 0.7083333333333334,
+                "wrongExamples": [
+                  "Wann ist das nächste Schießtraining und auf welchem Schießstand?",
+                  "Wann ist die nächste Ausgabe der Ausrüstung in der Kleiderkammer?",
+                  "Ist ein Kommentar zum Polizeigesetz in der Klausur erlaubt?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 17",
+                "n": 17,
+                "correct": 8,
+                "precision": 0.47058823529411764,
+                "wrongExamples": [
+                  "Wann ist eine Notwehrhandlung nicht mehr geboten?",
+                  "Braucht die Polizei für § 127 Abs. 2 StPO immer Gefahr im Verzug?",
+                  "Was macht man, wenn einer total austickt und gar nicht mehr zuhört?"
+                ]
+              }
+            ],
+            "reachableShare": 0.9111111111111111,
+            "categoryVisiblePrecision": 0.5121951219512195,
+            "categoryShownWrong": 40,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "Im Simulator ist das Bild so verzerrt, dass man die Waffe des Gegenübers nicht erkennt.",
+                "n": 4,
+                "dominantFamily": "P-SIM",
+                "purity": 0.75,
+                "families": 2
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "In welcher Reihenfolge werden Spuren am Tatort gesichert?",
+                "n": 3,
+                "dominantFamily": "P-SPUREN",
+                "purity": 1,
+                "families": 1
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "Kann man sich die Dienststelle für das Praktikum wünschen?",
+                "n": 3,
+                "dominantFamily": "P-PRAKT",
+                "purity": 1,
+                "families": 1
+              }
+            ],
+            "reachableShare": 0.1111111111111111,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 2
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 41",
+                "n": 41,
+                "correct": 17,
+                "precision": 0.4146341463414634,
+                "wrongExamples": [
+                  "Ist die vorläufige Festnahme basically dasselbe wie eine Ingewahrsamnahme?",
+                  "Wie prüfe ich die Verhältnismäßigkeit einer Maßnahme Schritt für Schritt?",
+                  "Ist eine Identitätsfeststellung schon unverhältnismäßig, wenn die Person kooperiert?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 24",
+                "n": 24,
+                "correct": 17,
+                "precision": 0.7083333333333334,
+                "wrongExamples": [
+                  "Wann ist das nächste Schießtraining und auf welchem Schießstand?",
+                  "Wann ist die nächste Ausgabe der Ausrüstung in der Kleiderkammer?",
+                  "Ist ein Kommentar zum Polizeigesetz in der Klausur erlaubt?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 17",
+                "n": 17,
+                "correct": 8,
+                "precision": 0.47058823529411764,
+                "wrongExamples": [
+                  "Wann ist eine Notwehrhandlung nicht mehr geboten?",
+                  "Braucht die Polizei für § 127 Abs. 2 StPO immer Gefahr im Verzug?",
+                  "Was macht man, wenn einer total austickt und gar nicht mehr zuhört?"
+                ]
+              }
+            ],
+            "reachableShare": 0.9111111111111111,
+            "categoryVisiblePrecision": 0.5121951219512195,
+            "categoryShownWrong": 40,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "en": {
+        "n": 22,
+        "nlpStatuses": {
+          "classified": 21,
+          "uncertain": 1
+        },
+        "semantic": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "encoderCalled": true,
+          "ms": 338.4
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "training",
+                "n": 4,
+                "dominantFamily": "P-VBS",
+                "purity": 0.25,
+                "families": 4
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "difference",
+                "n": 3,
+                "dominantFamily": "P-NOTWEHR",
+                "purity": 0.3333333333333333,
+                "families": 3
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "person",
+                "n": 2,
+                "dominantFamily": "P-DEESK",
+                "purity": 0.5,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.4090909090909091,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 11",
+                "n": 11,
+                "correct": 5,
+                "precision": 0.45454545454545453,
+                "wrongExamples": [
+                  "How do I check whether a police measure is proportionate?",
+                  "When do I have to caution someone as a suspect instead of a witness?",
+                  "What conditions have to be met before an officer may use a firearm against a person?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 7",
+                "n": 7,
+                "correct": 5,
+                "precision": 0.7142857142857143,
+                "wrongExamples": [
+                  "Where do we meet for the operational training in the training hall?",
+                  "Our training radios are not connecting to the network."
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 3",
+                "n": 3,
+                "correct": 2,
+                "precision": 0.6666666666666666,
+                "wrongExamples": [
+                  "How should I talk to an agitated person so the situation does not escalate?"
+                ]
+              }
+            ],
+            "reachableShare": 0.9545454545454546,
+            "categoryVisiblePrecision": 0.5714285714285714,
+            "categoryShownWrong": 9,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 4,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "The training simulator will not start, the screen stays black.",
+                "n": 3,
+                "dominantFamily": "P-FUNK",
+                "purity": 0.3333333333333333,
+                "families": 3
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "When do I have to caution someone as a suspect instead of a witness?",
+                "n": 2,
+                "dominantFamily": "P-BELEHRUNG",
+                "purity": 0.5,
+                "families": 2
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "What's the difference between a citizen's arrest and an arrest by the police?",
+                "n": 2,
+                "dominantFamily": "P-FESTNAHME",
+                "purity": 0.5,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.3181818181818182,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 7,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 11",
+                "n": 11,
+                "correct": 5,
+                "precision": 0.45454545454545453,
+                "wrongExamples": [
+                  "How do I check whether a police measure is proportionate?",
+                  "When do I have to caution someone as a suspect instead of a witness?",
+                  "What conditions have to be met before an officer may use a firearm against a person?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 7",
+                "n": 7,
+                "correct": 5,
+                "precision": 0.7142857142857143,
+                "wrongExamples": [
+                  "Where do we meet for the operational training in the training hall?",
+                  "Our training radios are not connecting to the network."
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 3",
+                "n": 3,
+                "correct": 2,
+                "precision": 0.6666666666666666,
+                "wrongExamples": [
+                  "How should I talk to an agitated person so the situation does not escalate?"
+                ]
+              }
+            ],
+            "reachableShare": 0.9545454545454546,
+            "categoryVisiblePrecision": 0.5714285714285714,
+            "categoryShownWrong": 9,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "fr": {
+        "n": 19,
+        "nlpStatuses": {
+          "classified": 18,
+          "uncertain": 1
+        },
+        "semantic": {
+          "status": "fallback",
+          "fallbackUsed": true,
+          "encoderCalled": false,
+          "ms": 0.6
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 3,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "personne",
+                "n": 4,
+                "dominantFamily": "P-BELEHRUNG",
+                "purity": 0.25,
+                "families": 4
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "entraînement",
+                "n": 3,
+                "dominantFamily": "P-FUNK",
+                "purity": 0.3333333333333333,
+                "families": 3
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "police",
+                "n": 3,
+                "dominantFamily": "P-VERHAELT",
+                "purity": 0.3333333333333333,
+                "families": 3
+              }
+            ],
+            "reachableShare": 0.5263157894736842,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 6,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 13",
+                "n": 13,
+                "correct": 8,
+                "precision": 0.6153846153846154,
+                "wrongExamples": [
+                  "Faut-il porter l'uniforme pendant les cours théoriques ?",
+                  "Quels codes avons-nous le droit d'apporter à l'examen ?",
+                  "Où se retrouve-t-on pour l'entraînement opérationnel dans la salle ?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 3",
+                "n": 3,
+                "correct": 1,
+                "precision": 0.3333333333333333,
+                "wrongExamples": [
+                  "À quel moment faut-il informer une personne de ses droits en tant que suspect et non plus comme témoin ?",
+                  "Nos radios d'entraînement n'arrivent pas à se connecter."
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 2",
+                "n": 2,
+                "correct": 1,
+                "precision": 0.5,
+                "wrongExamples": [
+                  "Quand saurons-nous dans quel commissariat nous ferons notre stage ?"
+                ]
+              }
+            ],
+            "reachableShare": 0.9473684210526315,
+            "categoryVisiblePrecision": 0.5555555555555556,
+            "categoryShownWrong": 8,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 3,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "personne",
+                "n": 4,
+                "dominantFamily": "P-BELEHRUNG",
+                "purity": 0.25,
+                "families": 4
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "entraînement",
+                "n": 3,
+                "dominantFamily": "P-FUNK",
+                "purity": 0.3333333333333333,
+                "families": 3
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "police",
+                "n": 3,
+                "dominantFamily": "P-VERHAELT",
+                "purity": 0.3333333333333333,
+                "families": 3
+              }
+            ],
+            "reachableShare": 0.5263157894736842,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 6,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 13",
+                "n": 13,
+                "correct": 8,
+                "precision": 0.6153846153846154,
+                "wrongExamples": [
+                  "Faut-il porter l'uniforme pendant les cours théoriques ?",
+                  "Quels codes avons-nous le droit d'apporter à l'examen ?",
+                  "Où se retrouve-t-on pour l'entraînement opérationnel dans la salle ?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 3",
+                "n": 3,
+                "correct": 1,
+                "precision": 0.3333333333333333,
+                "wrongExamples": [
+                  "À quel moment faut-il informer une personne de ses droits en tant que suspect et non plus comme témoin ?",
+                  "Nos radios d'entraînement n'arrivent pas à se connecter."
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen · 2",
+                "n": 2,
+                "correct": 1,
+                "precision": 0.5,
+                "wrongExamples": [
+                  "Quand saurons-nous dans quel commissariat nous ferons notre stage ?"
+                ]
+              }
+            ],
+            "reachableShare": 0.9473684210526315,
+            "categoryVisiblePrecision": 0.5555555555555556,
+            "categoryShownWrong": 8,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      },
+      "es": {
+        "n": 19,
+        "nlpStatuses": {
+          "classified": 17,
+          "uncertain": 2
+        },
+        "semantic": {
+          "status": "fallback",
+          "fallbackUsed": true,
+          "encoderCalled": false,
+          "ms": 0.5
+        },
+        "variants": {
+          "V0": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "policial",
+                "n": 3,
+                "dominantFamily": "P-VERHAELT",
+                "purity": 0.3333333333333333,
+                "families": 3
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "entrenamiento",
+                "n": 2,
+                "dominantFamily": "P-SCHIESS",
+                "purity": 0.5,
+                "families": 2
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "llevar",
+                "n": 2,
+                "dominantFamily": "P-GESETZ",
+                "purity": 0.5,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.3684210526315789,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V1": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 11",
+                "n": 11,
+                "correct": 5,
+                "precision": 0.45454545454545453,
+                "wrongExamples": [
+                  "¿Cuándo y dónde es el próximo entrenamiento de tiro?",
+                  "¿Cuándo sabremos en qué comisaría haremos las prácticas?",
+                  "¿Tenemos que llevar uniforme en las clases teóricas?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 5",
+                "n": 5,
+                "correct": 3,
+                "precision": 0.6,
+                "wrongExamples": [
+                  "¿Cómo se aseguran las huellas en la escena del crimen sin contaminarlas?",
+                  "¿Dónde está el límite entre la obligación de perseguir y la discrecionalidad policial?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen",
+                "n": 1,
+                "correct": 1,
+                "precision": 1,
+                "wrongExamples": []
+              }
+            ],
+            "reachableShare": 0.8947368421052632,
+            "categoryVisiblePrecision": 0.5294117647058824,
+            "categoryShownWrong": 8,
+            "termVisible": 0,
+            "termCoherent": 0
+          },
+          "V2": {
+            "statusMode": "disabled",
+            "statusLine": "Die automatische Sortierung der Fragen ist aus.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 5,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Thema/Term",
+                "label": "policial",
+                "n": 3,
+                "dominantFamily": "P-VERHAELT",
+                "purity": 0.3333333333333333,
+                "families": 3
+              },
+              {
+                "rank": 2,
+                "kind": "Thema/Term",
+                "label": "entrenamiento",
+                "n": 2,
+                "dominantFamily": "P-SCHIESS",
+                "purity": 0.5,
+                "families": 2
+              },
+              {
+                "rank": 3,
+                "kind": "Thema/Term",
+                "label": "llevar",
+                "n": 2,
+                "dominantFamily": "P-GESETZ",
+                "purity": 0.5,
+                "families": 2
+              }
+            ],
+            "reachableShare": 0.3684210526315789,
+            "categoryVisiblePrecision": null,
+            "categoryShownWrong": 0,
+            "termVisible": 3,
+            "termCoherent": 0
+          },
+          "V3": {
+            "statusMode": "classified",
+            "statusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+            "recommendation": "topics",
+            "cards": 1,
+            "storedSources": 8,
+            "visible": [
+              {
+                "rank": 1,
+                "kind": "Kategorie",
+                "label": "Inhaltliche Fragen · 11",
+                "n": 11,
+                "correct": 5,
+                "precision": 0.45454545454545453,
+                "wrongExamples": [
+                  "¿Cuándo y dónde es el próximo entrenamiento de tiro?",
+                  "¿Cuándo sabremos en qué comisaría haremos las prácticas?",
+                  "¿Tenemos que llevar uniforme en las clases teóricas?"
+                ]
+              },
+              {
+                "rank": 2,
+                "kind": "Kategorie",
+                "label": "Fragen zum Ablauf · 5",
+                "n": 5,
+                "correct": 3,
+                "precision": 0.6,
+                "wrongExamples": [
+                  "¿Cómo se aseguran las huellas en la escena del crimen sin contaminarlas?",
+                  "¿Dónde está el límite entre la obligación de perseguir y la discrecionalidad policial?"
+                ]
+              },
+              {
+                "rank": 3,
+                "kind": "Kategorie",
+                "label": "Technische Fragen",
+                "n": 1,
+                "correct": 1,
+                "precision": 1,
+                "wrongExamples": []
+              }
+            ],
+            "reachableShare": 0.8947368421052632,
+            "categoryVisiblePrecision": 0.5294117647058824,
+            "categoryShownWrong": 8,
+            "termVisible": 0,
+            "termCoherent": 0
+          }
+        }
+      }
+    }
+  },
+  "load": {
+    "arrival": [
+      {
+        "label": "500 Fragen, 50/s",
+        "total": 500,
+        "arrival": "50/s",
+        "durationMs": 14999.4,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 2605,
+          "pending": 2280
+        },
+        "maxPending": 1,
+        "maxEventLoopGapMs": 18.7
+      },
+      {
+        "label": "500 Fragen, 200/s",
+        "total": 500,
+        "arrival": "200/s",
+        "durationMs": 5245,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "classified": 1015,
+          "pending": 900
+        },
+        "maxPending": 3,
+        "maxEventLoopGapMs": 20.8
+      },
+      {
+        "label": "500 Fragen, 1000/s",
+        "total": 500,
+        "arrival": "1000/s",
+        "durationMs": 1013.3,
+        "statuses": {
+          "classified": 426,
+          "uncertain": 74
+        },
+        "rejectedAtEnqueue": 0,
+        "finalStatusMode": "classified",
+        "finalStatusLine": "Die Fragen sind grob nach Inhalt, Ablauf und Technik sortiert.",
+        "classifiedShownInCompass": 426,
+        "statusLineTimeMs": {
+          "pending": 490,
+          "classified": 80
+        },
+        "maxPending": 16,
+        "maxEventLoopGapMs": 29.7
+      },
+      {
+        "label": "500 Fragen, gleichzeitig",
+        "total": 500,
+        "arrival": "alle im selben Tick",
+        "durationMs": 374.7,
+        "statuses": {
+          "classified": 87,
+          "uncertain": 13,
+          "failed": 400
+        },
+        "rejectedAtEnqueue": 400,
+        "finalStatusMode": "failed",
+        "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+        "classifiedShownInCompass": 87,
+        "statusLineTimeMs": {
+          "pending": 95,
+          "failed": 15
+        },
+        "maxPending": 99,
+        "maxEventLoopGapMs": 241.8
+      },
+      {
+        "label": "150 Fragen gleichzeitig in Sitzung A, Sitzung B fragt nebenher",
+        "total": 150,
+        "arrival": "alle im selben Tick",
+        "durationMs": 247.2,
+        "statuses": {
+          "classified": 87,
+          "uncertain": 13,
+          "failed": 50
+        },
+        "rejectedAtEnqueue": 50,
+        "finalStatusMode": "failed",
+        "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+        "classifiedShownInCompass": 87,
+        "statusLineTimeMs": {
+          "pending": 95,
+          "failed": 25
+        },
+        "maxPending": 99,
+        "maxEventLoopGapMs": 97.1,
+        "neighbour": {
+          "statuses": {
+            "failed": 1,
+            "classified": 9
+          },
+          "finalStatusLine": "Die automatische Sortierung ist gerade nicht verfügbar.",
+          "statusLineTimeMs": {
+            "failed": 20,
+            "pending": 100
+          }
+        }
+      }
+    ],
+    "encoder": [
+      {
+        "sessions": 1,
+        "results": [
+          {
+            "status": "ready",
+            "fallbackUsed": false,
+            "ms": 822.7
+          }
+        ],
+        "withTopics": 1,
+        "withFallback": 0,
+        "nextSessionAfterwards": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "ms": 790
+        }
+      },
+      {
+        "sessions": 2,
+        "results": [
+          {
+            "status": "ready",
+            "fallbackUsed": false,
+            "ms": 1200.1
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 3.2
+          }
+        ],
+        "withTopics": 1,
+        "withFallback": 1,
+        "nextSessionAfterwards": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "ms": 895.3
+        }
+      },
+      {
+        "sessions": 4,
+        "results": [
+          {
+            "status": "ready",
+            "fallbackUsed": false,
+            "ms": 1020.1
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 9
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 6.7
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 3.8
+          }
+        ],
+        "withTopics": 1,
+        "withFallback": 3,
+        "nextSessionAfterwards": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "ms": 682.4
+        }
+      },
+      {
+        "sessions": 8,
+        "results": [
+          {
+            "status": "ready",
+            "fallbackUsed": false,
+            "ms": 1012.5
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 18.1
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 15.9
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 13.6
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 11.5
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 8.7
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 6
+          },
+          {
+            "status": "failed",
+            "fallbackUsed": true,
+            "ms": 3.2
+          }
+        ],
+        "withTopics": 1,
+        "withFallback": 7,
+        "nextSessionAfterwards": {
+          "status": "ready",
+          "fallbackUsed": false,
+          "ms": 980.6
+        }
+      }
+    ]
+  }
+}

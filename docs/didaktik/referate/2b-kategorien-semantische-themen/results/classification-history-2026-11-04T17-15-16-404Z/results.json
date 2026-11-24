@@ -1,0 +1,3503 @@
+{
+  "manifest": {
+    "timestamp": "2026-11-04T17:15:16.404Z",
+    "commit": "84a5614ead769da526e233e60eea7ca44560363f",
+    "describe": "v1.3.0-326-g84a5614e-dirty",
+    "qaNlpSourcesDirty": false,
+    "node": "v24.12.0",
+    "platform": "win32 10.0.19045 x64",
+    "cpu": "Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz × 8",
+    "totalMemGB": 31.9,
+    "reference": {
+      "path": "referat-2b/reference-dataset.v2.2.json",
+      "version": "2.2.0",
+      "sha256": "717bdb17dc2e94d56275e2ea5b17d74c2fd602b56ea3a90abcae767d8faa0d87",
+      "labeled": 36,
+      "expectUncertain": 0,
+      "itemsInFile": 723,
+      "locales": ["de", "en", "fr", "es"],
+      "domain": "history"
+    },
+    "releaseConstants": {
+      "QA_NLP_MIN_CONFIDENCE_DEFAULT": 0.55,
+      "QA_NLP_EARLY_EXIT_MARGIN": 0.22,
+      "QA_NLP_EARLY_EXIT_MIN_TOKENS": 6,
+      "QA_NLP_FALLBACK_K": 5,
+      "QA_NLP_FALLBACK_MIN_AGREEMENT": 0.6,
+      "QA_NLP_GATEKEEPER_MODEL_VERSION": "gatekeeper-hash-nb-v1",
+      "QA_NLP_FALLBACK_MODEL_VERSION": "fallback-knn-v1"
+    },
+    "criteria": {
+      "MIN_ACCEPTED_PRECISION": 0.8,
+      "MAX_UNCERTAIN_RATE": 0.3,
+      "source": "apps/backend/src/lib/qaNlpCalibrate.ts"
+    },
+    "settings": {
+      "RUNS": 20,
+      "BOOTSTRAP": 2000,
+      "SEED": 456,
+      "SWEEP": [0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.8, 0.9]
+    }
+  },
+  "results": {
+    "original": {
+      "keyword": {
+        "operatingPoint": 0.55,
+        "labeled": {
+          "n": 36,
+          "bestGuessAccuracy": 0.6666666666666666,
+          "macroF1": 0.4131054131054131,
+          "coverage": 0.08333333333333333,
+          "uncertainRate": 0.9166666666666666,
+          "acceptedPrecision": 1,
+          "usefulRate": 0.08333333333333333,
+          "wrongAcceptedRate": 0,
+          "perClass": {
+            "content": {
+              "precision": 0.6363636363636364,
+              "recall": 1,
+              "f1": 0.7777777777777778,
+              "support": 21
+            },
+            "organization": {
+              "precision": 1,
+              "recall": 0.3,
+              "f1": 0.4615384615384615,
+              "support": 10
+            },
+            "technical": {
+              "precision": 0,
+              "recall": 0,
+              "f1": 0,
+              "support": 5
+            }
+          },
+          "confusion": {
+            "content": {
+              "content": 21,
+              "organization": 0,
+              "technical": 0
+            },
+            "organization": {
+              "content": 7,
+              "organization": 3,
+              "technical": 0
+            },
+            "technical": {
+              "content": 5,
+              "organization": 0,
+              "technical": 0
+            }
+          }
+        },
+        "abstentionOnAmbiguousAndNoise": {
+          "n": 0,
+          "rate": 0
+        },
+        "byLocale": {
+          "de": {
+            "n": 15,
+            "bestGuessAccuracy": 0.8,
+            "coverage": 0.2,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.2,
+            "wrongAcceptedRate": 0
+          },
+          "en": {
+            "n": 9,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "fr": {
+            "n": 6,
+            "bestGuessAccuracy": 0.5,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "es": {
+            "n": 6,
+            "bestGuessAccuracy": 0.5,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "byTag": {
+          "canonical": {
+            "n": 24,
+            "bestGuessAccuracy": 0.5833333333333334,
+            "coverage": 0.08333333333333333,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0
+          },
+          "out-of-domain": {
+            "n": 36,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 0.08333333333333333,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0
+          },
+          "typo": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "short": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "byGoldCategory": {
+          "content": {
+            "n": 21,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "organization": {
+            "n": 10,
+            "bestGuessAccuracy": 0.3,
+            "coverage": 0.3,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.3,
+            "wrongAcceptedRate": 0
+          },
+          "technical": {
+            "n": 5,
+            "bestGuessAccuracy": 0,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "calibration": null,
+        "bootstrap95": {
+          "usefulRate": {
+            "lo": 0,
+            "hi": 0.19444444444444445
+          },
+          "acceptedPrecision": {
+            "lo": 0,
+            "hi": 1
+          },
+          "coverage": {
+            "lo": 0,
+            "hi": 0.19444444444444445
+          },
+          "macroF1": {
+            "lo": 0.25961538461538464,
+            "hi": 0.540360873694207
+          },
+          "wrongAcceptedRate": {
+            "lo": 0,
+            "hi": 0
+          }
+        },
+        "sweep": [
+          {
+            "threshold": 0.35,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.4,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.45,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.5,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.55,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.6,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.65,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.7,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.8,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.9,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          }
+        ],
+        "outcomes": [
+          {
+            "id": "Q538",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q539",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q540",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q541",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q542",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q543",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q544",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q545",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q546",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q547",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q548",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q549",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q550",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q551",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q552",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q553",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q554",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q555",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q556",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q557",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q558",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q559",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q560",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q561",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q562",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q563",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q564",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q565",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q566",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q567",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q568",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q569",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q570",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q571",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q572",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q573",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          }
+        ]
+      },
+      "gatekeeper": {
+        "operatingPoint": 0.55,
+        "labeled": {
+          "n": 36,
+          "bestGuessAccuracy": 0.6111111111111112,
+          "macroF1": 0.4423558897243108,
+          "coverage": 0.9444444444444444,
+          "uncertainRate": 0.05555555555555558,
+          "acceptedPrecision": 0.6470588235294118,
+          "usefulRate": 0.6111111111111112,
+          "wrongAcceptedRate": 0.3333333333333333,
+          "perClass": {
+            "content": {
+              "precision": 0.7647058823529411,
+              "recall": 0.6190476190476191,
+              "f1": 0.6842105263157895,
+              "support": 21
+            },
+            "organization": {
+              "precision": 0.5,
+              "recall": 0.9,
+              "f1": 0.6428571428571429,
+              "support": 10
+            },
+            "technical": {
+              "precision": 0,
+              "recall": 0,
+              "f1": 0,
+              "support": 5
+            }
+          },
+          "confusion": {
+            "content": {
+              "content": 13,
+              "organization": 7,
+              "technical": 1
+            },
+            "organization": {
+              "content": 1,
+              "organization": 9,
+              "technical": 0
+            },
+            "technical": {
+              "content": 3,
+              "organization": 2,
+              "technical": 0
+            }
+          }
+        },
+        "abstentionOnAmbiguousAndNoise": {
+          "n": 0,
+          "rate": 0
+        },
+        "byLocale": {
+          "de": {
+            "n": 15,
+            "bestGuessAccuracy": 0.7333333333333333,
+            "coverage": 1,
+            "acceptedPrecision": 0.7333333333333333,
+            "usefulRate": 0.7333333333333333,
+            "wrongAcceptedRate": 0.26666666666666666
+          },
+          "en": {
+            "n": 9,
+            "bestGuessAccuracy": 0.5555555555555556,
+            "coverage": 0.7777777777777778,
+            "acceptedPrecision": 0.7142857142857143,
+            "usefulRate": 0.5555555555555556,
+            "wrongAcceptedRate": 0.2222222222222222
+          },
+          "fr": {
+            "n": 6,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "es": {
+            "n": 6,
+            "bestGuessAccuracy": 0.3333333333333333,
+            "coverage": 1,
+            "acceptedPrecision": 0.3333333333333333,
+            "usefulRate": 0.3333333333333333,
+            "wrongAcceptedRate": 0.6666666666666666
+          }
+        },
+        "byTag": {
+          "canonical": {
+            "n": 24,
+            "bestGuessAccuracy": 0.625,
+            "coverage": 0.9583333333333334,
+            "acceptedPrecision": 0.6521739130434783,
+            "usefulRate": 0.625,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "out-of-domain": {
+            "n": 36,
+            "bestGuessAccuracy": 0.6111111111111112,
+            "coverage": 0.9444444444444444,
+            "acceptedPrecision": 0.6470588235294118,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "typo": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 1,
+            "acceptedPrecision": 1,
+            "usefulRate": 1,
+            "wrongAcceptedRate": 0
+          },
+          "short": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 1,
+            "acceptedPrecision": 1,
+            "usefulRate": 1,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "byGoldCategory": {
+          "content": {
+            "n": 21,
+            "bestGuessAccuracy": 0.6190476190476191,
+            "coverage": 0.9523809523809523,
+            "acceptedPrecision": 0.65,
+            "usefulRate": 0.6190476190476191,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "organization": {
+            "n": 10,
+            "bestGuessAccuracy": 0.9,
+            "coverage": 1,
+            "acceptedPrecision": 0.9,
+            "usefulRate": 0.9,
+            "wrongAcceptedRate": 0.1
+          },
+          "technical": {
+            "n": 5,
+            "bestGuessAccuracy": 0,
+            "coverage": 0.8,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0.8
+          }
+        },
+        "calibration": {
+          "bins": [
+            {
+              "range": "[0.00, 0.40)",
+              "n": 0,
+              "meanConfidence": 0,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.40, 0.55)",
+              "n": 2,
+              "meanConfidence": 0.4994906223245943,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.55, 0.70)",
+              "n": 5,
+              "meanConfidence": 0.6476912157424007,
+              "accuracy": 0.4
+            },
+            {
+              "range": "[0.70, 0.85)",
+              "n": 4,
+              "meanConfidence": 0.7949648477434528,
+              "accuracy": 0.25
+            },
+            {
+              "range": "[0.85, 1.00]",
+              "n": 25,
+              "meanConfidence": 0.96947479896679,
+              "accuracy": 0.76
+            }
+          ],
+          "ece": 0.26817129690290975
+        },
+        "bootstrap95": {
+          "usefulRate": {
+            "lo": 0.4444444444444444,
+            "hi": 0.7777777777777778
+          },
+          "acceptedPrecision": {
+            "lo": 0.4857142857142857,
+            "hi": 0.8
+          },
+          "coverage": {
+            "lo": 0.8611111111111112,
+            "hi": 1
+          },
+          "macroF1": {
+            "lo": 0.3333333333333333,
+            "hi": 0.5404040404040404
+          },
+          "wrongAcceptedRate": {
+            "lo": 0.19444444444444445,
+            "hi": 0.5
+          }
+        },
+        "sweep": [
+          {
+            "threshold": 0.35,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6111111111111112,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3888888888888889,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.4,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6111111111111112,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3888888888888889,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.45,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6111111111111112,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3888888888888889,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.5,
+            "coverage": 0.9722222222222222,
+            "uncertainRate": 0.02777777777777779,
+            "acceptedPrecision": 0.6285714285714286,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.55,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6470588235294118,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.6,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.65,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.7,
+            "coverage": 0.8055555555555556,
+            "uncertainRate": 0.19444444444444442,
+            "acceptedPrecision": 0.6896551724137931,
+            "usefulRate": 0.5555555555555556,
+            "wrongAcceptedRate": 0.25,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.8,
+            "coverage": 0.75,
+            "uncertainRate": 0.25,
+            "acceptedPrecision": 0.7037037037037037,
+            "usefulRate": 0.5277777777777778,
+            "wrongAcceptedRate": 0.2222222222222222,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.9,
+            "coverage": 0.5833333333333334,
+            "uncertainRate": 0.41666666666666663,
+            "acceptedPrecision": 0.7142857142857143,
+            "usefulRate": 0.4166666666666667,
+            "wrongAcceptedRate": 0.16666666666666666,
+            "abstention": 0,
+            "meetsCriteria": false
+          }
+        ],
+        "outcomes": [
+          {
+            "id": "Q538",
+            "category": "content",
+            "confidence": 0.9992,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q539",
+            "category": "content",
+            "confidence": 0.9548,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q540",
+            "category": "content",
+            "confidence": 0.8591,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q541",
+            "category": "organization",
+            "confidence": 0.962,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q542",
+            "category": "technical",
+            "confidence": 0.5375,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q543",
+            "category": "organization",
+            "confidence": 0.9788,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q544",
+            "category": "organization",
+            "confidence": 0.6847,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q545",
+            "category": "content",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q546",
+            "category": "organization",
+            "confidence": 0.6639,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q547",
+            "category": "organization",
+            "confidence": 0.9393,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q548",
+            "category": "content",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q549",
+            "category": "organization",
+            "confidence": 0.7497,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q550",
+            "category": "content",
+            "confidence": 0.6809,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q551",
+            "category": "organization",
+            "confidence": 0.845,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q552",
+            "category": "content",
+            "confidence": 0.9997,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q553",
+            "category": "content",
+            "confidence": 0.9975,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q554",
+            "category": "content",
+            "confidence": 0.8787,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q555",
+            "category": "content",
+            "confidence": 0.9994,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q556",
+            "category": "content",
+            "confidence": 0.6541,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q557",
+            "category": "content",
+            "confidence": 0.8845,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q558",
+            "category": "content",
+            "confidence": 0.766,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q559",
+            "category": "organization",
+            "confidence": 0.999,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q560",
+            "category": "organization",
+            "confidence": 0.9458,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q561",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q562",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q563",
+            "category": "content",
+            "confidence": 0.5549,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q564",
+            "category": "organization",
+            "confidence": 0.9997,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q565",
+            "category": "organization",
+            "confidence": 0.9678,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q566",
+            "category": "organization",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q567",
+            "category": "organization",
+            "confidence": 0.9999,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q568",
+            "category": "organization",
+            "confidence": 0.8984,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q569",
+            "category": "organization",
+            "confidence": 0.9847,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q570",
+            "category": "content",
+            "confidence": 0.8191,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q571",
+            "category": "organization",
+            "confidence": 0.4615,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q572",
+            "category": "content",
+            "confidence": 0.9906,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q573",
+            "category": "content",
+            "confidence": 0.9991,
+            "accepted": true,
+            "correct": false
+          }
+        ]
+      },
+      "cascade": {
+        "operatingPoint": 0.55,
+        "labeled": {
+          "n": 36,
+          "bestGuessAccuracy": 0.6388888888888888,
+          "macroF1": 0.45555555555555555,
+          "coverage": 0.9722222222222222,
+          "uncertainRate": 0.02777777777777779,
+          "acceptedPrecision": 0.6285714285714286,
+          "usefulRate": 0.6111111111111112,
+          "wrongAcceptedRate": 0.3611111111111111,
+          "perClass": {
+            "content": {
+              "precision": 0.7368421052631579,
+              "recall": 0.6666666666666666,
+              "f1": 0.7,
+              "support": 21
+            },
+            "organization": {
+              "precision": 0.5294117647058824,
+              "recall": 0.9,
+              "f1": 0.6666666666666667,
+              "support": 10
+            },
+            "technical": {
+              "precision": 0,
+              "recall": 0,
+              "f1": 0,
+              "support": 5
+            }
+          },
+          "confusion": {
+            "content": {
+              "content": 14,
+              "organization": 7,
+              "technical": 0
+            },
+            "organization": {
+              "content": 1,
+              "organization": 9,
+              "technical": 0
+            },
+            "technical": {
+              "content": 4,
+              "organization": 1,
+              "technical": 0
+            }
+          }
+        },
+        "abstentionOnAmbiguousAndNoise": {
+          "n": 0,
+          "rate": 0
+        },
+        "byLocale": {
+          "de": {
+            "n": 15,
+            "bestGuessAccuracy": 0.7333333333333333,
+            "coverage": 0.9333333333333333,
+            "acceptedPrecision": 0.7142857142857143,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.26666666666666666
+          },
+          "en": {
+            "n": 9,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "fr": {
+            "n": 6,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "es": {
+            "n": 6,
+            "bestGuessAccuracy": 0.3333333333333333,
+            "coverage": 1,
+            "acceptedPrecision": 0.3333333333333333,
+            "usefulRate": 0.3333333333333333,
+            "wrongAcceptedRate": 0.6666666666666666
+          }
+        },
+        "byTag": {
+          "canonical": {
+            "n": 24,
+            "bestGuessAccuracy": 0.625,
+            "coverage": 1,
+            "acceptedPrecision": 0.625,
+            "usefulRate": 0.625,
+            "wrongAcceptedRate": 0.375
+          },
+          "out-of-domain": {
+            "n": 36,
+            "bestGuessAccuracy": 0.6388888888888888,
+            "coverage": 0.9722222222222222,
+            "acceptedPrecision": 0.6285714285714286,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3611111111111111
+          },
+          "typo": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "short": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "byGoldCategory": {
+          "content": {
+            "n": 21,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 0.9523809523809523,
+            "acceptedPrecision": 0.65,
+            "usefulRate": 0.6190476190476191,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "organization": {
+            "n": 10,
+            "bestGuessAccuracy": 0.9,
+            "coverage": 1,
+            "acceptedPrecision": 0.9,
+            "usefulRate": 0.9,
+            "wrongAcceptedRate": 0.1
+          },
+          "technical": {
+            "n": 5,
+            "bestGuessAccuracy": 0,
+            "coverage": 1,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 1
+          }
+        },
+        "calibration": {
+          "bins": [
+            {
+              "range": "[0.00, 0.40)",
+              "n": 0,
+              "meanConfidence": 0,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.40, 0.55)",
+              "n": 0,
+              "meanConfidence": 0,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.55, 0.70)",
+              "n": 6,
+              "meanConfidence": 0.6472666666666667,
+              "accuracy": 0.5
+            },
+            {
+              "range": "[0.70, 0.85)",
+              "n": 5,
+              "meanConfidence": 0.7959600000000001,
+              "accuracy": 0.2
+            },
+            {
+              "range": "[0.85, 1.00]",
+              "n": 25,
+              "meanConfidence": 0.9694720000000001,
+              "accuracy": 0.76
+            }
+          ],
+          "ece": 0.2527833333333334
+        },
+        "bootstrap95": {
+          "usefulRate": {
+            "lo": 0.4444444444444444,
+            "hi": 0.75
+          },
+          "acceptedPrecision": {
+            "lo": 0.47058823529411764,
+            "hi": 0.7777777777777778
+          },
+          "coverage": {
+            "lo": 0.9166666666666666,
+            "hi": 1
+          },
+          "macroF1": {
+            "lo": 0.34827810266406756,
+            "hi": 0.5493663424697908
+          },
+          "wrongAcceptedRate": {
+            "lo": 0.2222222222222222,
+            "hi": 0.5277777777777778
+          }
+        },
+        "sweep": [
+          {
+            "threshold": 0.35,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.6363636363636364,
+            "usefulRate": 0.5833333333333334,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.4,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.6363636363636364,
+            "usefulRate": 0.5833333333333334,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.45,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.6363636363636364,
+            "usefulRate": 0.5833333333333334,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.5,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6176470588235294,
+            "usefulRate": 0.5833333333333334,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.55,
+            "coverage": 0.9722222222222222,
+            "uncertainRate": 0.02777777777777779,
+            "acceptedPrecision": 0.6285714285714286,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.6,
+            "coverage": 0.9722222222222222,
+            "uncertainRate": 0.02777777777777779,
+            "acceptedPrecision": 0.6285714285714286,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.65,
+            "coverage": 0.9722222222222222,
+            "uncertainRate": 0.02777777777777779,
+            "acceptedPrecision": 0.6285714285714286,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.7,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.8,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.696969696969697,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.2777777777777778,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.9,
+            "coverage": 0.8888888888888888,
+            "uncertainRate": 0.11111111111111116,
+            "acceptedPrecision": 0.71875,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.25,
+            "abstention": 0,
+            "meetsCriteria": false
+          }
+        ],
+        "cascadePaths": {
+          "early-exit": 32,
+          "fallback": 4
+        },
+        "outcomes": [
+          {
+            "id": "Q538",
+            "category": "content",
+            "confidence": 0.9992,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q539",
+            "category": "content",
+            "confidence": 0.9548,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q540",
+            "category": "content",
+            "confidence": 0.8591,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q541",
+            "category": "organization",
+            "confidence": 0.962,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q542",
+            "category": "content",
+            "confidence": 0.6,
+            "accepted": true,
+            "correct": true,
+            "path": "fallback"
+          },
+          {
+            "id": "Q543",
+            "category": "organization",
+            "confidence": 0.9788,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q544",
+            "category": "organization",
+            "confidence": 0.6847,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q545",
+            "category": "content",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q546",
+            "category": "organization",
+            "confidence": 0.6639,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q547",
+            "category": "organization",
+            "confidence": 0.9393,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q548",
+            "category": "content",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q549",
+            "category": "organization",
+            "confidence": 0.7497,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q550",
+            "category": "content",
+            "confidence": 0.6809,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q551",
+            "category": "organization",
+            "confidence": 0.845,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q552",
+            "category": "content",
+            "confidence": 0.9997,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q553",
+            "category": "content",
+            "confidence": 0.9975,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q554",
+            "category": "content",
+            "confidence": 0.8787,
+            "accepted": false,
+            "correct": true,
+            "path": "fallback"
+          },
+          {
+            "id": "Q555",
+            "category": "content",
+            "confidence": 0.9994,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q556",
+            "category": "content",
+            "confidence": 0.6541,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q557",
+            "category": "content",
+            "confidence": 0.8845,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q558",
+            "category": "content",
+            "confidence": 0.766,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q559",
+            "category": "organization",
+            "confidence": 0.999,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q560",
+            "category": "organization",
+            "confidence": 0.9458,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q561",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q562",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q563",
+            "category": "content",
+            "confidence": 0.8,
+            "accepted": true,
+            "correct": false,
+            "path": "fallback"
+          },
+          {
+            "id": "Q564",
+            "category": "organization",
+            "confidence": 0.9997,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q565",
+            "category": "organization",
+            "confidence": 0.9678,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q566",
+            "category": "organization",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q567",
+            "category": "organization",
+            "confidence": 0.9999,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q568",
+            "category": "organization",
+            "confidence": 0.8984,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q569",
+            "category": "organization",
+            "confidence": 0.9847,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q570",
+            "category": "content",
+            "confidence": 0.8191,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q571",
+            "category": "content",
+            "confidence": 0.6,
+            "accepted": true,
+            "correct": false,
+            "path": "fallback"
+          },
+          {
+            "id": "Q572",
+            "category": "content",
+            "confidence": 0.9906,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q573",
+            "category": "content",
+            "confidence": 0.9991,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          }
+        ]
+      }
+    },
+    "translit": {
+      "keyword": {
+        "operatingPoint": 0.55,
+        "labeled": {
+          "n": 36,
+          "bestGuessAccuracy": 0.6666666666666666,
+          "macroF1": 0.4131054131054131,
+          "coverage": 0.08333333333333333,
+          "uncertainRate": 0.9166666666666666,
+          "acceptedPrecision": 1,
+          "usefulRate": 0.08333333333333333,
+          "wrongAcceptedRate": 0,
+          "perClass": {
+            "content": {
+              "precision": 0.6363636363636364,
+              "recall": 1,
+              "f1": 0.7777777777777778,
+              "support": 21
+            },
+            "organization": {
+              "precision": 1,
+              "recall": 0.3,
+              "f1": 0.4615384615384615,
+              "support": 10
+            },
+            "technical": {
+              "precision": 0,
+              "recall": 0,
+              "f1": 0,
+              "support": 5
+            }
+          },
+          "confusion": {
+            "content": {
+              "content": 21,
+              "organization": 0,
+              "technical": 0
+            },
+            "organization": {
+              "content": 7,
+              "organization": 3,
+              "technical": 0
+            },
+            "technical": {
+              "content": 5,
+              "organization": 0,
+              "technical": 0
+            }
+          }
+        },
+        "abstentionOnAmbiguousAndNoise": {
+          "n": 0,
+          "rate": 0
+        },
+        "byLocale": {
+          "de": {
+            "n": 15,
+            "bestGuessAccuracy": 0.8,
+            "coverage": 0.2,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.2,
+            "wrongAcceptedRate": 0
+          },
+          "en": {
+            "n": 9,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "fr": {
+            "n": 6,
+            "bestGuessAccuracy": 0.5,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "es": {
+            "n": 6,
+            "bestGuessAccuracy": 0.5,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "byTag": {
+          "canonical": {
+            "n": 24,
+            "bestGuessAccuracy": 0.5833333333333334,
+            "coverage": 0.08333333333333333,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0
+          },
+          "out-of-domain": {
+            "n": 36,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 0.08333333333333333,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0
+          },
+          "typo": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "short": {
+            "n": 1,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "byGoldCategory": {
+          "content": {
+            "n": 21,
+            "bestGuessAccuracy": 1,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          },
+          "organization": {
+            "n": 10,
+            "bestGuessAccuracy": 0.3,
+            "coverage": 0.3,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.3,
+            "wrongAcceptedRate": 0
+          },
+          "technical": {
+            "n": 5,
+            "bestGuessAccuracy": 0,
+            "coverage": 0,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0
+          }
+        },
+        "calibration": null,
+        "bootstrap95": {
+          "usefulRate": {
+            "lo": 0,
+            "hi": 0.19444444444444445
+          },
+          "acceptedPrecision": {
+            "lo": 0,
+            "hi": 1
+          },
+          "coverage": {
+            "lo": 0,
+            "hi": 0.19444444444444445
+          },
+          "macroF1": {
+            "lo": 0.25961538461538464,
+            "hi": 0.540360873694207
+          },
+          "wrongAcceptedRate": {
+            "lo": 0,
+            "hi": 0
+          }
+        },
+        "sweep": [
+          {
+            "threshold": 0.35,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.4,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.45,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.5,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.55,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.6,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.65,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.7,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.8,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.9,
+            "coverage": 0.08333333333333333,
+            "uncertainRate": 0.9166666666666666,
+            "acceptedPrecision": 1,
+            "usefulRate": 0.08333333333333333,
+            "wrongAcceptedRate": 0,
+            "abstention": 0,
+            "meetsCriteria": false
+          }
+        ],
+        "outcomes": [
+          {
+            "id": "Q538",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q539",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q540",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q541",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q542",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q543",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q544",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q545",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q546",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q547",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q548",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q549",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q550",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q551",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q552",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q553",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q554",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q555",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q556",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q557",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q558",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": true
+          },
+          {
+            "id": "Q559",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q560",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q561",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q562",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q563",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q564",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q565",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q566",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q567",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q568",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q569",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q570",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q571",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q572",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q573",
+            "category": "content",
+            "confidence": 0.3333,
+            "accepted": false,
+            "correct": false
+          }
+        ]
+      },
+      "gatekeeper": {
+        "operatingPoint": 0.55,
+        "labeled": {
+          "n": 36,
+          "bestGuessAccuracy": 0.6388888888888888,
+          "macroF1": 0.4615384615384615,
+          "coverage": 0.9444444444444444,
+          "uncertainRate": 0.05555555555555558,
+          "acceptedPrecision": 0.6764705882352942,
+          "usefulRate": 0.6388888888888888,
+          "wrongAcceptedRate": 0.3055555555555556,
+          "perClass": {
+            "content": {
+              "precision": 0.7777777777777778,
+              "recall": 0.6666666666666666,
+              "f1": 0.717948717948718,
+              "support": 21
+            },
+            "organization": {
+              "precision": 0.5294117647058824,
+              "recall": 0.9,
+              "f1": 0.6666666666666667,
+              "support": 10
+            },
+            "technical": {
+              "precision": 0,
+              "recall": 0,
+              "f1": 0,
+              "support": 5
+            }
+          },
+          "confusion": {
+            "content": {
+              "content": 14,
+              "organization": 6,
+              "technical": 1
+            },
+            "organization": {
+              "content": 1,
+              "organization": 9,
+              "technical": 0
+            },
+            "technical": {
+              "content": 3,
+              "organization": 2,
+              "technical": 0
+            }
+          }
+        },
+        "abstentionOnAmbiguousAndNoise": {
+          "n": 0,
+          "rate": 0
+        },
+        "byLocale": {
+          "de": {
+            "n": 15,
+            "bestGuessAccuracy": 0.8,
+            "coverage": 1,
+            "acceptedPrecision": 0.8,
+            "usefulRate": 0.8,
+            "wrongAcceptedRate": 0.2
+          },
+          "en": {
+            "n": 9,
+            "bestGuessAccuracy": 0.5555555555555556,
+            "coverage": 0.7777777777777778,
+            "acceptedPrecision": 0.7142857142857143,
+            "usefulRate": 0.5555555555555556,
+            "wrongAcceptedRate": 0.2222222222222222
+          },
+          "fr": {
+            "n": 6,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "es": {
+            "n": 6,
+            "bestGuessAccuracy": 0.3333333333333333,
+            "coverage": 1,
+            "acceptedPrecision": 0.3333333333333333,
+            "usefulRate": 0.3333333333333333,
+            "wrongAcceptedRate": 0.6666666666666666
+          }
+        },
+        "byTag": {
+          "canonical": {
+            "n": 24,
+            "bestGuessAccuracy": 0.625,
+            "coverage": 0.9583333333333334,
+            "acceptedPrecision": 0.6521739130434783,
+            "usefulRate": 0.625,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "out-of-domain": {
+            "n": 36,
+            "bestGuessAccuracy": 0.6388888888888888,
+            "coverage": 0.9444444444444444,
+            "acceptedPrecision": 0.6764705882352942,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3055555555555556
+          },
+          "typo": {
+            "n": 1,
+            "bestGuessAccuracy": 0,
+            "coverage": 1,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 1
+          },
+          "short": {
+            "n": 1,
+            "bestGuessAccuracy": 0,
+            "coverage": 1,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 1
+          }
+        },
+        "byGoldCategory": {
+          "content": {
+            "n": 21,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 0.9523809523809523,
+            "acceptedPrecision": 0.7,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.2857142857142857
+          },
+          "organization": {
+            "n": 10,
+            "bestGuessAccuracy": 0.9,
+            "coverage": 1,
+            "acceptedPrecision": 0.9,
+            "usefulRate": 0.9,
+            "wrongAcceptedRate": 0.1
+          },
+          "technical": {
+            "n": 5,
+            "bestGuessAccuracy": 0,
+            "coverage": 0.8,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 0.8
+          }
+        },
+        "calibration": {
+          "bins": [
+            {
+              "range": "[0.00, 0.40)",
+              "n": 0,
+              "meanConfidence": 0,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.40, 0.55)",
+              "n": 2,
+              "meanConfidence": 0.4994906223245943,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.55, 0.70)",
+              "n": 5,
+              "meanConfidence": 0.643725965547449,
+              "accuracy": 0.6
+            },
+            {
+              "range": "[0.70, 0.85)",
+              "n": 5,
+              "meanConfidence": 0.7748760291455351,
+              "accuracy": 0.2
+            },
+            {
+              "range": "[0.85, 1.00]",
+              "n": 24,
+              "meanConfidence": 0.9679419873681315,
+              "accuracy": 0.7916666666666666
+            }
+          ],
+          "ece": 0.23118330319303515
+        },
+        "bootstrap95": {
+          "usefulRate": {
+            "lo": 0.4722222222222222,
+            "hi": 0.8055555555555556
+          },
+          "acceptedPrecision": {
+            "lo": 0.5151515151515151,
+            "hi": 0.8285714285714286
+          },
+          "coverage": {
+            "lo": 0.8611111111111112,
+            "hi": 1
+          },
+          "macroF1": {
+            "lo": 0.3512767425810905,
+            "hi": 0.5579322638146168
+          },
+          "wrongAcceptedRate": {
+            "lo": 0.16666666666666666,
+            "hi": 0.4444444444444444
+          }
+        },
+        "sweep": [
+          {
+            "threshold": 0.35,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6388888888888888,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.4,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6388888888888888,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.45,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6388888888888888,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3611111111111111,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.5,
+            "coverage": 0.9722222222222222,
+            "uncertainRate": 0.02777777777777779,
+            "acceptedPrecision": 0.6571428571428571,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.55,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6764705882352942,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.6,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.696969696969697,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.2777777777777778,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.65,
+            "coverage": 0.8888888888888888,
+            "uncertainRate": 0.11111111111111116,
+            "acceptedPrecision": 0.6875,
+            "usefulRate": 0.6111111111111112,
+            "wrongAcceptedRate": 0.2777777777777778,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.7,
+            "coverage": 0.8055555555555556,
+            "uncertainRate": 0.19444444444444442,
+            "acceptedPrecision": 0.6896551724137931,
+            "usefulRate": 0.5555555555555556,
+            "wrongAcceptedRate": 0.25,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.8,
+            "coverage": 0.6944444444444444,
+            "uncertainRate": 0.3055555555555556,
+            "acceptedPrecision": 0.76,
+            "usefulRate": 0.5277777777777778,
+            "wrongAcceptedRate": 0.16666666666666666,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.9,
+            "coverage": 0.5555555555555556,
+            "uncertainRate": 0.4444444444444444,
+            "acceptedPrecision": 0.75,
+            "usefulRate": 0.4166666666666667,
+            "wrongAcceptedRate": 0.1388888888888889,
+            "abstention": 0,
+            "meetsCriteria": false
+          }
+        ],
+        "outcomes": [
+          {
+            "id": "Q538",
+            "category": "content",
+            "confidence": 0.9945,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q539",
+            "category": "content",
+            "confidence": 0.9548,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q540",
+            "category": "content",
+            "confidence": 0.8591,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q541",
+            "category": "organization",
+            "confidence": 0.962,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q542",
+            "category": "technical",
+            "confidence": 0.5375,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q543",
+            "category": "organization",
+            "confidence": 0.9788,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q544",
+            "category": "organization",
+            "confidence": 0.6847,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q545",
+            "category": "content",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q546",
+            "category": "content",
+            "confidence": 0.9224,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q547",
+            "category": "content",
+            "confidence": 0.644,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q548",
+            "category": "content",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q549",
+            "category": "organization",
+            "confidence": 0.7497,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q550",
+            "category": "content",
+            "confidence": 0.6809,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q551",
+            "category": "organization",
+            "confidence": 0.845,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q552",
+            "category": "content",
+            "confidence": 0.9753,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q553",
+            "category": "content",
+            "confidence": 0.877,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q554",
+            "category": "organization",
+            "confidence": 0.7277,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q555",
+            "category": "content",
+            "confidence": 0.9994,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q556",
+            "category": "content",
+            "confidence": 0.6541,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q557",
+            "category": "content",
+            "confidence": 0.8845,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q558",
+            "category": "content",
+            "confidence": 0.766,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q559",
+            "category": "organization",
+            "confidence": 0.9991,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q560",
+            "category": "organization",
+            "confidence": 0.9458,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q561",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q562",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q563",
+            "category": "content",
+            "confidence": 0.5549,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q564",
+            "category": "organization",
+            "confidence": 0.9999,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q565",
+            "category": "organization",
+            "confidence": 0.991,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q566",
+            "category": "organization",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q567",
+            "category": "organization",
+            "confidence": 0.9999,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q568",
+            "category": "organization",
+            "confidence": 0.8984,
+            "accepted": true,
+            "correct": true
+          },
+          {
+            "id": "Q569",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q570",
+            "category": "content",
+            "confidence": 0.786,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q571",
+            "category": "organization",
+            "confidence": 0.4615,
+            "accepted": false,
+            "correct": false
+          },
+          {
+            "id": "Q572",
+            "category": "content",
+            "confidence": 0.9906,
+            "accepted": true,
+            "correct": false
+          },
+          {
+            "id": "Q573",
+            "category": "content",
+            "confidence": 0.9991,
+            "accepted": true,
+            "correct": false
+          }
+        ]
+      },
+      "cascade": {
+        "operatingPoint": 0.55,
+        "labeled": {
+          "n": 36,
+          "bestGuessAccuracy": 0.6666666666666666,
+          "macroF1": 0.474671669793621,
+          "coverage": 1,
+          "uncertainRate": 0,
+          "acceptedPrecision": 0.6666666666666666,
+          "usefulRate": 0.6666666666666666,
+          "wrongAcceptedRate": 0.3333333333333333,
+          "perClass": {
+            "content": {
+              "precision": 0.75,
+              "recall": 0.7142857142857143,
+              "f1": 0.7317073170731706,
+              "support": 21
+            },
+            "organization": {
+              "precision": 0.5625,
+              "recall": 0.9,
+              "f1": 0.6923076923076923,
+              "support": 10
+            },
+            "technical": {
+              "precision": 0,
+              "recall": 0,
+              "f1": 0,
+              "support": 5
+            }
+          },
+          "confusion": {
+            "content": {
+              "content": 15,
+              "organization": 6,
+              "technical": 0
+            },
+            "organization": {
+              "content": 1,
+              "organization": 9,
+              "technical": 0
+            },
+            "technical": {
+              "content": 4,
+              "organization": 1,
+              "technical": 0
+            }
+          }
+        },
+        "abstentionOnAmbiguousAndNoise": {
+          "n": 0,
+          "rate": 0
+        },
+        "byLocale": {
+          "de": {
+            "n": 15,
+            "bestGuessAccuracy": 0.8,
+            "coverage": 1,
+            "acceptedPrecision": 0.8,
+            "usefulRate": 0.8,
+            "wrongAcceptedRate": 0.2
+          },
+          "en": {
+            "n": 9,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "fr": {
+            "n": 6,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "es": {
+            "n": 6,
+            "bestGuessAccuracy": 0.3333333333333333,
+            "coverage": 1,
+            "acceptedPrecision": 0.3333333333333333,
+            "usefulRate": 0.3333333333333333,
+            "wrongAcceptedRate": 0.6666666666666666
+          }
+        },
+        "byTag": {
+          "canonical": {
+            "n": 24,
+            "bestGuessAccuracy": 0.625,
+            "coverage": 1,
+            "acceptedPrecision": 0.625,
+            "usefulRate": 0.625,
+            "wrongAcceptedRate": 0.375
+          },
+          "out-of-domain": {
+            "n": 36,
+            "bestGuessAccuracy": 0.6666666666666666,
+            "coverage": 1,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333
+          },
+          "typo": {
+            "n": 1,
+            "bestGuessAccuracy": 0,
+            "coverage": 1,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 1
+          },
+          "short": {
+            "n": 1,
+            "bestGuessAccuracy": 0,
+            "coverage": 1,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 1
+          }
+        },
+        "byGoldCategory": {
+          "content": {
+            "n": 21,
+            "bestGuessAccuracy": 0.7142857142857143,
+            "coverage": 1,
+            "acceptedPrecision": 0.7142857142857143,
+            "usefulRate": 0.7142857142857143,
+            "wrongAcceptedRate": 0.2857142857142857
+          },
+          "organization": {
+            "n": 10,
+            "bestGuessAccuracy": 0.9,
+            "coverage": 1,
+            "acceptedPrecision": 0.9,
+            "usefulRate": 0.9,
+            "wrongAcceptedRate": 0.1
+          },
+          "technical": {
+            "n": 5,
+            "bestGuessAccuracy": 0,
+            "coverage": 1,
+            "acceptedPrecision": 0,
+            "usefulRate": 0,
+            "wrongAcceptedRate": 1
+          }
+        },
+        "calibration": {
+          "bins": [
+            {
+              "range": "[0.00, 0.40)",
+              "n": 0,
+              "meanConfidence": 0,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.40, 0.55)",
+              "n": 0,
+              "meanConfidence": 0,
+              "accuracy": 0
+            },
+            {
+              "range": "[0.55, 0.70)",
+              "n": 6,
+              "meanConfidence": 0.64395,
+              "accuracy": 0.6666666666666666
+            },
+            {
+              "range": "[0.70, 0.85)",
+              "n": 6,
+              "meanConfidence": 0.7911166666666668,
+              "accuracy": 0.16666666666666666
+            },
+            {
+              "range": "[0.85, 1.00]",
+              "n": 24,
+              "meanConfidence": 0.9679333333333333,
+              "accuracy": 0.7916666666666666
+            }
+          ],
+          "ece": 0.22537222222222225
+        },
+        "bootstrap95": {
+          "usefulRate": {
+            "lo": 0.5,
+            "hi": 0.8055555555555556
+          },
+          "acceptedPrecision": {
+            "lo": 0.5,
+            "hi": 0.8055555555555556
+          },
+          "coverage": {
+            "lo": 1,
+            "hi": 1
+          },
+          "macroF1": {
+            "lo": 0.36522826766729205,
+            "hi": 0.5642878651008733
+          },
+          "wrongAcceptedRate": {
+            "lo": 0.19444444444444445,
+            "hi": 0.5
+          }
+        },
+        "sweep": [
+          {
+            "threshold": 0.35,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6764705882352942,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.4,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6764705882352942,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.45,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6764705882352942,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.5,
+            "coverage": 0.9722222222222222,
+            "uncertainRate": 0.02777777777777779,
+            "acceptedPrecision": 0.6571428571428571,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.55,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.6,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.65,
+            "coverage": 1,
+            "uncertainRate": 0,
+            "acceptedPrecision": 0.6666666666666666,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.3333333333333333,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.7,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.6764705882352942,
+            "usefulRate": 0.6388888888888888,
+            "wrongAcceptedRate": 0.3055555555555556,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.8,
+            "coverage": 0.9444444444444444,
+            "uncertainRate": 0.05555555555555558,
+            "acceptedPrecision": 0.7058823529411765,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.2777777777777778,
+            "abstention": 0,
+            "meetsCriteria": false
+          },
+          {
+            "threshold": 0.9,
+            "coverage": 0.9166666666666666,
+            "uncertainRate": 0.08333333333333337,
+            "acceptedPrecision": 0.7272727272727273,
+            "usefulRate": 0.6666666666666666,
+            "wrongAcceptedRate": 0.25,
+            "abstention": 0,
+            "meetsCriteria": false
+          }
+        ],
+        "cascadePaths": {
+          "early-exit": 32,
+          "fallback": 4
+        },
+        "outcomes": [
+          {
+            "id": "Q538",
+            "category": "content",
+            "confidence": 0.9945,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q539",
+            "category": "content",
+            "confidence": 0.9548,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q540",
+            "category": "content",
+            "confidence": 0.8591,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q541",
+            "category": "organization",
+            "confidence": 0.962,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q542",
+            "category": "content",
+            "confidence": 0.6,
+            "accepted": true,
+            "correct": true,
+            "path": "fallback"
+          },
+          {
+            "id": "Q543",
+            "category": "organization",
+            "confidence": 0.9788,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q544",
+            "category": "organization",
+            "confidence": 0.6847,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q545",
+            "category": "content",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q546",
+            "category": "content",
+            "confidence": 0.9224,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q547",
+            "category": "content",
+            "confidence": 0.644,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q548",
+            "category": "content",
+            "confidence": 1,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q549",
+            "category": "organization",
+            "confidence": 0.7497,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q550",
+            "category": "content",
+            "confidence": 0.6809,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q551",
+            "category": "organization",
+            "confidence": 0.845,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q552",
+            "category": "content",
+            "confidence": 0.9753,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q553",
+            "category": "content",
+            "confidence": 0.877,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q554",
+            "category": "organization",
+            "confidence": 0.8,
+            "accepted": true,
+            "correct": false,
+            "path": "fallback"
+          },
+          {
+            "id": "Q555",
+            "category": "content",
+            "confidence": 0.9994,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q556",
+            "category": "content",
+            "confidence": 0.6541,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q557",
+            "category": "content",
+            "confidence": 0.8845,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q558",
+            "category": "content",
+            "confidence": 0.766,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q559",
+            "category": "organization",
+            "confidence": 0.9991,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q560",
+            "category": "organization",
+            "confidence": 0.9458,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q561",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q562",
+            "category": "organization",
+            "confidence": 0.9996,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q563",
+            "category": "content",
+            "confidence": 0.8,
+            "accepted": true,
+            "correct": false,
+            "path": "fallback"
+          },
+          {
+            "id": "Q564",
+            "category": "organization",
+            "confidence": 0.9999,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q565",
+            "category": "organization",
+            "confidence": 0.991,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q566",
+            "category": "organization",
+            "confidence": 0.9998,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q567",
+            "category": "organization",
+            "confidence": 0.9999,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q568",
+            "category": "organization",
+            "confidence": 0.8984,
+            "accepted": true,
+            "correct": true,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q569",
+            "category": "organization",
+            "confidence": 1,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q570",
+            "category": "content",
+            "confidence": 0.786,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q571",
+            "category": "content",
+            "confidence": 0.6,
+            "accepted": true,
+            "correct": false,
+            "path": "fallback"
+          },
+          {
+            "id": "Q572",
+            "category": "content",
+            "confidence": 0.9906,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          },
+          {
+            "id": "Q573",
+            "category": "content",
+            "confidence": 0.9991,
+            "accepted": true,
+            "correct": false,
+            "path": "early-exit"
+          }
+        ]
+      }
+    }
+  },
+  "pairwise": {
+    "cascade vs keyword": {
+      "useful": {
+        "onlyA": 19,
+        "onlyB": 0,
+        "p": 0.000003814697265625
+      },
+      "bestGuess": {
+        "onlyA": 6,
+        "onlyB": 7,
+        "p": 1
+      }
+    },
+    "gatekeeper vs keyword": {
+      "useful": {
+        "onlyA": 19,
+        "onlyB": 0,
+        "p": 0.000003814697265625
+      },
+      "bestGuess": {
+        "onlyA": 6,
+        "onlyB": 8,
+        "p": 0.79052734375
+      }
+    },
+    "cascade vs gatekeeper": {
+      "useful": {
+        "onlyA": 1,
+        "onlyB": 1,
+        "p": 1
+      },
+      "bestGuess": {
+        "onlyA": 1,
+        "onlyB": 0,
+        "p": 1
+      }
+    }
+  },
+  "runtime": {
+    "coldStart": {
+      "gatekeeperTrainMs": 7.331099999999992,
+      "fallbackPrototypeBuildMs": 3.8149999999999977,
+      "heapUsedDeltaMB": 20.38011932373047,
+      "rssDeltaMB": 33.30859375,
+      "note": "Delta enthält Modul-Import und Training; Größenordnung, keine exakte Modellgröße."
+    },
+    "warmLatency": {
+      "keyword": {
+        "calls": 720,
+        "meanMs": 0.007913194444444747,
+        "p50Ms": 0.007699999999999818,
+        "p95Ms": 0.009500000000002728,
+        "p99Ms": 0.010099999999965803,
+        "maxMs": 0.030799999999999272,
+        "throughputPerSec": 123391.20152182458
+      },
+      "gatekeeper": {
+        "calls": 720,
+        "meanMs": 0.018632083333335457,
+        "p50Ms": 0.01700000000005275,
+        "p95Ms": 0.022400000000061482,
+        "p99Ms": 0.05960000000004584,
+        "maxMs": 0.06690000000003238,
+        "throughputPerSec": 53158.89340903545
+      },
+      "cascade": {
+        "calls": 720,
+        "meanMs": 0.08204986111111197,
+        "p50Ms": 0.026700000000005275,
+        "p95Ms": 0.18729999999993652,
+        "p99Ms": 2.2387999999999693,
+        "maxMs": 2.4605000000000246,
+        "throughputPerSec": 12151.611607489445
+      }
+    },
+    "productionTimeoutMs": 2000
+  }
+}
