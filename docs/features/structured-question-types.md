@@ -22,8 +22,11 @@ Host-Auswertung und Session-Bericht.
 
 Matching und Categorization verwenden eine gemeinsame, tastatur- und touchbedienbare Auswahlzeile.
 Ordering bietet für jedes Element Anfang/hoch/runter/Ende-Aktionen mit individuellem Accessible
-Name und Live-Ansage. Unvollständige Antworten lassen sich nicht absenden. Strukturierte Entwürfe
-werden lokal pro Session, Person, Frage und Runde gespeichert und nach einem Reload wiederhergestellt.
+Name und Live-Ansage. Auf schmalen Displays stehen Auswahlfeld oder Verschiebetasten jeweils
+unter dem Antworttext. Lange Begriffe brechen in der Karte und im Auswahlmenü um. Die
+Senden-Schaltfläche steht auf schmalen Displays unter den Eingaben.
+Unvollständige Antworten lassen sich nicht absenden. Strukturierte Entwürfe werden lokal pro
+Session, Person, Frage und Runde gespeichert und nach einem Reload wiederhergestellt.
 
 Während `ACTIVE` enthalten Teilnehmer-DTOs nur opake IDs und sichtbare Texte. Paarbildung,
 Soll-Reihenfolge, Zielkategorien und Live-Verteilungen werden nicht ausgeliefert. Das serverseitige
