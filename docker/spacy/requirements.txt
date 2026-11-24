@@ -1,3 +1,2 @@
-# spaCy runtime and Italian lookup data. Language model wheels are installed separately.
+# spaCy runtime. Language models and lookup data are installed separately with hashes.
 spacy==3.8.15
-spacy-lookups-data==1.0.5
