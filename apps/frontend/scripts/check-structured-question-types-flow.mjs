@@ -1592,14 +1592,24 @@ async function finishSessionAndAssertDebriefPlan(host, hostTrpc, code, hardFailu
     new RegExp(`Nachbesprechung empfohlen:\\s*${EXPECTED_DEBRIEF_PRIORITY}`, 'i'),
     12_000,
   );
-  const priorityHeading = await waitForText(host, /Priorität für die Nachbesprechung/i, 8_000);
-  if (!recommended || !priorityHeading) {
+  const learningOverview = host.getByRole('region', { name: 'Lernstand der Gruppe' });
+  const reviewItems = learningOverview.locator('.session-host__learning-overview-review > li');
+  const misconceptionRows = reviewItems.filter({
+    hasText: 'Hinweis auf verbreitete Fehlvorstellung',
+  });
+  const recommendationCount = await reviewItems.count();
+  const misconceptionCount = await misconceptionRows.count();
+  if (
+    !recommended ||
+    recommendationCount !== EXPECTED_DEBRIEF_PRIORITY ||
+    misconceptionCount !== EXPECTED_DEBRIEF_PRIORITY
+  ) {
     hardFailures.push(
-      `Host did not recommend ${EXPECTED_DEBRIEF_PRIORITY} questions for Nachbesprechung.`,
+      `Host debrief showed ${recommendationCount} questions and ${misconceptionCount} misconception signals. Expected ${EXPECTED_DEBRIEF_PRIORITY} of each.`,
     );
     logStep(false, 'Host Nachbesprechungs-Priorität');
   } else {
-    logStep(true, 'Host Nachbesprechungs-Priorität', String(EXPECTED_DEBRIEF_PRIORITY));
+    logStep(true, 'Host Nachbesprechungs-Priorität', String(recommendationCount));
   }
 
   const planButton = host.locator('button.session-host__export-pdf-btn').first();
