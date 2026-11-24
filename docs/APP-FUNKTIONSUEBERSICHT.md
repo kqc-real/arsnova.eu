@@ -346,6 +346,7 @@ Der Host sieht zusätzlich:
 - aktuelle Frage inklusive korrekter Antworten
 - Live-Freitextdaten
 - Freitext-Wortwolke mit Document-Frequency-Termgewichtung, Einfrieren/Live-Fortsetzen sowie CSV-/PNG-Export
+- In der vergrößerten Freitext-Wortwolke führt **Nächste Frage** oder **Zur Gesamtauswertung** direkt weiter. Die Aktion steht auch auf dem gekoppelten Smartphone unter der Wortwolke.
 - Wörter der Quiz-Freitextwolke lassen sich im Host über die zugehörigen Antworten und auf der Bühne mit Host-Berechtigung ausblenden. Unter **Weitere Aktionen** → **Ausgeblendete Wörter** blendet der Host sie einzeln wieder ein. Die Auswahl gilt pro Session und Frage. Die Wolke ordnet sich danach neu. Ausgeblendete Wörter entfallen auch als eigene Zeilen im Wortwolken-CSV.
 - Q&A-Wortwolke mit Host-Sortiermodi (`Stimmensaldo`, `Klare Zustimmung`, `Geteilte Stimmen`), Document-Frequency-Termgewichtung, geschuetzten technischen Begriffen, Quellenanzahl im Tooltip, Freeze im Dialog und Vollansicht mit Sortiertoggle
 - Q&A-Fragenliste

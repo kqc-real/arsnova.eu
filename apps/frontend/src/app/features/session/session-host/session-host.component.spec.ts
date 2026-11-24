@@ -21996,6 +21996,128 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('wechselt aus der vergrößerten Freitext-Wortwolke direkt zur nächsten Frage', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      currentQuestion: 18,
+    });
+    const currentQuestion = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 18,
+      totalQuestions: 25,
+      text: 'Aufgabe 19',
+      type: 'FREETEXT' as const,
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
+      answers: [],
+    };
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(currentQuestion);
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 0);
+    const component = fixture.componentInstance;
+    component.currentQuestionForHost.set(currentQuestion);
+    component.maximizeFreetextWordCloud();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const cloud = host.querySelector('.session-host__extra--maximized');
+    const next = cloud?.querySelector<HTMLButtonElement>('button[aria-keyshortcuts="ArrowRight"]');
+    expect(next?.textContent).toContain('Nächste Frage');
+    expect(
+      host.querySelector('.session-host__exit-anchor button[aria-keyshortcuts="ArrowRight"]'),
+    ).toBeNull();
+
+    let completeAdvance!: (result: { status: 'ACTIVE'; currentQuestion: number }) => void;
+    nextQuestionMutateMock.mockReturnValueOnce(
+      new Promise<{ status: 'ACTIVE'; currentQuestion: number }>((resolve) => {
+        completeAdvance = resolve;
+      }),
+    );
+    next!.focus();
+    next!.click();
+    fixture.detectChanges();
+    expect(next?.getAttribute('aria-disabled')).toBe('true');
+    expect(component.freetextWordCloudMaximized()).toBe(true);
+    next!.click();
+    expect(nextQuestionMutateMock).toHaveBeenCalledTimes(1);
+
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId: '22222222-2222-4222-8222-222222222222',
+      order: 19,
+      totalQuestions: 25,
+      text: 'Aufgabe 20',
+      type: 'RATING',
+      answers: [],
+    });
+    completeAdvance({ status: 'ACTIVE', currentQuestion: 19 });
+    await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
+
+    expect(component.statusUpdate()?.currentQuestion).toBe(19);
+    expect(component.freetextWordCloudMaximized()).toBe(false);
+    expect(host.querySelector('.session-host__extra--maximized')).toBeNull();
+    expect(host.textContent).toContain('Aufgabe 20');
+    expect(document.activeElement).toBe(host.querySelector('.session-host__question-card'));
+    fixture.destroy();
+  });
+
+  it('zeigt nach einem fehlgeschlagenen Wechsel aus der Freitext-Wortwolke den Retry an', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'RESULTS',
+      currentQuestion: 0,
+    });
+    const lastQuestion = {
+      questionId: '11111111-1111-4111-8111-111111111111',
+      order: 0,
+      totalQuestions: 1,
+      text: 'Letzte Freitextfrage',
+      type: 'FREETEXT' as const,
+      difficulty: 'MEDIUM' as const,
+      showQuestionTypeIndicators: true,
+      answers: [],
+    };
+    getCurrentQuestionForHostQueryMock.mockResolvedValue(lastQuestion);
+    nextQuestionMutateMock.mockRejectedValueOnce(new Error('timeout')).mockResolvedValueOnce({
+      status: 'FINISHED',
+      currentQuestion: null,
+    });
+    const fixture = setup();
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture, 0);
+    const component = fixture.componentInstance;
+    component.currentQuestionForHost.set(lastQuestion);
+    component.maximizeFreetextWordCloud();
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    host
+      .querySelector<HTMLButtonElement>(
+        '.session-host__extra--maximized button[aria-label="Zur Gesamtauswertung"]',
+      )!
+      .click();
+    await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
+
+    expect(component.effectiveStatus()).toBe('RESULTS');
+    expect(component.freetextWordCloudMaximized()).toBe(false);
+    expect(host.querySelector('#host-steering-callout')?.contains(document.activeElement)).toBe(
+      true,
+    );
+    expect(
+      host.querySelector('.session-host__exit-anchor button[aria-label="Zur Gesamtauswertung"]'),
+    ).not.toBeNull();
+    host.querySelector<HTMLButtonElement>('[data-testid="host-steering-retry"]')!.click();
+    await flushComponentAfterStable(fixture, 0);
+    fixture.detectChanges();
+    expect(nextQuestionMutateMock).toHaveBeenCalledTimes(2);
+    expect(component.effectiveStatus()).toBe('FINISHED');
+    expect(component.hostSteeringCallout()).toBeNull();
+    fixture.destroy();
+  });
+
   it('scrollt beim Freigeben der Antwortoptionen zur Antwortliste', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'PAUSED' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({

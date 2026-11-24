@@ -36,6 +36,7 @@ import {
   ViewChild,
   ViewChildren,
   afterNextRender,
+  afterRenderEffect,
   inject,
   isDevMode,
   signal,
@@ -1129,6 +1130,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly freetextWordCloudLemmaPreferred = signal(true);
   readonly freetextWordCloudSmoothingFeedbackRequested = signal(false);
   readonly freetextWordCloudMaximized = signal(false);
+  private readonly freetextAdvanceFocusOrder = signal<number | null>(null);
   readonly freetextWordCloudSemanticAnalysisPending = signal(false);
   readonly freetextWordCloudSemanticAnalysisResult = signal<AnalyzeWordCloudOutput | null>(null);
   readonly freetextWordCloudSemanticStale = signal(false);
@@ -4508,6 +4510,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly injector = inject(Injector);
 
   constructor() {
+    afterRenderEffect(() => {
+      const order = this.freetextAdvanceFocusOrder();
+      if (order === null) return;
+      if (this.effectiveCurrentQuestionState() !== order || this.activeChannel() !== 'quiz') {
+        this.freetextAdvanceFocusOrder.set(null);
+        return;
+      }
+      if (this.displayedCurrentQuestionForHost()?.order !== order) return;
+      const target = this.hostElement.nativeElement.querySelector<HTMLElement>(
+        '.session-host__question-card',
+      );
+      if (!target || !this.isElementVisibleForFocus(target)) return;
+      this.freetextAdvanceFocusOrder.set(null);
+      if (this.document.activeElement === this.document.body) {
+        scrollAndFocusInAppMain(target, { block: 'start' });
+      }
+    });
     let presenterStartOfferFocusScheduled = false;
     effect(() => {
       if (!this.showPresenterStartOffer()) {
@@ -13293,6 +13312,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   async nextQuestion(): Promise<void> {
     if (this.controlPending() || !this.code) return;
+    const wasWordCloudMaximized = this.freetextWordCloudMaximized();
     this.controlPending.set(true);
     this.hostDisplayMode.setPreferImmersiveHost(true);
     const startingQuizFromLobby =
@@ -13309,6 +13329,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         code: this.code.toUpperCase(),
         ...(this.shouldSkipCurrentResultQuestionOnNext() && { skipCurrentResultQuestion: true }),
       });
+      if (this.freetextWordCloudMaximized()) {
+        this.closeFreetextWordCloudMaximize();
+        this.wordCloudExpanded.set(false);
+      }
+      if (wasWordCloudMaximized && result.currentQuestion !== null) {
+        this.freetextAdvanceFocusOrder.set(result.currentQuestion);
+      }
       if (startingQuizFromLobby && typeof result.currentQuestion !== 'number') {
         this.quizStartQuestionPending.set(false);
         this.clearHostQuestionDetailsRetry();
@@ -13334,10 +13361,13 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       const presenterOffered = startingQuizFromLobby && this.offerPresenterAfterQuizStart();
       if (result.status === 'FINISHED') {
         this.scrollHostFinishedIntoView();
-      } else if (!presenterOffered) {
+      } else if (!presenterOffered && !wasWordCloudMaximized) {
         this.scrollHostTargetIntoView(this.hostQuestionCardRef);
       }
     } catch {
+      if (this.freetextWordCloudMaximized()) {
+        this.closeFreetextWordCloudMaximize();
+      }
       this.quizStartQuestionPending.set(false);
       this.clearHostQuestionDetailsRetry();
       this.openHostSteeringCalloutForSteeringFailure(() => void this.nextQuestion());

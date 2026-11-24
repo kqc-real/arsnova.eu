@@ -70,6 +70,45 @@
     </nav>
   }
 }
+@let showQuizResultProgression =
+  showQuizAnchorActions() && !earlierQuizResult() && showsQuizProgressionActions();
+@let placeQuizProgressionInCloud =
+  freetextWordCloudMaximized() && displayedCurrentQuestionForHost()?.type === 'FREETEXT';
+<ng-template #quizResultProgression>
+  @if (canOpenFollowingQuestion()) {
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
+      aria-keyshortcuts="ArrowRight"
+      [disabled]="controlPending()"
+      [disabledInteractive]="placeQuizProgressionInCloud"
+      (click)="nextQuestion()"
+    >
+      <span i18n="@@sessionHost.nextQuestionAnchor">Nächste Frage</span>
+      <kbd class="session-host__shortcut" aria-hidden="true">→</kbd>
+    </button>
+  } @else if (showFinishEvaluationAnchor()) {
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      class="session-host__exit-anchor-button session-host__exit-anchor-button--primary session-host__exit-anchor-button--finish-evaluation"
+      [disabled]="controlPending()"
+      [disabledInteractive]="placeQuizProgressionInCloud"
+      (click)="nextQuestion()"
+      i18n-aria-label="@@sessionHost.finishEvaluationAnchorAria"
+      aria-label="Zur Gesamtauswertung"
+    >
+      <span
+        class="session-host__exit-anchor-label session-host__exit-anchor-label--finish-evaluation-full"
+        i18n="@@sessionHost.finishEvaluationAnchor"
+        >Zur Gesamtauswertung</span
+      >
+    </button>
+  }
+</ng-template>
 <section
   class="session-host"
   appMarkdownImageLightbox
@@ -4102,6 +4141,13 @@
                         "
                       />
                     </div>
+                    @if (placeQuizProgressionInCloud && showQuizResultProgression) {
+                      <div
+                        class="session-host__word-cloud-progression session-host__exit-anchor--quiz"
+                      >
+                        <ng-container *ngTemplateOutlet="quizResultProgression" />
+                      </div>
+                    }
                   </div>
                 </details>
               }
@@ -6030,47 +6076,8 @@
             </button>
           }
         }
-        @if (
-          showQuizAnchorActions() &&
-          !earlierQuizResult() &&
-          showsQuizProgressionActions() &&
-          canOpenFollowingQuestion()
-        ) {
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary"
-            aria-keyshortcuts="ArrowRight"
-            [disabled]="controlPending()"
-            (click)="nextQuestion()"
-          >
-            <span i18n="@@sessionHost.nextQuestionAnchor">Nächste Frage</span>
-            <kbd class="session-host__shortcut" aria-hidden="true">→</kbd>
-          </button>
-        }
-        @if (
-          showQuizAnchorActions() &&
-          !earlierQuizResult() &&
-          showsQuizProgressionActions() &&
-          showFinishEvaluationAnchor()
-        ) {
-          <button
-            mat-flat-button
-            color="primary"
-            type="button"
-            class="session-host__exit-anchor-button session-host__exit-anchor-button--primary session-host__exit-anchor-button--finish-evaluation"
-            [disabled]="controlPending()"
-            (click)="nextQuestion()"
-            i18n-aria-label="@@sessionHost.finishEvaluationAnchorAria"
-            aria-label="Zur Gesamtauswertung"
-          >
-            <span
-              class="session-host__exit-anchor-label session-host__exit-anchor-label--finish-evaluation-full"
-              i18n="@@sessionHost.finishEvaluationAnchor"
-              >Zur Gesamtauswertung</span
-            >
-          </button>
+        @if (showQuizResultProgression && !placeQuizProgressionInCloud) {
+          <ng-container *ngTemplateOutlet="quizResultProgression" />
         }
         @if (
           showQuizAnchorActions() && !earlierQuizResult() && effectiveStatus() === 'DISCUSSION'
