@@ -23,6 +23,7 @@ import {
   OPEN_WEIGHT_LLM_LABEL_TIMEOUT_DEFAULT_MS,
   OPEN_WEIGHT_LLM_MODEL_ID,
   OPEN_WEIGHT_LLM_MODEL_VERSION,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
   resolveOpenWeightLlmLabelTimeoutMs,
 } from './openWeightLlmConfig';
 import {
@@ -32,6 +33,7 @@ import {
   type OpenWeightLlmLiveResult,
   type OpenWeightLlmTelemetry,
 } from './openWeightLlmClient';
+import { isOpenWeightLlmPriorityEnabled } from './openWeightLlmPriority';
 import { analyzeSemanticWordCloudSnapshot } from './wordCloudSemanticAnalyze';
 import type { WordCloudNormalizationMeta } from './wordCloudNormalization';
 
@@ -57,6 +59,7 @@ const TOPIC_LABEL_CACHE_TTL_MS = 30 * 60_000;
 const TOPIC_LABEL_CACHE_MAX_ENTRIES = 512;
 const TRANSIENT_REASONS = new Set([
   'busy',
+  'preempted',
   'timeout',
   'aborted',
   'circuit_open',
@@ -187,6 +190,7 @@ function buildClusterTopicLabelCacheKey(
       JSON.stringify({
         model: OPEN_WEIGHT_LLM_MODEL_ID,
         version: OPEN_WEIGHT_LLM_MODEL_VERSION,
+        promptVersion: OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
         locale,
         sources,
       }),
@@ -451,12 +455,14 @@ export async function applyWordCloudTopicLabels(
   }
 
   const env = options.env ?? process.env;
+  const usePriorityScheduler = isOpenWeightLlmPriorityEnabled(env);
   if (!runtimeEnabled(env)) {
     return finish({
       ...output,
       labelSettlement: 'disabled',
       labelModelId: null,
       labelModelVersion: null,
+      labelPromptVersion: null,
       entries: output.entries.map((entry) => withOrigin(entry, 'extractive')),
     });
   }
@@ -524,6 +530,9 @@ export async function applyWordCloudTopicLabels(
         labelSettlement: 'complete',
         labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
         labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+        labelPromptVersion: acceptedModelLabel
+          ? OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION
+          : null,
         entries: resolvedEntries.map(
           (entry, idx) => entry ?? withOrigin(output.entries[idx]!, 'extractive'),
         ),
@@ -588,7 +597,8 @@ export async function applyWordCloudTopicLabels(
         }
         if (batchResult.status !== 'completed') {
           previousBatchAbortedOrTimedOut =
-            batchResult.status === 'aborted' || batchResult.status === 'timeout';
+            !usePriorityScheduler &&
+            (batchResult.status === 'aborted' || batchResult.status === 'timeout');
           if (TRANSIENT_REASONS.has(batchResult.status)) {
             transient = true;
           }
@@ -603,6 +613,9 @@ export async function applyWordCloudTopicLabels(
         labelSettlement: transient ? 'transient' : 'complete',
         labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
         labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+        labelPromptVersion: acceptedModelLabel
+          ? OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION
+          : null,
         entries: finalEntries,
       });
     }
@@ -671,7 +684,8 @@ export async function applyWordCloudTopicLabels(
       signal: callSignal,
     });
     if (result.status === 'fallback') {
-      previousAbortedOrTimedOut = result.reason === 'aborted' || result.reason === 'timeout';
+      previousAbortedOrTimedOut =
+        !usePriorityScheduler && (result.reason === 'aborted' || result.reason === 'timeout');
     }
     if (
       !sessionSignal?.aborted &&
@@ -698,6 +712,9 @@ export async function applyWordCloudTopicLabels(
     labelSettlement,
     labelModelId: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_ID : null,
     labelModelVersion: acceptedModelLabel ? OPEN_WEIGHT_LLM_MODEL_VERSION : null,
+    labelPromptVersion: acceptedModelLabel
+      ? OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION
+      : null,
     entries,
   });
 }

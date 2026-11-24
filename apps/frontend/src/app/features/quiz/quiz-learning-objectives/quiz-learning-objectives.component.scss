@@ -443,6 +443,11 @@ button[mat-stroked-button] {
     max-width: 100%;
     white-space: normal;
   }
+
+  .learning-objectives__derivation-actions button {
+    height: auto;
+    padding-block: 0.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

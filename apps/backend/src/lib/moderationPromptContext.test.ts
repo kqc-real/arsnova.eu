@@ -16,6 +16,7 @@ import type { AuthorizedModerationTeachingSignals } from './moderationTeachingSi
 const {
   buildQaMock,
   buildTeachingMock,
+  loadInferenceInputsMock,
   loadLearningMock,
   loadStateMock,
   prismaMock,
@@ -26,6 +27,7 @@ const {
   return {
     buildQaMock: vi.fn(),
     buildTeachingMock: vi.fn(),
+    loadInferenceInputsMock: vi.fn(),
     loadLearningMock: vi.fn(),
     loadStateMock: vi.fn(),
     prismaMock: { $transaction: vi.fn() },
@@ -49,7 +51,13 @@ vi.mock('./moderationTeachingSignals', async (importOriginal) => {
 });
 vi.mock('./sessionLearningObjectives', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./sessionLearningObjectives')>();
-  return { ...actual, getSessionLearningObjectivesSnapshotWithDb: loadLearningMock };
+  return {
+    ...actual,
+    getSessionLearningObjectivesForModerationWithDb: async (...args: unknown[]) => ({
+      snapshot: await loadLearningMock(...args),
+      inferenceInputsByObjectiveId: loadInferenceInputsMock(),
+    }),
+  };
 });
 
 import {
@@ -63,6 +71,7 @@ import {
 const SESSION_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const QUIZ_ID = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const QUIZ_QUESTION_ID = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const OTHER_QUIZ_QUESTION_ID = '15151515-1515-4515-8515-151515151500';
 const OBJECTIVE_ID = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 const DERIVED_OBJECTIVE_ID = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 const MISSING_QA_ID = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
@@ -72,6 +81,13 @@ const QA_SOURCE_ID =
   MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1.context.questions.items[0]!.sourceId;
 const QA_QUESTION_ID = QA_SOURCE_ID.slice('qa-question:'.length);
 const REFERENCE_CONTEXT = MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1.context;
+const QUESTION_OPENED_AT = '2026-10-05T09:40:00.000Z';
+const QUESTION_COMPLETED_AT = '2026-10-05T09:45:00.000Z';
+const COMPLETED_PROGRESS = {
+  state: 'COMPLETED',
+  openedAt: QUESTION_OPENED_AT,
+  completedAt: QUESTION_COMPLETED_AT,
+} as const;
 
 function state(overrides: Partial<AuthorizedModerationState> = {}): AuthorizedModerationState {
   return {
@@ -81,7 +97,7 @@ function state(overrides: Partial<AuthorizedModerationState> = {}): AuthorizedMo
     status: 'ACTIVE',
     currentQuestion: 0,
     currentRound: 1,
-    questionProgress: {},
+    questionProgress: { [QUIZ_QUESTION_ID]: COMPLETED_PROGRESS },
     questionProgressComplete: true,
     quizId: QUIZ_ID,
     endedAt: null,
@@ -310,6 +326,7 @@ describe('buildModerationPromptContext', () => {
     loadStateMock.mockResolvedValue(state());
     buildQaMock.mockResolvedValue(qaContext());
     buildTeachingMock.mockResolvedValue(teachingSignals());
+    loadInferenceInputsMock.mockReturnValue(new Map([[DERIVED_OBJECTIVE_ID, [QUIZ_QUESTION_ID]]]));
     loadLearningMock.mockResolvedValue(learningSnapshot());
     qaTaskFindManyMock.mockResolvedValue([
       {
@@ -362,6 +379,138 @@ describe('buildModerationPromptContext', () => {
       `learning-objective:${assignmentId}`,
     );
   });
+
+  it.each([null, 'OPENED', 'SKIPPED'] as const)(
+    'withholds model-derived objective text for a quiz question with progress %s',
+    async (progress) => {
+      const sessionState = state({
+        questionProgress: progress
+          ? {
+              [QUIZ_QUESTION_ID]: {
+                state: progress,
+                openedAt: QUESTION_OPENED_AT,
+                ...(progress === 'SKIPPED' ? { skippedAt: QUESTION_COMPLETED_AT } : {}),
+              },
+            }
+          : null,
+      });
+      loadStateMock.mockResolvedValue(sessionState);
+      buildQaMock.mockResolvedValue(qaContext({ state: sessionState }));
+      buildTeachingMock.mockResolvedValue(teachingSignals({ state: sessionState }));
+      const snapshot = learningSnapshot();
+      const solutionText = 'Die richtige Antwort lautet 42.';
+      loadLearningMock.mockResolvedValue({
+        ...snapshot,
+        objectives: snapshot.objectives.map((objective) =>
+          objective.id === DERIVED_OBJECTIVE_ID ? { ...objective, text: solutionText } : objective,
+        ),
+      });
+
+      const result = await buildModerationPromptContext({
+        sessionId: SESSION_ID,
+        locale: 'de',
+        access: { hostToken: 'host-token' },
+      });
+
+      expect(result.context.learningContext).toEqual({
+        state: 'available',
+        objectives: [expect.objectContaining({ sourceId: `learning-objective:${OBJECTIVE_ID}` })],
+      });
+      expect(result.context.limitations).toContainEqual(
+        expect.objectContaining({ code: 'not-released', section: 'learning-context' }),
+      );
+      expect(JSON.stringify(result.context)).not.toContain(solutionText);
+      expect(JSON.stringify(result.context)).not.toContain(DERIVED_OBJECTIVE_ID);
+    },
+  );
+
+  it('checks an uncited question from the inference batch before exposing the learning objective', async () => {
+    const snapshot = learningSnapshot();
+    const solutionText = 'Die freizugebende Lösung zur zweiten Frage lautet 42.';
+    loadInferenceInputsMock.mockReturnValue(
+      new Map([[DERIVED_OBJECTIVE_ID, [QUIZ_QUESTION_ID, OTHER_QUIZ_QUESTION_ID]]]),
+    );
+    loadLearningMock.mockResolvedValue({
+      ...snapshot,
+      availableQuizTasks: [
+        ...snapshot.availableQuizTasks,
+        {
+          kind: 'quiz-question',
+          questionId: OTHER_QUIZ_QUESTION_ID,
+          text: 'Was lautet das Ergebnis?',
+          order: 1,
+        },
+      ],
+      objectives: snapshot.objectives.map((objective) =>
+        objective.id === DERIVED_OBJECTIVE_ID ? { ...objective, text: solutionText } : objective,
+      ),
+    });
+    const request = {
+      sessionId: SESSION_ID,
+      locale: 'de',
+      access: { hostToken: 'host-token' },
+    } as const;
+    const setProgress = (stateValue: 'OPENED' | 'COMPLETED') => {
+      const sessionState = state({
+        questionProgress: {
+          [QUIZ_QUESTION_ID]: COMPLETED_PROGRESS,
+          [OTHER_QUIZ_QUESTION_ID]: {
+            state: stateValue,
+            openedAt: QUESTION_OPENED_AT,
+            ...(stateValue === 'COMPLETED' ? { completedAt: QUESTION_COMPLETED_AT } : {}),
+          },
+        },
+      });
+      loadStateMock.mockResolvedValue(sessionState);
+      buildQaMock.mockResolvedValue(qaContext({ state: sessionState }));
+      buildTeachingMock.mockResolvedValue(teachingSignals({ state: sessionState }));
+    };
+
+    setProgress('OPENED');
+    const pending = await buildModerationPromptContext(request);
+    expect(JSON.stringify(pending.context)).not.toContain(solutionText);
+    expect(pending.context.limitations).toContainEqual(
+      expect.objectContaining({ code: 'not-released', section: 'learning-context' }),
+    );
+
+    setProgress('COMPLETED');
+    const released = await buildModerationPromptContext(request);
+    expect(released.context.sources).toContainEqual({
+      id: `learning-objective:${DERIVED_OBJECTIVE_ID}`,
+      kind: 'learning-objective',
+      text: solutionText,
+    });
+    expect(released.context.meta.sourceRevision).not.toBe(pending.context.meta.sourceRevision);
+  });
+
+  it.each(['unknown', 'removed'] as const)(
+    'keeps an objective with %s inference inputs out after its cited question was released',
+    async (provenance) => {
+      const sessionState = state({
+        questionProgress: {
+          [QUIZ_QUESTION_ID]: COMPLETED_PROGRESS,
+          [OTHER_QUIZ_QUESTION_ID]: COMPLETED_PROGRESS,
+        },
+      });
+      loadStateMock.mockResolvedValue(sessionState);
+      buildQaMock.mockResolvedValue(qaContext({ state: sessionState }));
+      buildTeachingMock.mockResolvedValue(teachingSignals({ state: sessionState }));
+      loadInferenceInputsMock.mockReturnValue(
+        provenance === 'unknown'
+          ? new Map()
+          : new Map([[DERIVED_OBJECTIVE_ID, [QUIZ_QUESTION_ID, OTHER_QUIZ_QUESTION_ID]]]),
+      );
+      const result = await buildModerationPromptContext({
+        sessionId: SESSION_ID,
+        locale: 'de',
+        access: { hostToken: 'host-token' },
+      });
+      expect(JSON.stringify(result.context)).not.toContain(DERIVED_OBJECTIVE_ID);
+      expect(result.context.learningContext).toMatchObject({
+        objectives: [expect.objectContaining({ sourceId: `learning-objective:${OBJECTIVE_ID}` })],
+      });
+    },
+  );
 
   it('assembles and validates the complete authorized, solution-free analysis graph', async () => {
     const result = await buildModerationPromptContext({

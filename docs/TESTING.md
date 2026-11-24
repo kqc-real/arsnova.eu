@@ -624,6 +624,32 @@ Der [optionale E5-Modelltest](features/word-cloud-semantic.md) benötigt echte
 ONNX-Gewichte. Der lokale Hörsaallastlauf deckte die Klassifikationsqueue sowie
 spaCy- und Encoder-Aufträge ab. Qwen lief in separaten Einzelproben.
 
+### Gemeinsame LLM-Prioritätsübergabe (#717)
+
+Der Redis-Test braucht eine isolierte Redis-Instanz. Er prüft die Besitzerkennung
+bei Übergabe, den Abbruch vor dem Modellaufruf, die Reihenfolge der Aufträge
+den begrenzten Wartebereich pro Priorität, Abbruchsignalverlust und Redis-Ausfall.
+
+```bash
+REDIS_URL=redis://127.0.0.1:6379 RUN_REDIS_LLM_PRIORITY_TESTS=1 \
+  npm run test -w @arsnova/backend -- --run src/lib/openWeightLlmPriority.redis.test.ts
+```
+
+Für die Modellabnahme beide Backends mit aktivierter Prioritätsübergabe und
+gemeinsamer Runtime starten. Auf App A eine Lernzielableitung mit mindestens
+zwei Fragegruppen auslösen. Sobald die erste Gruppe übernommen wurde, auf
+App B ein Themenlabel anfordern, während die zweite Gruppe im Prefill bzw.
+in der Token-Generierung läuft. Die Zeit ab der Labelanfrage bis zur
+beobachteten Übernahme des Modellslots getrennt von der Zeit bis zum fertigen
+Label erfassen. Der Inferenzaufruf meldet `preempted`. Der laufende Lernzielauftrag
+behält seine fertigen Entwürfe und wiederholt nur die unterbrochene Gruppe
+innerhalb des ursprünglichen Budgets. Die Wortwolke muss bereits vor Abschluss
+der Modelllabels bedienbar sein. Für die weiteren Kombinationen eine laufende
+Zusammenfassung durch Themenlabels beziehungsweise einen Lernziel-Batch durch
+eine Zusammenfassung verdrängen. Freie Slots als Vergleich messen und p50, p95
+und Maximum pro Kombination angeben.
+[Staging-Konfiguration](operations/STAGING-COMPOSE.md#prioritätsübergabe-in-staging) · [Messung auf dem CPU-Zielhost](operations/LLM-PRIORITY-717.md)
+
 ### Private Open-Weight-LLM-Runtime (Story 8.9d)
 
 ```bash
@@ -638,6 +664,31 @@ npm run build:prod
 ```
 
 Die modellfreien Tests sind über `npm test` und `npm run test:coverage` in die Standard-CI eingebunden. Sie prüfen Pins und Hartflags, Unix- und Loopback-HTTP-Labor, Zwei-Host-Compose, CSV-sichere Credentials, rollbackfähige Operatorbefehle bei ungültigem Credential, private IPv4-/IPv6-Zielauflösung, DNS-Abbruch und -Timeout, drei versionierte Auftragsschemas samt 2.500-Byte-Kontextgrenze, alle Belegungsreihenfolgen, Triple-Concurrency, höchstens einen Modell-POST, Circuit Breaker, Fallback beziehungsweise manuellen Retry und Live-Hotpath-Isolation. Der reale lokale Modellnachweis mit Digests, Hardware und Messgrenze steht in [open-weight-llm-runtime.md](features/open-weight-llm-runtime.md). Er ersetzt weder die Summary-Prefill-Abnahme auf der 8-vCPU-Box noch Consumer-Qualitäts- oder Produktivtests.
+
+#### Gezielter Modellabbruch und Durchsatz
+
+Für beide Varianten dieselbe dedizierte Ein-Slot-CPU-Runtime-Topologie mit
+identischem GGUF, CPU-Kontingent und Threadzahl verwenden. Einen Lauf nach dem
+anderen über den privaten HTTP-Laborpfad starten. Das Credential aus der
+Laborkonfiguration an den Prozess übergeben. Als Basis dient das bisherige
+Modellimage mit CPU-Callback. Die Rolle des Images mit `connection` für die
+Basis und `targeted` für den Kandidaten angeben.
+
+```bash
+OPEN_WEIGHT_LLM_BENCH_URL=http://127.0.0.1:18080 \
+OPEN_WEIGHT_LLM_BENCH_CANCEL_MODE=targeted \
+OPEN_WEIGHT_LLM_BENCH_ROUNDS=4 \
+  node scripts/open-weight-llm/benchmark-targeted-cancellation.mjs
+```
+
+Die Laufreihenfolge Basis, Kandidat, Kandidat, Basis ausführen. Reguläre
+Laufzeiten und Tokenzahlen für Themenlabels, Zusammenfassungen und Lernziele
+vergleichen. Die getrennte Abbruchmessung erfasst die erste bestätigte
+Slot-Freigabe im Prefill und im Decode. Der Kandidat prüft die Authentifizierung,
+unbekannte IDs sowie doppelte und verspätete Signale am echten HTTP-Endpunkt.
+Mit `OPEN_WEIGHT_LLM_BENCH_ROUNDS=0` läuft nur dieser Funktionstest mit einem
+Aufwärmauftrag. Die Produktionsabnahme prüft anschließend im Quizeditor,
+ob der erste Entwurf erhalten bleibt und die Fortsetzung nur offene Fragen sendet.
 
 Für W2.4a zusätzlich:
 
@@ -772,7 +823,9 @@ Der Required-Check `e2e` wird nur grün, wenn beide
 Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
 nachträglich rot. Playwright-Browser installiert
 [`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh)
-(Browser-Binary mit Zeitlimit, OS-Deps ohne kurzen apt-Kill). `smoke:short-text` und `smoke:unified-session` schreiben bei
+(Browser-Binary mit Zeitlimit, OS-Deps ohne kurzen apt-Kill). Auf GitHub-Runnern
+verwendet das Skript `archive.ubuntu.com` für Azure- und EC2-Paketspiegel.
+`smoke:short-text` und `smoke:unified-session` schreiben bei
 gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
 Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
 `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese

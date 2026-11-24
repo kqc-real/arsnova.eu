@@ -41,11 +41,13 @@ MIT-licensed. The bundled embedding model is a third-party work.
 
 | Package                        | License    | Source                                                |
 | ------------------------------ | ---------- | ----------------------------------------------------- |
-| intfloat/multilingual-e5-small | Apache-2.0 | https://huggingface.co/intfloat/multilingual-e5-small |
+| intfloat/multilingual-e5-small | MIT per model card | https://huggingface.co/intfloat/multilingual-e5-small |
 | onnxruntime                    | MIT        | https://github.com/microsoft/onnxruntime              |
 | tokenizers                     | Apache-2.0 | https://github.com/huggingface/tokenizers             |
 | numpy                          | BSD        | https://github.com/numpy/numpy                        |
 
+The Xenova ONNX conversion is pinned at revision `761b726dd34fb83930e26aab4e9ac3899aa1fa78`.
+The pinned conversion publishes no separate license declaration.
 The encoder image does not include an LLM. Notices in the image:
 `docker/wordcloud-encoder/NOTICE`.
 

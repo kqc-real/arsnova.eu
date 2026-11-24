@@ -6966,7 +6966,13 @@ const sessionCoreRouter = router({
   deriveLearningObjectives: hostProcedure
     .input(DeriveSessionLearningObjectivesInputSchema)
     .output(DeriveSessionLearningObjectivesResultSchema)
-    .mutation(({ input, signal }) => deriveSessionLearningObjectives(input, { signal })),
+    .mutation(({ input, ctx, signal }) =>
+      deriveSessionLearningObjectives(input, {
+        signal,
+        verifyAuthorization: async () =>
+          !!ctx.hostToken && isHostSessionTokenValid(input.code, ctx.hostToken),
+      }),
+    ),
 
   attachQuizToSession: hostProcedure
     .input(AttachQuizToSessionInputSchema)

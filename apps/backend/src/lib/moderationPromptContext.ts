@@ -29,7 +29,8 @@ import {
   type AuthorizedModerationState,
 } from './moderationQaContext';
 import { buildAuthorizedModerationTeachingSignals } from './moderationTeachingSignals';
-import { getSessionLearningObjectivesSnapshotWithDb } from './sessionLearningObjectives';
+import { getSessionLearningObjectivesForModerationWithDb } from './sessionLearningObjectives';
+import { parseSessionQuestionProgress } from './sessionQuestionProgress';
 import type { WordCloudAnalysisCache } from './wordCloudAnalysisCache';
 
 export const MODERATION_ANALYSIS_VERSION = 'moderation-analysis-builder-v1' as const;
@@ -234,6 +235,7 @@ function compareLearningObjectivePriority(
 
 function projectLearningContext(input: {
   readonly snapshot: SessionLearningObjectivesSnapshot;
+  readonly inferenceInputsByObjectiveId: ReadonlyMap<string, readonly string[]>;
   readonly state: AuthorizedModerationState;
   readonly sourceById: Map<string, ModerationPromptSource>;
   readonly authorizedQaTasks: readonly AuthorizedLearningQaTask[];
@@ -252,11 +254,13 @@ function projectLearningContext(input: {
     input.snapshot.availableQuizTasks.map((task) => [task.questionId, task] as const),
   );
   const qaTasksById = new Map(input.authorizedQaTasks.map((task) => [task.id, task] as const));
+  const questionProgress = parseSessionQuestionProgress(input.state.questionProgress);
   const additionalSources = new Map<string, ModerationPromptSource>();
   const projectedObjectives: ModerationLearningObjective[] = [];
   const budgetOmittedObjectiveIds = new Set(input.qaReferenceBudgetOmittedObjectiveIds);
   let redactedObjectives = 0;
   let budgetOmittedObjectives = 0;
+  let unreleasedObjectives = 0;
 
   const lookupSource = (sourceId: string): ModerationPromptSource | undefined =>
     additionalSources.get(sourceId) ?? input.sourceById.get(sourceId);
@@ -371,6 +375,26 @@ function projectLearningContext(input: {
       continue;
     }
 
+    // Model citations can omit questions that were present in the inference input.
+    const inferenceInputs = input.inferenceInputsByObjectiveId.get(objective.id);
+    if (
+      objective.origin.kind === 'model-derived' &&
+      (!inferenceInputs?.length ||
+        inferenceInputs.some(
+          (questionId) =>
+            !quizTasksById.has(questionId) || questionProgress[questionId]?.state !== 'COMPLETED',
+        ) ||
+        (objective.scope.kind === 'question-set' &&
+          objective.scope.taskReferences.some(
+            (reference) =>
+              reference.kind === 'quiz-question' &&
+              questionProgress[reference.questionId]?.state !== 'COMPLETED',
+          )))
+    ) {
+      unreleasedObjectives += 1;
+      continue;
+    }
+
     const objectiveSource = ModerationPromptSourceSchema.parse({
       id: learningObjectiveSourceId(objective.id),
       kind: 'learning-objective',
@@ -407,6 +431,15 @@ function projectLearningContext(input: {
       ...(redactedObjectives > 0 ? [sourceRedactionLimitation(redactedObjectives)] : []),
       ...(budgetOmittedObjectives > 0
         ? [qaReferenceBudgetLimitation(budgetOmittedObjectives)]
+        : []),
+      ...(unreleasedObjectives > 0
+        ? [
+            ModerationPromptLimitationSchema.parse({
+              code: 'not-released',
+              section: 'learning-context',
+              detail: `${unreleasedObjectives} model-derived learning objective(s) withheld because their inference inputs are unknown or their quiz questions are unreleased.`,
+            }),
+          ]
         : []),
     ],
     revision: {
@@ -559,11 +592,12 @@ export async function buildModerationPromptContext(input: {
   assertModerationStateStillCurrent(initial, beforeLearning);
   const learningRead = await prisma.$transaction(
     async (tx) => {
-      const snapshot = await getSessionLearningObjectivesSnapshotWithDb(
-        tx,
-        input.sessionId,
-        beforeLearning.authorizedAt,
-      );
+      const { snapshot, inferenceInputsByObjectiveId } =
+        await getSessionLearningObjectivesForModerationWithDb(
+          tx,
+          input.sessionId,
+          beforeLearning.authorizedAt,
+        );
       const qaReferenceSelection = selectReferencedQaQuestions(snapshot);
       const authorizedQaTasks =
         qaReferenceSelection.questionIds.length === 0
@@ -577,7 +611,7 @@ export async function buildModerationPromptContext(input: {
               select: { id: true },
               orderBy: { id: 'asc' },
             });
-      return { snapshot, authorizedQaTasks, qaReferenceSelection };
+      return { snapshot, inferenceInputsByObjectiveId, authorizedQaTasks, qaReferenceSelection };
     },
     { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
   );
@@ -591,6 +625,7 @@ export async function buildModerationPromptContext(input: {
   const sourceById = registerUniqueSources([...qa.sources, ...teaching.sources]);
   const learning = projectLearningContext({
     snapshot: learningSnapshot,
+    inferenceInputsByObjectiveId: learningRead.inferenceInputsByObjectiveId,
     state: final,
     sourceById,
     authorizedQaTasks: learningRead.authorizedQaTasks,

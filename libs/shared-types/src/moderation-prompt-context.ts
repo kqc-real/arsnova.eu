@@ -2025,7 +2025,10 @@ const FeedbackAggregateSourceSchema = z
     scope: z
       .object({
         channel: z.literal('quickFeedback'),
-        timeWindow: ModerationPromptTimeWindowSchema,
+        timeWindow: z.union([
+          ModerationPromptTimeWindowSchema,
+          z.object({ kind: z.literal('round'), startedAt: z.string().datetime() }).strict(),
+        ]),
       })
       .strict(),
     population: FeedbackAggregatePopulationSchema,

@@ -4531,6 +4531,13 @@ export const AnalyzeWordCloudInputSchema = z.object({
       z.literal(WORD_CLOUD_MAX_NGRAM_LENGTH_VALUES[2]),
     ])
     .optional(),
+  /** Erst Cluster liefern, danach ausschließlich Labels für diesen Snapshot anfordern. */
+  topicLabels: z
+    .union([
+      z.literal('preview'),
+      z.object({ snapshotHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict(),
+    ])
+    .optional(),
   /** Host-Neuanalyse: Snapshot-Cache umgehen, Hash bleibt gleich. */
   refresh: z.boolean().optional(),
   /** Serverseitige Q&A-Korpusrevision; trennt fachlich veraltete Cacheeinträge. */
@@ -4586,9 +4593,11 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   modelId: z.string().min(1).max(128).nullable(),
   snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
   entries: z.array(WordCloudAnalysisEntryDTOSchema),
+  topicLabelsPending: z.boolean().optional(),
   labelSettlement: WordCloudLabelSettlementSchema.optional(),
   labelModelId: z.string().trim().min(1).max(220).nullable().optional(),
   labelModelVersion: z.string().trim().min(1).max(220).nullable().optional(),
+  labelPromptVersion: z.string().trim().min(1).max(120).nullable().optional(),
 });
 export type WordCloudAnalysisResultDTO = z.infer<typeof WordCloudAnalysisResultDTOSchema>;
 
@@ -5083,7 +5092,7 @@ export const PublicDependenciesStatusSchema = z.object({
 export type PublicDependenciesStatus = z.infer<typeof PublicDependenciesStatusSchema>;
 
 /**
- * Öffentliche Stichprobe der privaten Open-Weight-LLM-Runtime.
+ * Öffentliche Erreichbarkeitsprüfung der privaten Open-Weight-LLM-Runtime.
  * `disabled` = Schalter aus; `busy` = Slot belegt; beeinflusst nicht den Kern-Betriebsstatus.
  */
 export const OpenWeightLlmProbeTaskStatusSchema = z.enum([
@@ -5098,7 +5107,7 @@ export type OpenWeightLlmProbeTaskStatus = z.infer<typeof OpenWeightLlmProbeTask
 
 export const OpenWeightLlmProbeTaskResultSchema = z.object({
   status: OpenWeightLlmProbeTaskStatusSchema,
-  /** Laufzeit der Stichprobe; null wenn nicht ausgeführt. */
+  /** Laufzeit einer Einzelprüfung. Die Erreichbarkeitsprüfung liefert null. */
   elapsedMs: z.number().int().min(0).nullable(),
   /** Kurzer Maschinengrund ohne Secrets (z. B. timeout, misconfigured). */
   reason: z.string().trim().min(1).max(64).nullable(),
@@ -5116,11 +5125,9 @@ export const OpenWeightLlmRuntimeProbeSchema = z.object({
    * Öffentlich, ohne Digest/Token.
    */
   modelAlias: z.string().trim().min(1).max(120).nullable(),
-  /**
-   * Von der Runtime in einer erfolgreichen Completion gemeldetes `model`;
-   * null wenn noch kein erfolgreicher Aufruf.
-   */
+  /** Modellname früherer Inferenzproben. Die Erreichbarkeitsprüfung liefert null. */
   modelReported: z.string().trim().min(1).max(256).nullable(),
+  /** Für ältere Clients. Einzelaufgaben werden als unknown oder disabled gemeldet. */
   tasks: z.object({
     topic_label: OpenWeightLlmProbeTaskResultSchema,
     qa_summary: OpenWeightLlmProbeTaskResultSchema,
@@ -5131,7 +5138,7 @@ export type OpenWeightLlmRuntimeProbeDTO = z.infer<typeof OpenWeightLlmRuntimePr
 
 export const OpenWeightLlmRuntimeProbeInputSchema = z
   .object({
-    /** Cache umgehen und die drei Minimalaufträge erneut ausführen. */
+    /** Erneute Abfrage. Der Mindestabstand zwischen Messungen gilt auch bei refresh. */
     refresh: z.boolean().optional(),
   })
   .strict()
@@ -6524,6 +6531,7 @@ export const QaNlpRuntimeMetricsSchema = z.object({
   unclassified: z.number().int().nonnegative(),
   earlyExitRate: z.number().min(0).max(1),
   fallbackRate: z.number().min(0).max(1),
+  /** Share of settled requests without classification, including queue-limit skips. */
   unclassifiedRate: z.number().min(0).max(1),
 });
 export type QaNlpRuntimeMetrics = z.infer<typeof QaNlpRuntimeMetricsSchema>;

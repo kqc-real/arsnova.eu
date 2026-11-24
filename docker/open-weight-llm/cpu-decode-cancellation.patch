@@ -1,0 +1,149 @@
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -18,6 +18,7 @@
+ #include "mtmd-helper.h"
+
+ #include <algorithm>
++#include <atomic>
+ #include <cstddef>
+ #include <cinttypes>
+ #include <exception>
+@@ -838,6 +839,11 @@
+     llama_context * ctx_tgt = nullptr;
+
+     server_batch batch;
++
++    static constexpr int no_decode_task = -1;
++    static constexpr int cancelled_decode_task = -2;
++    std::atomic<int> decode_task_id{no_decode_task};
++    bool interruptible_cpu_decode = false;
+
+     llama_model   * model_dft = nullptr;
+     llama_context * ctx_dft   = nullptr;
+@@ -1256,6 +1262,13 @@
+             model_dft = nullptr;
+         }
+
++        interruptible_cpu_decode = slots.size() == 1 && params_base.n_gpu_layers == 0 && !spec && !mctx;
++        if (interruptible_cpu_decode) {
++            llama_set_abort_callback(ctx_tgt, [](void * data) {
++                return static_cast<const std::atomic<int> *>(data)->load(std::memory_order_relaxed) == cancelled_decode_task;
++            }, &decode_task_id);
++        }
++
+         for (int i = 0; i < params_base.n_parallel; i++) {
+             server_slot & slot = slots[i];
+
+@@ -2304,6 +2317,10 @@
+     bool process_single_task(server_task && task, bool is_yielding) {
+         // while yielding, an encode / decode is running and only reading the server state is safe
+         if (is_yielding && task.type != SERVER_TASK_TYPE_METRICS && task.type != SERVER_TASK_TYPE_SLOT_GET) {
++            if (task.type == SERVER_TASK_TYPE_CANCEL) {
++                int target = task.id_target;
++                decode_task_id.compare_exchange_strong(target, cancelled_decode_task, std::memory_order_relaxed);
++            }
+             SRV_DBG("decoding, decline task, id_task = %d\n", task.id);
+             return false;
+         }
+@@ -2803,12 +2820,15 @@
+                 // TODO @ngxson : maybe handle n_batch == 1 here instead of inside decode()
+
+                 batch_view = batch.get_view(off, n_tokens);
+-                bool ok = decode(n_batch, off, batch_view);
++                const auto result = decode(n_batch, off, batch_view);
+ #ifdef DEBUG_TIMINGS
+                 llama_synchronize(ctx_tgt);
+ #endif
+
+-                if (ok) {
++                if (result == decode_result::cancelled) {
++                    return;
++                }
++                if (result == decode_result::complete) {
+                     // move the head of the batch forward with the number of tokens we just processed
+                     off_next = off + n_tokens;
+
+@@ -2819,6 +2839,7 @@
+                     continue;
+                 }
+             } catch (const std::exception & e) {
++                decode_task_id.store(no_decode_task, std::memory_order_relaxed);
+                 SRV_ERR("decode() failed: %s\n", e.what());
+                 abort_all_slots("decode() failed: " + std::string(e.what()));
+                 break; // stop any further processing
+@@ -3571,9 +3592,10 @@
+         }
+     }
+
+-    // returns true = success ; false = retry with smaller batch size
++    enum class decode_result { complete, retry, cancelled };
++
+     // throw std::runtime_error on fatal error
+-    bool decode(int32_t & n_batch, int32_t off, llama_batch & batch_view) {
++    decode_result decode(int32_t & n_batch, int32_t off, llama_batch & batch_view) {
+         SRV_DBG("n_batch (effective) = %d, off = %d\n", n_batch, off);
+
+         metrics_pre_decode();
+@@ -3585,7 +3607,7 @@
+                 GGML_ABORT("fatal error - please provide logs and repro in %s\n", "https://github.com/ggml-org/llama.cpp/pull/20277");
+             }
+
+-            return true; // nothing to decode
++            return decode_result::complete; // nothing to decode
+         } else {
+             n_empty_consecutive = 0;
+         }
+@@ -3606,6 +3628,9 @@
+
+         // yield to the queue, so we can still handle metrics tasks while decoding
+         // note: the sync is done here too, so that the wait is also covered by the yield
++        if (interruptible_cpu_decode && batch.slot_batched->task->type == SERVER_TASK_TYPE_COMPLETION) {
++            decode_task_id.store(batch.slot_batched->task->id, std::memory_order_relaxed);
++        }
+         int ret = 0;
+         queue_tasks.yield_to_queue([&]() {
+             ret = llama_decode(ctx_tgt, batch_view);
+@@ -3614,6 +3639,16 @@
+             }
+         });
+
++        if (decode_task_id.exchange(no_decode_task, std::memory_order_relaxed) == cancelled_decode_task) {
++            llama_synchronize(ctx_tgt);
++            metrics_flush_prompt();
++            auto & slot = slots.front();
++            // The interrupted batch may have advanced only part of the KV cache.
++            slot.prompt_clear();
++            slot.release();
++            return decode_result::cancelled;
++        }
++
+         if (ret != 0) {
+             {
+                 std::string err;
+@@ -3633,8 +3668,6 @@
+                     err = "Compute error.";
+                 }
+
+-                // TODO: handle ret == 2 (abort) when we start aborting
+-
+                 if (!err.empty()) {
+                     SRV_ERR("%s off = %d, n_batch = %d, ret = %d\n", err.c_str(), off, n_batch, ret);
+
+@@ -3661,7 +3694,7 @@
+
+             SRV_WRN("failed to find free space in the KV cache, retrying with smaller batch size, off = %d, n_batch = %d, ret = %d\n", off, n_batch, ret);
+
+-            return false; // retry with the updated n_batch
++            return decode_result::retry;
+         } else {
+             // success, apply batch metrics
+             metrics_post_decode(off, batch_view.n_tokens, has_output);
+@@ -3707,7 +3740,7 @@
+             }
+         }
+
+-        return true;
++        return decode_result::complete;
+     }
+
+     void post_decode(int32_t n_batch_tokens, int32_t off, llama_batch & batch_view) {

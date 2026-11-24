@@ -2506,168 +2506,16 @@
                                     >
                                   </div>
                                   <div class="session-host__numeric-histograms">
-                                    <div class="session-host__numeric-histogram">
-                                      @if (
-                                        numericHistogramBandStyle(q, rc.round1Histogram);
-                                        as band
-                                      ) {
-                                        <div
-                                          class="session-host__numeric-band"
-                                          [style.left.%]="band.left"
-                                          [style.width.%]="band.width"
-                                          aria-hidden="true"
-                                        ></div>
-                                      }
-                                      @if (
-                                        numericReferenceLineStyle(q, rc.round1Histogram);
-                                        as ref
-                                      ) {
-                                        <div
-                                          class="session-host__numeric-reference-line"
-                                          [style.left.%]="ref.left"
-                                          aria-hidden="true"
-                                        ></div>
-                                        @if (numericReferenceLabel(q); as refLabel) {
-                                          <span
-                                            class="session-host__numeric-reference-label"
-                                            [style.left.%]="ref.left"
-                                          >
-                                            {{ refLabel }}
-                                          </span>
-                                        }
-                                      }
-                                      @for (bin of rc.round1Histogram; track bin.from) {
-                                        <div
-                                          class="session-host__numeric-bin"
-                                          [class.session-host__numeric-bin--in-band]="bin.inBand"
-                                          [class.session-host__numeric-bin--empty]="bin.count === 0"
-                                          [style.left.%]="
-                                            numericHistogramBinPositionPercent(
-                                              bin,
-                                              rc.round1Histogram,
-                                              rc.round1Stats
-                                            )
-                                          "
-                                          [title]="bin.from + ' – ' + bin.to + ': ' + bin.count"
-                                        >
-                                          <div
-                                            class="session-host__numeric-bin-bar"
-                                            [style.height.%]="
-                                              numericHistogramBarHeight(bin, rc.round1Histogram)
-                                            "
-                                          ></div>
-                                          <span
-                                            class="session-host__numeric-bin-count"
-                                            [class.session-host__numeric-bin-count--empty]="
-                                              bin.count === 0
-                                            "
-                                            [attr.aria-hidden]="bin.count === 0 ? 'true' : null"
-                                            >{{ formatCount(bin.count) }}</span
-                                          >
-                                        </div>
-                                      }
-                                      <div
-                                        class="session-host__numeric-axis-labels"
-                                        aria-hidden="true"
-                                      >
-                                        <span>{{
-                                          numericHistogramRangeEdgeLabel(
-                                            q,
-                                            rc.round1Histogram,
-                                            'min'
-                                          )
-                                        }}</span>
-                                        <span>{{
-                                          numericHistogramRangeEdgeLabel(
-                                            q,
-                                            rc.round1Histogram,
-                                            'max'
-                                          )
-                                        }}</span>
-                                      </div>
-                                    </div>
-                                    <div
-                                      class="session-host__numeric-histogram session-host__numeric-histogram--r2"
-                                    >
-                                      @if (
-                                        numericHistogramBandStyle(q, rc.round2Histogram);
-                                        as band
-                                      ) {
-                                        <div
-                                          class="session-host__numeric-band"
-                                          [style.left.%]="band.left"
-                                          [style.width.%]="band.width"
-                                          aria-hidden="true"
-                                        ></div>
-                                      }
-                                      @if (
-                                        numericReferenceLineStyle(q, rc.round2Histogram);
-                                        as ref
-                                      ) {
-                                        <div
-                                          class="session-host__numeric-reference-line"
-                                          [style.left.%]="ref.left"
-                                          aria-hidden="true"
-                                        ></div>
-                                        @if (numericReferenceLabel(q); as refLabel) {
-                                          <span
-                                            class="session-host__numeric-reference-label"
-                                            [style.left.%]="ref.left"
-                                          >
-                                            {{ refLabel }}
-                                          </span>
-                                        }
-                                      }
-                                      @for (bin of rc.round2Histogram; track bin.from) {
-                                        <div
-                                          class="session-host__numeric-bin"
-                                          [class.session-host__numeric-bin--in-band]="bin.inBand"
-                                          [class.session-host__numeric-bin--empty]="bin.count === 0"
-                                          [style.left.%]="
-                                            numericHistogramBinPositionPercent(
-                                              bin,
-                                              rc.round2Histogram,
-                                              rc.round2Stats
-                                            )
-                                          "
-                                          [title]="bin.from + ' – ' + bin.to + ': ' + bin.count"
-                                        >
-                                          <div
-                                            class="session-host__numeric-bin-bar"
-                                            [style.height.%]="
-                                              numericHistogramBarHeight(bin, rc.round2Histogram)
-                                            "
-                                          ></div>
-                                          <span
-                                            class="session-host__numeric-bin-count"
-                                            [class.session-host__numeric-bin-count--empty]="
-                                              bin.count === 0
-                                            "
-                                            [attr.aria-hidden]="bin.count === 0 ? 'true' : null"
-                                            >{{ formatCount(bin.count) }}</span
-                                          >
-                                        </div>
-                                      }
-                                      <div
-                                        class="session-host__numeric-axis-labels"
-                                        aria-hidden="true"
-                                      >
-                                        <span>{{
-                                          numericHistogramRangeEdgeLabel(
-                                            q,
-                                            rc.round2Histogram,
-                                            'min'
-                                          )
-                                        }}</span>
-                                        <span>{{
-                                          numericHistogramRangeEdgeLabel(
-                                            q,
-                                            rc.round2Histogram,
-                                            'max'
-                                          )
-                                        }}</span>
-                                      </div>
-                                    </div>
+                                    <app-numeric-estimate-histogram
+                                      [question]="q"
+                                      [histogram]="rc.round1Histogram"
+                                      [stats]="rc.round1Stats"
+                                    />
+                                    <app-numeric-estimate-histogram
+                                      [question]="q"
+                                      [histogram]="rc.round2Histogram"
+                                      [stats]="rc.round2Stats"
+                                    />
                                   </div>
                                   @if (numericReferenceLabel(q) || numericToleranceBandLabel(q)) {
                                     <div class="session-host__numeric-scale-meta">
@@ -2782,64 +2630,10 @@
                                           <span i18n="@@sessionHost.numericDeltaHistogramLabel"
                                             >Veränderung pro Person</span
                                           >
-                                          <div class="session-host__numeric-histogram">
-                                            @for (bin of rc.deltaHistogram; track bin.from) {
-                                              <div
-                                                class="session-host__numeric-bin"
-                                                [class.session-host__numeric-bin--empty]="
-                                                  bin.count === 0
-                                                "
-                                                [style.left.%]="
-                                                  numericHistogramBinPositionPercent(
-                                                    bin,
-                                                    rc.deltaHistogram
-                                                  )
-                                                "
-                                                [title]="
-                                                  bin.from + ' – ' + bin.to + ': ' + bin.count
-                                                "
-                                              >
-                                                <div
-                                                  class="session-host__numeric-bin-bar"
-                                                  [style.height.%]="
-                                                    numericHistogramBarHeight(
-                                                      bin,
-                                                      rc.deltaHistogram
-                                                    )
-                                                  "
-                                                ></div>
-                                                <span
-                                                  class="session-host__numeric-bin-count"
-                                                  [class.session-host__numeric-bin-count--empty]="
-                                                    bin.count === 0
-                                                  "
-                                                  [attr.aria-hidden]="
-                                                    bin.count === 0 ? 'true' : null
-                                                  "
-                                                  >{{ formatCount(bin.count) }}</span
-                                                >
-                                              </div>
-                                            }
-                                            <div
-                                              class="session-host__numeric-axis-labels"
-                                              aria-hidden="true"
-                                            >
-                                              <span>{{
-                                                numericHistogramRangeEdgeLabel(
-                                                  null,
-                                                  rc.deltaHistogram,
-                                                  'min'
-                                                )
-                                              }}</span>
-                                              <span>{{
-                                                numericHistogramRangeEdgeLabel(
-                                                  null,
-                                                  rc.deltaHistogram,
-                                                  'max'
-                                                )
-                                              }}</span>
-                                            </div>
-                                          </div>
+                                          <app-numeric-estimate-histogram
+                                            [question]="null"
+                                            [histogram]="rc.deltaHistogram"
+                                          />
                                         </div>
                                       }
                                     </div>
@@ -2905,85 +2699,12 @@
                                     <span>{{ interpretation }}</span>
                                   </p>
                                 }
-                                <div class="session-host__numeric-histogram">
-                                  @if (numericHistogramBandStyle(q, q.numericHistogram); as band) {
-                                    <div
-                                      class="session-host__numeric-band"
-                                      [style.left.%]="band.left"
-                                      [style.width.%]="band.width"
-                                      aria-hidden="true"
-                                    ></div>
-                                  }
-                                  @if (numericReferenceLineStyle(q, q.numericHistogram); as ref) {
-                                    <div
-                                      class="session-host__numeric-reference-line"
-                                      [style.left.%]="ref.left"
-                                      aria-hidden="true"
-                                    ></div>
-                                    @if (numericReferenceLabel(q); as refLabel) {
-                                      <span
-                                        class="session-host__numeric-reference-label"
-                                        [style.left.%]="ref.left"
-                                      >
-                                        {{ refLabel }}
-                                      </span>
-                                    }
-                                  }
-                                  @for (bin of q.numericHistogram; track bin.from) {
-                                    <div
-                                      class="session-host__numeric-bin"
-                                      [class.session-host__numeric-bin--in-band]="bin.inBand"
-                                      [class.session-host__numeric-bin--empty]="bin.count === 0"
-                                      [style.left.%]="
-                                        numericHistogramBinPositionPercent(
-                                          bin,
-                                          q.numericHistogram!,
-                                          stats
-                                        )
-                                      "
-                                      [title]="bin.from + ' – ' + bin.to + ': ' + bin.count"
-                                    >
-                                      <div
-                                        class="session-host__numeric-bin-bar"
-                                        [style.height.%]="
-                                          numericHistogramBarHeight(bin, q.numericHistogram!)
-                                        "
-                                      ></div>
-                                      <span
-                                        class="session-host__numeric-bin-count"
-                                        [class.session-host__numeric-bin-count--empty]="
-                                          bin.count === 0
-                                        "
-                                        [attr.aria-hidden]="bin.count === 0 ? 'true' : null"
-                                        >{{ formatCount(bin.count) }}</span
-                                      >
-                                    </div>
-                                  }
-                                  <div class="session-host__numeric-axis-labels" aria-hidden="true">
-                                    <span>{{
-                                      numericHistogramRangeEdgeLabel(q, q.numericHistogram, 'min')
-                                    }}</span>
-                                    <span>{{
-                                      numericHistogramRangeEdgeLabel(q, q.numericHistogram, 'max')
-                                    }}</span>
-                                  </div>
-                                </div>
-                                @if (numericReferenceLabel(q) || numericToleranceBandLabel(q)) {
-                                  <div class="session-host__numeric-scale-meta">
-                                    @if (numericReferenceLabel(q); as refLabel) {
-                                      <span>
-                                        <mat-icon aria-hidden="true">adjust</mat-icon>
-                                        {{ refLabel }}
-                                      </span>
-                                    }
-                                    @if (numericToleranceBandLabel(q); as bandLabel) {
-                                      <span>
-                                        <mat-icon aria-hidden="true">linear_scale</mat-icon>
-                                        {{ bandLabel }}
-                                      </span>
-                                    }
-                                  </div>
-                                }
+                                <app-numeric-estimate-histogram
+                                  [question]="q"
+                                  [histogram]="q.numericHistogram"
+                                  [stats]="stats"
+                                  [showLegend]="true"
+                                />
                                 <details class="session-host__numeric-details">
                                   <summary class="session-host__numeric-details-summary">
                                     <mat-icon aria-hidden="true">monitoring</mat-icon>
@@ -4440,6 +4161,9 @@
                         "
                         [labelModelVersion]="
                           freetextWordCloudSemanticAnalysisResult()?.labelModelVersion ?? null
+                        "
+                        [labelPromptVersion]="
+                          freetextWordCloudSemanticAnalysisResult()?.labelPromptVersion ?? null
                         "
                       />
                     </div>

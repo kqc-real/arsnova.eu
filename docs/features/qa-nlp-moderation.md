@@ -80,7 +80,7 @@ Early-Exit, Timeout und Queue-Limit sind lokale Smokes (u. a. 200 Kaskaden-Snaps
 
 ## Telemetrie
 
-Strukturierte Logs `qa_nlp:completed`, `qa_nlp:failed`, `qa_nlp:skipped` mit Queue-Länge, Latenz und Modellversion. In-Process-Zähler und Raten in `qa.nlpRuntime.metrics` (Host-only): Queue-Länge, letzte Latenz, Completed, Failed, Skipped, Early-Exit, Fallback, Unclassified sowie `earlyExitRate`, `fallbackRate`, `unclassifiedRate`. Unclassified zählt `uncertain`, `failed`, `disabled` und Ergebnisse ohne Kategorie.
+Strukturierte Logs `qa_nlp:completed`, `qa_nlp:failed`, `qa_nlp:skipped` mit Queue-Länge, Latenz und Modellversion. In-Process-Zähler und Raten in `qa.nlpRuntime.metrics` (Host-only): Queue-Länge, letzte Latenz, Completed, Failed, Skipped, Early-Exit, Fallback, Unclassified sowie `earlyExitRate`, `fallbackRate`, `unclassifiedRate`. Unclassified zählt `uncertain`, `failed`, `disabled`, Ergebnisse ohne Kategorie und übersprungene Anfragen am Queue-Limit. Die Rate bezieht sich auf abgeschlossene, fehlgeschlagene und übersprungene Anfragen.
 
 ## Kalibrierung und Seed-Qualität
 

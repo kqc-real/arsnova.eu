@@ -298,6 +298,41 @@ describe('learningObjectiveDerivation', () => {
     expect(requests.map((request) => request.questions.map(({ id }) => id))).toEqual(firstGrouping);
   });
 
+  it('records every actual input question for a draft even when the model cites only one', async () => {
+    const questionIds = QUESTION_IDS.slice(0, 2);
+    const solutionText = '42 Sekunden';
+    const questions = questionIds.map((id, index) => choiceQuestion(id, index));
+    questions[1]!.answers = [{ text: solutionText, isCorrect: true }];
+    const onDraftInferenceInputs = vi.fn();
+    const run = vi.fn(async (request: OpenWeightLlmLearningObjectivesRequest) => {
+      expect(request.questions.map(({ id }) => id)).toEqual(questionIds);
+      expect(request.questions[1]?.answerOptions).toContainEqual({
+        text: solutionText,
+        isCorrect: true,
+      });
+      const response = successfulBatch(request);
+      response.output.objectives = [
+        {
+          text: `Begründen, warum die Dauer ${solutionText} beträgt.`,
+          questionIds: [questionIds[0]!],
+        },
+      ];
+      return response;
+    });
+    const result = await deriveLearningObjectiveDrafts(input(questions), {
+      run,
+      onDraftInferenceInputs,
+    });
+    expect(run).toHaveBeenCalledOnce();
+    expect(result.status).toBe('completed');
+    if (result.status !== 'completed') throw new Error('Expected a completed derivation');
+    expect(result.drafts[0]?.text).toContain(solutionText);
+    expect(result.drafts[0]?.origin.derivedFromSourceQuestionIds).toEqual([questionIds[0]]);
+    expect(onDraftInferenceInputs).toHaveBeenCalledExactlyOnceWith(
+      new Map([[result.drafts[0]!.id, questionIds]]),
+    );
+  });
+
   it('rejects a single multibyte question that cannot fit instead of truncating it', async () => {
     const run = vi.fn();
     const result = await deriveLearningObjectiveDrafts(
@@ -311,28 +346,83 @@ describe('learningObjectiveDerivation', () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it('keeps finished drafts when a later batch is busy and does not retry automatically', async () => {
+  it.each(['busy', 'preempted'] as const)(
+    'keeps finished drafts when a later batch is %s',
+    async (status) => {
+      const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
+        choiceQuestion(id, index, '🧪'.repeat(170)),
+      );
+      const run = vi
+        .fn()
+        .mockImplementationOnce(async (request: OpenWeightLlmLearningObjectivesRequest) =>
+          successfulBatch(request),
+        )
+        .mockResolvedValueOnce(status === 'busy' ? { status, retry: 'manual' } : { status });
+      const result = await deriveLearningObjectiveDrafts(input(questions), { run });
+      expect(result).toMatchObject(status === 'busy' ? { status, retry: 'manual' } : { status });
+      expect(run).toHaveBeenCalledTimes(2);
+      expect(result).not.toHaveProperty('drafts');
+      if (result.status !== status) throw new Error(`${status} result expected`);
+      const finishedRequest = run.mock.calls[0]?.[0] as OpenWeightLlmLearningObjectivesRequest;
+      expect(result.progress?.drafts).toHaveLength(1);
+      expect(result.progress?.coveredSourceQuestionIds).toEqual(
+        finishedRequest.questions.map((question) => question.id),
+      );
+      expect(result.progress?.queuedObjectives).toBe(1);
+    },
+  );
+
+  it('retries only the interrupted batch within one signal and preserves committed drafts', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>
       choiceQuestion(id, index, '🧪'.repeat(170)),
     );
-    const run = vi
-      .fn()
-      .mockImplementationOnce(async (request: OpenWeightLlmLearningObjectivesRequest) =>
-        successfulBatch(request),
-      )
-      .mockResolvedValueOnce({ status: 'busy', retry: 'manual' });
-    const result = await deriveLearningObjectiveDrafts(input(questions), { run });
-    expect(result).toMatchObject({ status: 'busy', retry: 'manual' });
-    expect(run).toHaveBeenCalledTimes(2);
-    expect(result).not.toHaveProperty('drafts');
-    if (result.status !== 'busy') throw new Error('busy result expected');
-    const finishedRequest = run.mock.calls[0]?.[0] as OpenWeightLlmLearningObjectivesRequest;
-    expect(result.progress?.drafts).toHaveLength(1);
-    expect(result.progress?.coveredSourceQuestionIds).toEqual(
-      finishedRequest.questions.map((question) => question.id),
-    );
-    expect(result.progress?.queuedObjectives).toBe(1);
+    const run = vi.fn<
+      NonNullable<NonNullable<Parameters<typeof deriveLearningObjectiveDrafts>[1]>['run']>
+    >(async (request: OpenWeightLlmLearningObjectivesRequest) => successfulBatch(request));
+    run
+      .mockImplementationOnce(async (request) => successfulBatch(request))
+      .mockResolvedValueOnce({ status: 'preempted' });
+    const onProgress = vi.fn();
+    const verifyRetry = vi.fn(async () => true);
+    const result = await deriveLearningObjectiveDrafts(input(questions), {
+      run,
+      verifyRetry,
+      onProgress,
+      retryAfterPreemption: true,
+    });
+    expect(result.status).toBe('completed');
+    expect(run).toHaveBeenCalledTimes(3);
+    expect(run.mock.calls[1]?.[0]).toEqual(run.mock.calls[2]?.[0]);
+    expect(verifyRetry).toHaveBeenCalledOnce();
+    const waiting = onProgress.mock.calls.find(([snapshot]) => snapshot.waitingForModel)?.[0];
+    expect(waiting).toMatchObject({ completedGroups: 1, drafts: [expect.any(Object)] });
+    if (result.status === 'completed') {
+      expect(result.drafts.map((draft) => draft.id)).toContain(waiting.drafts[0].id);
+    }
   });
+
+  it.each(['expired', 'aborted', 'unauthorized'] as const)(
+    'does not retry a %s operation',
+    async (reason) => {
+      const controller = new AbortController();
+      const run = vi.fn(async () => {
+        if (reason === 'aborted') controller.abort();
+        return { status: 'preempted' as const };
+      });
+      const result = await deriveLearningObjectiveDrafts(
+        input([choiceQuestion(QUESTION_IDS[0], 0)]),
+        {
+          run,
+          signal: controller.signal,
+          retryAfterPreemption: true,
+          overallTimeoutMs: reason === 'expired' ? 25 : 5_000,
+          verifyRetry: async () => reason !== 'unauthorized',
+        },
+      );
+      expect(run).toHaveBeenCalledOnce();
+      expect(result.status).toBe(reason === 'expired' ? 'timeout' : 'aborted');
+    },
+  );
 
   it('reports deterministic capacity capping and an empty completed model result explicitly', async () => {
     const questions = QUESTION_IDS.slice(0, 4).map((id, index) =>

@@ -19789,6 +19789,18 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
+        <target>The summary service is busy right now.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackUnavailable" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade nicht erreichbar.</source>
+        <target>The summary service is unavailable right now.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackSourceChanged" datatype="html">
+        <source>Die Daten haben sich seit der Anfrage geändert.</source>
+        <target>The data has changed since the request.</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryTimeout" datatype="html">
         <source>Die Zusammenfassung hat zu lange gedauert.</source>
         <target>The summary took too long.</target>
@@ -32801,8 +32813,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusOpenWeightLlmHint" datatype="html">
-        <source>Diese Prüfung betrifft nur die Text-KI auf diesem Server: ein lokal betriebenes Open-Weight-Modell, kein Cloud-Anbieter. Geprüft werden die drei Hilfen unten. Das Ergebnis ändert den allgemeinen Betriebsstatus nicht.</source>
-        <target>This check covers only the AI service on this server: a locally hosted open-weight model, not a cloud provider. It tests the three features below. The result does not affect the overall service status.</target>
+        <source>Die Prüfung zeigt, ob die lokale Text-KI erreichbar ist und gerade Anfragen annehmen kann.</source>
+        <target>The check shows whether the local AI service is reachable and can accept requests.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -32840,14 +32852,6 @@
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusMetricOpenWeightLlmOverallHint" datatype="html">
-        <source>Gemeinsames Ergebnis der drei Hilfen.</source>
-        <target>Combined status of the three features.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.statusOpenWeightLlmLoading" datatype="html">
         <source>Prüfung läuft …</source>
         <target>Checking…</target>
@@ -32865,8 +32869,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricOpenWeightLlmOverall" datatype="html">
-        <source>Gesamt</source>
-        <target>Overall</target>
+        <source>Verfügbarkeit</source>
+        <target>Availability</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -35750,6 +35754,10 @@
         <source>Bei den übrigen Fragen fortsetzen</source>
         <target>Continue</target>
         </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumePending" datatype="html">
+        <source>Übrige Fragen werden bearbeitet</source>
+        <target>Processing remaining questions</target>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
         <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
         <target>Drafts already exist for the remaining questions.</target>
@@ -35890,6 +35898,14 @@
         <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
         <target><x id="count" equiv-text="count"/> learning objectives have been added to the list as drafts.</target>
         </trans-unit>
+      <trans-unit id="learningObjectives.derivationWaitingForModel" datatype="html">
+        <source>Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: <x id="minutes" equiv-text="minutes"/>.</source>
+        <target>A higher-priority request is running. Generation will resume automatically. Time left in minutes: <x id="minutes" equiv-text="minutes"/>.</target>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPreemptedWhy" datatype="html">
+        <source>Ein dringenderer Auftrag hat die Erstellung unterbrochen.</source>
+        <target>A higher-priority request interrupted generation.</target>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
         <source>Die Erstellung wurde abgebrochen.</source>
         <target>Creation was canceled.</target>
@@ -36772,8 +36788,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLimitationNotReleased" datatype="html">
-        <source>Diese Ergebnisse sind noch nicht freigegeben.</source>
-        <target>These results have not been revealed yet.</target>
+        <source>Diese Inhalte sind noch nicht freigegeben.</source>
+        <target>This content has not been released yet.</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
         </context-group>

@@ -1,3 +1,4 @@
+import { enrichCurrentTopicCloud } from './word-cloud-topic-labels';
 import { DecimalPipe, DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { leaderboardHasPoints, withPresenterPlaces } from './presenter-leaderboard.util';
 import {
@@ -1504,6 +1505,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     );
   });
   private presenterFreetextAnalysisGeneration = 0;
+  private presenterTopicLabelsAbort?: AbortController;
   readonly presenterFreetextDisplayedResponses = computed(() =>
     this.presenterFreetextWordCloudFrozen()
       ? (this.presenterFreetextFrozenResponses() ?? this.freetextResponses())
@@ -3432,6 +3434,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private resetPresenterFreetextWordCloudControls(): void {
+    this.presenterTopicLabelsAbort?.abort();
     this.presenterFreetextAnalysisGeneration += 1;
     this.presenterFreetextWordCloudModeOverride.set(null);
     this.presenterFreetextWordCloudFrozen.set(false);
@@ -3491,6 +3494,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   }
 
   private beginPresenterFreetextAnalysis(): number {
+    this.presenterTopicLabelsAbort?.abort();
     const generation = ++this.presenterFreetextAnalysisGeneration;
     this.presenterFreetextLemmaPending.set(false);
     this.presenterFreetextSemanticPending.set(false);
@@ -3509,18 +3513,19 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     }
     this.presenterFreetextSemanticPending.set(true);
     this.presenterFreetextSemanticFailed.set(false);
+    const request: AnalyzeWordCloudInput = {
+      sessionCode: this.code.toUpperCase(),
+      mode: 'SEMANTIC',
+      locale,
+      metric: 'TOP',
+      channel: 'FREETEXT',
+      normalization: 'NONE',
+      items,
+      maxEntries: 40,
+      ...(refresh ? { refresh: true } : {}),
+    };
     try {
-      const result = await trpc.wordCloud.analyze.mutate({
-        sessionCode: this.code.toUpperCase(),
-        mode: 'SEMANTIC',
-        locale,
-        metric: 'TOP',
-        channel: 'FREETEXT',
-        normalization: 'NONE',
-        items,
-        maxEntries: 40,
-        ...(refresh ? { refresh: true } : {}),
-      });
+      const result = await trpc.wordCloud.analyze.mutate({ ...request, topicLabels: 'preview' });
       if (generation !== this.presenterFreetextAnalysisGeneration) {
         return;
       }
@@ -3530,6 +3535,29 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.presenterFreetextSemanticEntries.set(result.entries);
       this.presenterFreetextSemanticAnalyzedKey.set(analyzedKey);
       await this.publishPresenterFreetextWordCloud();
+      if (result.topicLabelsPending) {
+        const controller = new AbortController();
+        this.presenterTopicLabelsAbort = controller;
+        void enrichCurrentTopicCloud({
+          base: result,
+          injector: this.injector,
+          signal: controller.signal,
+          isCurrent: () =>
+            generation === this.presenterFreetextAnalysisGeneration &&
+            this.presenterFreetextWordCloudModeEffective() === 'SEMANTIC' &&
+            locale === this.presenterFreetextAnalysisLocale() &&
+            analyzedKey === this.presenterFreetextResponseKey(),
+          fetch: (topicLabels, signal) =>
+            trpc.wordCloud.analyze.mutate(
+              { ...request, refresh: undefined, topicLabels },
+              { signal },
+            ),
+          apply: (updated) => {
+            this.presenterFreetextSemanticEntries.set(updated.entries);
+            void this.publishPresenterFreetextWordCloud();
+          },
+        });
+      }
     } catch {
       if (generation !== this.presenterFreetextAnalysisGeneration) {
         return;

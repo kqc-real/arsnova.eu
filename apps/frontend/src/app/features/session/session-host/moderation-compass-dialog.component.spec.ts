@@ -77,13 +77,18 @@ describe('ModerationCompassDialogComponent', () => {
           },
           topics: { state: 'disabled', reason: 'hidden fixture detail' },
           compass: { state: 'unavailable', reason: 'outside-scope' },
-          learningContext: { state: 'unavailable', reason: 'outside-scope' },
+          learningContext: { state: 'available', objectives: [] },
           releasedResults: { state: 'not-released', reason: 'hidden fixture detail' },
           feedback: { state: 'not-applicable', reason: 'hidden fixture detail' },
           sources: [
             { id: 'semantic-topic:hidden', kind: 'semantic-topic', label: 'GEHEIMER QUELLENTEXT' },
           ],
           limitations: [
+            {
+              code: 'not-released',
+              section: 'learning-context',
+              detail: 'GEHEIMES LERNZIELDETAIL',
+            },
             {
               code: 'budget-truncated',
               section: 'topics',
@@ -1021,6 +1026,48 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).not.toContain('Klär die Klausurfragen zuerst.');
   });
 
+  it('erklärt den Grund einer fertigen extraktiven Zusammenfassung', () => {
+    const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      runtime: v2Runtime({
+        inferenceConfigured: true,
+        result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
+          status: 'ready',
+          statements: [{ text: 'Wie berechnet man den Median?', sourceIds: [sourceId] }],
+          suggestedNextSteps: [],
+          limitations: ['Lokale Kurzfassung.'],
+          sources: [],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'extractive',
+            fallback: {
+              contractVersion: 'qa-summary-fallback-v1',
+              requestedRequestContract: 'qa-summary-context-v2',
+              requestedOutputContract: 'qa-summary-model-output-v3',
+              mode: 'extractive',
+              reason: 'source_changed',
+              retry: 'manual',
+            },
+          },
+        },
+      }),
+    });
+
+    fixture.nativeElement.querySelector('.moderation-compass-dialog__summary-button').click();
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.moderation-compass-dialog__summary-limitations')
+        ?.textContent,
+    ).toContain('Die Daten haben sich seit der Anfrage geändert.');
+    expect(fixture.nativeElement.textContent).toContain('Wie berechnet man den Median?');
+  });
+
   it('zeigt failed ruhig und sperrt den Button während pending', () => {
     const pending = setup([], vi.fn(), 'rule-based', {
       enabled: true,
@@ -1439,6 +1486,8 @@ describe('ModerationCompassDialogComponent', () => {
     expect(text).not.toContain('2026-10-05T17:00:00.000Z');
     expect(text).not.toContain('Zusammengefasste Inhalte');
     expect(text).toContain('Nur die wichtigsten Beiträge wurden ausgewählt.');
+    expect(text).toContain('Diese Inhalte sind noch nicht freigegeben.');
+    expect(text).not.toContain('GEHEIMES LERNZIELDETAIL');
     const technicalDetails = fixture.nativeElement.querySelector(
       '.moderation-compass-dialog__technical-details',
     ) as HTMLDetailsElement;

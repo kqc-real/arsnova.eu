@@ -104,7 +104,11 @@ describe('qaNlpQueue', () => {
         text: 'Zweite Frage',
       }),
     ).toBe('skipped');
-    expect(getQaNlpMetrics().skipped).toBe(1);
+    expect(getQaNlpMetrics()).toMatchObject({
+      skipped: 1,
+      unclassified: 1,
+      unclassifiedRate: 1,
+    });
 
     const skipStarted = Date.now();
     while (!writes.some((entry) => entry.startsWith('55555555') && entry.includes('failed'))) {

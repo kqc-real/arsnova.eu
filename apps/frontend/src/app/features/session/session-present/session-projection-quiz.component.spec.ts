@@ -1,3 +1,4 @@
+import '@angular/common/locales/global/de';
 import { LOCALE_ID } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { readFileSync } from 'node:fs';
@@ -1853,14 +1854,19 @@ describe('SessionProjectionQuizComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('36 von 50 komplett richtig');
   });
 
-  it('zeigt bei Schätzfragen Toleranzband und Interpretation', () => {
+  it('zeigt bei Schätzfragen Toleranzband, Referenzlinie und Interpretation nach der Ergebnisfreigabe', () => {
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
         type: 'NUMERIC_ESTIMATE',
         text: 'Runde π auf zwei Dezimalstellen.',
         answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+        numericToleranceMode: 'ABSOLUTE_INTERVAL',
         numericReferenceValue: 3.14,
+        numericIntervalLeft: 3.1,
+        numericIntervalRight: 3.2,
         numericStats: {
           n: 50,
           mean: 3.2,
@@ -1879,19 +1885,39 @@ describe('SessionProjectionQuizComponent', () => {
         numericHistogram: [
           { from: 3.0, to: 3.1, count: 5, inBand: false },
           { from: 3.1, to: 3.2, count: 45, inBand: true },
+          { from: 3.2, to: 3.4, count: 0, inBand: false },
         ],
       }),
     );
+    const element = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('status', 'ACTIVE');
+    fixture.detectChanges();
+    expect(element.querySelector('app-numeric-estimate-histogram')).toBeNull();
+    expect(element.textContent).not.toContain('Referenz 3,14');
+
     fixture.componentRef.setInput('status', 'RESULTS');
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('3 – 3,1');
-    expect(text).toContain('n=45');
+    const chart = element.querySelector('app-numeric-estimate-histogram')!;
+    const band = chart.querySelector<HTMLElement>('.numeric-histogram__band')!;
+    const referenceLine = chart.querySelector<HTMLElement>('.numeric-histogram__reference-line')!;
+    const acceptedBin = chart.querySelector<HTMLElement>('.numeric-histogram__bin--in-band')!;
+
+    expect(Number.parseFloat(band.style.left)).toBeCloseTo(25);
+    expect(Number.parseFloat(band.style.width)).toBeCloseTo(25);
+    expect(Number.parseFloat(referenceLine.style.left)).toBeCloseTo(35);
+    expect(acceptedBin.getAttribute('aria-label')).toBe('3,1 – 3,2: 45');
+    expect(
+      acceptedBin.querySelector<HTMLElement>('.numeric-histogram__bin-bar')?.style.height,
+    ).toBe('60%');
+    expect(chart.querySelectorAll('.numeric-histogram__bin')).toHaveLength(2);
+    expect(chart.textContent).toContain('Toleranzband 3,1 bis 3,2');
+    expect(chart.textContent).toContain('Referenz 3,14');
+
+    const text = element.textContent;
     expect(text).toContain('Median');
     expect(text).toContain('Akzeptiert');
-    expect(text).toContain('Toleranzband');
-    expect(text).toContain('Referenz');
+    expect(text).toContain('45 von 50 Schätzungen liegen im Toleranzband.');
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__insights')).toBeTruthy();
   });
 
@@ -1916,7 +1942,55 @@ describe('SessionProjectionQuizComponent', () => {
     expect(fixture.nativeElement.querySelector('.session-projection-quiz__histogram')).toBeNull();
   });
 
-  it('zeigt Jahres-Referenzen ohne Tausendertrenner', () => {
+  it('richtet bei identischen Schätzungen die Säule am Referenzstrich aus', () => {
+    fixture.componentRef.setInput(
+      'question',
+      choiceQuestion({
+        type: 'NUMERIC_ESTIMATE',
+        text: 'Schätze pi.',
+        answers: [],
+        numericInputType: 'DECIMAL',
+        numericDecimalPlaces: 2,
+        numericToleranceMode: 'RELATIVE_PERCENT',
+        numericReferenceValue: 3.14,
+        numericTolerancePercent: 10,
+        numericStats: {
+          n: 1,
+          mean: 3.14,
+          median: 3.14,
+          stdDev: 0,
+          q1: 3.14,
+          q3: 3.14,
+          iqr: 0,
+          min: 3.14,
+          max: 3.14,
+          inBandCount: 1,
+          inBandPercent: 100,
+          meanAbsoluteError: 0,
+          meanRelativeError: 0,
+        },
+        numericHistogram: [
+          { from: 2.2, to: 2.826, count: 0, inBand: false },
+          { from: 2.826, to: 3.1, count: 0, inBand: true },
+          { from: 3.1, to: 3.28, count: 1, inBand: true },
+          { from: 3.28, to: 3.454, count: 0, inBand: true },
+          { from: 3.454, to: 4, count: 0, inBand: false },
+        ],
+      }),
+    );
+    fixture.componentRef.setInput('status', 'RESULTS');
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    const band = element.querySelector<HTMLElement>('.numeric-histogram__band')!;
+    const bar = element.querySelector<HTMLElement>('.numeric-histogram__bin')!;
+    const reference = element.querySelector<HTMLElement>('.numeric-histogram__reference-line')!;
+    expect(Number.parseFloat(band.style.width)).toBeCloseTo(((3.454 - 2.826) / 1.8) * 100);
+    expect(Number.parseFloat(reference.style.left)).toBeCloseTo(((3.14 - 2.2) / 1.8) * 100);
+    expect(bar.style.left).toBe(reference.style.left);
+  });
+
+  it('zeigt Jahres-Referenzen und akzeptierte Werte ohne Tausendertrenner', () => {
     fixture.componentRef.setInput(
       'question',
       choiceQuestion({
@@ -1925,9 +1999,11 @@ describe('SessionProjectionQuizComponent', () => {
         answers: [],
         numericInputType: 'INTEGER',
         numericReferenceValue: 1789,
+        numericIntervalLeft: 1788.5,
+        numericIntervalRight: 1789.5,
         numericMin: 1600,
         numericMax: 2000,
-        numericHistogram: [],
+        numericHistogram: [{ from: 1740, to: 1830, count: 1, inBand: false }],
       }),
     );
     fixture.componentRef.setInput('status', 'RESULTS');
@@ -1935,6 +2011,8 @@ describe('SessionProjectionQuizComponent', () => {
 
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Referenz 1789');
+    expect(text).toContain('Akzeptierter Wert 1789');
+    expect(text).toContain('1740');
     expect(text).not.toContain('1.789');
   });
 

@@ -9,11 +9,14 @@ import {
 } from '@arsnova/shared-types';
 import { getRedis } from '../redis';
 import { createOpaqueCapability, hashCapability } from './capabilityCrypto';
+import { LEARNING_OBJECTIVE_DERIVATION_OVERALL_TIMEOUT_MS } from './learningObjectiveDerivation';
+import { isOpenWeightLlmPriorityEnabled } from './openWeightLlmPriority';
 
 export const LEARNING_OBJECTIVE_DERIVATION_CAPABILITY_TTL_SECONDS = 5 * 60;
 
 const CAPABILITY_PREFIX = 'learning-objective-derivation:capability:v1:';
 const RESERVATION_PREFIX = 'learning-objective-derivation:reservation:v1:';
+const OPERATION_PREFIX = 'learning-objective-derivation:operation:v1:';
 const StoredCapabilitySchema = PrepareLearningObjectiveDerivationOutputSchema.omit({
   capability: true,
 }).strict();
@@ -24,11 +27,13 @@ if stored == false or stored ~= ARGV[1] then
   return 0
 end
 
+if KEYS[3] and redis.call('EXISTS', KEYS[3]) == 1 then return 0 end
 local reserved = redis.call('SET', KEYS[2], '1', 'EX', ARGV[2], 'NX')
 if reserved == false then
   return 0
 end
 
+if KEYS[3] then redis.call('SET', KEYS[3], '1', 'EX', ARGV[2]) end
 redis.call('DEL', KEYS[1])
 return 1
 `;
@@ -125,15 +130,32 @@ export async function reserveLearningObjectiveDerivationCapability(
     return false;
   }
 
+  const priorityEnabled = isOpenWeightLlmPriorityEnabled();
+  const keys = [capabilityKey(capabilityHash), reservationKey(capabilityHash)];
+  if (priorityEnabled) {
+    const operation = JSON.stringify([
+      expected.quizId,
+      expected.operationId,
+      expected.expectedBundleRevision,
+    ]);
+    keys.push(`${OPERATION_PREFIX}${hashCapability(operation)}`);
+  }
   const reserved = await redis.eval(
     RESERVE_CAPABILITY_SCRIPT,
-    2,
-    capabilityKey(capabilityHash),
-    reservationKey(capabilityHash),
+    keys.length,
+    ...keys,
     raw,
-    String(LEARNING_OBJECTIVE_DERIVATION_CAPABILITY_TTL_SECONDS),
+    String(
+      priorityEnabled
+        ? Math.ceil(LEARNING_OBJECTIVE_DERIVATION_OVERALL_TIMEOUT_MS / 1000) + 15
+        : LEARNING_OBJECTIVE_DERIVATION_CAPABILITY_TTL_SECONDS,
+    ),
   );
   return Number(reserved) === 1;
+}
+
+export async function isLearningObjectiveDerivationReserved(capability: string): Promise<boolean> {
+  return (await getRedis().exists(reservationKey(hashCapability(capability)))) === 1;
 }
 
 /** Removes the TTL-bound reservation tombstone after success, failure, or abort. */

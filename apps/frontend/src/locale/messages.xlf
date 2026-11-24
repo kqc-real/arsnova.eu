@@ -17533,6 +17533,15 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackUnavailable" datatype="html">
+        <source>Der Zusammenfassungsdienst ist gerade nicht erreichbar.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackSourceChanged" datatype="html">
+        <source>Die Daten haben sich seit der Anfrage geändert.</source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryTimeout" datatype="html">
         <source>Die Zusammenfassung hat zu lange gedauert.</source>
         <context-group purpose="location">
@@ -28961,7 +28970,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusOpenWeightLlmHint" datatype="html">
-        <source>Diese Prüfung betrifft nur die Text-KI auf diesem Server: ein lokal betriebenes Open-Weight-Modell, kein Cloud-Anbieter. Geprüft werden die drei Hilfen unten. Das Ergebnis ändert den allgemeinen Betriebsstatus nicht.</source>
+        <source>Die Prüfung zeigt, ob die lokale Text-KI erreichbar ist und gerade Anfragen annehmen kann.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -28995,13 +29004,6 @@
           <context context-type="linenumber">1</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="app.footer.statusMetricOpenWeightLlmOverallHint" datatype="html">
-        <source>Gemeinsames Ergebnis der drei Hilfen.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
-          <context context-type="linenumber">1</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="app.footer.statusOpenWeightLlmLoading" datatype="html">
         <source>Prüfung läuft …</source>
         <context-group purpose="location">
@@ -29017,7 +29019,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="app.footer.statusMetricOpenWeightLlmOverall" datatype="html">
-        <source>Gesamt</source>
+        <source>Verfügbarkeit</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/server-status-help-dialog/server-status-help-dialog.component.ts</context>
           <context context-type="linenumber">1</context>
@@ -31551,6 +31553,9 @@
       <trans-unit id="learningObjectives.derivationResume" datatype="html">
         <source>Bei den übrigen Fragen fortsetzen</source>
       </trans-unit>
+      <trans-unit id="learningObjectives.derivationResumePending" datatype="html">
+        <source>Übrige Fragen werden bearbeitet</source>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationResumeComplete" datatype="html">
         <source>Für die übrigen Fragen liegen schon Entwürfe vor.</source>
       </trans-unit>
@@ -31664,6 +31669,12 @@
       </trans-unit>
       <trans-unit id="learningObjectives.derivationQueuedObjectives" datatype="html">
         <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationWaitingForModel" datatype="html">
+        <source>Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: <x id="minutes" equiv-text="minutes"/>.</source>
+      </trans-unit>
+      <trans-unit id="learningObjectives.derivationPreemptedWhy" datatype="html">
+        <source>Ein dringenderer Auftrag hat die Erstellung unterbrochen.</source>
       </trans-unit>
       <trans-unit id="learningObjectives.derivationAbortedWhy" datatype="html">
         <source>Die Erstellung wurde abgebrochen.</source>
@@ -32407,7 +32418,7 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationPreviewLimitationNotReleased" datatype="html">
-        <source>Diese Ergebnisse sind noch nicht freigegeben.</source>
+        <source>Diese Inhalte sind noch nicht freigegeben.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
         </context-group>

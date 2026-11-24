@@ -538,7 +538,10 @@ async function snapshotWithDb(
   db: LearningObjectiveDb,
   session: SessionSnapshotRow,
   now: Date,
-): Promise<SessionLearningObjectivesSnapshot> {
+): Promise<{
+  readonly snapshot: SessionLearningObjectivesSnapshot;
+  readonly inferenceInputsByObjectiveId: ReadonlyMap<string, readonly string[]>;
+}> {
   const finished = assertHostReadWindow(session, now);
   const [rows, availableQuizTasks, availableQaTaskCatalog] = await Promise.all([
     db.sessionLearningObjective.findMany({
@@ -561,7 +564,7 @@ async function snapshotWithDb(
       : [],
     loadAvailableQaTaskCatalog(db, session.id),
   ]);
-  return SessionLearningObjectivesSnapshotSchema.parse({
+  const snapshot = SessionLearningObjectivesSnapshotSchema.parse({
     schemaVersion: SESSION_LEARNING_OBJECTIVE_SCHEMA_VERSION,
     sessionId: session.id,
     learningContextRevision: session.learningContextRevision,
@@ -582,6 +585,14 @@ async function snapshotWithDb(
     availableQaTasksTruncated: availableQaTaskCatalog.truncated,
     objectives: rows.map(objectiveFromRow),
   });
+  return {
+    snapshot,
+    inferenceInputsByObjectiveId: new Map(
+      rows
+        .filter((row) => row.inferenceInputQuestionIds?.length)
+        .map((row) => [row.objectiveId, row.inferenceInputQuestionIds] as const),
+    ),
+  };
 }
 
 export async function getSessionLearningObjectives(
@@ -603,7 +614,7 @@ export async function getSessionLearningObjectives(
   if (!session) {
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
   }
-  return snapshotWithDb(prisma, session, now);
+  return (await snapshotWithDb(prisma, session, now)).snapshot;
 }
 
 function quizReferenceIds(scope: SessionLearningObjectiveWriteScope): string[] {
@@ -943,7 +954,7 @@ export async function saveSessionLearningObjectives(
         learningContextConfigured: true,
       },
     });
-    return snapshotWithDb(tx, updatedSession, now);
+    return (await snapshotWithDb(tx, updatedSession, now)).snapshot;
   });
 }
 
@@ -1458,6 +1469,15 @@ export async function getSessionLearningObjectivesSnapshotWithDb(
   sessionId: string,
   now = new Date(),
 ): Promise<SessionLearningObjectivesSnapshot> {
+  return (await getSessionLearningObjectivesForModerationWithDb(tx, sessionId, now)).snapshot;
+}
+
+/** The server-recorded inference inputs stay internal to the moderation builder. */
+export async function getSessionLearningObjectivesForModerationWithDb(
+  tx: LearningObjectiveDb,
+  sessionId: string,
+  now: Date,
+) {
   const session = await tx.session.findUnique({
     where: { id: sessionId },
     select: {
@@ -1493,7 +1513,11 @@ export async function getSessionForumAssignments(sessionId: string): Promise<str
 
 export async function deriveSessionLearningObjectives(
   input: DeriveSessionLearningObjectivesInput,
-  options: { readonly signal?: AbortSignal; readonly now?: Date } = {},
+  options: {
+    readonly signal?: AbortSignal;
+    readonly now?: Date;
+    readonly verifyAuthorization?: () => Promise<boolean>;
+  } = {},
 ): Promise<DeriveSessionLearningObjectivesResult> {
   const now = options.now ?? new Date();
   const baseCorrelation = {
@@ -1533,6 +1557,7 @@ export async function deriveSessionLearningObjectives(
     });
   }
 
+  const quizId = session.quizId;
   const storedQuestions = await prisma.question.findMany({
     where: {
       quizId: session.quizId,
@@ -1553,6 +1578,7 @@ export async function deriveSessionLearningObjectives(
     });
   }
 
+  let inferenceInputsByDraftId: ReadonlyMap<string, readonly string[]> = new Map();
   const derivationResult = await deriveLearningObjectiveDrafts(
     {
       schemaVersion: LEARNING_OBJECTIVE_DERIVATION_SCHEMA_VERSION,
@@ -1563,11 +1589,49 @@ export async function deriveSessionLearningObjectives(
       maximumDrafts: input.maximumDrafts,
       questions: derivationQuestions,
     },
-    { signal: options.signal, now: () => now },
+    {
+      signal: options.signal,
+      now: () => now,
+      onDraftInferenceInputs: (inputs) => {
+        inferenceInputsByDraftId = inputs;
+      },
+      verifyRetry: async () => {
+        if (options.verifyAuthorization && !(await options.verifyAuthorization())) return false;
+        const current = await prisma.session.findUnique({
+          where: { id: session.id },
+          select: {
+            status: true,
+            endedAt: true,
+            expiresAt: true,
+            quizId: true,
+            learningContextRevision: true,
+          },
+        });
+        if (
+          !current ||
+          current.quizId !== session.quizId ||
+          current.learningContextRevision !== input.expectedLearningContextRevision ||
+          isSessionEffectivelyFinished(current, options.now ?? new Date())
+        )
+          return false;
+        const currentQuestions = await prisma.question.findMany({
+          where: {
+            quizId,
+            ...(input.questionId ? { id: input.questionId } : {}),
+          },
+          select: learningSourceQuestionSelect,
+          orderBy: [{ order: 'asc' }, { id: 'asc' }],
+        });
+        const currentSources = currentQuestions
+          .map(mapStoredQuestionToDerivationQuestion)
+          .filter((question) => question !== null);
+        return JSON.stringify(currentSources) === JSON.stringify(derivationQuestions);
+      },
+    },
   );
 
   if (derivationResult.status !== 'completed') {
-    if (derivationResult.status === 'busy') {
+    if (derivationResult.status === 'busy' || derivationResult.status === 'preempted') {
       return DeriveSessionLearningObjectivesResultSchema.parse({
         ...baseCorrelation,
         status: 'busy',
@@ -1586,6 +1650,11 @@ export async function deriveSessionLearningObjectives(
       status: derivationResult.status,
     });
   }
+
+  if (options.verifyAuthorization && !(await options.verifyAuthorization())) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Die Host-Berechtigung ist abgelaufen.' });
+  }
+  options.signal?.throwIfAborted();
 
   const questionById = new Map(storedQuestions.map((question) => [question.id, question]));
 
@@ -1669,6 +1738,7 @@ export async function deriveSessionLearningObjectives(
           modelId: draft.origin.modelId,
           modelVersion: draft.origin.modelVersion,
           derivationVersion: draft.origin.derivationVersion,
+          inferenceInputQuestionIds: [...(inferenceInputsByDraftId.get(draft.id) ?? [])],
           confirmationState: 'DRAFT',
           confirmationRevision: null,
           confirmationAt: null,
@@ -1713,7 +1783,7 @@ export async function deriveSessionLearningObjectives(
         : lockedSession;
 
     return {
-      snapshot: await snapshotWithDb(tx, nextSession, writeNow),
+      snapshot: (await snapshotWithDb(tx, nextSession, writeNow)).snapshot,
       appliedCount: unseenDrafts.length,
     };
   });

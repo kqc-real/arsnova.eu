@@ -6,6 +6,7 @@ export const OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_DEFAULT_MS = 90_000;
 export const OPEN_WEIGHT_LLM_LEARNING_TIMEOUT_DEFAULT_MS = 300_000;
 export const OPEN_WEIGHT_LLM_TIMEOUT_MIN_MS = 1_000;
 export const OPEN_WEIGHT_LLM_TIMEOUT_MAX_MS = 300_000;
+export const OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS = 1_500;
 export const OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD = 3;
 export const OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS = 30_000;
 export const OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS = 192;
@@ -16,6 +17,8 @@ export const OPEN_WEIGHT_LLM_MODEL_ID =
 export const OPEN_WEIGHT_LLM_MODEL_VERSION =
   'revision:a06e946bb6b655725eafa393f4a9745d460374c9|quant:Q4_K_M|llama:server-b10524';
 export const OPEN_WEIGHT_LLM_MODEL_ALIAS = 'qwen3-4b-instruct-2507-q4_k_m';
+/** Change with the label prompt so cached labels stay bound to their generation contract. */
+export const OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION = 'topic-label-system-v1';
 
 const BLOCKED_SAAS_HOSTS = new Set([
   'api.openai.com',

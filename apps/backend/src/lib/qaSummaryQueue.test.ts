@@ -16,6 +16,7 @@ import {
   prepareModerationSummaryContextFromAnalysis,
   type PreparedModerationSummaryContext,
 } from './moderationSummaryContext';
+import { logger } from './logger';
 import type { QaSummaryConfig } from './qaSummaryConfig';
 import { createExtractiveQaSummaryOutput } from './qaSummaryExtractive';
 import {
@@ -229,6 +230,42 @@ describe('qaSummaryQueue V2', () => {
     expect(result?.statements[0]?.text).not.toContain('wiederkehrendes Anliegen');
   });
 
+  it.each(['current', 'changed', 'revoked'] as const)(
+    'prüft Autorisierung und Snapshot vor der erneuten Zulassung (%s)',
+    async (state) => {
+      const before = withHash(preparedReference(), 'a');
+      const after = withHash(preparedReference(), 'b');
+      const prepare = vi
+        .fn(async () => (state === 'changed' ? after : before))
+        .mockResolvedValueOnce(before)
+        .mockResolvedValueOnce(before);
+      if (state === 'revoked') {
+        prepare.mockRejectedValueOnce(
+          Object.assign(new Error('Host access revoked'), { code: 'UNAUTHORIZED' }),
+        );
+      }
+      const processor = vi
+        .fn(async () => ({ ...completedRun(before), interruptedByPriority: false }))
+        .mockResolvedValueOnce({ ...completedRun(before), interruptedByPriority: true });
+      resetQaSummaryQueueForTests({
+        config: () => testConfig({ timeoutMs: 1_000 }),
+        plan: () => fullContextPlan,
+        prepare,
+        processor,
+      });
+      await requestQaSummary(SESSION_ID, 'de', ACCESS);
+      await waitForQaSummaryIdleForTests();
+      const result = (await getQaSummaryRuntime(SESSION_ID)).result;
+      expect(processor).toHaveBeenCalledTimes(state === 'current' ? 2 : 1);
+      if (state === 'current') expect(result?.execution.effectiveMode).toBe('full-context');
+      if (state === 'changed') expect(result?.execution.fallback?.reason).toBe('source_changed');
+      if (state === 'revoked') {
+        expect(result?.execution.fallback?.reason).toBe('permission_changed');
+        expect(result?.sources).toEqual([]);
+      }
+    },
+  );
+
   it('liefert bei entzogenem Host-Zugriff keine Quellen aus', async () => {
     const prepared = preparedReference();
     const permissionError = Object.assign(new Error('Host access revoked'), {
@@ -295,11 +332,27 @@ describe('qaSummaryQueue V2', () => {
     await requestQaSummary(SESSION_ID, 'de', ACCESS);
     await waitForQaSummaryIdleForTests();
     current = after;
-    const delivered = await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
-    expect(delivered.result).toMatchObject({
-      snapshotHash: 'd'.repeat(64),
-      execution: { effectiveMode: 'extractive', fallback: { reason: 'source_changed' } },
-    });
+    const log = vi.spyOn(logger, 'info');
+    try {
+      const delivered = await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
+      expect(delivered.result).toMatchObject({
+        snapshotHash: 'd'.repeat(64),
+        execution: { effectiveMode: 'extractive', fallback: { reason: 'source_changed' } },
+      });
+      await getQaSummaryRuntimeFresh(SESSION_ID, ACCESS);
+      expect(log.mock.calls.filter(([event]) => event === 'qa_summary:stale_on_read')).toEqual([
+        [
+          'qa_summary:stale_on_read',
+          {
+            fallbackReason: 'source_changed',
+            previousMode: 'full-context',
+            sourceCount: delivered.result?.sources.length,
+          },
+        ],
+      ]);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it('liefert kein Ergebnis aus, das während des Quellenabgleichs invalidiert wurde', async () => {

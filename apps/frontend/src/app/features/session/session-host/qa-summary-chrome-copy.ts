@@ -1,3 +1,24 @@
+import type { QaSummaryFallbackReason } from '@arsnova/shared-types';
+
+export function localizeQaSummaryFallbackReason(reason: QaSummaryFallbackReason): string | null {
+  switch (reason) {
+    case 'busy':
+    case 'queue_full':
+      return $localize`:@@sessionHost.moderationSummaryFallbackBusy:Der Zusammenfassungsdienst ist gerade ausgelastet.`;
+    case 'unavailable':
+    case 'circuit_open':
+      return $localize`:@@sessionHost.moderationSummaryFallbackUnavailable:Der Zusammenfassungsdienst ist gerade nicht erreichbar.`;
+    case 'source_changed':
+      return $localize`:@@sessionHost.moderationSummaryFallbackSourceChanged:Die Daten haben sich seit der Anfrage geändert.`;
+    case 'timeout':
+      return localizeQaSummaryChromeLimitation('Die Zusammenfassung hat zu lange gedauert.');
+    case 'invalid_response':
+      return localizeQaSummaryChromeLimitation('Die Modellantwort war ungültig.');
+    default:
+      return null;
+  }
+}
+
 /** Canonical German chrome strings from the 8.9c summary backend/helper. */
 
 export function localizeQaSummaryChromeLimitation(text: string): string {

@@ -28,6 +28,7 @@ const QaSemanticTopicSnapshotItemSchema = z
         text: z.string().trim().min(1).max(200),
         modelId: z.string().trim().min(1).max(120),
         modelVersion: z.string().trim().min(1).max(120),
+        generationVersion: z.string().trim().min(1).max(120).optional(),
       })
       .strict()
       .optional(),
@@ -225,11 +226,18 @@ export function buildQaSemanticTopicSnapshot(
     }
     const labelModelId = analysis.labelModelId;
     const labelModelVersion = analysis.labelModelVersion;
+    const generationVersion = analysis.labelPromptVersion;
     const modelLabel =
       entry.labelOrigin === 'model' &&
       typeof labelModelId === 'string' &&
-      typeof labelModelVersion === 'string'
-        ? { text: entry.label, modelId: labelModelId, modelVersion: labelModelVersion }
+      typeof labelModelVersion === 'string' &&
+      typeof generationVersion === 'string'
+        ? {
+            text: entry.label,
+            modelId: labelModelId,
+            modelVersion: labelModelVersion,
+            generationVersion,
+          }
         : undefined;
     topics.push({
       topicId: buildTopicId(completeMembers, labelSourceQuestionId),
@@ -260,14 +268,18 @@ export function buildQaSemanticTopicSnapshot(
 
 export async function recordLatestQaSemanticTopicSnapshot(
   input: RecordLatestQaSemanticTopicSnapshotInput,
+  previous?: AnalyzeWordCloudOutput,
 ): Promise<QaSemanticTopicSnapshot | null> {
   const snapshot = buildQaSemanticTopicSnapshot(input);
   if (snapshot === null) {
     return null;
   }
+  const expected = previous ? buildQaSemanticTopicSnapshot({ ...input, analysis: previous }) : null;
   await Promise.all([
     input.cache.setQaSemanticTopicSnapshot(input.analysisInput, snapshot, input.scope),
-    input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope),
+    previous
+      ? expected && input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope, expected)
+      : input.cache.setLatestQaSemanticTopicSnapshot(snapshot, input.scope),
   ]);
   return snapshot;
 }

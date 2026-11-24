@@ -1138,7 +1138,13 @@ printf 'Freizugebende Digest-Referenz:\n%s\n' "$LLM_IMAGE_REF"
 Diese vollständige Ausgabe wird in `.env.llm` verwendet. Das Image erbt die
 gepinnten llama.cpp-Basisbytes aus
 [`docker/open-weight-llm/model-manifest.json`](../../docker/open-weight-llm/model-manifest.json)
-und enthält die arsnova.eu-Validierungs- und Healthcheck-Skripte. Ein lokal
+und enthält die gepatchte Server-Bibliothek sowie die arsnova.eu-Validierungs-
+und Healthcheck-Skripte. Für den gezielten Abbruch zuerst das Modellimage und
+anschließend die Apps regulär ausrollen. Der bisherige Verbindungsabbruch
+funktioniert mit dieser Reihenfolge und bei einem Rollback des Modellimages.
+Den geschützten Kontrollendpunkt nur über denselben privaten Runtime-Zugang
+wie den Inferenzendpunkt ansprechen. Die produktive Annahme und Fortsetzung
+nach einem Batch-Abbruch im Quizeditor prüfen. Ein lokal
 gebautes Image ohne Registry-Digest genügt dem Produktionswrapper absichtlich
 nicht.
 

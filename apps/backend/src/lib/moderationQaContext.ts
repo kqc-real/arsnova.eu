@@ -18,6 +18,12 @@ import {
 } from '@arsnova/shared-types';
 import { prisma } from '../db';
 import { assertHostSessionAccessFromContext, type HostTokenContext } from './hostAuth';
+import {
+  isOpenWeightLlmEnabled,
+  OPEN_WEIGHT_LLM_MODEL_ID,
+  OPEN_WEIGHT_LLM_MODEL_VERSION,
+  OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION,
+} from './openWeightLlmConfig';
 import { resolveQaPresenterSortMode } from './qaPresenterSortMode';
 import {
   buildQaRankingMetricOrderSql,
@@ -682,6 +688,7 @@ export async function collectQaTopicContext(input: {
   const representedQuestionIds = new Set<string>();
   let invalidMembership = false;
   let budgetTruncated = false;
+  const modelLabelsEnabled = isOpenWeightLlmEnabled();
 
   for (const snapshotTopic of input.snapshot.topics) {
     if (topicItems.length >= MODERATION_QA_TOPIC_LIMIT) {
@@ -707,8 +714,15 @@ export async function collectQaTopicContext(input: {
       currentMembers.push(current);
     }
     const labelRow = rowsById.get(snapshotTopic.labelSourceQuestionId);
-    const label =
-      snapshotTopic.modelLabel?.text ?? (labelRow ? truncateTopicLabel(labelRow.text) : null);
+    const cachedLabel = snapshotTopic.modelLabel;
+    const modelLabel =
+      modelLabelsEnabled &&
+      cachedLabel?.generationVersion === OPEN_WEIGHT_LLM_TOPIC_LABEL_SYSTEM_PROMPT_VERSION &&
+      cachedLabel.modelId === OPEN_WEIGHT_LLM_MODEL_ID &&
+      cachedLabel.modelVersion === OPEN_WEIGHT_LLM_MODEL_VERSION
+        ? cachedLabel
+        : undefined;
+    const label = modelLabel?.text ?? (labelRow ? truncateTopicLabel(labelRow.text) : null);
     if (!topicMembershipValid || !labelRow || !label) {
       invalidMembership = true;
       continue;
@@ -772,12 +786,12 @@ export async function collectQaTopicContext(input: {
     const negativeVotes = currentMembers.reduce((sum, member) => sum + member.negativeVoteCount, 0);
     topicItems.push({
       sourceId: topicSource,
-      labelOrigin: snapshotTopic.modelLabel
+      labelOrigin: modelLabel?.generationVersion
         ? {
             kind: 'model-generated',
-            modelId: snapshotTopic.modelLabel.modelId,
-            modelVersion: snapshotTopic.modelLabel.modelVersion,
-            generationVersion: 'topic-label-system-v1',
+            modelId: modelLabel.modelId,
+            modelVersion: modelLabel.modelVersion,
+            generationVersion: modelLabel.generationVersion,
             derivedFromSourceIds: memberQuestionSourceIds.slice(0, 100),
           }
         : {

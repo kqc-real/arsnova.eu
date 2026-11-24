@@ -7,6 +7,9 @@ und den dedizierten Yjs-Relay. Der Einzelbetrieb dient als Rückweg. Der
 [Drei-App-Modus](PRODUCTION-REPLICAS.md#umschalten-und-zurückrollen)
 bleibt für eine gesonderte Abnahme zuschaltbar.
 
+Die [Kubernetes-Dimensionierung](KUBERNETES-SIZING-5000.md) berechnet Pods und
+Rechner für 100 Klassen à 50 und für einen Raum mit 5.000 Teilnehmenden.
+
 ## Quellen für Live-Zustände
 
 | Zustand                                                        | Maßgebliche Quelle                                               | Recovery heute                                                                                             |

@@ -227,7 +227,6 @@ app-projection-pages:not([hidden]) {
     .session-projection-quiz__bar,
     .session-projection-quiz__stat,
     .session-projection-quiz__rating-labels,
-    .session-projection-quiz__hist-bin,
     .session-projection-quiz__matrix,
     .session-projection-quiz__pair,
     .session-projection-quiz__order-item,
@@ -334,16 +333,10 @@ app-projection-pages [data-markdown-code-copy] {
 .session-present .projection-pages__page .session-projection-quiz__histogram {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   height: auto;
+  min-height: 0;
   gap: 1rem;
-}
-.session-present .projection-pages__page .session-projection-quiz__hist-bin {
-  display: grid;
-  grid-template-columns: minmax(9rem, 1fr) minmax(8rem, 2fr) auto;
-  align-items: center;
-  gap: 1rem;
-  height: auto;
-  line-height: 1.5;
 }
 .session-present .projection-pages__page .session-projection-quiz__insights {
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
@@ -396,13 +389,6 @@ app-projection-pages [data-markdown-code-copy] {
   display: inline;
 }
 
-.session-present .projection-pages__page .session-projection-quiz__histogram {
-  align-items: stretch;
-  min-height: 0;
-}
-.session-present .projection-pages__page .session-projection-quiz__hist-bin {
-  width: 100%;
-}
 .projection-pages__page
   .session-projection-quiz__answer-head
   .markdown-body

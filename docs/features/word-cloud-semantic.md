@@ -135,12 +135,17 @@ Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: 
 | Image                 | `WORD_CLOUD_ENCODER_IMAGE` (getrennt von `ARSNOVA_IMAGE` und `SPACY_IMAGE`)                                                                           |
 | Compose               | Profil `encoder`                                                                                                                                      |
 | Limits                | 1 CPU (lokal `docker-compose.yml`) bzw. 4 CPU (Produktion `docker-compose.prod.yml`) / 2 GiB RAM / 64 PIDs, non-root, read-only, `network_mode: none` |
-| Modell                | `intfloat/multilingual-e5-small` (Apache-2.0), ONNX, Digest in `modelVersion`, längensortierte 16er-Batches, bis zu 4 Intra-Op-Threads                |
+| Modell                | E5-small als gepinnte Xenova-ONNX-Konvertierung, Digest in `modelVersion`, längensortierte 16er-Batches, bis zu 4 Intra-Op-Threads                    |
 | Analyseversion        | `1.14d.2`                                                                                                                                             |
 
 Bei deaktivierter Semantik liefert die Analyse `status: disabled`, `fallbackUsed: true` und lexikalische Einträge; vorhandene SEMANTIC-Cache-Hits werden nicht ausgeliefert. Toter, überlasteter oder bis zum Timeout langsamer Encoder: `failed` plus 2.x. Während ein aktiver oder neuester wartender Request läuft, zeigt das Frontend `pending` über der weiterhin sichtbaren lexikalischen Wolke.
 
 Env-Referenz: [ENVIRONMENT.md](../ENVIRONMENT.md). Härtung: [SECURITY-OVERVIEW.md](../SECURITY-OVERVIEW.md). Deployment: [deployment-debian-root-server.md](../deployment-debian-root-server.md). Lizenzen: [NOTICE](../../NOTICE), [docker/wordcloud-encoder/NOTICE](../../docker/wordcloud-encoder/NOTICE).
+
+Der Image-Build lädt Modell und Tokenizer aus der festgeschriebenen
+[Xenova-Revision](https://huggingface.co/Xenova/multilingual-e5-small/tree/761b726dd34fb83930e26aab4e9ac3899aa1fa78)
+und prüft alle fünf Dateien gegen das
+[SHA-256-Manifest](../../docker/wordcloud-encoder/model.sha256).
 
 ### Lokal (Docker-App)
 
@@ -243,6 +248,28 @@ Im Repo implementiert. Derselbe Encoder, dieselbe Complete-Linkage-Schwelle 0,87
 ## Stufe 2 (Kurze Themennamen) und bewusste Nicht-Ziele
 
 Stufe 2 ist hinter Story 8.9d / [ADR-0035](../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md) gemäß [WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md](../implementation/WORD-CLOUD-THEMENLABEL-1.14C-STUFE-2-PLAN.md) implementiert: Ist `OPEN_WEIGHT_LLM_ENABLED=true`, ersetzt dasselbe Modell in Host-Q&A und Host-Freitext (einschließlich der Presenter-Projektion der aktiven Host-Ansicht) ausschließlich den sichtbaren Namen (`labelOrigin: 'model'`), während die Cluster-Mitgliedschaft unverändert aus Stufe 1 stammt und ein fehlendes Modelllabel deterministisch beim extraktiven Mitgliedstext bleibt. `OPEN_WEIGHT_LLM_ENABLED=false` lässt `WORD_CLOUD_SEMANTIC_ENABLED` unberührt.
+
+Bei aktiver gemeinsamer Prioritätsübergabe können Themenlabels eine laufende
+Moderationszusammenfassung oder einen Lernzielauftrag auf derselben Runtime
+unterbrechen. Die Encoder-Analyse liefert zuerst die Wolke mit
+extraktiven oder gecachten Labels. Der Host kann sie sofort benutzen.
+Eine zweite Anfrage ergänzt generative Labels für denselben Snapshot,
+ohne Cluster, Sortierung, Filter und Mitgliedschaften zu ersetzen.
+Bei einem Snapshotwechsel bricht der Client die Labelanfrage ab. Die
+App prüft zusätzlich Host-Zugriff und Q&A-Korpusrevision. Gleichzeitige
+Labelanfragen für denselben Snapshot teilen eine Redis-Reservierung.
+Wartende Anfragen erhalten auch bereits validierte Modelllabels aus
+einem transient abgeschlossenen Lauf. Dieses Ergebnis bleibt für die
+Generation der Reservierung zehn Sekunden im Session-Cache. Eine neue
+Anfrage kann den transienten Lauf erneut versuchen. Die Vorschau
+für den zweiten Schritt lebt dort höchstens drei Minuten und wird
+beim Session-Purge entfernt. [LLM-Laufzeitvertrag](open-weight-llm-runtime.md#prioritätsübergabe-zwischen-app-instanzen)
+
+Die Schlüssel für gecachte Modelllabels und Wortwolken-Snapshots enthalten
+die Modellidentität und die Promptversion. Der Kompass verwendet ältere
+Themen-Snapshots weiter mit extraktiven Labels, wenn die Modell- oder
+Promptversion fehlt, abweicht oder der LLM-Schalter aus ist. Der Host-CSV-Export
+enthält die Promptversion zusammen mit der Modellprovenienz.
 
 Bewusste Nicht-Ziele bleiben: 8.9b-Transformer auf dem LLM-Slot, SaaS-Fallback, Anheben von Angular-Initial-Bundle-`maximumError` sowie eine standardmäßige Produktivaktivierung der Kill-Switches im Repository.
 

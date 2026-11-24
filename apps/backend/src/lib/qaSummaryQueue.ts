@@ -1,3 +1,4 @@
+import { setTimeout as wait } from 'node:timers/promises';
 import { randomUUID } from 'node:crypto';
 import {
   QA_SUMMARY_RESULT_V2_CONTRACT_VERSION,
@@ -71,6 +72,9 @@ const activeJobs = new Map<string, { generation: string; controller: AbortContro
 const SUMMARY_INVALIDATION_MS = 60_000;
 const SUMMARY_PENDING_CONTEXT_MARGIN_MS = 30_000;
 const SUMMARY_STATE_MAX_ATTEMPTS = 3;
+const SUMMARY_MAX_PRIORITY_RETRIES = 2;
+const SUMMARY_MAX_PRIORITY_ADMISSION_RETRIES = 16;
+const SUMMARY_PRIORITY_RETRY_DELAY_MS = 125;
 let running = 0;
 let reserving = 0;
 
@@ -263,7 +267,11 @@ async function runWithQueueTimeout(input: {
   readonly job: QueueJob;
   readonly prepared: PreparedModerationSummaryContext;
   readonly timeoutMs: number;
-}): Promise<{ status: 'completed'; run: QaSummaryPreparedRun } | { status: 'timeout' }> {
+}): Promise<
+  | { status: 'completed'; run: QaSummaryPreparedRun }
+  | { status: 'timeout' }
+  | { status: 'superseded' }
+> {
   const controller = new AbortController();
   activeJobs.set(input.job.sessionId, { generation: input.job.generation, controller });
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -273,13 +281,46 @@ async function runWithQueueTimeout(input: {
       resolve({ status: 'timeout' });
     }, input.timeoutMs);
   });
+  const processWithRetries = async () => {
+    const { signal } = controller;
+    let run = await hooks.processor(input.prepared, { signal });
+    if (run.interruptedByPriority) {
+      let interruptions = 1;
+      for (
+        let attempt = 1;
+        !signal.aborted &&
+        interruptions <= SUMMARY_MAX_PRIORITY_RETRIES &&
+        attempt <= SUMMARY_MAX_PRIORITY_ADMISSION_RETRIES &&
+        (run.interruptedByPriority || run.execution.fallback?.reason === 'busy');
+        attempt += 1
+      ) {
+        await wait(SUMMARY_PRIORITY_RETRY_DELAY_MS, undefined, { signal }).catch(() => undefined);
+        if (signal.aborted || !(await readRunningJob(input.job))) {
+          return { status: 'superseded' as const };
+        }
+        const fresh = await hooks.prepare({
+          sessionId: input.job.sessionId,
+          locale: input.job.locale,
+          access: input.job.access,
+        });
+        if (
+          fresh.request.promptContext.snapshotHash !==
+          input.prepared.request.promptContext.snapshotHash
+        ) {
+          return { status: 'completed' as const, run };
+        }
+        if (signal.aborted || !(await readRunningJob(input.job))) {
+          return { status: 'superseded' as const };
+        }
+        logger.info('llm:priority_retry', { taskType: 'qa_summary', retry: attempt });
+        run = await hooks.processor(fresh, { signal });
+        if (run.interruptedByPriority) interruptions += 1;
+      }
+    }
+    return { status: 'completed' as const, run };
+  };
   try {
-    return await Promise.race([
-      hooks
-        .processor(input.prepared, { signal: controller.signal })
-        .then((run) => ({ status: 'completed' as const, run })),
-      timeout,
-    ]);
+    return await Promise.race([processWithRetries(), timeout]);
   } finally {
     if (timer) clearTimeout(timer);
     const active = activeJobs.get(input.job.sessionId);
@@ -366,7 +407,7 @@ async function processJob(job: QueueJob): Promise<void> {
       prepared: preparedBefore,
       timeoutMs: config.timeoutMs,
     });
-    if (!(await readRunningJob(job))) return;
+    if (run.status === 'superseded' || !(await readRunningJob(job))) return;
 
     const preparedAfter = await hooks.prepare({
       sessionId: job.sessionId,
@@ -474,7 +515,14 @@ export async function getQaSummaryRuntimeFresh(
       finishedState(result, current.generation, now, hooks.config()),
       now,
     );
-    if (written) return toRuntime(result);
+    if (written) {
+      logger.info('qa_summary:stale_on_read', {
+        fallbackReason: 'source_changed',
+        previousMode: current.result.execution.effectiveMode,
+        sourceCount: result.sources.length,
+      });
+      return toRuntime(result);
+    }
   }
   throw summaryStateUnavailable();
 }

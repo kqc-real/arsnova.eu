@@ -129,7 +129,11 @@
               (click)="deriveLearningObjectives()"
             >
               <mat-icon aria-hidden="true">auto_awesome</mat-icon>
-              @if (derivationCanResume()) {
+              @if (derivationIsPending() && derivationResumesRemainingQuestions()) {
+                <span i18n="@@learningObjectives.derivationResumePending"
+                  >Übrige Fragen werden bearbeitet</span
+                >
+              } @else if (derivationCanResume()) {
                 <span i18n="@@learningObjectives.derivationResume"
                   >Bei den übrigen Fragen fortsetzen</span
                 >
@@ -162,7 +166,9 @@
               id="learning-objective-derivation-status"
               class="learning-objectives__derivation-status"
               [class.learning-objectives__derivation-status--error]="
-                derivationStatus() !== 'pending' && derivationStatus() !== 'completed'
+                derivationStatus() !== 'pending' &&
+                derivationStatus() !== 'completed' &&
+                derivationStatus() !== 'preempted'
               "
               role="status"
               tabindex="-1"
@@ -183,9 +189,14 @@
                     <p
                       id="learning-objective-derivation-live-progress-label"
                       class="learning-objectives__derivation-progress-label"
-                      i18n="@@learningObjectives.derivationLiveProgress"
                     >
-                      Die Abfrage läuft.
+                      @if (derivationWaitingLabel(); as waitingLabel) {
+                        {{ waitingLabel }}
+                      } @else {
+                        <ng-container i18n="@@learningObjectives.derivationLiveProgress"
+                          >Die Abfrage läuft.</ng-container
+                        >
+                      }
                     </p>
                   </div>
                   <div class="learning-objectives__derivation-progress">

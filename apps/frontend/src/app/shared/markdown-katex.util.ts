@@ -1,15 +1,17 @@
 import katex from 'katex';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
-import { QA_REDACTION_CHAR, QA_REDACTION_PLACEHOLDER_LEGACY } from '@arsnova/shared-types';
+import {
+  QA_QUESTION_TEXT_MAX_CODE_POINTS,
+  QA_REDACTION_CHAR,
+  QA_REDACTION_PLACEHOLDER_LEGACY,
+} from '@arsnova/shared-types';
 
 import { renderMarkdownCodeBlockHtml } from './markdown-code-highlight';
 import { MARKDOWN_EMOJI_SHORTCODE_MAP } from './markdown-emoji-shortcodes';
 
-/** Markdown würde Legacy-`[geschwärzt]` als Referenz-Link lesen; Token bleibt wörtlicher Text. */
-const QA_REDACTION_MD_LEGACY_TOKEN = '\uE000ARSNOVA_QA_REDACTED_LEGACY\uE001';
-const QA_REDACTION_MD_RUN_TOKEN_PREFIX = '\uE000ARSNOVA_QA_REDACTED_RUN:';
-const QA_REDACTION_MD_RUN_TOKEN_SUFFIX = '\uE001';
+const QA_REDACTION_HTML_PATTERN = new RegExp(`<[^>]+>|${QA_REDACTION_CHAR}+`, 'g');
+const QA_REDACTION_LEGACY_RUN = QA_REDACTION_CHAR.repeat(QA_REDACTION_PLACEHOLDER_LEGACY.length);
 
 export interface MarkdownRenderResult {
   html: string;
@@ -193,8 +195,7 @@ function qaRedactedPassageAriaLabel(): string {
   return $localize`:@@sessionQa.redactedPassageAria:Geschwärzte Passage`;
 }
 
-function renderQaRedactedPassageHtml(charCount: number): string {
-  const count = Math.max(1, Math.floor(charCount));
+function renderQaRedactedPassageHtml(count: number): string {
   // Pro geschwärztem Codepunkt genau ein sichtbares Rechteck (■), kein durchgehender Balken.
   const chars = Array.from(
     { length: count },
@@ -203,40 +204,17 @@ function renderQaRedactedPassageHtml(charCount: number): string {
   return `<span class="qa-redacted-passage" role="img" aria-label="${escapeHtml(qaRedactedPassageAriaLabel())}">${chars}</span>`;
 }
 
-function protectQaRedactionPlaceholders(source: string): string {
-  let next = source;
-  if (next.includes(QA_REDACTION_PLACEHOLDER_LEGACY)) {
-    next = next.split(QA_REDACTION_PLACEHOLDER_LEGACY).join(QA_REDACTION_MD_LEGACY_TOKEN);
-  }
-  if (next.includes(QA_REDACTION_CHAR)) {
-    const runPattern = new RegExp(`${QA_REDACTION_CHAR}+`, 'g');
-    next = next.replace(
-      runPattern,
-      (run) =>
-        `${QA_REDACTION_MD_RUN_TOKEN_PREFIX}${Array.from(run).length}${QA_REDACTION_MD_RUN_TOKEN_SUFFIX}`,
-    );
-  }
-  return next;
-}
-
-function restoreQaRedactionPlaceholders(html: string): string {
-  let next = html;
-  if (next.includes(QA_REDACTION_MD_LEGACY_TOKEN)) {
-    const legacyBars = renderQaRedactedPassageHtml(
-      Array.from(QA_REDACTION_PLACEHOLDER_LEGACY).length,
-    );
-    next = next.split(QA_REDACTION_MD_LEGACY_TOKEN).join(legacyBars);
-  }
-  if (next.includes(QA_REDACTION_MD_RUN_TOKEN_PREFIX)) {
-    const runPattern = new RegExp(
-      `${QA_REDACTION_MD_RUN_TOKEN_PREFIX}(\\d+)${QA_REDACTION_MD_RUN_TOKEN_SUFFIX}`,
-      'g',
-    );
-    next = next.replace(runPattern, (_match, lengthText: string) =>
-      renderQaRedactedPassageHtml(Number(lengthText)),
-    );
-  }
-  return next;
+function renderQaRedactionsInMarkdownHtml(html: string): string {
+  if (!html.includes(QA_REDACTION_CHAR)) return html;
+  let remaining = QA_QUESTION_TEXT_MAX_CODE_POINTS;
+  // The Markdown renderer escapes angle brackets in user text and attributes.
+  // Skip its tags so only visible text becomes redaction markup.
+  return html.replaceAll(QA_REDACTION_HTML_PATTERN, (match) => {
+    if (match.startsWith('<') || remaining === 0) return match;
+    const count = Math.min(match.length, remaining);
+    remaining -= count;
+    return renderQaRedactedPassageHtml(count) + match.slice(count);
+  });
 }
 
 function parseMarkdownEscapingInlineHtml(
@@ -245,7 +223,8 @@ function parseMarkdownEscapingInlineHtml(
     Pick<MarkdownRenderOptions, 'imagePolicy' | 'headingStartLevel' | 'interactive'>
   >,
 ): string {
-  source = protectQaRedactionPlaceholders(source);
+  // Convert legacy markers before Markdown can interpret them as link labels.
+  source = source.replaceAll(QA_REDACTION_PLACEHOLDER_LEGACY, QA_REDACTION_LEGACY_RUN);
   const renderer = new marked.Renderer();
   const shallowestHeadingDepth = marked.lexer(source).reduce<number | null>((minimum, token) => {
     if (token.type !== 'heading') {
@@ -314,7 +293,7 @@ function parseMarkdownEscapingInlineHtml(
     const titleEsc = escapeHtml(tooltip);
     return `<img src="${hrefEsc}" alt="${altEsc}" title="${titleEsc}" loading="eager" decoding="async" crossorigin="anonymous" referrerpolicy="no-referrer" data-markdown-image-lightbox="true" data-markdown-image-state="loading" />`;
   };
-  return marked.parse(source, { renderer }) as string;
+  return renderQaRedactionsInMarkdownHtml(marked.parse(source, { renderer }) as string);
 }
 
 function renderTrustedInlineHtml(text: string): string {
@@ -605,10 +584,12 @@ function sanitizeMarkdownHtml(html: string): string {
   // SSR: Auf dem Server existiert kein DOM. Unsere Render-Pipeline escaped inline HTML (renderer.html)
   // und erzwingt URL-Policies für Links/Bilder; DOMPurify wird daher nur im Browser angewendet.
   if (typeof window === 'undefined') {
-    return restoreQaRedactionPlaceholders(withImageCredits);
+    return withImageCredits;
   }
-  return restoreQaRedactionPlaceholders(
-    DOMPurify.sanitize(withImageCredits, {
+  return DOMPurify.sanitize(
+    withImageCredits,
+    // Only allow the markup emitted by the Markdown and KaTeX renderers.
+    {
       ALLOWED_TAGS: [
         'p',
         'br',
@@ -718,6 +699,6 @@ function sanitizeMarkdownHtml(html: string): string {
       // verhindern, dass DOMPurify zulässige Preview-Bildquellen wie `blob:` nachträglich entfernt.
       ALLOWED_URI_REGEXP:
         /^(?:(?:https?|mailto|tel|blob):|data:image\/(?:png|apng|avif|gif|jpeg|jpg|webp|bmp);base64,|[^a-z]|[a-z+.\-.]+(?:[^a-z+.\-:]|$))/i,
-    }),
+    },
   );
 }

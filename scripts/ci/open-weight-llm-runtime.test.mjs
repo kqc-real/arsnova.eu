@@ -17,6 +17,11 @@ test('Runtime-Image und GGUF sind unver√§nderlich gepinnt, das Modell bleibt au√
     /FROM ghcr\.io\/ggml-org\/llama\.cpp:server-b10524@sha256:57e505f69c3a55fa5dd9c15fced47cff7a899f5b5b504ea93d75b2f401b87830/,
   );
   assert.doesNotMatch(dockerfile, /COPY[^\n]*\.gguf/i);
+  assert.match(dockerfile, /9ee9fc04c136ef2ae729bfc60d18961b23c13ddf/);
+  for (const name of ['cpu-decode-cancellation.patch', 'targeted-inference-cancellation.patch']) {
+    assert.ok(dockerfile.includes(`patch --batch --forward -p1 < /tmp/${name}`));
+    assert.match(readFileSync(join(runtimeRoot, name), 'utf8'), /^--- a\/tools\/server\//m);
+  }
 
   const manifest = JSON.parse(readFileSync(join(runtimeRoot, 'model-manifest.json'), 'utf8'));
   assert.equal(manifest.sourceRevision, 'a06e946bb6b655725eafa393f4a9745d460374c9');

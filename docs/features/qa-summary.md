@@ -45,7 +45,7 @@ Host-only:
 - `qa.requestSummary` — startet einen Job (auch während der 14-tägigen Host-Nachbereitungsfrist bei aktiviertem Q&A-Kanal via `assertQaHostContentReadAllowed`), kehrt sofort mit `pending` zurück
 - `qa.summaryContextPreview` — hostgeschützte, ausdrücklich geladene Diagnose desselben gepackten V2-Kontexts
 
-Teilnehmer-DTOs enthalten kein Summary- oder Kontextfeld. V2 entsteht ausschließlich aus dem hostautorisierten N10–N12-Pfad; Tokens, IPs, Nicknames und Participant-IDs sind nicht zulässig. Nicht freigegebene Quizresultate und Lösungen gelangen nicht in den Live-Kontext. Der Lernziel-Vorbereitungsauftrag ist davon getrennt und darf lösungshaltige Quizdaten nur nach der eigenen ausdrücklichen Hostaktion verwenden.
+Teilnehmer-DTOs enthalten kein Summary- oder Kontextfeld. V2 entsteht ausschließlich aus dem hostautorisierten N10–N12-Pfad. Tokens, IPs, Nicknames und Participant-IDs sind nicht zulässig. Quizresultate gelangen erst nach Freigabe in aggregierter Form in den Live-Kontext. Der Lernziel-Vorbereitungsauftrag darf lösungshaltige Quizdaten nach eigener ausdrücklicher Hostaktion verwenden. Für modellabgeleitete Lernziele im Moderationskontext müssen deshalb alle serverseitig erfassten Fragen des tatsächlichen Modellaufrufs und ihres Aufgabenbezugs den Status `COMPLETED` haben. Fehlt die serverseitige Erfassung bei älteren oder hochgeladenen Lernzielen, bleibt der Modelltext aus dem Kontext. Der Zielbestand für Lehrende ist unabhängig davon verfügbar.
 
 ## Host-UI
 
@@ -73,7 +73,14 @@ Die Adapterwahl ist ausdrücklich und nachvollziehbar:
 
 Öffentliche SaaS-Ziele werden abgelehnt. Die Legacy-URL wird nie auf llama.cpp `/v1/chat/completions` umgelegt; `openWeightLlmClient` übersetzt den V2-Vertrag. Der extraktive Fallback lebt in der Backend-Queue und ist in allen fünf Locales quellengebunden. Timeout, voller Queue, belegter Runtime-Slot, ungültige Antwort oder während des Auftrags veränderte Quellen führen nicht zu einer leeren Modellkarte, sondern zu einem typisierten Fallback. Rechteentzug liefert dagegen keine alten Quellen.
 
-Vor dem Modelllauf baut die Queue den Kontext frisch auf; danach folgen derselbe erneute Kontextaufbau und ein Hashvergleich. Eine Quellenänderung verwirft die Modellantwort und bindet den Fallback an den neuen Stand. `summaryRuntime` prüft fertige Ergebnisse vor der nächsten Auslieferung erneut. Session-Purge löscht Ergebnis, Warteschlangeneintrag und flüchtiges Host-Credential und bricht einen laufenden Auftrag ab.
+Wenn ein Themenlabel die laufende Moderationszusammenfassung verdrängt,
+prüft die Queue vor der erneuten Zulassung die Job-Generation, den
+aktuellen Kontext-Hash und die Host-Berechtigung. Die erneute Inferenz
+verwendet die Restzeit des ursprünglichen Zeitbudgets. Bei geändertem
+Kontext kann der extraktive Fallback den aktuellen Stand liefern. Bei
+Rechteentzug enthält die Antwort keine Quellen.
+
+Vor dem Modelllauf baut die Queue den Kontext frisch auf; danach folgen derselbe erneute Kontextaufbau und ein Hashvergleich. Eine Quellenänderung verwirft die Modellantwort und bindet den Fallback an den neuen Stand. `summaryRuntime` prüft fertige Ergebnisse vor der nächsten Auslieferung erneut. Beim erneuten Abruf protokolliert `qa_summary:stale_on_read` den Wechsel zur extraktiven Fassung mit Grund, vorherigem Modus und Quellenanzahl. Erfolgreiche extraktive Fassungen zeigen häufige Gründe als Hinweis für die Lehrperson. Die Blitzlichtrunde ist über ihren Start und die Messdaten an den Snapshot gebunden. Die Uhrzeit eines unveränderten Abrufs verändert ihn nicht. Session-Purge löscht Ergebnis, Warteschlangeneintrag und flüchtiges Host-Credential und bricht einen laufenden Auftrag ab.
 
 Das technische Profil verwendet 8.192 konservative Budgeteinheiten, 192 Antwortreserve (synchron mit dem V2-Ausgabelimit `max_tokens = 192`) und 128 Sicherheitsmarge (unter dem praxisnahen 8k-Arbeitsfenster von Qwen3-4B Q4; nie Modelldefault). Passen Basismetadaten trotzdem nicht, degradiert der Packer sichtbar auf eine Q&A-Textbaseline bzw. Force-Fit-Mindestbelege. Das ist ein sicherer Betriebszustand, aber **keine bestandene Full-context- oder CPU-Prefill-Abnahme**. Details und offene Nachweise stehen in [Issue #456 – Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md).
 

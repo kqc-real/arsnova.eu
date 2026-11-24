@@ -24,7 +24,7 @@ Der Summary-V2-Referenzkontext passt im 8.192-Profil mit Q&A-Belegen und sichtba
 
 `OPEN_WEIGHT_LLM_ENABLED` bleibt standardmäßig `false` und ist unabhängig von `NLP_ENABLED`, `QA_NLP_ENABLED`, `WORD_CLOUD_SEMANTIC_ENABLED` und `QA_SUMMARY_ENABLED`. Es gibt keinen SaaS-Fallback.
 
-Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokale Text-KI** das Ergebnis von `health.openWeightLlmProbe`: feste Mini-Fixtures für `topic_label` und `learning_objectives` sowie denselben Summary-V2-Vertrag wie der produktive Full-Context-Pfad, mit Kurzbeschreibung für Erstnutzer und dem Hinweis auf das lokal betriebene Open-Weight-Modell (kein Cloud-Anbieter). Die Prüfung ist vom Footer-Poll und vom Kern-`serviceStatus` getrennt, läuft im Frontend über den ungebündelten `httpLink` (damit ein laufender Probe-Call niemals `health.stats` im HTTP-Batch blockiert) und cached fünf Minuten (auch `refresh: true` umgeht diese Abkühlzeit nicht). Timeouts: `topic_label` 20 s, `learning_objectives` höchstens 90 s (oder der konfigurierte Lernziel-Timeout, falls kürzer), `qa_summary` der konfigurierte Produktions-Timeout. Nach Abbruch/Timeout wartet die Probe 1,5 s Slot-Cooldown, damit `llama-server` seinen Einzel-Slot vor dem Folgeauftrag freigibt. Das Lernziel-Wire-Schema setzt `questionIds.items.enum` auf die Quell-IDs des Auftrags; die UUID-Regex aus Zod darf nicht nach `llama-server` gelangen, weil sie die GBNF-Generierung über das Probe-Budget treibt und der Statusdialog sonst »nicht erreichbar« zeigt. Ist die Runtime aus, erscheint der Status »ausgeschaltet« ohne Inferenzaufruf.
+Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokale Text-KI** das Ergebnis von `health.openWeightLlmProbe`. Die App fragt die Slot-Sonde des Modellservers mit einem Budget von 2,5 Sekunden ab. Die Prüfung belegt keinen Inferenzslot. Sie ist vom Footer-Poll und vom allgemeinen Betriebsstatus getrennt. Die App cached das Ergebnis fünf Minuten und bündelt parallele Abfragen, auch bei manuellem Wiederholen. Die drei Beschreibungen erklären die Einsatzbereiche. Ob Modellantworten die jeweiligen Verträge erfüllen, prüfen die separaten Modell- und Contract-Tests.
 
 ## Gepinnte Artefakte
 
@@ -35,7 +35,12 @@ Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokal
 | Datei             | `Qwen3-4B-Instruct-2507-Q4_K_M.gguf`, 2.497.281.120 Byte                                  |
 | GGUF SHA-256      | `3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597`                        |
 
-Die kanonische Quelle ist `docker/open-weight-llm/model-manifest.json`. Das GGUF wird nicht in das Image kopiert und nie beim Containerstart aus dem Netz geladen. Betreiber:innen beziehen es einmalig über die dort festgehaltene, revisionsgebundene URL und prüfen es vor jedem Start:
+Das Image baut die Server-Bibliothek aus dem gepinnten llama.cpp-Commit
+`9ee9fc04c136ef2ae729bfc60d18961b23c13ddf` mit den Patches für den
+CPU-Abbruch und für den gezielten Auftragsabbruch. Es verwendet den gepinnten
+Upstream-Runner und dessen CPU-Backends.
+
+Das GGUF wird nicht in das Image kopiert und nie beim Containerstart aus dem Netz geladen. Betreiber:innen beziehen es einmalig über die in `docker/open-weight-llm/model-manifest.json` festgehaltene, revisionsgebundene URL und prüfen es vor jedem Start.
 
 ```bash
 curl --fail --location \
@@ -137,14 +142,73 @@ Das Profil `llm-http` ist ausschließlich ein lokaler Laborpfad. Der Produktions
 
 ## Laufzeitvertrag
 
-- global höchstens ein App-Auftrag gleichzeitig über alle drei Auftragstypen;
-- vor jedem Modellaufruf `GET /slots?fail_on_no_slot=1`;
-- maximal ein POST nach erfolgreicher Slot-Sonde, keine App-interne Modellqueue;
-- belegter Slot: Label und Summary liefern sofort ihren fachlichen Fallback, Lernzielableitung `{ status: "busy", retry: "manual" }`;
-- Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung, brechen danach den HTTP-Aufruf ab und lösen das globale Inflight in `finally`; verspätete DNS-Ergebnisse starten keinen Request. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches;
-- Circuit Breaker öffnet nach drei Timeout-/Verfügbarkeits-/Antwortfehlern für 30 Sekunden;
+- pro App-Prozess höchstens ein Inferenz-POST über alle drei Auftragstypen gleichzeitig;
+- im Betrieb mit mehreren App-Instanzen koordiniert die App den gemeinsamen Slot atomar über Redis (`OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED=true`). Nach DNS-Auflösung reserviert sie den Slot zunächst für 2,5 Sekunden. Erst unmittelbar vor dem POST verlängert sie ihn mit Besitzerprüfung auf das Auftrags-Timeout plus 15 Sekunden. Eine verspätet bestätigte erste Reservierung gibt die App frei. Die kurze TTL begrenzt die Wartezeit bei ausbleibender Bestätigung. Alle Apps an derselben Runtime verwenden denselben Redis und dieselbe Einstellung;
+- vor jedem Modellaufruf `GET /slots?fail_on_no_slot=1`. DNS, Reservierung und Slot-Sonde teilen sich ein Budget von höchstens 2,5 Sekunden;
+- maximal ein Inferenz-POST nach erfolgreicher Slot-Sonde, keine App-interne Modellqueue;
+- belegter Slot ohne Prioritätsübergabe: Label und Summary liefern sofort ihren fachlichen Fallback, Lernzielableitung `{ status: "busy", retry: "manual" }`;
+- Caller-Abbruch und auftragsspezifisches Timeout begrenzen bereits die DNS-Auflösung und brechen danach den HTTP-Aufruf ab. Im Replikabetrieb sendet die App für einen unterbrochenen Inferenz-POST ein gezieltes Abbruchsignal. Bei einer Bestätigung gibt sie die Redis-Reservierung frei. Fehlt die Bestätigung, prüft sie wie bisher einmalig den Slot. Beide Abfragen teilen sich ein Budget von 250 ms. Bestätigt der Slot mit einer neueren Aufgaben-ID die Übernahme des früheren POST, gibt die App die Reservierung frei. Bei unklarem Ausgang gilt die Frist von 1,5 Sekunden ab der Unterbrechung. Der nächste Auftrag prüft unter seiner eigenen Reservierung, ob der Modellslot frei ist. Bei einem App-Ausfall oder fehlgeschlagener Freigabe läuft die Reservierung nach dem Auftrags-Timeout plus 15 Sekunden ab der letzten Besitzerprüfung ab. Jeder Lernziel-Batch hat standardmäßig 300 Sekunden, die gesamte Ableitung zusätzlich ein gemeinsames 20-Minuten-Wall-Clock-Budget über alle deterministischen Batches;
+- der gemeinsame Circuit Breaker öffnet nach drei aufeinanderfolgenden Timeout- oder Verfügbarkeitsfehlern für 30 Sekunden. Eine HTTP-Antwort mit ungültiger Modellausgabe führt zum auftragsspezifischen Fallback und setzt den Zähler für Verfügbarkeitsfehler zurück;
 - URL-Hostnamen werden aufgelöst und auf ausschließlich Loopback/RFC1918/ULA geprüft; die Anfrage wird an die geprüfte IP gepinnt;
 - Telemetrie enthält nur Auftragstyp, Modellalias, Laufzeit und Tokenzahlen, keine Prompttexte.
+
+### Prioritätsübergabe zwischen App-Instanzen
+
+`OPEN_WEIGHT_LLM_PRIORITY_HANDOFF_ENABLED=true` aktiviert die Übergabe zusammen
+mit `OPEN_WEIGHT_LLM_SHARED_SLOT_ENABLED=true`. Alle App-Instanzen an derselben
+Runtime verwenden dasselbe Redis und beide Flags. Die Reihenfolge ist
+Themenlabels, Moderationszusammenfassung, Lernzielableitung. Innerhalb einer
+Priorität entscheidet die Reihenfolge der noch gültigen Redis-Einträge.
+Bis zu 16 Label-, 8 Summary- und 8 Lernzielanfragen können gleichzeitig warten.
+Die gemeinsame Zulassungsfrist von 2,5 Sekunden umfasst DNS, Redis und die
+Runtime-Sonde. Wartende Anfragen behalten diese Frist auch bei einer Übergabe.
+
+Ein höher priorisierter Auftrag kann den laufenden Auftrag anhand seiner
+Inferenz-ID gezielt abbrechen. Nach bestätigtem Abbruchsignal und erfolgreicher
+Sonde des freien Modellslots wechselt der Redis-Besitzer atomar zum ersten
+gültigen Auftrag. Bei einer Freigabe durch den bisherigen Besitzer hat der
+erste gültige Auftrag Vorrang; auch dann prüft er den Modellslot vor seinem
+POST. Ein abgelöster Besitzer kann dessen Reservierung weder löschen noch
+eine eigene verspätete Modellantwort übernehmen. Bei Redis-Fehler oder
+unbestätigter Slotfreigabe bleibt der neue Modell-POST aus. Die bestehenden
+Ablauffristen begrenzen die Reservierung bei App-Ausfall.
+
+Fertige Lernzielgruppen bleiben erhalten. Solange der Editorauftrag mit
+derselben Capability, denselben Quellen und derselben Revision läuft,
+wiederholt er nach einer Verdrängung ausschließlich die unterbrochene
+Gruppe. Das 20-Minuten-Budget bleibt bestehen. Die Summary-Queue prüft
+vor jeder erneuten Zulassung ihre Job-Generation, den aktuellen
+Kontext-Hash und den Host-Zugriff. Sie verwendet die Restzeit des
+ursprünglichen Durchlaufs. Je Gruppe beziehungsweise Summary sind
+höchstens zwei erneute Verdrängungen mit Fortsetzung benutzbar. Während
+ein höher priorisierter Auftrag läuft, sind pro Wiederaufnahme höchstens
+16 Zulassungsversuche möglich. Ein ausdrücklicher Abbruch beendet den
+laufenden Lernzielauftrag. Ein späterer manueller Start ist eine neue
+ausdrückliche Aktion.
+
+Host-Q&A und Host-Freitext zeigen nach der Encoder-Analyse extraktive
+oder bereits gecachte Modelllabels. Eine zweite Host-Anfrage reichert
+denselben Snapshot an. Gleichzeitige Anfragen für denselben Snapshot
+teilen das Ergebnis über Redis. Ändern sich Quellen, Filter, Sortierung
+oder die Session, bricht der Client die Labelanfrage ab. Für Q&A prüft
+die App zusätzlich die Korpusrevision, für beide Kanäle die
+Host-Berechtigung. Fortschritt, Auftragsart, Priorität, Wartezeit,
+Abbruch- und Wiederanlaufereignisse stehen in der Telemetrie. Die Logs
+enthalten keine Prompts oder Beitragstexte. [Issue #717](https://github.com/kqc-real/arsnova.eu/issues/717)
+
+### Privates Abbruchsignal
+
+Jeder Inferenz-POST erhält im Header `x-arsnova-inference-id` eine neue UUID.
+Die Runtime ordnet diese UUID einem aktiven, nicht gestreamten Chat-Auftrag
+zu. `POST /internal/arsnova/cancel` mit `{"inferenceId":"…"}` verwendet
+denselben Runtime-Bearer und denselben privaten Transport. Die Runtime
+antwortet mit `{"status":"accepted"}`, sobald das Signal für den zugehörigen
+Auftrag in der Modellqueue steht. Der CPU-Callback stoppt die Berechnung an
+einer Rechengrenze und räumt den Slot auf. Das Signal weckt auch den HTTP-Thread
+des Auftrags. Vor und nach der Registrierung antwortet die Runtime für diese
+UUID mit `{"status":"unknown"}`. Wiederholte Signale können ausschließlich
+den ursprünglich zugeordneten Auftrag treffen. Für ältere Modellimages oder
+bei unbestätigtem Signal greift der Abbruch über die geschlossene Verbindung.
 
 llama.cpp b10524 dokumentiert mehrere strukturierte `response_format`-Varianten. Der reale Modelllauf zeigte, dass `type: "json_schema"` mit `schema` in diesem Build HTTP 200 liefern kann, ohne die Grammatik anzuwenden. Der Translator verwendet deshalb das ebenfalls dokumentierte und real geprüfte Format `type: "json_object"` plus `schema`. Die Zod-Validierung nach der Inferenz bleibt in jedem Fall verbindlich.
 

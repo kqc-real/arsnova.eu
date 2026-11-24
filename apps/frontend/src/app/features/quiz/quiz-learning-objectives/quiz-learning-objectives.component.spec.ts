@@ -1090,7 +1090,7 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(message).not.toMatch(/Token|Batch/i);
   });
 
-  it('übernimmt fertige Entwürfe vor dem Zeitlimit und setzt beim nächsten Versuch bei den übrigen Fragen fort', async () => {
+  it.each(['timeout', 'preempted'] as const)('setzt bei %s fort', async (interruption) => {
     const store = TestBed.inject(QuizStoreService);
     const quiz = store.createQuiz({ name: 'Fortsetzen' });
     const first = store.addQuestion(quiz.id, {
@@ -1116,6 +1116,10 @@ describe('QuizLearningObjectivesComponent', () => {
       first.id,
       'Die erste Frage erklären.',
     );
+    let finishResume = () => {};
+    const resumePending = new Promise<void>((resolve) => {
+      finishResume = resolve;
+    });
     let calls = 0;
     runDerivationMock.mockImplementation(
       async (input: {
@@ -1131,7 +1135,7 @@ describe('QuizLearningObjectivesComponent', () => {
             operationId: input.operationId,
             quizId: input.quizId,
             expectedBundleRevision: input.expectedBundleRevision,
-            status: 'timeout',
+            status: interruption,
             progress: {
               completedGroups: 1,
               totalGroups: 2,
@@ -1145,6 +1149,17 @@ describe('QuizLearningObjectivesComponent', () => {
           };
         }
         expect(input.questions.map((question) => question.sourceQuestionId)).toEqual([second.id]);
+        if (calls === 2) {
+          return {
+            schemaVersion: 1,
+            operationId: input.operationId,
+            quizId: input.quizId,
+            expectedBundleRevision: input.expectedBundleRevision,
+            status: 'busy',
+            retry: 'manual',
+          };
+        }
+        await resumePending;
         return {
           schemaVersion: 1,
           operationId: input.operationId,
@@ -1171,24 +1186,56 @@ describe('QuizLearningObjectivesComponent', () => {
     (
       fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
     ).click();
-    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('timeout'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#learning-objective-derive').textContent).toContain(
+      'Automatisch aus Fragen formulieren',
+    );
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe(interruption));
     fixture.detectChanges();
 
-    expect(
-      store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
-    ).toEqual(['Die erste Frage erklären.']);
+    const savedBundle = store.getLearningObjectiveBundle(quiz.id);
+    expect(savedBundle.objectives.map((objective) => objective.text)).toEqual([
+      'Die erste Frage erklären.',
+    ]);
     expect(fixture.componentInstance.derivationMessage()).toContain(
       'Die schon formulierten Lernziele stehen als Entwürfe in der Liste.',
     );
+    if (interruption === 'preempted') {
+      expect(fixture.componentInstance.derivationMessage()).toContain(
+        'Ein dringenderer Auftrag hat die Erstellung unterbrochen.',
+      );
+      const status = fixture.nativeElement.querySelector('#learning-objective-derivation-status');
+      expect(status.getAttribute('aria-live')).toBe('polite');
+      expect(status.classList.contains('learning-objectives__derivation-status--error')).toBe(
+        false,
+      );
+    }
     const resume = fixture.nativeElement.querySelector(
       '#learning-objective-derive',
     ) as HTMLButtonElement;
+    expect(resume.disabled).toBe(false);
     expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
     resume.click();
+    await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe('busy'));
+    fixture.detectChanges();
+    expect(store.getLearningObjectiveBundle(quiz.id)).toEqual(savedBundle);
+    expect(resume.disabled).toBe(false);
+    expect(resume.textContent).toContain('Bei den übrigen Fragen fortsetzen');
+    resume.click();
+    fixture.detectChanges();
+    expect(resume.textContent).toContain('Übrige Fragen werden bearbeitet');
+    expect(resume.disabled).toBe(true);
+    const cancel = fixture.nativeElement.querySelector(
+      '#learning-objective-derive-cancel',
+    ) as HTMLButtonElement;
+    expect(cancel.disabled).toBe(false);
+    finishResume();
     await vi.waitFor(() =>
       expect(store.getLearningObjectiveBundle(quiz.id).objectives).toHaveLength(2),
     );
-    expect(runDerivationMock).toHaveBeenCalledTimes(2);
+    fixture.detectChanges();
+    expect(resume.textContent).toContain('Erneut automatisch formulieren');
+    expect(runDerivationMock).toHaveBeenCalledTimes(3);
     expect(
       store.getLearningObjectiveBundle(quiz.id).objectives.map((objective) => objective.text),
     ).toEqual(['Die erste Frage erklären.', 'Die zweite Frage erklären.']);

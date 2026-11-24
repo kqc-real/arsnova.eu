@@ -274,15 +274,33 @@ Bei einem Konfigurationswechsel wie unten beschrieben erst `down`, dann
 `up` ausführen. [LLM-Topologie](../features/open-weight-llm-runtime.md#topologien)
 
 Beide Apps verwenden für alle Auftragsarten einen gemeinsamen Redis-Slot
-(`llm:inference:lease:v1`). Die App reserviert ihn vor der Anfrage an
-`/slots` und prüft ihren Besitz vor dem POST. Ist der Slot belegt, nutzen
+(`llm:inference:lease:v1`). Nach der Adressauflösung reserviert die App
+ihn mit kurzer TTL für die Anfrage an `/slots`. Das Zeitbudget für
+Adressauflösung, Reservierung und Sonde beträgt 2,5 Sekunden. Erst vor
+dem POST verlängert die App die Reservierung und prüft dabei den Besitzer. Ist der Slot belegt, nutzen
 Themenlabel und Zusammenfassung ihren fachlichen Fallback. Die
 Lernzielableitung meldet `busy` und erlaubt einen manuellen
 Wiederholungsversuch. Bei einem Redis-Fehler bleibt die Inferenzanfrage aus.
 Nach einer vollständigen Antwort gibt die App die Reservierung frei.
-Bei unklarem Ausgang nach dem POST oder Prozessverlust läuft sie aus.
-Ihre Gültigkeit beträgt höchstens 315 Sekunden ab der letzten erfolgreichen
-Reservierung oder Besitzerprüfung. [LLM-Laufzeitvertrag](../features/open-weight-llm-runtime.md#laufzeitvertrag)
+Nach einem unterbrochenen POST sendet sie ein Abbruchsignal mit dessen
+Auftrags-ID. Bei Bestätigung gibt sie die Reservierung frei. Ältere Images
+und unbestätigte Signale verwenden die bisherige Slot-Prüfung. Zeigt der Slot
+eine neuere Aufgaben-ID, bestätigt er damit die Übernahme des früheren POST.
+Bei unklarem Ausgang gilt eine Frist von 1,5 Sekunden ab der Unterbrechung.
+Der nächste Auftrag prüft, ob der Modellslot frei ist. Bei einem Prozessausfall
+oder fehlgeschlagener Freigabe läuft die Reservierung spätestens 315 Sekunden
+nach der letzten erfolgreichen Reservierung oder Besitzerprüfung ab.
+[LLM-Laufzeitvertrag](../features/open-weight-llm-runtime.md#laufzeitvertrag)
+
+### Prioritätsübergabe in Staging
+
+Mit `STAGING_LLM_PRIORITY_HANDOFF_ENABLED=true` aktivieren beide Apps die
+Prioritätsübergabe. Dafür ist eine Runtime mit dem gezielten Abbruchsignal
+(`POST /internal/arsnova/cancel`) erforderlich. Die Grundkonfiguration
+für den gemeinsamen Redis-Slot bleibt bestehen. Nach dem Wechsel beide Apps
+mit demselben Flag starten. Für die Rückkehr zum bisherigen Verhalten das
+Flag wieder auf `false` setzen und beide Apps neu erstellen.
+[LLM-Laufzeitvertrag](../features/open-weight-llm-runtime.md#prioritätsübergabe-zwischen-app-instanzen)
 
 ### Lokaler Test mit zwei konkurrierenden Aufträgen
 

@@ -8748,6 +8748,94 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('zeigt die Freitext-Wolke vor Modelllabels und übernimmt anschließend nur den Namen', async () => {
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 5,
+      text: 'Was hilft beim Lernen?',
+      type: 'FREETEXT',
+      difficulty: 'EASY',
+      answers: [],
+    });
+    const responses = ['Lineare Regression im Projekt', 'Lineare Regression hilft'];
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId,
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      questionText: 'Was hilft beim Lernen?',
+      responses,
+    });
+    const entries = [
+      {
+        key: 'regression',
+        label: 'lineare Regression',
+        labelOrigin: 'extractive',
+        count: 2,
+        basisLabel: 'lineare Regression',
+        variants: [],
+        confidence: 1,
+        members: responses.map((text, index) => ({
+          sourceId: `response-${index}`,
+          text,
+          weight: 1,
+        })),
+      },
+    ];
+    const base = {
+      ...wordCloudAnalyzeResult({
+        mode: 'SEMANTIC',
+        metric: 'TOP',
+        status: 'ready',
+        fallbackUsed: false,
+        snapshotHash: 'a'.repeat(64),
+      }),
+      entries,
+      topicLabelsPending: true,
+    };
+    let finish = (_result: typeof base) => {};
+    const enrichment = new Promise<typeof base>((resolve) => {
+      finish = resolve;
+    });
+    wordCloudAnalyzeQueryMock.mockImplementation((request: { topicLabels?: unknown }) =>
+      typeof request.topicLabels === 'object' ? enrichment : Promise.resolve(base),
+    );
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitUntil(() => component.displayedFreetextResponses().length === 2);
+    component.wordCloudExpanded.set(true);
+    await component.setFreetextWordCloudMode('SEMANTIC');
+    fixture.detectChanges();
+    await vi.waitFor(
+      () => {
+        expect(
+          wordCloudAnalyzeQueryMock.mock.calls.some(
+            ([request]) => typeof request.topicLabels === 'object',
+          ),
+        ).toBe(true);
+        expect(component.displayedFreetextAnalysisEntries()?.[0]?.label).toBe('lineare Regression');
+        expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(false);
+      },
+      { timeout: 5000 },
+    );
+    finish({
+      ...base,
+      topicLabelsPending: false,
+      entries: [{ ...base.entries[0]!, label: 'Statistisches Lernen', labelOrigin: 'model' }],
+    });
+    await vi.waitFor(() => {
+      expect(component.displayedFreetextAnalysisEntries()?.[0]).toMatchObject({
+        label: 'Statistisches Lernen',
+        count: 2,
+      });
+    });
+    fixture.destroy();
+  });
+
   it('zeigt ohne Freitext-Beiträge keinen Fehler und startet keine Themenanalyse', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
@@ -22284,9 +22372,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       numericTwoRounds: true,
     };
 
-    expect(
-      component.numericHistogramRangeEdgeLabel(question, [{ from: 1740, to: 1830 }], 'min'),
-    ).toBe('1740');
     expect(component.numericReferenceLabel(question)).toBe('Referenz 1789');
     expect(component.numericToleranceBandLabel(question)).toBe('Akzeptierter Wert 1789');
     const stats = {
@@ -22412,70 +22497,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('richtet bei identischer Einzelschaetzung Referenzlinie und Histogramm-Marker aus', () => {
-    const fixture = setup();
-    const component = fixture.componentInstance;
-    const question = {
-      showQuestionTypeIndicators: true,
-      questionId: '66666666-6666-4666-8666-666666666666',
-      order: 0,
-      totalQuestions: 1,
-      text: 'Schätze pi.',
-      type: 'NUMERIC_ESTIMATE' as const,
-      difficulty: 'MEDIUM' as const,
-      currentRound: 1,
-      timer: null,
-      answers: [],
-      totalVotes: 1,
-      numericToleranceMode: 'RELATIVE_PERCENT' as const,
-      numericReferenceValue: 3.14,
-      numericTolerancePercent: 10,
-      numericIntervalLeft: null,
-      numericIntervalRight: null,
-      numericInputType: 'DECIMAL' as const,
-      numericDecimalPlaces: 2,
-      numericMin: 2,
-      numericMax: 4,
-      numericTwoRounds: false,
-    };
-    const histogram = [
-      { from: 2.2, to: 3.1, count: 0, inBand: false },
-      { from: 3.1, to: 3.28, count: 1, inBand: true },
-      { from: 3.28, to: 4, count: 0, inBand: false },
-    ];
-    const stats = {
-      n: 1,
-      mean: 3.14,
-      median: 3.14,
-      stdDev: 0,
-      q1: 3.14,
-      q3: 3.14,
-      iqr: 0,
-      min: 3.14,
-      max: 3.14,
-      inBandCount: 1,
-      inBandPercent: 100,
-      meanAbsoluteError: 0,
-      meanRelativeError: 0,
-    };
-
-    const referencePosition = component.numericReferenceLinePercent(question, histogram);
-    const bucketCenterPosition = component.numericHistogramBinPositionPercent(
-      histogram[1]!,
-      histogram,
-    );
-    const markerPosition = component.numericHistogramBinPositionPercent(
-      histogram[1]!,
-      histogram,
-      stats,
-    );
-
-    expect(referencePosition).not.toBeNull();
-    expect(bucketCenterPosition).not.toBe(referencePosition);
-    expect(markerPosition).toBe(referencePosition);
-    fixture.destroy();
-  });
-
   it('zeigt das Host-Scoreboard bei NUMERIC_ESTIMATE-Ergebnissen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -22536,6 +22557,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(interim).not.toBeNull();
     expect(interim?.textContent ?? '').toContain('Ada');
     expect(interim?.textContent ?? '').toContain('120 Pkt.');
+    const histogram = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-numeric-estimate-histogram',
+    );
+    expect(histogram?.querySelector('.numeric-histogram__band')).toBeTruthy();
+    expect(histogram?.querySelector('.numeric-histogram__reference-line')).toBeTruthy();
+    expect(histogram?.textContent).toContain('Akzeptierter Wert 1789');
     fixture.destroy();
   });
 

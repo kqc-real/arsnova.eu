@@ -1,3 +1,4 @@
+import { enrichCurrentTopicCloud } from '../session-present/word-cloud-topic-labels';
 import { animalIconUrl } from '../../../shared/animal-icon-url';
 import { DecimalPipe, DOCUMENT, formatNumber } from '@angular/common';
 import { CdkTrapFocus, LiveAnnouncer } from '@angular/cdk/a11y';
@@ -99,6 +100,13 @@ import {
   answerOptionShape,
   showQuestionTypeIndicator,
 } from '../../../shared/answer-option-badge.util';
+import { NumericEstimateHistogramComponent } from '../../../shared/numeric-estimate-histogram/numeric-estimate-histogram.component';
+import {
+  formatNumericEstimateValue,
+  numericEstimateReferenceLabel,
+  numericEstimateToleranceLabel,
+  numericEstimateUsesIntegerFormat,
+} from '../../../shared/numeric-estimate-histogram/numeric-estimate-format.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
 import { InfoLandingLinkComponent } from '../../../shared/info-landing-link/info-landing-link.component';
 import { INFO_LANDING_ANCHORS } from '../../../core/info-landing-url';
@@ -137,8 +145,6 @@ import {
 import {
   collectModerationFeedbackDecision,
   createQuizHistoryAccessProof,
-  resolveNumericEstimateToleranceMode,
-  resolveNumericTolerance,
   confidenceResultResponseCount,
   selectConfidencePriorityQuestions,
   CONFIDENCE_SCALE_MAX,
@@ -638,6 +644,7 @@ function musicTracksForPhase(
     MarkdownImageLightboxDirective,
     FoyerEntranceLayerComponent,
     AnswerOptionBadgeComponent,
+    NumericEstimateHistogramComponent,
     CdkTrapFocus,
     InfoLandingLinkComponent,
     PresenterDistributionMatrixComponent,
@@ -1125,6 +1132,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private freetextWordCloudLemmaAnalysisRunId = 0;
   private freetextWordCloudSemanticAnalysisRunId = 0;
   private wordCloudHttpAbortController = new AbortController();
+  private qaTopicLabelsAbort?: AbortController;
+  private freetextTopicLabelsAbort?: AbortController;
   private lastFreetextWordCloudProjectionKey: string | null = null;
   private freetextProjectionScope: string | null = null;
   private presenterProjectionSyncQueue: Promise<void> = Promise.resolve();
@@ -2886,6 +2895,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
               : null,
           labelModelId: () => this.qaWordCloudThemeAnalysisResult()?.labelModelId ?? null,
           labelModelVersion: () => this.qaWordCloudThemeAnalysisResult()?.labelModelVersion ?? null,
+          labelPromptVersion: () =>
+            this.qaWordCloudThemeAnalysisResult()?.labelPromptVersion ?? null,
           analysisVariant: () => this.qaWordCloudEffectiveAnalysisVariant(),
           setAnalysisVariant: (variant: WordCloudAnalysisVariant) =>
             this.setQaWordCloudAnalysisVariant(variant),
@@ -10471,263 +10482,20 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return type !== 'SURVEY' && type !== 'RATING';
   }
 
-  numericHistogramBarHeight(bin: { count: number }, all: Array<{ count: number }>): number {
-    if (bin.count <= 0) return 0;
-    const maxCount = Math.max(1, ...all.map((b) => b.count));
-    return Math.round(18 + (bin.count / maxCount) * 42);
-  }
-
-  numericHistogramBinPositionPercent(
-    bin: { from: number; to: number },
-    histogram: Array<{ from: number; to: number }>,
-    stats?: NumericStatsDTO | null,
-  ): number {
-    const range = this.numericHistogramRange(histogram);
-    if (!range) return 0;
-    const markerValue = this.numericHistogramBinMarkerValue(bin, stats);
-    return this.numericValuePositionPercent(markerValue ?? (bin.from + bin.to) / 2, range);
-  }
-
-  private numericHistogramBinMarkerValue(
-    bin: { from: number; to: number; count?: number },
-    stats?: NumericStatsDTO | null,
-  ): number | null {
-    if (!stats || !bin.count || stats.n <= 0) return null;
-    if (stats.min === null || stats.max === null) return null;
-    if (!Number.isFinite(stats.min) || !Number.isFinite(stats.max)) return null;
-    if (Math.abs(stats.max - stats.min) > 1e-9) return null;
-
-    const value = stats.min;
-    const left = Math.min(bin.from, bin.to);
-    const right = Math.max(bin.from, bin.to);
-    return value >= left - 1e-9 && value <= right + 1e-9 ? value : null;
-  }
-
-  numericHistogramRangeEdgeLabel(
-    question: HostCurrentQuestionDTO | null,
-    histogram: Array<{ from: number; to: number }>,
-    edge: 'min' | 'max',
-  ): string {
-    const range = this.numericHistogramRange(histogram);
-    if (!range) return '';
-    return this.formatNumericHostValue(edge === 'min' ? range.min : range.max, question);
-  }
-
-  numericHistogramBandStyle(
-    question: HostCurrentQuestionDTO,
-    histogram: Array<{ from: number; to: number }>,
-  ): { left: number; width: number } | null {
-    const band = this.numericToleranceBand(question);
-    const range = this.numericHistogramRange(histogram);
-    if (!band || !range) return null;
-    const visibleLeft = Math.max(band.left, range.min);
-    const visibleRight = Math.min(band.right, range.max);
-    if (visibleLeft > range.max || visibleRight < range.min || visibleLeft > visibleRight) {
-      return null;
-    }
-    const left = this.numericValuePositionPercent(visibleLeft, range);
-    const right = this.numericValuePositionPercent(visibleRight, range);
-    return { left, width: Math.max(1, right - left) };
-  }
-
-  numericReferenceLinePercent(
-    question: HostCurrentQuestionDTO,
-    histogram: Array<{ from: number; to: number }>,
-  ): number | null {
-    if (
-      question.type !== 'NUMERIC_ESTIMATE' ||
-      question.numericReferenceValue === null ||
-      question.numericReferenceValue === undefined
-    ) {
-      return null;
-    }
-    const range = this.numericHistogramRange(histogram);
-    if (!range) return null;
-    if (question.numericReferenceValue < range.min || question.numericReferenceValue > range.max) {
-      return null;
-    }
-    return this.numericValuePositionPercent(question.numericReferenceValue, range);
-  }
-
-  numericReferenceLineStyle(
-    question: HostCurrentQuestionDTO,
-    histogram: Array<{ from: number; to: number }>,
-  ): { left: number } | null {
-    const left = this.numericReferenceLinePercent(question, histogram);
-    return left === null ? null : { left };
-  }
-
   numericReferenceLabel(question: HostCurrentQuestionDTO): string | null {
-    if (
-      question.type !== 'NUMERIC_ESTIMATE' ||
-      question.numericReferenceValue === null ||
-      question.numericReferenceValue === undefined
-    ) {
-      return null;
-    }
-    return $localize`:@@sessionHost.numericReferenceAxisLabel:Referenz ${this.formatNumericHostValue(
-      question.numericReferenceValue,
-      question,
-    )}:reference:`;
-  }
-
-  numericToleranceBandEdgeStyle(
-    question: HostCurrentQuestionDTO,
-    histogram: Array<{ from: number; to: number }>,
-    edge: 'left' | 'right',
-  ): { left: number } | null {
-    const band = this.numericToleranceBand(question);
-    const range = this.numericHistogramRange(histogram);
-    if (!band || !range) return null;
-    const value = edge === 'left' ? band.left : band.right;
-    if (value < range.min || value > range.max) return null;
-    return { left: this.numericValuePositionPercent(value, range) };
-  }
-
-  numericToleranceBandEdgeLabel(question: HostCurrentQuestionDTO, edge: 'left' | 'right'): string {
-    const band = this.numericToleranceBand(question);
-    if (!band) return '';
-    if (this.numericHostUsesIntegerFormat(question)) {
-      const acceptedLeft = Math.ceil(band.left);
-      const acceptedRight = Math.floor(band.right);
-      if (acceptedLeft <= acceptedRight) {
-        return this.formatNumericHostValue(
-          edge === 'left' ? acceptedLeft : acceptedRight,
-          question,
-        );
-      }
-    }
-    return this.formatNumericHostValue(edge === 'left' ? band.left : band.right, question);
+    return numericEstimateReferenceLabel(question, this.localeId);
   }
 
   numericToleranceBandLabel(question: HostCurrentQuestionDTO): string | null {
-    const band = this.numericToleranceBand(question);
-    if (!band) return null;
-    if (this.numericHostUsesIntegerFormat(question)) {
-      const acceptedLeft = Math.ceil(band.left);
-      const acceptedRight = Math.floor(band.right);
-      if (acceptedLeft > acceptedRight) {
-        return null;
-      }
-      if (acceptedLeft === acceptedRight) {
-        return $localize`:@@sessionHost.numericAcceptedSingleLabel:Akzeptierter Wert ${this.formatNumericHostValue(
-          acceptedLeft,
-          question,
-        )}:value:`;
-      }
-      return $localize`:@@sessionHost.numericAcceptedRangeLabel:Akzeptierte Werte ${this.formatNumericHostValue(
-        acceptedLeft,
-        question,
-      )}:left: bis ${this.formatNumericHostValue(acceptedRight, question)}:right:`;
-    }
-    return $localize`:@@sessionHost.numericToleranceBandLabel:Toleranzband ${this.formatNumericHostValue(
-      band.left,
-      question,
-    )}:left: bis ${this.formatNumericHostValue(band.right, question)}:right:`;
-  }
-
-  private numericToleranceBand(
-    question: HostCurrentQuestionDTO,
-  ): { left: number; right: number } | null {
-    if (question.type !== 'NUMERIC_ESTIMATE') return null;
-    return resolveNumericTolerance(
-      resolveNumericEstimateToleranceMode(question.numericToleranceMode),
-      {
-        referenceValue: question.numericReferenceValue ?? null,
-        tolerancePercent: question.numericTolerancePercent ?? null,
-        intervalLeft: question.numericIntervalLeft ?? null,
-        intervalRight: question.numericIntervalRight ?? null,
-      },
-    );
-  }
-
-  private numericHistogramRange(histogram: Array<{ from: number; to: number }>): {
-    min: number;
-    max: number;
-  } | null {
-    if (histogram.length === 0) return null;
-    const min = Math.min(...histogram.map((bin) => Math.min(bin.from, bin.to)));
-    const max = Math.max(...histogram.map((bin) => Math.max(bin.from, bin.to)));
-    if (min === max) return { min: min - 0.5, max: max + 0.5 };
-    return { min, max };
-  }
-
-  private numericValuePositionPercent(value: number, range: { min: number; max: number }): number {
-    return Math.min(100, Math.max(0, ((value - range.min) / (range.max - range.min)) * 100));
-  }
-
-  private numericHostUsesIntegerFormat(question: HostCurrentQuestionDTO | null): boolean {
-    return (
-      question?.type === 'NUMERIC_ESTIMATE' &&
-      (question.numericInputType === 'INTEGER' || question.numericDecimalPlaces === 0)
-    );
-  }
-
-  private numericHostUsesYearFormat(question: HostCurrentQuestionDTO | null): boolean {
-    if (!this.numericHostUsesIntegerFormat(question) || question?.type !== 'NUMERIC_ESTIMATE') {
-      return false;
-    }
-    const textLooksLikeYear =
-      /\b(jahr|jahreszahl|year|année|annee|año|ano|anno)\b/i.test(question.text) ||
-      /\bwann\b/i.test(question.text);
-    if (textLooksLikeYear) {
-      return true;
-    }
-    const min = question.numericMin;
-    const max = question.numericMax;
-    return (
-      typeof min === 'number' &&
-      typeof max === 'number' &&
-      min >= 1000 &&
-      max <= 2200 &&
-      max - min <= 1000
-    );
-  }
-
-  private numericHostDigits(question: HostCurrentQuestionDTO | null): string {
-    if (this.numericHostUsesIntegerFormat(question)) return '1.0-0';
-    const places =
-      question?.type === 'NUMERIC_ESTIMATE' &&
-      typeof question.numericDecimalPlaces === 'number' &&
-      Number.isFinite(question.numericDecimalPlaces)
-        ? Math.max(0, Math.min(4, question.numericDecimalPlaces))
-        : 2;
-    return `1.0-${places}`;
-  }
-
-  private numericHostStatsDigits(question: HostCurrentQuestionDTO | null): string {
-    return this.numericHostUsesIntegerFormat(question) ? '1.0-0' : '1.0-2';
+    return numericEstimateToleranceLabel(question, this.localeId);
   }
 
   private formatNumericHostStatValue(
     value: number,
     question: HostCurrentQuestionDTO | null,
   ): string {
-    return this.formatNumericHostValue(value, question, this.numericHostStatsDigits(question));
-  }
-
-  private formatNumericHostValue(
-    value: number,
-    question: HostCurrentQuestionDTO | null,
-    digits = this.numericHostDigits(question),
-  ): string {
-    if (this.numericHostUsesYearFormat(question)) {
-      return this.formatNumberWithoutGrouping(value, digits);
-    }
-    return formatNumber(value, this.localeId, digits);
-  }
-
-  private formatNumberWithoutGrouping(value: number, digits: string): string {
-    const match = /^(\d+)\.(\d+)-(\d+)$/.exec(digits);
-    const minimumIntegerDigits = match ? Number(match[1]) : 1;
-    const minimumFractionDigits = match ? Number(match[2]) : 0;
-    const maximumFractionDigits = match ? Number(match[3]) : 2;
-    return new Intl.NumberFormat(this.localeId, {
-      minimumIntegerDigits,
-      minimumFractionDigits,
-      maximumFractionDigits,
-      useGrouping: false,
-    }).format(value);
+    const digits = numericEstimateUsesIntegerFormat(question) ? 0 : 2;
+    return formatNumericEstimateValue(value, question, this.localeId, digits);
   }
 
   numericStatsLabel(stats: NumericStatsDTO, question: HostCurrentQuestionDTO | null): string {
@@ -14843,6 +14611,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private invalidateQaWordCloudRequests(): void {
+    this.qaTopicLabelsAbort?.abort();
     this.qaWordCloudThemeAnalysisRunId += 1;
     this.qaWordCloudLemmaAnalysisRunId += 1;
     this.clearQaWordCloudThemeAnalysisTimer();
@@ -14855,6 +14624,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   private invalidateFreetextWordCloudRequests(): void {
+    this.freetextTopicLabelsAbort?.abort();
     this.freetextWordCloudSemanticAnalysisRunId += 1;
     this.freetextWordCloudLemmaAnalysisRunId += 1;
     this.clearFreetextWordCloudSemanticAnalysisTimer();
@@ -15016,6 +14786,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     options: { readonly keepPrevious?: boolean } = {},
   ): Promise<void> {
     const runId = ++this.qaWordCloudThemeAnalysisRunId;
+    this.qaTopicLabelsAbort?.abort();
     this.qaWordCloudThemeAnalysisFailed.set(false);
     const listRevisionAtStart = this.qaListRankingRevision();
     const hadPreviousSemanticCloud =
@@ -15032,12 +14803,14 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
 
     try {
-      const result = await this.analyzeCanonicalQaWordCloud(request);
+      const result = await this.analyzeCanonicalQaWordCloud(
+        request.mode === 'SEMANTIC' ? { ...request, topicLabels: 'preview' } : request,
+      );
       if (runId !== this.qaWordCloudThemeAnalysisRunId) {
         return;
       }
 
-      if (request.mode === 'SEMANTIC') {
+      if (request.mode === 'SEMANTIC' && !result.topicLabelsPending) {
         const elapsedMs = Date.now() - pendingStartedAt;
         // Wenn bereits eine Themenwolke sichtbar ist und der Sortierwechsel
         // aus dem Backend-Cluster-Cache schnell (< 250 ms) beantwortet wurde,
@@ -15067,6 +14840,31 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.qaWordCloudSemanticStale.set(
           !current || this.hasQaWordCloudSemanticChanges(current, this.qaListRankingRevision()),
         );
+        if (result.topicLabelsPending) {
+          const controller = new AbortController();
+          this.qaTopicLabelsAbort = controller;
+          const { items: _clientPage, ...canonical } = request;
+          void enrichCurrentTopicCloud({
+            base: result,
+            injector: this.injector,
+            signal: AbortSignal.any([controller.signal, this.wordCloudHttpAbortController.signal]),
+            isCurrent: () => {
+              const active = this.qaWordCloudAnalysisRequest();
+              return Boolean(
+                runId === this.qaWordCloudThemeAnalysisRunId &&
+                this.qaWordCloudThemeAnalysisResult() === result &&
+                active &&
+                !this.hasQaWordCloudSemanticChanges(active, this.qaListRankingRevision()),
+              );
+            },
+            fetch: (topicLabels, signal) =>
+              trpc.wordCloud.analyzeQa.mutate(
+                { ...canonical, refresh: undefined, topicLabels },
+                { signal },
+              ),
+            apply: (updated) => this.qaWordCloudThemeAnalysisResult.set(updated),
+          });
+        }
       }
     } catch {
       if (runId !== this.qaWordCloudThemeAnalysisRunId) {
@@ -15196,6 +14994,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     options: { readonly keepPrevious?: boolean } = {},
   ): Promise<void> {
     const runId = ++this.freetextWordCloudSemanticAnalysisRunId;
+    this.freetextTopicLabelsAbort?.abort();
     if (!options.keepPrevious) {
       this.freetextWordCloudSemanticAnalysisResult.set(null);
     }
@@ -15203,14 +15002,17 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const analyzedKey = wordCloudAnalysisRequestKey(request);
 
     try {
-      const result = await trpc.wordCloud.analyze.mutate(request, {
-        signal: this.wordCloudHttpAbortController.signal,
-      });
+      const result = await trpc.wordCloud.analyze.mutate(
+        { ...request, topicLabels: 'preview' },
+        {
+          signal: this.wordCloudHttpAbortController.signal,
+        },
+      );
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
       }
 
-      await holdSemanticPendingProgress(pendingStartedAt);
+      if (!result.topicLabelsPending) await holdSemanticPendingProgress(pendingStartedAt);
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
       }
@@ -15221,6 +15023,30 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       this.reconcileFreetextWordCloudSemanticStaleAfterAnalysis(analyzedKey, {
         allowAutoRefreshOnResults: true,
       });
+      if (result.topicLabelsPending) {
+        const controller = new AbortController();
+        this.freetextTopicLabelsAbort = controller;
+        void enrichCurrentTopicCloud({
+          base: result,
+          injector: this.injector,
+          signal: AbortSignal.any([controller.signal, this.wordCloudHttpAbortController.signal]),
+          isCurrent: () => {
+            const active = this.buildFreetextWordCloudSemanticAnalysisRequest();
+            return Boolean(
+              runId === this.freetextWordCloudSemanticAnalysisRunId &&
+              this.freetextWordCloudSemanticAnalysisResult() === result &&
+              active &&
+              wordCloudAnalysisRequestKey(active) === analyzedKey,
+            );
+          },
+          fetch: (topicLabels, signal) =>
+            trpc.wordCloud.analyze.mutate(
+              { ...request, refresh: undefined, topicLabels },
+              { signal },
+            ),
+          apply: (updated) => this.freetextWordCloudSemanticAnalysisResult.set(updated),
+        });
+      }
     } catch {
       if (runId !== this.freetextWordCloudSemanticAnalysisRunId) {
         return;
