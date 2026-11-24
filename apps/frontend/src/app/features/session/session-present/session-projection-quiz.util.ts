@@ -105,15 +105,6 @@ export function ratingScaleValues(question: HostCurrentQuestionDTO): number[] {
   return values;
 }
 
-export function numericHistogramBarPercent(
-  count: number,
-  histogram: Array<{ count: number }>,
-): number {
-  const maxCount = Math.max(1, ...histogram.map((bin) => bin.count));
-  return Math.round((count / maxCount) * 100);
-}
-
-/** Stabile, nicht kanonische Reihenfolge – ohne die Lösung zu verraten. */
 export function stableSeededShuffle<T>(
   items: readonly T[],
   seed: string,

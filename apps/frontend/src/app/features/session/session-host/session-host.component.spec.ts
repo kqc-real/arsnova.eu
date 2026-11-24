@@ -22372,9 +22372,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       numericTwoRounds: true,
     };
 
-    expect(
-      component.numericHistogramRangeEdgeLabel(question, [{ from: 1740, to: 1830 }], 'min'),
-    ).toBe('1740');
     expect(component.numericReferenceLabel(question)).toBe('Referenz 1789');
     expect(component.numericToleranceBandLabel(question)).toBe('Akzeptierter Wert 1789');
     const stats = {
@@ -22500,70 +22497,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('richtet bei identischer Einzelschaetzung Referenzlinie und Histogramm-Marker aus', () => {
-    const fixture = setup();
-    const component = fixture.componentInstance;
-    const question = {
-      showQuestionTypeIndicators: true,
-      questionId: '66666666-6666-4666-8666-666666666666',
-      order: 0,
-      totalQuestions: 1,
-      text: 'Schätze pi.',
-      type: 'NUMERIC_ESTIMATE' as const,
-      difficulty: 'MEDIUM' as const,
-      currentRound: 1,
-      timer: null,
-      answers: [],
-      totalVotes: 1,
-      numericToleranceMode: 'RELATIVE_PERCENT' as const,
-      numericReferenceValue: 3.14,
-      numericTolerancePercent: 10,
-      numericIntervalLeft: null,
-      numericIntervalRight: null,
-      numericInputType: 'DECIMAL' as const,
-      numericDecimalPlaces: 2,
-      numericMin: 2,
-      numericMax: 4,
-      numericTwoRounds: false,
-    };
-    const histogram = [
-      { from: 2.2, to: 3.1, count: 0, inBand: false },
-      { from: 3.1, to: 3.28, count: 1, inBand: true },
-      { from: 3.28, to: 4, count: 0, inBand: false },
-    ];
-    const stats = {
-      n: 1,
-      mean: 3.14,
-      median: 3.14,
-      stdDev: 0,
-      q1: 3.14,
-      q3: 3.14,
-      iqr: 0,
-      min: 3.14,
-      max: 3.14,
-      inBandCount: 1,
-      inBandPercent: 100,
-      meanAbsoluteError: 0,
-      meanRelativeError: 0,
-    };
-
-    const referencePosition = component.numericReferenceLinePercent(question, histogram);
-    const bucketCenterPosition = component.numericHistogramBinPositionPercent(
-      histogram[1]!,
-      histogram,
-    );
-    const markerPosition = component.numericHistogramBinPositionPercent(
-      histogram[1]!,
-      histogram,
-      stats,
-    );
-
-    expect(referencePosition).not.toBeNull();
-    expect(bucketCenterPosition).not.toBe(referencePosition);
-    expect(markerPosition).toBe(referencePosition);
-    fixture.destroy();
-  });
-
   it('zeigt das Host-Scoreboard bei NUMERIC_ESTIMATE-Ergebnissen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'RESULTS' });
     onStatusChangedSubscribeMock.mockImplementation(
@@ -22624,6 +22557,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(interim).not.toBeNull();
     expect(interim?.textContent ?? '').toContain('Ada');
     expect(interim?.textContent ?? '').toContain('120 Pkt.');
+    const histogram = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-numeric-estimate-histogram',
+    );
+    expect(histogram?.querySelector('.numeric-histogram__band')).toBeTruthy();
+    expect(histogram?.querySelector('.numeric-histogram__reference-line')).toBeTruthy();
+    expect(histogram?.textContent).toContain('Akzeptierter Wert 1789');
     fixture.destroy();
   });
 

@@ -4,7 +4,7 @@
 #
 # `install --with-deps` startet apt-get als root außerhalb der timeout-
 # Prozessgruppe. Ein 3–7-Minuten-Kill während apt-get update (langsamer
-# azure.archive.ubuntu.com-Spiegel) hinterlässt den apt-Lock; Folgeversuche
+# Ubuntu-Spiegel) hinterlässt den apt-Lock; Folgeversuche
 # scheitern mit Exit 100 oder laufen in timeout-minutes.
 #
 # Deshalb: Binary-Download mit Retry, OS-Deps danach ohne kurzen Kill,
@@ -53,7 +53,7 @@ prefer_archive_ubuntu_mirrors() {
   if ! command -v sudo >/dev/null 2>&1; then
     return 0
   fi
-  echo "CI: Ubuntu-Spiegel von azure.archive.ubuntu.com auf archive.ubuntu.com umbiegen."
+  echo "CI: Ubuntu-Spiegel von Azure und EC2 auf archive.ubuntu.com umbiegen."
   local files=()
   local candidate
   for candidate in /etc/apt/sources.list /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/ubuntu.sources; do
@@ -69,7 +69,9 @@ prefer_archive_ubuntu_mirrors() {
   if ((${#files[@]} == 0)); then
     return 0
   fi
-  sudo sed -i 's/azure\.archive\.ubuntu\.com/archive.ubuntu.com/g' "${files[@]}" || true
+  sudo sed -E -i \
+    's@://(azure|[a-z0-9-]+\.ec2)\.archive\.ubuntu\.com([/:[:space:]]|$)@://archive.ubuntu.com\2@g' \
+    "${files[@]}" || true
 }
 
 prefer_archive_ubuntu_mirrors
