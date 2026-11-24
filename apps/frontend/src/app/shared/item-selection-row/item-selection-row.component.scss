@@ -23,8 +23,18 @@
   min-width: 0;
 }
 
+.item-selection-row__item,
+.item-selection-row__choice {
+  overflow-wrap: anywhere;
+}
+
 .item-selection-row__field {
   width: 100%;
+}
+
+.item-selection-row__choice {
+  display: block;
+  white-space: normal;
 }
 
 @media (max-width: 599px) {

@@ -5,7 +5,7 @@
  * Confidence und Host-Nachbesprechungsplan nach Session-Ende.
  *
  * Nutzt die Demo-Fragen aus `quiz-demo-showcase.de.json`
- * (6 Sortierschritte, 6 Matching-Paare, 6 Kategorisierungen).
+ * (6 Sortierschritte, 6 Matching-Paare, 6 Kategorisierungen) mit langen Antworttexten.
  *
  * Run:
  *   BASE_URL=http://localhost:4200/de TRPC_URL=http://localhost:3000/trpc \
@@ -31,7 +31,7 @@ const BASE_URL = (process.env.BASE_URL || 'http://localhost:4200/de').replace(/\
 const PROBE_URL = normalizeLoopbackUrl(BASE_URL);
 const TRPC_URL = normalizeLoopbackUrl(process.env.TRPC_URL || 'http://localhost:3000/trpc');
 const DESKTOP = { width: 1440, height: 1000 };
-const MOBILE = { width: 430, height: 932 };
+const MOBILE = { width: 320, height: 800 };
 const HOST_TOKEN_STORAGE_PREFIX = 'arsnova-host-token:';
 const JOIN_BUTTON_RE = /join now|jetzt beitreten/i;
 const START_QUESTION_RE = /start first question|erste frage starten|nächste frage|next question/i;
@@ -91,6 +91,13 @@ async function loadStructuredDemoQuizPayload() {
       `Demo CATEGORIZATION erwartet ≥6 Zuordnungen, gefunden: ${(categorization.categorizationItems || []).length}`,
     );
   }
+
+  ordering.orderingItems[0].text =
+    'Transkription durch den Ribonukleinsäurepolymeraseproteinkomplex';
+  matching.matchingPairs[2].right =
+    'Weimarer Reichsverfassungsunterzeichnung durch Friedrich Ebert';
+  categorization.categories[0].name =
+    'Aufklärung (ca. 1720–1785) – Literaturgeschichtliche Epochenklassifizierung';
 
   const questions = [ordering, matching, categorization].map((question, index) => {
     const sanitized = { ...question, order: index };
@@ -220,22 +227,61 @@ function structuredVisibleTerms(question) {
 }
 
 async function assertNoHorizontalPageScroll(page, label, hardFailures) {
-  const previousViewport = page.viewportSize() ?? MOBILE;
-  await page.setViewportSize({ width: 320, height: 800 });
-  await page.waitForTimeout(150);
   const dimensions = await page.evaluate(() => ({
     viewport: globalThis.innerWidth,
     document: document.documentElement.scrollWidth,
     body: document.body.scrollWidth,
   }));
-  await page.setViewportSize(previousViewport);
-  if (dimensions.document > dimensions.viewport + 1 || dimensions.body > dimensions.viewport + 1) {
-    hardFailures.push(`${label} overflows horizontally at 320px: ${JSON.stringify(dimensions)}.`);
-    logStep(false, `${label} 320px reflow`);
+  const width = page.viewportSize()?.width ?? MOBILE.width;
+  if (Math.max(dimensions.viewport, dimensions.document, dimensions.body) > width + 1) {
+    hardFailures.push(
+      `${label} overflows horizontally at ${width}px: ${JSON.stringify(dimensions)}.`,
+    );
+    logStep(false, `${label} ${width}px reflow`);
     return false;
   }
-  logStep(true, `${label} 320px reflow`);
+  logStep(true, `${label} ${width}px reflow`);
   return true;
+}
+
+async function assertMobileAnswerRows(list, label, hardFailures) {
+  const invalidRows = await list.evaluate((element) => {
+    const rows = element.querySelectorAll('.vote-ordering__item, .item-selection-row');
+    return [...rows].filter((row) => {
+      const text = row.querySelector('.vote-ordering__text, .item-selection-row__item');
+      const controls = row.querySelector('.vote-ordering__actions, .item-selection-row__field');
+      if (!text || !controls) return true;
+      const textBox = text.getBoundingClientRect();
+      const controlsBox = controls.getBoundingClientRect();
+      return (
+        text.scrollWidth > text.clientWidth + 1 ||
+        controlsBox.top < textBox.bottom ||
+        controls.scrollWidth > controls.clientWidth + 1 ||
+        controlsBox.right > row.getBoundingClientRect().right ||
+        controlsBox.height < 44 ||
+        [...controls.querySelectorAll('button')].some((control) => {
+          const box = control.getBoundingClientRect();
+          return box.width < 44 || box.height < 44;
+        })
+      );
+    }).length;
+  });
+  if (invalidRows > 0) {
+    hardFailures.push(`${label} has ${invalidRows} answer rows with cramped text or controls.`);
+  }
+  logStep(invalidRows === 0, `${label} stacked answer rows`);
+
+  const submitIsInline = await list
+    .page()
+    .locator('.vote-page__bottom-actions--structured')
+    .evaluate(
+      (element) =>
+        element.ownerDocument.defaultView?.getComputedStyle(element).position === 'static',
+    );
+  if (!submitIsInline) {
+    hardFailures.push(`${label} submit action can overlap the answer rows.`);
+  }
+  logStep(submitIsInline, `${label} inline submit action`);
 }
 
 async function assertHostNeutralOptions(host, question, label, phase, hardFailures) {
@@ -861,6 +907,9 @@ async function runOrderingFlow(
     return;
   }
   logStep(true, 'Participant ORDERING UI', `${itemCount} Schritte`);
+  await assertNoHorizontalPageScroll(participant, 'Participant ACTIVE ORDERING', hardFailures);
+  await assertMobileAnswerRows(list, 'Participant ACTIVE ORDERING', hardFailures);
+  await participant.screenshot({ path: join(ARTIFACT_DIR, 'vote-ordering-mobile.png') });
 
   const hint = await waitForText(participant, /richtige Reihenfolge|correct order/i, 5_000);
   if (!hint) {
@@ -870,26 +919,23 @@ async function runOrderingFlow(
     logStep(true, 'Participant ORDERING hint');
   }
 
-  const downButtons = participant.locator(
-    '.vote-ordering__item >> nth=0 >> button[aria-label*="unten" i], .vote-ordering__item >> nth=0 >> button[aria-label*="down" i]',
-  );
-  if (
-    await downButtons
-      .first()
-      .isEnabled()
-      .catch(() => false)
-  ) {
-    await downButtons.first().click();
-    logStep(true, 'Participant moves ORDERING item');
-  } else {
-    const anyMove = participant.locator('.vote-ordering__move').first();
-    if (!(await anyMove.isVisible().catch(() => false))) {
-      hardFailures.push('ORDERING move controls missing.');
-      logStep(false, 'Participant moves ORDERING item');
-      return;
-    }
-    logStep(true, 'Participant ORDERING move controls present');
+  const activeItems = list.locator('.vote-ordering__text');
+  const firstItem = await activeItems.first().innerText();
+  await list
+    .locator('.vote-ordering__item')
+    .first()
+    .getByRole('button', { name: /nach unten|\bdown\b/i })
+    .tap();
+  const moved = await activeItems
+    .nth(1)
+    .filter({ hasText: firstItem })
+    .waitFor({ state: 'visible', timeout: 2_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!moved) {
+    hardFailures.push('Participant tapping the down button did not move the ORDERING item.');
   }
+  logStep(moved, 'Participant moves ORDERING item');
 
   if (
     !(await submitPeerInstructionWindowShadowVotes(
@@ -1058,6 +1104,7 @@ async function selectMatOption(
     })
     .first();
   await option.waitFor({ state: 'visible', timeout: 8_000 });
+  await assertSelectionTextFits(option);
   await option.tap();
   if (exerciseSameRowReopenRace) {
     // Reproduce the delayed synthetic click that touch browsers can deliver to the
@@ -1066,10 +1113,19 @@ async function selectMatOption(
   }
   await page.locator('.mat-mdc-select-panel').waitFor({ state: 'hidden', timeout: 8_000 });
   await page.locator('.cdk-overlay-backdrop').waitFor({ state: 'hidden', timeout: 8_000 });
+  await assertSelectionTextFits(select);
 
   if (nextFormFieldLocator) {
     await nextFormFieldLocator.tap({ timeout: 2_000 });
     await page.locator('.mat-mdc-select-panel').waitFor({ state: 'visible', timeout: 2_000 });
+  }
+}
+
+async function assertSelectionTextFits(container) {
+  const text = container.locator('.item-selection-row__choice');
+  const fits = await text.evaluate((element) => element.scrollWidth <= element.clientWidth + 1);
+  if (!fits) {
+    throw new Error(`Structured selection text overflows at 320px: ${await text.textContent()}`);
   }
 }
 
@@ -1109,6 +1165,9 @@ async function runMatchingFlow(
     return;
   }
   logStep(true, 'Participant MATCHING UI', `${pairCount} Zuordnungen`);
+  await assertNoHorizontalPageScroll(participant, 'Participant ACTIVE MATCHING', hardFailures);
+  await assertMobileAnswerRows(list, 'Participant ACTIVE MATCHING', hardFailures);
+  await participant.screenshot({ path: join(ARTIFACT_DIR, 'vote-matching-mobile.png') });
 
   const progressBefore = await waitForText(
     participant,
@@ -1340,6 +1399,13 @@ async function runCategorizationFlow(
     return;
   }
   logStep(true, 'Participant CATEGORIZATION UI', `${itemCount} Zuordnungen`);
+  await assertNoHorizontalPageScroll(
+    participant,
+    'Participant ACTIVE CATEGORIZATION',
+    hardFailures,
+  );
+  await assertMobileAnswerRows(list, 'Participant ACTIVE CATEGORIZATION', hardFailures);
+  await participant.screenshot({ path: join(ARTIFACT_DIR, 'vote-categorization-mobile.png') });
 
   const wrongSelections = wrongCategorizationSelections(questionMeta);
   const categories = Object.fromEntries(
