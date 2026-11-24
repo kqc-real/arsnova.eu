@@ -22,7 +22,8 @@ Seite. Beim Vergleich zweier Abstimmungsrunden misst er die Legende mit den
 Stimmenzahlen zuerst zusammen mit den Ergebnisbalken. Erst bei weiterem
 Platzmangel setzt er die Legende auf die vorherige Seite.
 Passt der Block auch dort nicht, blättert der Presenter zwischen vollständigen
-Antwortkarten. Fortsetzungen behalten Antwortkennzeichen und Listennummern.
+Antwortkarten. Fortsetzungen behalten Antwortkennzeichen und Listennummern,
+einschließlich einer in Markdown vorgegebenen Startnummer.
 Später geladene Bilder und Schriften lösen eine Neumessung aus,
 auch wenn ihre Seite gerade nicht sichtbar ist. Während sie nach einem Reload
 noch laden, begrenzt eine vorläufige Messung den gespeicherten Index nicht.
@@ -36,6 +37,9 @@ In der Ergebnisphase folgt das persönliche und gegebenenfalls das Team-Leaderbo
 als eigene letzte Projektionsseite auf sämtliche Inhaltsseiten. Beim Sessionende
 verdrängt das Abschluss-Leaderboard weiterhin alle vorherigen Quizseiten und ist
 damit die terminale Präsentationsseite.
+Die Freitext-Wortwolke belegt eine einzelne Projektionsseite mit den
+Phasenaktionen im Footer. Beim Wechsel zur Wortwolke wird ein zuvor gemeldeter
+mehrseitiger Stand auf eine Seite zurückgesetzt.
 
 Die lokal begrenzten Projektionsgrößen zielen bei 1080p auf mindestens 36 px
 Fragetext, 30 px Antworten/Q&A und 26 px Ergebnislabels. Text und Code haben
@@ -91,6 +95,9 @@ Manuelles Blättern hält den automatischen Wechsel an. In der Lobby, der
 Gesamtauswertung, der Q&A-Wortwolke und im Blitzlicht scrollen **↑ / ↓** bei
 überlaufendem Inhalt. Dialoge, Eingabefelder und Auswahlelemente behalten ihre
 Pfeiltastenbedienung.
+Bei niedrigen Beamerformaten stehen Rangsymbol und Avatar nebeneinander, wenn
+die Abschlussrangliste unter einer Siegerkarte steht. Bei weiterem Platzmangel
+bleiben vollständige Zeilen über die vertikal scrollbare Fläche erreichbar.
 
 ### Quizstatus
 
@@ -121,6 +128,8 @@ oder **Zur Gesamtauswertung**. **Quiz pausieren** steht daneben in Lese- und
 Abstimmungsphase, **Quiz fortsetzen** auf der Pause-Fläche. **Zurück zum Host**
 bleibt in der Ecke jeder Presenter-Fläche, schließt die Projektion nicht und
 verlässt das Vollbild nur auf einem einzelnen Bildschirm.
+In der Lobby steht der Knopf in einer eigenen Zeile oberhalb der Bühne, sodass
+die Teilnahmezahl auch mit sichtbarer Vollbildaktion lesbar bleibt.
 
 In den letzten fünf Sekunden liegt die Fingeranzeige als nicht interaktive
 Viewport-Ebene über der Presenter-Fläche. Sie gehört weder zur Statuszeile noch

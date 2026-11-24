@@ -302,6 +302,13 @@ app-session-projection-quiz,
   gap: clamp(0.45rem, 1.4vmin, 1.8rem);
 }
 
+.session-present--lobby .session-present__host-return {
+  position: static;
+  flex: 0 0 auto;
+  align-self: flex-end;
+  max-width: 100%;
+}
+
 .session-present__lobby-stage {
   position: relative;
   display: grid;
@@ -1984,7 +1991,7 @@ app-session-projection-quiz,
     'hero'
     'board'
     'teams';
-  grid-template-rows: minmax(13rem, 1fr) minmax(0, max-content) minmax(0, max-content);
+  grid-template-rows: minmax(13rem, 1fr) max-content max-content;
   gap: clamp(0.65rem, 1.5vmin, 1.1rem);
   width: 100%;
   max-width: none;
@@ -1997,11 +2004,11 @@ app-session-projection-quiz,
   grid-template-areas:
     'board'
     'teams';
-  grid-template-rows: minmax(0, 1fr) minmax(0, max-content);
+  grid-template-rows: minmax(max-content, 1fr) max-content;
 }
 
 .session-present__finish--paged {
-  grid-template-rows: minmax(9rem, 1fr) minmax(0, max-content) minmax(0, max-content);
+  grid-template-rows: minmax(9rem, 1fr) max-content max-content;
 }
 
 .session-present__finish--empty {
@@ -2820,6 +2827,21 @@ app-session-projection-quiz,
   .session-present--lobby {
     padding: clamp(0.45rem, 1.5vh, 0.95rem);
     gap: clamp(0.4rem, 1.3vh, 0.8rem);
+  }
+
+  .session-present__finish-hero .session-present__winner-name--champion {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .session-present__finish:has(.session-present__finish-hero) .session-present__board-lead {
+    flex-direction: row;
+    gap: 0.4rem;
+  }
+
+  .session-present__finish:has(.session-present__finish-hero) .session-present__board-medal {
+    font-size: 2.1rem;
   }
 
   .session-present--lobby .session-present__lobby-card {

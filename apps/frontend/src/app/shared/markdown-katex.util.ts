@@ -668,6 +668,7 @@ function sanitizeMarkdownHtml(html: string): string {
         'referrerpolicy',
         'data-markdown-link-kind',
         'align',
+        'start',
         'aria-hidden',
         'aria-label',
         'role',

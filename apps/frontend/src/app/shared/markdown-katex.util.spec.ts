@@ -78,7 +78,9 @@ describe('renderMarkdownWithKatex', () => {
 
   it('escapet führende Listenmarker in Kurzlabels, damit „2. Schritt“ nicht als „1.“ erscheint', () => {
     const withoutEscape = renderMarkdownWithKatex('2. Transkription: Ablesen');
-    expect(withoutEscape.html).toMatch(/<ol\b/i);
+    const list = document.createElement('div');
+    list.innerHTML = withoutEscape.html;
+    expect(list.querySelector('ol')?.start).toBe(2);
 
     const withEscape = renderMarkdownWithKatex('2. Transkription: Ablesen', {
       escapeListMarkers: true,
