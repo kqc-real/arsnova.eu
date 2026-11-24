@@ -735,8 +735,10 @@ explizit und führt `e2e:motd-focus` sowie `smoke:webkit-participant-vote` aus.
 Der Required-Check `e2e` wird nur grün, wenn beide
 Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
 nachträglich rot. Playwright-Browser installiert
-[`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh)
-(Browser-Binary mit Zeitlimit, OS-Deps ohne kurzen apt-Kill). `smoke:short-text` und `smoke:unified-session` schreiben bei
+[`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh).
+Der Browser-Download hat ein eigenes Zeitlimit. Auf GitHub-Runnern
+verwendet APT für Azure- und regionale EC2-Spiegel `archive.ubuntu.com`.
+`smoke:short-text` und `smoke:unified-session` schreiben bei
 gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
 Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
 `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese

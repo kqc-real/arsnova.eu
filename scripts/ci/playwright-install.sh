@@ -8,7 +8,7 @@
 # scheitern mit Exit 100 oder laufen in timeout-minutes.
 #
 # Deshalb: Binary-Download mit Retry, OS-Deps danach ohne kurzen Kill,
-# auf GitHub-Runnern Ubuntu-Spiegel auf archive.ubuntu.com umbiegen.
+# auf GitHub-Runnern Azure- und EC2-Spiegel auf archive.ubuntu.com umbiegen.
 # Usage: playwright-install.sh <chromium|webkit|firefox>
 set -euo pipefail
 
@@ -53,23 +53,19 @@ prefer_archive_ubuntu_mirrors() {
   if ! command -v sudo >/dev/null 2>&1; then
     return 0
   fi
-  echo "CI: Ubuntu-Spiegel von azure.archive.ubuntu.com auf archive.ubuntu.com umbiegen."
+  local apt_dir=${PLAYWRIGHT_APT_DIR:-/etc/apt}
   local files=()
   local candidate
-  for candidate in /etc/apt/sources.list /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/ubuntu.sources; do
+  for candidate in "$apt_dir"/sources.list "$apt_dir"/apt-mirrors.txt "$apt_dir"/sources.list.d/*.{list,sources}; do
     if [[ -f "$candidate" ]]; then
       files+=("$candidate")
     fi
   done
-  shopt -s nullglob
-  for candidate in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
-    files+=("$candidate")
-  done
-  shopt -u nullglob
   if ((${#files[@]} == 0)); then
     return 0
   fi
-  sudo sed -i 's/azure\.archive\.ubuntu\.com/archive.ubuntu.com/g' "${files[@]}" || true
+  echo "CI: Azure- und EC2-Spiegel auf archive.ubuntu.com umbiegen."
+  sudo sed -E -i 's#(https?://)(azure|[a-z0-9-]+\.ec2)\.archive\.ubuntu\.com/#\1archive.ubuntu.com/#g' "${files[@]}" || true
 }
 
 prefer_archive_ubuntu_mirrors

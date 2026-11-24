@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,7 @@ function runInstall(args, env = {}) {
     encoding: 'utf8',
     env: {
       ...process.env,
+      GITHUB_ACTIONS: 'false',
       PLAYWRIGHT_INSTALL_RETRY_SLEEP_SEC: '0',
       ...env,
     },
@@ -86,6 +87,74 @@ test('playwright-install downloads the browser without --with-deps then installs
   assert.match(timeoutArgs, /install webkit/);
   assert.doesNotMatch(timeoutArgs, /--with-deps/);
   assert.match(result.stdout, /stub-cli install-deps webkit/);
+});
+
+test('playwright-install replaces GitHub runner apt mirrors and preserves other sources', (t) => {
+  const stub = makeTimeoutStub(1);
+  t.after(() => rmSync(stub.dir, { recursive: true, force: true }));
+  const aptDir = join(stub.dir, 'apt');
+  mkdirSync(join(aptDir, 'sources.list.d'), { recursive: true });
+  const knownMirrors = {
+    'apt-mirrors.txt': [
+      'http://us-east-2.ec2.archive.ubuntu.com/ubuntu/',
+      'http://archive.ubuntu.com/ubuntu/',
+    ],
+    'sources.list': [
+      'deb https://azure.archive.ubuntu.com/ubuntu noble main',
+      'deb https://archive.ubuntu.com/ubuntu noble main',
+    ],
+    'sources.list.d/ubuntu.sources': [
+      'URIs: http://eu-west-1.ec2.archive.ubuntu.com/ubuntu',
+      'URIs: http://archive.ubuntu.com/ubuntu',
+    ],
+  };
+  const otherSources = [
+    'URIs: http://security.ubuntu.com/ubuntu',
+    'URIs: http://ports.ubuntu.com/ubuntu-ports',
+    'URIs: http://us-east-2.ec2.archive.ubuntu.com.example.org/ubuntu',
+  ].join('\n');
+  for (const [file, [original]] of Object.entries(knownMirrors)) {
+    writeFileSync(join(aptDir, file), original + '\n');
+  }
+  writeFileSync(join(aptDir, 'sources.list.d', 'other.sources'), otherSources + '\n');
+  const sudo = join(stub.dir, 'sudo');
+  // Run the same sed expression on macOS and Linux without modifying system files.
+  writeFileSync(
+    sudo,
+    `#!/usr/bin/env bash
+set -euo pipefail
+[[ "$1" == "sed" && "$2" == "-E" && "$3" == "-i" ]]
+expression=$4
+shift 4
+for source; do
+  sed -E "$expression" "$source" > "$source.tmp"
+  mv "$source.tmp" "$source"
+done
+`,
+    { mode: 0o755 },
+  );
+  const env = {
+    PATH: `${stub.dir}:${process.env.PATH}`,
+    PLAYWRIGHT_APT_DIR: aptDir,
+    PLAYWRIGHT_CLI: stub.cliPath,
+    PLAYWRIGHT_TIMEOUT_BIN: stub.timeoutPath,
+  };
+  const local = runInstall(['webkit'], env);
+  assert.equal(local.status, 0, local.stderr);
+  for (const [file, [original]] of Object.entries(knownMirrors)) {
+    assert.equal(readFileSync(join(aptDir, file), 'utf8'), original + '\n');
+  }
+
+  const ci = runInstall(['webkit'], { ...env, GITHUB_ACTIONS: 'true' });
+  assert.equal(ci.status, 0, ci.stderr);
+  for (const [file, [, expected]] of Object.entries(knownMirrors)) {
+    assert.equal(readFileSync(join(aptDir, file), 'utf8'), expected + '\n');
+  }
+  assert.equal(
+    readFileSync(join(aptDir, 'sources.list.d', 'other.sources'), 'utf8'),
+    otherSources + '\n',
+  );
+  assert.match(ci.stdout, /stub-cli install-deps webkit/);
 });
 
 test('playwright-install retries after a timed-out browser download', () => {
