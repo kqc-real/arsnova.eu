@@ -736,7 +736,9 @@ Der Required-Check `e2e` wird nur grün, wenn beide
 Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
 nachträglich rot. Playwright-Browser installiert
 [`scripts/ci/playwright-install.sh`](../scripts/ci/playwright-install.sh)
-(Browser-Binary mit Zeitlimit, OS-Deps ohne kurzen apt-Kill). `smoke:short-text` und `smoke:unified-session` schreiben bei
+(Browser-Binary mit Zeitlimit, OS-Deps ohne kurzen apt-Kill). Auf GitHub-Runnern
+verwendet das Skript `archive.ubuntu.com` für Azure- und EC2-Paketspiegel.
+`smoke:short-text` und `smoke:unified-session` schreiben bei
 gesetztem `SMOKE_ARTIFACT_DIR` zusätzlich axe-JSON-Berichte; der
 Session-Verlaufs-Smoke schreibt einen Abschluss- oder Fehler-Screenshot. Mit
 `A11Y_SCAN=0` lassen sich nur die axe-Schritte lokal deaktivieren; CI setzt diese
