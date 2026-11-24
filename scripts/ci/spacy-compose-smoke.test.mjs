@@ -44,17 +44,28 @@ test('docker-compose.prod.yml koppelt den Sidecar an SPACY_IMAGE, nicht ARSNOVA_
   assert.match(app, /NLP_CACHE_TTL_SECONDS:\s*'1800'/);
 });
 
-test('spaCy verifies the four language model wheels in a separate pip hash check', () => {
+test('spaCy verifies the language models and Italian lookup data in a separate pip hash check', () => {
   const packages = readRepoFile('docker/spacy/requirements-models.txt')
     .split('\n')
     .filter((line) => line && !line.startsWith('#'));
   assert.deepEqual(
-    packages.map((line) => line.split(' @ ')[0]),
-    ['de-core-news-sm', 'en-core-web-sm', 'fr-core-news-sm', 'es-core-news-sm'],
+    packages.map((line) => line.split(/ @ |==/)[0]),
+    [
+      'de-core-news-sm',
+      'en-core-web-sm',
+      'fr-core-news-sm',
+      'es-core-news-sm',
+      'spacy-lookups-data',
+    ],
   );
-  for (const requirement of packages) {
+  for (const requirement of packages.slice(0, 4)) {
     assert.match(requirement, /\.whl --hash=sha256:[a-f0-9]{64}$/);
   }
+  assert.match(packages.at(-1), /^spacy-lookups-data==1\.0\.5 --hash=sha256:[a-f0-9]{64}$/);
+  assert.doesNotMatch(
+    readRepoFile('docker/spacy/requirements.txt'),
+    /^\s*spacy[-_]lookups[-_]data\b/im,
+  );
   assert.match(
     readRepoFile('docker/spacy/Dockerfile'),
     /pip install --no-cache-dir --no-deps --require-hashes -r requirements-models\.txt/,

@@ -4,3 +4,5 @@ de-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/de
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl --hash=sha256:1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
 fr-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_sm-3.8.0/fr_core_news_sm-3.8.0-py3-none-any.whl --hash=sha256:7d6ad14cd5078e53147bfbf70fb9d433c6a3865b695fda2657140bbc59a27e29
 es-core-news-sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl --hash=sha256:e451a83d6df79b87e9eed0cb553f03e99e36a3bab18a7b79f0dcfd1fdf875e12
+# Italian lookup data (MIT). SHA-256 of the PyPI wheel.
+spacy-lookups-data==1.0.5 --hash=sha256:466f21f087e4144bc93800679437ec5a17be7d0888734b1ba880b3ecb0978bc6
