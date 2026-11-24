@@ -5954,6 +5954,17 @@ button.session-host__btn-discussion {
   min-height: 0;
 }
 
+.session-host:has(.session-host__word-cloud-progression > button) .session-host__exit-anchor {
+  visibility: hidden;
+}
+
+.session-host__word-cloud-progression {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  padding-block-end: env(safe-area-inset-bottom, 0px);
+}
+
 .session-host__extra--maximized
   .session-host__word-cloud-status:not(.session-host__word-cloud-status--cover) {
   left: 50%;
