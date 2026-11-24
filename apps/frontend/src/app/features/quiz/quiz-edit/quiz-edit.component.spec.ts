@@ -2730,6 +2730,33 @@ describe('QuizEditComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('bietet die Quiz-Bewertung standardmäßig ausgeschaltet an und speichert die Auswahl', () => {
+    const fixture = TestBed.createComponent(QuizEditComponent);
+    const component = fixture.componentInstance;
+    component.showSettings.set(true);
+    fixture.detectChanges();
+
+    const checkbox = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      '[formcontrolname="enableSessionFeedback"] input[type="checkbox"]',
+    );
+    expect(checkbox?.checked).toBe(false);
+
+    checkbox?.click();
+    mockStore.updateQuizSettings.mockReturnValueOnce({
+      ...quiz.settings,
+      enableSessionFeedback: true,
+    });
+    component.saveAll();
+
+    expect(mockStore.updateQuizSettings).toHaveBeenCalledWith(
+      QUIZ_ID,
+      expect.objectContaining({ enableSessionFeedback: true }),
+    );
+    fixture.detectChanges();
+    expect(checkbox?.checked).toBe(true);
+    fixture.destroy();
+  });
+
   it('hält Meta-Expansion und Tokens ohne ::ng-deep / font-weight 800', () => {
     const styles = readFileSync(
       resolve(process.cwd(), 'src/app/features/quiz/quiz-edit/quiz-edit.component.scss'),

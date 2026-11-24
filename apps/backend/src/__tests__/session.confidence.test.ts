@@ -704,18 +704,29 @@ describe('Confidence-Auswertung (Story 1.2i)', () => {
       procedure: 'session.getSessionConfidenceSummary',
       case: 'happy',
       mode: 'direct',
-      title: 'liefert getSessionConfidenceSummary ohne Host-Token für beendete Quiz-Sessions',
+      title: 'wertet nach dem Quiz nur Fragen mit aktivierter Selbsteinschätzung aus',
     },
     async () => {
+      const disabledQuestionId = '22222222-2222-4222-8222-222222222222';
       prismaMock.session.findUnique.mockResolvedValue({
         id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
         code: CODE,
         status: 'FINISHED',
         type: 'QUIZ',
         quiz: {
-          questions: [buildConfidenceScQuestion()],
+          questions: [
+            buildConfidenceScQuestion(),
+            { ...buildConfidenceScQuestion(), id: disabledQuestionId, confidenceEnabled: false },
+          ],
         },
         votes: [
+          ...Array.from({ length: 5 }, () => ({
+            questionId: disabledQuestionId,
+            round: 1,
+            confidenceValue: 5,
+            isCorrect: false,
+            selectedAnswers: [{ answerOptionId: WRONG_ID }],
+          })),
           {
             questionId: QUESTION_ID,
             round: 1,

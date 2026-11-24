@@ -469,7 +469,7 @@
     },
     "quiz.upload": {
       "kind": "mutation",
-      "fingerprint": "sha256:c192e039cffaf355b58b0d7d7edc453a271cbd9b7ae1d0b3f734f0228a9748c3",
+      "fingerprint": "sha256:77014b2ce94a556a8cf518376079d79592912c83d828c17516f33fee1a4b64dc",
       "missing": []
     },
     "quizSync.createShare": {
@@ -964,7 +964,7 @@
     },
     "session.submitSessionFeedback": {
       "kind": "mutation",
-      "fingerprint": "sha256:3f372d3f7741847bd66ee9a9d95f56087a470c00f1187491c42c1c8937bdb3a0",
+      "fingerprint": "sha256:bb276dc75d7f85318b49b4a38259e375a9c76a5a0491a0e2e8a70b917685edca",
       "missing": []
     },
     "session.updateQaTitle": {

@@ -734,13 +734,19 @@ export async function runDemoQuizClassroom(options = {}) {
     if (!info?.id) {
       throw new Error(`Session ${SESSION_CODE} nicht gefunden.`);
     }
+    if (info.enableSessionFeedback !== true) {
+      throw new Error(`Für Session ${SESSION_CODE} muss die Quiz-Bewertung aktiviert sein.`);
+    }
     code = SESSION_CODE;
     sessionId = info.id;
     quizId = info.id;
     hostToken = await mintHostToken(code);
     log(`Nutze bestehende Session ${code} (${info.quizName ?? 'Quiz'}).`);
   } else {
-    const uploadResult = await publicTrpc.quiz.upload.mutate(uploadPayload);
+    const uploadResult = await publicTrpc.quiz.upload.mutate({
+      ...uploadPayload,
+      enableSessionFeedback: true,
+    });
     quizId = uploadResult.quizId;
     const created = await publicTrpc.session.create.mutate({
       quizId,

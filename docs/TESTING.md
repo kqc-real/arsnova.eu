@@ -923,6 +923,8 @@ vorhandene Session zu beenden; der feste Standardwert bleibt für bewusste
 Wiederverwendung erhalten. Fehler der Host-UI-/CSV-Prüfung führen zu einem
 Fehlercode, auch wenn die erzeugte Session weiterhin für die Fehlersuche verfügbar ist.
 
+Der Confidence-E2E und der Demo-Quiz-Classroom-Smoke aktivieren die Quiz-Bewertung beim Upload. Bei Wiederverwendung einer Session über `SESSION_CODE` muss das hochgeladene Quiz die Bewertung bereits aktiviert haben.
+
 Für Performance-/Lastarbeit ist [PERFORMANCE-TESTING.md](PERFORMANCE-TESTING.md) das aktuelle Inventar. Die Classroom-Szenario-Smokes (`load:smoke:*-classroom-30`, inkl. WebSocket Vote-Progress, Reconnect-Welle, Q&A-/Blitzlicht-Fan-out sowie Host-Pairing Security/Cap) laufen in CI im Job `classroom-smokes`; schwere Last-Smokes (200–600 TN), Yjs, Soak und k6-Produktion bleiben manuell/Schedule. Der mit PR [#165](https://github.com/kqc-real/arsnova.eu/pull/165) bereitgestellte Demo-Classroom-Dauerlauf ist davon getrennt: **lokal validiert**, ausschließlich manuell lokal und kein PR-Gate. Praktikums-Einstieg: [`docs/praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md`](praktikum/HANDOUT-LAST-UND-PERFORMANCE-TESTS.md).
 
 Der lokale 10-Minuten-Nachweis vom 2026-07-27 absolvierte 48 vollständige

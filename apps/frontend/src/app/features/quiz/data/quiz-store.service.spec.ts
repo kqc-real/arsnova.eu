@@ -96,6 +96,7 @@ describe('QuizStoreService', () => {
     expect(userQuizzes.length).toBe(1);
     expect(userQuizzes[0]?.name).toBe('Einführung Informatik');
     expect(userQuizzes[0]?.questionCount).toBe(0);
+    expect(created.settings.enableSessionFeedback).toBe(false);
 
     const raw = localStorage.getItem(QUIZ_STORAGE_KEY);
     expect(raw).toBeTruthy();
@@ -189,6 +190,7 @@ describe('QuizStoreService', () => {
     const service = TestBed.inject(QuizStoreService);
 
     expect(service.getQuizById(quizId)?.settings.shuffleAnswerOptions).toBe(true);
+    expect(service.getQuizById(quizId)?.settings.enableSessionFeedback).toBe(false);
     expect(service.getQuizById(quizId)?.questions[0]?.shuffleAnswerOptions).toBe(true);
   });
 
@@ -968,6 +970,7 @@ describe('QuizStoreService', () => {
       settings: {
         showLeaderboard: false,
         preset: 'SERIOUS',
+        enableSessionFeedback: true,
         enableLearningDebrief: true,
         enablePeerInstruction: false,
         enableRewardEffects: false,
@@ -992,7 +995,9 @@ describe('QuizStoreService', () => {
     expect(exported.quiz.shuffleAnswerOptions).toBe(false);
     expect(imported.quiz.id).not.toBe(created.id);
     expect(imported.quiz.settings.shuffleAnswerOptions).toBe(false);
+    expect(imported.quiz.settings.enableSessionFeedback).toBe(true);
     expect(service.getUploadPayload(imported.quiz.id)).toMatchObject({
+      enableSessionFeedback: true,
       enableLearningDebrief: true,
       enablePeerInstruction: false,
     });

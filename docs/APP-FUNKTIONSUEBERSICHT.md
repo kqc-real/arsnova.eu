@@ -412,7 +412,9 @@ Mit **Peer Instruction nutzen** kannst du die automatische Diskussionsempfehlung
 
 Der Textlink unter dem Schalter führt direkt zur Erklärung auf der Infoseite. [So funktioniert Peer Instruction](https://info.arsnova.eu/de/#peer-instruction)
 
-**Lernstand der Gruppe** zeigt in der Host-Abschlussansicht oberhalb der Rangliste den Median und die Verteilung der vollständig richtigen Antworten pro Person. Bezugsgröße sind alle durchgeführten bewertbaren Fragen. Teilnehmende mit mindestens einer gewerteten Antwort gehen auch mit null richtigen Antworten in die Verteilung ein. Teilnehmende ohne gewertete Antwort werden separat gezählt. Für die Nachbesprechung erscheinen bis zu drei Fragen mit der niedrigsten Lösungsquote unter zwei Dritteln der abgegebenen gewerteten Antworten, ergänzt um bestätigte Lernziele, die der jeweiligen Frage zugeordnet sind. Der Host sieht den vollständigen Text dieser Fragen mit Markdown und KaTeX. Die Auswertung nutzt bei Peer Instruction die gewertete Runde und ist auch bei ausgeschalteter Rangliste verfügbar.
+**Lernstand der Gruppe** zeigt in der Host-Abschlussansicht oberhalb der Rangliste, wie viele Fragen im Median vollständig richtig beantwortet wurden und wie viele Personen mindestens eine gewertete Antwort abgegeben haben. Unter **Nachbesprechen** stehen insgesamt bis zu drei verschiedene Fragen. Vorrang haben die stärksten Hinweise auf verbreitete Fehlvorstellungen aus Fragen mit aktiver Selbsteinschätzung. Für diese Hinweise gelten die Schwellen der Selbsteinschätzungsauswertung. Freie Plätze füllen die übrigen Fragen mit den niedrigsten Lösungsquoten unter zwei Dritteln. Die Zeile zeigt die Quote sowie die Zahl der richtigen beziehungsweise der sicher falsch gegebenen Antworten. Zugeordnete bestätigte Lernziele sind direkt lesbar. Der vollständige Fragetext mit Markdown und KaTeX lässt sich dann aufklappen. Bei Fragen ohne bestätigtes Lernziel ist der Fragetext direkt sichtbar.
+
+Darunter folgt die Verteilung der vollständig richtigen Antworten pro Person, bezogen auf alle durchgeführten bewertbaren Fragen. Teilnehmende mit mindestens einer gewerteten Antwort gehen auch mit null richtigen Antworten in die Verteilung ein. Die Auswertung nutzt bei Peer Instruction die gewertete Runde und ist auch bei ausgeschalteter Rangliste verfügbar.
 
 **Quiz beendet** kennzeichnet die Gesamtauswertung, wenn danach noch weitere Formate verfügbar bleiben. **Session beendet** bleibt der Titel bei tatsächlichem Host-Ende oder wenn keine solchen Formate mehr verbleiben. Quizabschluss allein schließt eine weiterhin offene Fragenwand oder ein offenes Blitzlicht nicht.
 
@@ -754,7 +756,9 @@ Die Bonuslogik ist auf datensparsame Nachnutzung ausgelegt: Der Code ist die Br�
 
 ### 7.6 Session-Feedback
 
-Nach einer beendeten Session kann pro Teilnehmer genau einmal Feedback abgegeben werden.
+Im Quiz-Editor lässt sich unter »Spiel & Auswertung« die Option »Quiz-Bewertung im Gesamtergebnis anbieten« aktivieren. Sie ist standardmäßig ausgeschaltet, auch bei bestehenden Quizzen ohne gespeicherte Einstellung.
+
+Bei aktivierter Option können Teilnehmende im Gesamtergebnis des Quiz einmal Feedback abgeben. Sobald eine Bewertung vorliegt, kann der Host im Gesamtergebnis die Zusammenfassung abrufen. Mit dem globalen Session-Ende schließt die Bewertung.
 
 Unterstützt werden:
 

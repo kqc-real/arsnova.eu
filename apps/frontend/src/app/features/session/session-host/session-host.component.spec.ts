@@ -10,6 +10,7 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { By } from '@angular/platform-browser';
 import { NEVER, Subject, of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildSessionConfidenceSummary } from '@arsnova/shared-types';
 import type {
   HostCurrentQuestionDTO,
   QaQuestionDTO,
@@ -17,6 +18,7 @@ import type {
   QaQuestionsListDTO,
   QaSummaryRuntimeCompatibleDTO,
   QuickFeedbackResult,
+  SessionConfidenceSummaryDTO,
   SessionLearningObjectiveDTO,
 } from '@arsnova/shared-types';
 import {
@@ -201,6 +203,7 @@ const {
   getHostTeamLeaderboardQueryMock,
   getExportDataQueryMock,
   getSessionConfidenceSummaryQueryMock,
+  getSessionFeedbackSummaryQueryMock,
   wordCloudAnalyzeQueryMock,
   qaListQueryMock,
   qaPresentProjectionQueryMock,
@@ -273,6 +276,7 @@ const {
   getHostTeamLeaderboardQueryMock: vi.fn(),
   getExportDataQueryMock: vi.fn(),
   getSessionConfidenceSummaryQueryMock: vi.fn(),
+  getSessionFeedbackSummaryQueryMock: vi.fn(),
   wordCloudAnalyzeQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
   qaPresentProjectionQueryMock: vi.fn(),
@@ -369,6 +373,7 @@ vi.mock('../../../core/trpc.client', () => ({
       getHostTeamLeaderboard: { query: getHostTeamLeaderboardQueryMock },
       getExportData: { query: getExportDataQueryMock },
       getSessionConfidenceSummary: { query: getSessionConfidenceSummaryQueryMock },
+      getSessionFeedbackSummary: { query: getSessionFeedbackSummaryQueryMock },
       nextQuestion: { mutate: nextQuestionMutateMock },
       prevQuestion: { mutate: prevQuestionMutateMock },
       showQuestionResult: { mutate: showQuestionResultMutateMock },
@@ -4495,6 +4500,32 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.destroy();
     },
   );
+
+  it('lädt die Zusammenfassung nur bei aktivierter Quiz-Bewertung', async () => {
+    const fixture = setup();
+    const component = fixture.componentInstance;
+    const summary = {
+      totalResponses: 1,
+      overallAverage: 4,
+      overallDistribution: { 4: 1 },
+      questionQualityAverage: null,
+      questionQualityDistribution: null,
+      wouldRepeatYes: 0,
+      wouldRepeatNo: 0,
+    };
+    getSessionFeedbackSummaryQueryMock.mockResolvedValue(summary);
+
+    component.session.set({ ...defaultSession, status: 'FINISHED', enableSessionFeedback: false });
+    await component.loadFeedbackSummary();
+    expect(getSessionFeedbackSummaryQueryMock).not.toHaveBeenCalled();
+    expect(component.feedbackSummary()).toBeNull();
+
+    component.session.set({ ...defaultSession, status: 'FINISHED', enableSessionFeedback: true });
+    await component.loadFeedbackSummary();
+    expect(getSessionFeedbackSummaryQueryMock).toHaveBeenCalledTimes(1);
+    expect(component.feedbackSummary()).toEqual(summary);
+    fixture.destroy();
+  });
 
   it('blendet den Kanalwahlschalter nach Session-Ende aus', () => {
     const fixture = setup();
@@ -25310,7 +25341,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt Median, Verteilung und zugeordnete bestätigte Lernziele vor der Rangliste', async () => {
+  it('zeigt Lösungsquoten und bestätigte Lernziele vor der Verteilung und der Rangliste', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
     getLeaderboardQueryMock.mockResolvedValue([
       { rank: 1, nickname: 'Ada', totalScore: 120, correctCount: 3, totalQuestions: 4 },
@@ -25346,6 +25377,13 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           correctCount: 1,
           responseCount: 3,
         },
+        {
+          questionId: '22222222-2222-4222-8222-222222222222',
+          questionOrder: 0,
+          text: 'Wo liegt der Median?',
+          correctCount: 1,
+          responseCount: 2,
+        },
       ],
     });
 
@@ -25365,11 +25403,17 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       'learning-overview-heading',
       'leaderboard-heading',
     ]);
-    const median = overview.querySelector('.session-host__learning-overview-median-value');
-    expect(median?.textContent?.replace(/\s+/g, ' ').trim()).toBe('1 von 4 richtigen Antworten');
+    const metrics = [...overview.querySelectorAll('.session-host__learning-overview-metric-value')];
+    expect(metrics.map((metric) => metric.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+      '1 von 4',
+      '3 von 5',
+    ]);
     expect(
-      overview.querySelector('.session-host__learning-overview-median-hint')?.textContent,
-    ).toContain('Die Mitte, wenn du die Ergebnisse');
+      [...overview.querySelectorAll('h3')].map((heading) => heading.textContent.trim()),
+    ).toEqual(['Nachbesprechen', 'Anteil richtiger Antworten pro Person']);
+    expect(
+      overview.querySelector('.session-host__learning-overview-rate strong')?.textContent,
+    ).toMatch(/33[.,]3\s*%/);
     const bandLabels = [
       ...overview.querySelectorAll('.session-host__learning-overview-bars li > span:first-child'),
     ];
@@ -25379,18 +25423,107 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       '50 bis unter 75\u00a0%',
       '75 bis 100\u00a0%',
     ]);
-    const question = overview.querySelector('.session-host__learning-overview-question-text');
-    expect(question?.querySelector('h4')?.textContent).toBe('Mittelwert berechnen');
+    const disclosure = overview.querySelector<HTMLDetailsElement>(
+      '.session-host__learning-overview-question-details',
+    );
+    expect(disclosure?.open).toBe(false);
+    expect(disclosure?.querySelector('summary')?.getAttribute('aria-label')).toBe(
+      'Fragetext zu Frage 3',
+    );
+    disclosure!.open = true;
+    fixture.detectChanges();
+    const question = disclosure?.querySelector('.session-host__learning-overview-question-text');
+    expect(question?.querySelector('h5')?.textContent).toBe('Mittelwert berechnen');
     expect(question?.querySelector('strong')?.textContent).toBe('Messreihe');
     expect(question?.querySelector('.katex math')).not.toBeNull();
     expect(question?.querySelector('.katex-display')?.getAttribute('tabindex')).toBe('0');
     expect(question?.querySelectorAll('ol > li')).toHaveLength(2);
     expect(question?.textContent).toContain('Erkläre den Einfluss eines Ausreißers.');
+    expect(
+      overview.querySelectorAll('.session-host__learning-overview-question-details'),
+    ).toHaveLength(1);
+    expect(
+      overview.querySelector('.session-host__learning-overview-topic > .markdown-body')
+        ?.textContent,
+    ).toContain('Wo liegt der Median?');
     expect(overview.textContent).toContain('Bestätigtes Lernziel');
     expect(overview.textContent).not.toContain('Entwurf');
     expect(overview.textContent).not.toContain('Quizweites Lernziel');
     fixture.destroy();
   });
+
+  it.each([
+    { confidentWrong: null, expected: [2, 4, 3], misconceptions: 0 },
+    { confidentWrong: [1, 4], expected: [2, 4, 3], misconceptions: 0 },
+    { confidentWrong: [20, 10], expected: [2, 5, 4], misconceptions: 2 },
+    { confidentWrong: [20, 10, 25, 15], expected: [1, 2, 3], misconceptions: 3 },
+  ])(
+    'zeigt höchstens drei unterschiedliche Nachbesprechungsfragen ($misconceptions Fehlvorstellungen)',
+    async ({ confidentWrong, expected, misconceptions }) => {
+      const ids = [1, 2, 3, 4, 5].map((number) => `11111111-1111-4111-8111-11111111111${number}`);
+      getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
+      getLearningOverviewQueryMock.mockResolvedValue({
+        questionCount: 5,
+        respondentCount: 50,
+        noResponseCount: 0,
+        medianCorrectCount: 3,
+        distribution: [0, 0, 50, 0],
+        reviewQuestions: [2, 4, 3].map((number, index) => ({
+          questionId: ids[number - 1],
+          questionOrder: number - 1,
+          text: `Fragetext ${number}`,
+          correctCount: index + 20,
+          responseCount: 50,
+        })),
+      });
+      const pendingConfidence = Promise.withResolvers<SessionConfidenceSummaryDTO | null>();
+      getSessionConfidenceSummaryQueryMock.mockReturnValueOnce(pendingConfidence.promise);
+
+      const fixture = setup();
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      const rows = () => host.querySelectorAll('.session-host__learning-overview-review > li');
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(fixture.componentInstance.learningOverview()).not.toBeNull();
+      });
+      expect(rows()).toHaveLength(0);
+
+      const questions = (confidentWrong ?? []).map((wrongCount, index) => {
+        const number = [2, 5, 1, 3][index];
+        return {
+          questionId: ids[number - 1],
+          questionOrder: number - 1,
+          questionTextShort: `Fragetext ${number}`,
+          questionType: 'SINGLE_CHOICE' as const,
+          result: {
+            distribution: { '1': 50 - wrongCount, '2': 0, '3': 0, '4': 0, '5': wrongCount },
+            crossTab: {
+              correctHigh: 0,
+              correctMid: 0,
+              correctLow: 50 - wrongCount,
+              incorrectHigh: wrongCount,
+              incorrectMid: 0,
+              incorrectLow: 0,
+            },
+            highConfidenceWrongCount: wrongCount,
+          },
+        };
+      });
+      pendingConfidence.resolve(buildSessionConfidenceSummary({ questions }));
+
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(Array.from(rows(), (row) => row.querySelector('h4')?.textContent.trim())).toEqual(
+          expected.map((number) => `Frage ${number}`),
+        );
+      });
+      expect(host.querySelectorAll('.session-host__learning-overview-misconception')).toHaveLength(
+        misconceptions,
+      );
+      fixture.destroy();
+    },
+  );
 
   it('lässt die fehlgeschlagene Lernstandsübersicht erneut laden und behält den Fokus', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED' });
@@ -25435,7 +25568,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(status.textContent).toContain('Lernstand geladen');
     });
     expect(overview.textContent).toContain('Keine gewerteten Antworten');
-    expect(overview.querySelector('.session-host__learning-overview-median-hint')).toBeNull();
+    expect(overview.querySelector('.session-host__learning-overview-review')).toBeNull();
     expect(document.activeElement).toBe(button);
     fixture.destroy();
   });
@@ -25736,6 +25869,45 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
 
   it('nennt in der Gesamtauswertung nur das bestätigte Lernziel dieser einen Frage', async () => {
     const questionId = 'bbbbbbbb-2222-4222-8222-222222222222';
+    getLearningObjectivesQueryMock.mockResolvedValue({
+      objectives: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          revision: 1,
+          text: 'Die Formel $$x^2$$ erläutern.',
+          scope: {
+            kind: 'question-set',
+            taskReferences: [{ kind: 'quiz-question', questionId }],
+          },
+          origin: { kind: 'manual' },
+          confirmation: {
+            state: 'confirmed',
+            confirmedAt: '2026-10-27T10:00:00.000Z',
+            confirmedRevision: 1,
+          },
+          projection: 'quiz-projected',
+          purpose: 'learning-objective',
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          revision: 1,
+          text: 'Das ganze Quiz verstehen.',
+          scope: { kind: 'quiz-wide' },
+          origin: { kind: 'manual' },
+          confirmation: {
+            state: 'confirmed',
+            confirmedAt: '2026-10-27T10:00:00.000Z',
+            confirmedRevision: 1,
+          },
+          projection: 'quiz-projected',
+          purpose: 'learning-objective',
+          createdAt: '2026-10-27T10:00:00.000Z',
+          updatedAt: '2026-10-27T10:00:00.000Z',
+        },
+      ],
+    });
     const fixture = setup();
     fixture.detectChanges();
     await fixture.whenStable();
@@ -25743,43 +25915,6 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       status: 'FINISHED',
       currentQuestion: null,
     });
-    fixture.componentInstance.sessionLearningObjectives.set([
-      {
-        id: '11111111-1111-4111-8111-111111111111',
-        revision: 1,
-        text: 'Die Formel $$x^2$$ erläutern.',
-        scope: {
-          kind: 'question-set',
-          taskReferences: [{ kind: 'quiz-question', questionId }],
-        },
-        origin: { kind: 'manual' },
-        confirmation: {
-          state: 'confirmed',
-          confirmedAt: '2026-10-27T10:00:00.000Z',
-          confirmedRevision: 1,
-        },
-        projection: 'quiz-projected',
-        purpose: 'learning-objective',
-        createdAt: '2026-10-27T10:00:00.000Z',
-        updatedAt: '2026-10-27T10:00:00.000Z',
-      },
-      {
-        id: '22222222-2222-4222-8222-222222222222',
-        revision: 1,
-        text: 'Das ganze Quiz verstehen.',
-        scope: { kind: 'quiz-wide' },
-        origin: { kind: 'manual' },
-        confirmation: {
-          state: 'confirmed',
-          confirmedAt: '2026-10-27T10:00:00.000Z',
-          confirmedRevision: 1,
-        },
-        projection: 'quiz-projected',
-        purpose: 'learning-objective',
-        createdAt: '2026-10-27T10:00:00.000Z',
-        updatedAt: '2026-10-27T10:00:00.000Z',
-      },
-    ]);
     fixture.componentInstance.finishedConfidenceSummary.set({
       responseCount: 5,
       includedQuestionCount: 1,
@@ -25824,12 +25959,20 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         },
       ],
     });
-    fixture.detectChanges();
+    getSessionConfidenceSummaryQueryMock.mockResolvedValue(
+      fixture.componentInstance.finishedConfidenceSummary(),
+    );
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(
+        fixture.nativeElement.querySelector('.session-host__learning-overview-review'),
+      ).not.toBeNull();
+    });
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Lernziel zu Frage 1');
-    expect(text).toContain('»Die Formel x^2 erläutern.«');
-    expect(text).toContain('2 von 5 falsch bei hoher Selbsteinschätzung (40 %)');
+    expect(text).toContain('Hinweis auf verbreitete Fehlvorstellung');
+    expect(text).toContain('Die Formel x^2 erläutern.');
+    expect(text).toContain('2 von 5 falsch und sicher');
     expect(text).toContain('Häufigste falsche Option:');
     expect(text).toContain('»x^3«');
     expect(text).not.toContain('Das ganze Quiz verstehen.');
@@ -25895,7 +26038,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('Nachbesprechungsplan herunterladen');
     const host = fixture.nativeElement as HTMLElement;
     const finished = host.querySelector('#host-session-finished-card');
-    const summary = host.querySelector('.session-host__finished-confidence-question-markdown');
+    const summary = host.querySelector('.session-host__learning-overview-question-text');
     expect(finished).not.toBeNull();
     expect(summary).not.toBeNull();
     expect(
@@ -25995,12 +26138,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(exportTrigger!.getAttribute('aria-disabled')).not.toBe('true');
     expect(text).toContain('Welche Aussage stimmt?');
     expect(
-      fixture.nativeElement.querySelector('.session-host__finished-confidence-question-markdown h4')
+      fixture.nativeElement.querySelector('.session-host__learning-overview-question-text h5')
         ?.textContent,
     ).toContain('Welche Aussage stimmt?');
     expect(
       fixture.nativeElement.querySelector(
-        '.session-host__finished-confidence-question-markdown blockquote strong',
+        '.session-host__learning-overview-question-text blockquote strong',
       )?.textContent,
     ).toContain('Unterrichtsidee:');
     fixture.destroy();

@@ -1082,6 +1082,216 @@
                     />
                   }
                 </header>
+                @if (channels().quiz && learningDebriefEnabled()) {
+                  <section
+                    class="session-host__learning-overview"
+                    aria-labelledby="learning-overview-heading"
+                  >
+                    <header class="session-host__finished-confidence-header">
+                      <mat-icon aria-hidden="true">insights</mat-icon>
+                      <h2 id="learning-overview-heading" i18n="@@sessionHost.learningOverviewTitle">
+                        Lernstand der Gruppe
+                      </h2>
+                    </header>
+                    @if (showLearningOverviewRetry()) {
+                      <button
+                        matButton
+                        type="button"
+                        [disabled]="learningOverviewLoading()"
+                        [disabledInteractive]="true"
+                        (click)="loadLearningOverview()"
+                        i18n="@@sessionHost.learningOverviewRetry"
+                      >
+                        Erneut laden
+                      </button>
+                    }
+                    <div role="status">
+                      @if (learningOverviewLoading() || finishedConfidenceLoading()) {
+                        <p i18n="@@sessionHost.learningOverviewLoading">Lernstand wird geladen …</p>
+                      } @else if (learningOverviewFailed()) {
+                        <p i18n="@@sessionHost.learningOverviewFailed">
+                          Der Lernstand konnte nicht geladen werden.
+                        </p>
+                      } @else if (showLearningOverviewRetry() && learningOverview()) {
+                        <span class="sr-only" i18n="@@sessionHost.learningOverviewLoaded">
+                          Lernstand geladen.
+                        </span>
+                      }
+                    </div>
+                    @let overview = learningOverview();
+                    @if (overview) {
+                      @if (overview.questionCount === 0) {
+                        <p i18n="@@sessionHost.learningOverviewNoQuestions">
+                          In diesem Quiz wurden keine bewertbaren Fragen ausgewertet.
+                        </p>
+                      } @else {
+                        <dl class="session-host__learning-overview-metrics">
+                          <div>
+                            <dt i18n="@@sessionHost.learningOverviewMedian">
+                              Richtige Antworten im Median
+                            </dt>
+                            @if (overview.medianCorrectCount !== null) {
+                              <dd
+                                class="session-host__learning-overview-metric-value"
+                                i18n="@@sessionHost.learningOverviewMedianValue"
+                              >
+                                {{ formatDecimal(overview.medianCorrectCount) }} von
+                                {{ formatCount(overview.questionCount) }}
+                              </dd>
+                            } @else {
+                              <dd i18n="@@sessionHost.learningOverviewNoAnswers">
+                                Keine gewerteten Antworten
+                              </dd>
+                            }
+                          </div>
+                          <div>
+                            <dt i18n="@@sessionHost.learningOverviewRespondents">
+                              Personen mit gewerteter Antwort
+                            </dt>
+                            <dd
+                              class="session-host__learning-overview-metric-value"
+                              i18n="@@sessionHost.learningOverviewParticipationValue"
+                            >
+                              {{ formatCount(overview.respondentCount) }} von
+                              {{ formatCount(overview.respondentCount + overview.noResponseCount) }}
+                            </dd>
+                          </div>
+                        </dl>
+                      }
+                    }
+                    @let reviewQuestions = learningOverviewReviewQuestions();
+                    @if (
+                      !finishedConfidenceLoading() &&
+                      (reviewQuestions.length > 0 || (overview?.respondentCount ?? 0) > 0)
+                    ) {
+                      <div class="session-host__learning-overview-section">
+                        <h3 i18n="@@sessionHost.learningOverviewReview">Nachbesprechen</h3>
+                        @if (reviewQuestions.length > 0) {
+                          @if (reviewQuestions[0].misconception) {
+                            <p
+                              class="session-host__learning-overview-caption"
+                              i18n="@@sessionHost.learningOverviewMisconceptionBasis"
+                            >
+                              Für Hinweise auf Fehlvorstellungen zählen nur Antworten mit
+                              Selbsteinschätzung.
+                            </p>
+                          } @else {
+                            <p
+                              class="session-host__learning-overview-caption"
+                              i18n="@@sessionHost.learningOverviewReviewRule"
+                            >
+                              Fragen mit den niedrigsten Lösungsquoten unter zwei Dritteln.
+                            </p>
+                          }
+                          <ul class="session-host__learning-overview-review" role="list">
+                            @for (question of reviewQuestions; track question.questionId) {
+                              <li>
+                                <div
+                                  class="session-host__learning-overview-rate"
+                                  [class.session-host__learning-overview-rate--misconception]="
+                                    question.misconception
+                                  "
+                                >
+                                  <strong>{{
+                                    question.count / question.responseCount | percent: '1.0-1'
+                                  }}</strong>
+                                  @if (question.misconception) {
+                                    <span i18n="@@sessionHost.learningOverviewConfidentWrong">
+                                      {{ formatCount(question.count) }} von
+                                      {{ formatCount(question.responseCount) }} falsch und sicher
+                                    </span>
+                                  } @else {
+                                    <span i18n="@@sessionHost.learningOverviewCorrectOf">
+                                      {{ formatCount(question.count) }} von
+                                      {{ formatCount(question.responseCount) }} richtig
+                                    </span>
+                                  }
+                                </div>
+                                <div class="session-host__learning-overview-topic">
+                                  <h4 i18n="@@sessionHost.learningOverviewQuestion">
+                                    Frage {{ formatCount(question.questionOrder + 1) }}
+                                  </h4>
+                                  @if (question.misconception) {
+                                    <p
+                                      class="session-host__learning-overview-misconception"
+                                      i18n="@@sessionHost.learningOverviewMisconception"
+                                    >
+                                      Hinweis auf verbreitete Fehlvorstellung
+                                    </p>
+                                  }
+                                  <ng-template #questionText>
+                                    <div
+                                      class="session-host__learning-overview-question-text session-host__rich-text markdown-body"
+                                      [innerHTML]="
+                                        renderMarkdown(question.text, 5, {
+                                          escapeListMarkers: false,
+                                          focusableDisplayMath: true,
+                                        })
+                                      "
+                                    ></div>
+                                  </ng-template>
+                                  @if (question.objectives.length > 0) {
+                                    @for (objective of question.objectives; track objective.id) {
+                                      <p class="session-host__learning-overview-objective">
+                                        <span i18n="@@sessionHost.learningOverviewObjective"
+                                          >Lernziel</span
+                                        >
+                                        {{ objective.text }}
+                                      </p>
+                                    }
+                                    <details
+                                      class="session-host__learning-overview-question-details"
+                                    >
+                                      <summary
+                                        [attr.aria-label]="question.questionTextLabel"
+                                        i18n="@@sessionHost.learningOverviewQuestionText"
+                                      >
+                                        Fragetext
+                                      </summary>
+                                      <ng-container [ngTemplateOutlet]="questionText" />
+                                    </details>
+                                  } @else {
+                                    <ng-container [ngTemplateOutlet]="questionText" />
+                                  }
+                                  @if (question.wrongOption; as option) {
+                                    <p>{{ learningObjectiveMisconceptionOption(option) }}</p>
+                                  }
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        } @else {
+                          <p i18n="@@sessionHost.learningOverviewNoReview">
+                            Bei allen Fragen mit Antworten waren mindestens zwei Drittel richtig.
+                          </p>
+                        }
+                      </div>
+                    }
+                    @if (overview && overview.respondentCount > 0) {
+                      <div class="session-host__learning-overview-section">
+                        <h3 i18n="@@sessionHost.learningOverviewDistribution">
+                          Anteil richtiger Antworten pro Person
+                        </h3>
+                        <ul class="session-host__learning-overview-bars" role="list">
+                          @for (count of overview.distribution; track $index) {
+                            <li>
+                              <span>{{ learningOverviewBands[$index] }}</span>
+                              <strong>{{ formatCount(count) }}</strong>
+                              <span
+                                class="session-host__learning-overview-track"
+                                aria-hidden="true"
+                              >
+                                <span
+                                  [style.inline-size.%]="(100 * count) / overview.respondentCount"
+                                ></span>
+                              </span>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+                  </section>
+                }
                 @if (
                   learningDebriefEnabled() ? finishedConfidenceSummary() : null;
                   as confidenceSummary
@@ -1185,114 +1395,6 @@
                       {{ formatCount(confidenceSummary.includedQuestionCount) }}
                     </p>
 
-                    @if (
-                      finishedConfidencePriorityQuestions(confidenceSummary);
-                      as priorityQuestions
-                    ) {
-                      @if (priorityQuestions.length > 0) {
-                        <h3 i18n="@@sessionHost.finishedConfidencePriorities">
-                          Priorität für die Nachbesprechung
-                        </h3>
-                        <ol class="session-host__finished-confidence-list">
-                          @for (question of priorityQuestions; track question.questionOrder) {
-                            <li>
-                              <article class="session-host__finished-confidence-question">
-                                <header class="session-host__finished-confidence-question-title">
-                                  <strong
-                                    class="session-host__finished-confidence-question-number"
-                                    aria-hidden="true"
-                                    >{{ question.questionOrder + 1 }}</strong
-                                  >
-                                  <div
-                                    class="session-host__finished-confidence-question-markdown markdown-body"
-                                    [innerHTML]="renderMarkdown(question.questionTextShort, 4)"
-                                  ></div>
-                                </header>
-                                <div class="session-host__finished-confidence-question-metrics">
-                                  <span
-                                    class="session-host__finished-confidence-question-metric session-host__finished-confidence-question-metric--risk"
-                                  >
-                                    <strong>
-                                      {{ question.result.crossTab.incorrectHigh }}/{{
-                                        question.responseCount
-                                      }}
-                                      ·
-                                      {{
-                                        finishedConfidencePercent(
-                                          question.result.crossTab.incorrectHigh,
-                                          question.responseCount
-                                        )
-                                      }}
-                                      %
-                                    </strong>
-                                    <span i18n="@@sessionHost.finishedConfidenceWrongHigh"
-                                      >falsch + hohe Antwortsicherheit</span
-                                    >
-                                  </span>
-                                  <span class="session-host__finished-confidence-question-metric">
-                                    <strong>
-                                      {{
-                                        finishedConfidencePercent(
-                                          finishedConfidenceIncorrectCount(question),
-                                          question.responseCount
-                                        )
-                                      }}
-                                      %
-                                    </strong>
-                                    <span i18n="@@sessionHost.finishedConfidenceIncorrectOverall"
-                                      >insgesamt falsch</span
-                                    >
-                                  </span>
-                                </div>
-                                @for (
-                                  link of finishedConfidenceObjectiveLinks(question);
-                                  track link.objectiveId
-                                ) {
-                                  <p class="session-host__finished-confidence-objective">
-                                    <span
-                                      class="session-host__finished-confidence-objective-kicker"
-                                    >
-                                      {{
-                                        learningObjectiveMisconceptionHeading(link.questionNumber)
-                                      }}
-                                    </span>
-                                    <span class="session-host__finished-confidence-objective-text">
-                                      {{ quoteLabel(link.objectiveText) }}
-                                    </span>
-                                    <span
-                                      class="session-host__finished-confidence-objective-detail"
-                                    >
-                                      {{
-                                        learningObjectiveMisconceptionMeasure(
-                                          link.incorrectHigh,
-                                          link.responseCount
-                                        )
-                                      }}
-                                    </span>
-                                    @if (link.topWrongOption; as option) {
-                                      <span
-                                        class="session-host__finished-confidence-objective-detail"
-                                      >
-                                        {{ learningObjectiveMisconceptionOption(option) }}
-                                      </span>
-                                    }
-                                  </p>
-                                }
-                                @if (finishedConfidenceTopWrongOption(question); as option) {
-                                  <p class="session-host__finished-confidence-signal">
-                                    <span i18n="@@sessionHost.finishedConfidenceTopSignal"
-                                      >⚠ Nachbesprechungsimpuls:</span
-                                    >
-                                    <strong>{{ option }}</strong>
-                                  </p>
-                                }
-                              </article>
-                            </li>
-                          }
-                        </ol>
-                      }
-                    }
-
                     @if (confidenceSummary.suppressedQuestionCount > 0) {
                       <p class="session-host__finished-confidence-privacy">
                         <mat-icon aria-hidden="true">privacy_tip</mat-icon>
@@ -1309,173 +1411,6 @@
                           </span>
                         </span>
                       </p>
-                    }
-                  </section>
-                }
-                @if (channels().quiz && learningDebriefEnabled()) {
-                  <section
-                    class="session-host__learning-overview"
-                    aria-labelledby="learning-overview-heading"
-                  >
-                    <header class="session-host__finished-confidence-header">
-                      <mat-icon aria-hidden="true">insights</mat-icon>
-                      <h2 id="learning-overview-heading" i18n="@@sessionHost.learningOverviewTitle">
-                        Lernstand der Gruppe
-                      </h2>
-                    </header>
-                    @if (showLearningOverviewRetry()) {
-                      <button
-                        matButton
-                        type="button"
-                        [disabled]="learningOverviewLoading()"
-                        [disabledInteractive]="true"
-                        (click)="loadLearningOverview()"
-                        i18n="@@sessionHost.learningOverviewRetry"
-                      >
-                        Erneut laden
-                      </button>
-                    }
-                    <div role="status">
-                      @if (learningOverviewLoading()) {
-                        <p i18n="@@sessionHost.learningOverviewLoading">Lernstand wird geladen …</p>
-                      } @else if (learningOverviewFailed()) {
-                        <p i18n="@@sessionHost.learningOverviewFailed">
-                          Der Lernstand konnte nicht geladen werden.
-                        </p>
-                      } @else if (showLearningOverviewRetry() && learningOverview()) {
-                        <span class="sr-only" i18n="@@sessionHost.learningOverviewLoaded">
-                          Lernstand geladen.
-                        </span>
-                      }
-                    </div>
-                    @if (learningOverview(); as overview) {
-                      @if (overview.questionCount === 0) {
-                        <p i18n="@@sessionHost.learningOverviewNoQuestions">
-                          In diesem Quiz wurden keine bewertbaren Fragen ausgewertet.
-                        </p>
-                      } @else {
-                        <dl class="session-host__learning-overview-metrics">
-                          <div>
-                            <dt i18n="@@sessionHost.learningOverviewMedian">Median</dt>
-                            <dd>
-                              @if (overview.medianCorrectCount !== null) {
-                                <div
-                                  class="session-host__learning-overview-median-value"
-                                  i18n="@@sessionHost.learningOverviewMedianValue"
-                                >
-                                  <strong
-                                    >{{ formatDecimal(overview.medianCorrectCount) }} von
-                                    {{ formatCount(overview.questionCount) }}</strong
-                                  >
-                                  richtigen Antworten
-                                </div>
-                                <p
-                                  class="session-host__learning-overview-median-hint"
-                                  i18n="@@sessionHost.learningOverviewMedianHint"
-                                >
-                                  Die Mitte, wenn du die Ergebnisse nach richtigen Antworten
-                                  sortierst.
-                                </p>
-                              } @else {
-                                <span i18n="@@sessionHost.learningOverviewNoAnswers"
-                                  >Keine gewerteten Antworten</span
-                                >
-                              }
-                            </dd>
-                          </div>
-                          <div>
-                            <dt i18n="@@sessionHost.learningOverviewRespondents">
-                              Mit gewerteter Antwort
-                            </dt>
-                            <dd>
-                              <strong>{{ formatCount(overview.respondentCount) }}</strong>
-                            </dd>
-                          </div>
-                          <div>
-                            <dt i18n="@@sessionHost.learningOverviewNoResponse">
-                              Ohne gewertete Antwort
-                            </dt>
-                            <dd>
-                              <strong>{{ formatCount(overview.noResponseCount) }}</strong>
-                            </dd>
-                          </div>
-                        </dl>
-                        @if (overview.respondentCount > 0) {
-                          <div class="session-host__learning-overview-details">
-                            <div>
-                              <h3 i18n="@@sessionHost.learningOverviewDistribution">
-                                Anteil richtiger Antworten pro Person
-                              </h3>
-                              <ul class="session-host__learning-overview-bars" role="list">
-                                @for (count of overview.distribution; track $index) {
-                                  <li>
-                                    <span>{{ learningOverviewBands[$index] }}</span>
-                                    <span
-                                      class="session-host__learning-overview-track"
-                                      aria-hidden="true"
-                                    >
-                                      <span
-                                        [style.inline-size.%]="
-                                          (100 * count) / overview.respondentCount
-                                        "
-                                      ></span>
-                                    </span>
-                                    <strong>{{ formatCount(count) }}</strong>
-                                  </li>
-                                }
-                              </ul>
-                            </div>
-                            <div>
-                              <h3 i18n="@@sessionHost.learningOverviewReview">Nachbesprechen</h3>
-                              @if (learningOverviewReviewQuestions().length > 0) {
-                                <p i18n="@@sessionHost.learningOverviewReviewRule">
-                                  Fragen mit den niedrigsten Lösungsquoten unter zwei Dritteln.
-                                </p>
-                                <ul class="session-host__learning-overview-review" role="list">
-                                  @for (
-                                    question of learningOverviewReviewQuestions();
-                                    track question.questionId
-                                  ) {
-                                    <li>
-                                      <div class="session-host__learning-overview-question-meta">
-                                        <span i18n="@@sessionHost.learningOverviewQuestion">
-                                          Frage {{ formatCount(question.questionOrder + 1) }}
-                                        </span>
-                                        <span i18n="@@sessionHost.learningOverviewCorrectOf">
-                                          {{ formatCount(question.correctCount) }} von
-                                          {{ formatCount(question.responseCount) }} richtig
-                                        </span>
-                                      </div>
-                                      <div
-                                        class="session-host__learning-overview-question-text session-host__rich-text markdown-body"
-                                        [innerHTML]="
-                                          renderMarkdown(question.text, 4, {
-                                            escapeListMarkers: false,
-                                            focusableDisplayMath: true,
-                                          })
-                                        "
-                                      ></div>
-                                      @for (objective of question.objectives; track objective.id) {
-                                        <p class="session-host__learning-overview-objective">
-                                          <span i18n="@@sessionHost.learningOverviewObjective"
-                                            >Lernziel</span
-                                          >
-                                          {{ objective.text }}
-                                        </p>
-                                      }
-                                    </li>
-                                  }
-                                </ul>
-                              } @else {
-                                <p i18n="@@sessionHost.learningOverviewNoReview">
-                                  Bei allen Fragen mit Antworten waren mindestens zwei Drittel
-                                  richtig.
-                                </p>
-                              }
-                            </div>
-                          </div>
-                        }
-                      }
                     }
                   </section>
                 }
@@ -1793,7 +1728,7 @@
                   </section>
                 }
 
-                @if (feedbackSummary(); as fb) {
+                @if (session()?.enableSessionFeedback === true ? feedbackSummary() : null; as fb) {
                   <section class="session-host__feedback-card" aria-labelledby="feedback-heading">
                     <h2 class="session-host__feedback-summary-title" id="feedback-heading">
                       <mat-icon aria-hidden="true">rate_review</mat-icon>

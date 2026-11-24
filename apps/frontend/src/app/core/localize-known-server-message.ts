@@ -110,6 +110,9 @@ export function localizeKnownServerMessage(message: string): string {
   if (normalized === SESSION_ALREADY_LIVE_DE) {
     return $localize`:@@errors.sessionAlreadyLive:Für dieses Quiz läuft bereits eine Sitzung.`;
   }
+  if (normalized === 'Quiz-Bewertung ist deaktiviert.') {
+    return $localize`:@@sessionVote.feedbackDisabled:Die Quiz-Bewertung ist deaktiviert.`;
+  }
   if (
     normalized.startsWith(SESSION_CODE_TOO_MANY_FAILURES_DE_PREFIX) &&
     normalized.includes(SESSION_CODE_TOO_MANY_FAILURES_DE_CONTAINS)

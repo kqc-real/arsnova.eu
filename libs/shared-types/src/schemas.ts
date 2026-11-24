@@ -1384,6 +1384,7 @@ export const CreateQuizInputSchema = z.object({
   motifImageUrl: QuizMotifImageUrlInputSchema,
   motifImageCredit: QuizMotifImageCreditInputSchema,
   showLeaderboard: z.boolean().optional().default(true),
+  enableSessionFeedback: z.boolean().default(false),
   enableLearningDebrief: z.boolean().optional(),
   enablePeerInstruction: z.boolean().optional(),
   allowCustomNicknames: z.boolean().optional().default(false),
@@ -2572,6 +2573,7 @@ export const QuizUploadInputSchema = z
     motifImageUrl: QuizMotifImageUrlInputSchema,
     motifImageCredit: QuizMotifImageCreditInputSchema,
     showLeaderboard: z.boolean(),
+    enableSessionFeedback: z.boolean().optional(),
     /** Fehlende Legacy-Werte erhalten die bisher verfügbaren Funktionen unabhängig vom Preset. */
     enableLearningDebrief: z.boolean().optional().default(true),
     enablePeerInstruction: z.boolean().optional().default(true),
@@ -3555,6 +3557,8 @@ export const SessionStatusUpdateSchema = z.object({
   questionSkippedAt: z.string().datetime().optional(),
   /** Quiz-Flag für persönliche Zeit; bei Quiz-Wechsel über den Status-Kanal nachziehen. */
   enableTimerAccommodation: z.boolean().optional(),
+  /** Quiz-Flag für die Abschlussbewertung; bei Quiz-Wechsel über den Status-Kanal nachziehen. */
+  enableSessionFeedback: z.boolean().optional(),
 });
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
 
@@ -4363,6 +4367,7 @@ export const SessionInfoDTOSchema = z.object({
   allowCustomNicknames: z.boolean().optional(),
   anonymousMode: z.boolean().optional(),
   showLeaderboard: z.boolean().optional(),
+  enableSessionFeedback: z.boolean().optional(),
   /** Host-Konfiguration des abgeschlossenen Lernstands, nur mit gültigem Host-Token. */
   enableLearningDebrief: z.boolean().optional(),
   enableSoundEffects: z.boolean().optional(),
@@ -5740,6 +5745,7 @@ const ExportedQuizMetadataSchema = z
     motifImageUrl: z.union([MotifImageUrlSchema, z.null()]).optional(),
     motifImageCredit: z.union([MotifImageCreditSchema, z.null()]).optional(),
     showLeaderboard: z.boolean(),
+    enableSessionFeedback: z.boolean().optional(),
     enableLearningDebrief: z.boolean().optional(),
     enablePeerInstruction: z.boolean().optional(),
     allowCustomNicknames: z.boolean(),

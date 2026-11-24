@@ -1115,7 +1115,7 @@
                 </div>
               </fieldset>
             </section>
-          } @else {
+          } @else if (sessionFeedbackAvailable()) {
             @if (feedbackSummary(); as summary) {
               <section class="vote-feedback-done" aria-labelledby="feedback-done-heading">
                 <mat-icon class="vote-feedback-done__icon" aria-hidden="true"
