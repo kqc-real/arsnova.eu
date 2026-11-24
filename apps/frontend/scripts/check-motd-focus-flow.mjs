@@ -221,21 +221,41 @@ async function assertArchiveDialogHeader(page) {
   });
 
   const close = archive.getByRole('button', { name: 'Schließen', exact: true });
+  // Material skaliert beim Öffnen die Dialogfläche. Erst deren Endzustand
+  // zeigt, ob der Kopf auch bei schmalem Viewport vollständig Platz hat.
+  await page.waitForFunction(
+    () => {
+      const surface = document.querySelector('.motd-archive-dialog-panel .mat-mdc-dialog-surface');
+      return surface && getComputedStyle(surface).transform === 'none';
+    },
+    undefined,
+    { timeout: 5_000 },
+  );
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    const [icon, text, closeButton] = await Promise.all([
-      heading.locator('.dialog-title-header__icon').boundingBox(),
-      heading.locator('.dialog-title-header__heading').boundingBox(),
-      close.boundingBox(),
-    ]);
+    const { icon, text, closeButton } = await close.evaluate((button) => {
+      const header = button.closest('.motd-archive__head');
+      return {
+        icon: header?.querySelector('.dialog-title-header__icon')?.getBoundingClientRect().toJSON(),
+        text: header
+          ?.querySelector('.dialog-title-header__heading')
+          ?.getBoundingClientRect()
+          .toJSON(),
+        closeButton: button.getBoundingClientRect().toJSON(),
+      };
+    });
     assert(
       icon &&
         text &&
-        closeButton &&
-        text.x >= icon.x + icon.width &&
-        text.y < icon.y + icon.height &&
-        text.x + text.width <= closeButton.x &&
-        closeButton.x + closeButton.width <= width,
+        [icon, text, closeButton].every(({ width, height }) => width > 0 && height > 0) &&
+        icon.left >= 0 &&
+        icon.right <= text.left &&
+        icon.top < text.bottom &&
+        text.top < icon.bottom &&
+        text.right <= closeButton.left &&
+        text.top < closeButton.bottom &&
+        closeButton.top < text.bottom &&
+        closeButton.right <= width,
       `Bei ${width} px müssen Icon, Titel und Schließen-Button nebeneinander sichtbar sein: ${JSON.stringify({ icon, text, closeButton })}`,
     );
   }

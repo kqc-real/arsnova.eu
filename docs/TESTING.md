@@ -732,6 +732,8 @@ Scroll, Clipping oder Überlappung in 712×1138, 1138×712, 820×1180 und
 1280×720 CSS-Pixeln; Fehlerscreenshots landen im E2E-Artefakt. Der Job
 `webkit-e2e` startet dieselben echten Backend-/Frontend-Services, wählt WebKit
 explizit und führt `e2e:motd-focus` sowie `smoke:webkit-participant-vote` aus.
+Der Test misst den Archivkopf nach der Dialogöffnung bei 1440 und 320 px im
+selben Browser-Frame und prüft den Fokus nach Escape.
 Der Required-Check `e2e` wird nur grün, wenn beide
 Browser-Jobs erfolgreich sind; ein abgebrochener Workflow färbt ihn nicht
 nachträglich rot. Playwright-Browser installiert
