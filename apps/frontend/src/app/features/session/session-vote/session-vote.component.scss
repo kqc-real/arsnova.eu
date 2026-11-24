@@ -1,3 +1,5 @@
+@use '@angular/material' as mat;
+
 :host {
   display: block;
   width: 100%;
@@ -463,6 +465,18 @@
   .vote-page__bottom-actions--floating .vote-page__bottom-action {
     width: auto;
     max-width: 100%;
+  }
+
+  .vote-page--with-floating-bottom-actions:has(> .vote-page__bottom-actions--structured) {
+    padding-bottom: calc(var(--host-mobile-safe-bottom) + 2rem);
+  }
+
+  .vote-page__bottom-actions--structured {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    margin-block-start: 1rem;
   }
 
   .vote-page__bottom-actions--session-end {
@@ -3936,7 +3950,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  min-width: 0;
   margin-top: 0.35rem;
+  overflow-wrap: anywhere;
 }
 
 .vote-ordering__hint,
@@ -3946,14 +3962,6 @@
   font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.45;
-}
-
-.vote-ordering__result-title,
-.vote-matching__result-title,
-.vote-categorization__result-title {
-  margin: 0;
-  font: var(--mat-sys-title-small);
-  color: var(--mat-sys-on-surface);
 }
 
 .structured-result-summary {
@@ -4030,25 +4038,10 @@
   align-items: center;
   gap: 0.75rem;
   min-height: 56px;
-  padding: 0.7rem 0.85rem;
-  border: 2px solid var(--mat-sys-outline-variant);
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
   border-radius: var(--mat-sys-corner-large);
-  background: var(--mat-sys-surface);
-  transition:
-    border-color 150ms ease,
-    background 150ms ease;
-}
-
-.vote-matching__pair--done,
-.vote-categorization__item--done {
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 55%, var(--mat-sys-outline-variant));
-  background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface));
-}
-
-.vote-ordering__item--readonly,
-.vote-matching__pair--readonly,
-.vote-categorization__item--readonly {
-  border-width: 1px;
   background: var(--mat-sys-surface-container-low);
 }
 
@@ -4074,7 +4067,6 @@
   flex: 1 1 auto;
   min-width: 0;
   font: var(--mat-sys-body-large);
-  line-height: 1.4;
   color: var(--mat-sys-on-surface);
 
   > :first-child {
@@ -4101,7 +4093,7 @@
   flex-wrap: wrap;
   flex: 0 0 auto;
   align-items: center;
-  gap: 0.1rem;
+  gap: 0.25rem;
 }
 
 .structured-result--correct {
@@ -4129,37 +4121,15 @@
   color: var(--mat-sys-error);
 }
 
-.structured-result__correction {
-  display: inline-flex;
-  flex: 1 0 100%;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
-}
-
 .vote-ordering__move {
-  width: 2.75rem;
-  height: 2.75rem;
+  @include mat.icon-button-overrides(
+    (
+      state-layer-size: 3rem,
+      icon-size: 1.35rem,
+    )
+  );
+
   touch-action: manipulation;
-
-  mat-icon {
-    font-size: 1.35rem;
-    width: 1.35rem;
-    height: 1.35rem;
-  }
-}
-
-.vote-matching__select-field,
-.vote-categorization__select-field {
-  flex: 1 1 12rem;
-  min-width: min(100%, 12rem);
-  width: 100%;
-  margin: 0;
-
-  .mat-mdc-form-field-subscript-wrapper {
-    display: none;
-  }
 }
 
 .vote-matching__arrow {
@@ -4168,7 +4138,8 @@
 }
 
 .vote-categorization__badge {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   max-width: 100%;
   padding: 0.35rem 0.7rem;
   border-radius: var(--mat-sys-corner-medium);
@@ -4228,7 +4199,28 @@
 @media (max-width: 599px) {
   .vote-structured-preview__columns,
   .vote-categorization__solution-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vote-matching__header,
+  .vote-categorization__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .vote-ordering__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .vote-ordering__actions {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+  }
+
+  .vote-ordering__item .structured-result__status {
+    grid-column: 2;
   }
 
   .vote-matching__pair,
@@ -4238,25 +4230,12 @@
     gap: 0.55rem;
   }
 
-  .vote-matching__select-field,
-  .vote-categorization__select-field {
-    flex-basis: auto;
-    min-width: 0;
-  }
-
-  .vote-matching__pair--readonly,
-  .vote-categorization__item--readonly {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
+  .vote-categorization__badge {
+    align-self: flex-start;
   }
 
   .vote-matching__arrow {
     display: none;
-  }
-
-  .vote-categorization__badge {
-    align-self: flex-start;
   }
 
   .vote-ordering,
