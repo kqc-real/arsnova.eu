@@ -1884,7 +1884,7 @@
                     @for (item of orderingItemsState(); track item.id; let idx = $index) {
                       @let positionCorrect = orderingPositionIsCorrect(item.id, idx);
                       <li
-                        class="vote-ordering__item vote-ordering__item--readonly"
+                        class="vote-ordering__item"
                         [class.structured-result--correct]="positionCorrect"
                         [class.structured-result--wrong]="!positionCorrect"
                       >
@@ -1917,7 +1917,7 @@
                 </h2>
                 <ol class="vote-ordering__list">
                   @for (item of $any(q).orderingItems || []; track item.id; let idx = $index) {
-                    <li class="vote-ordering__item vote-ordering__item--readonly">
+                    <li class="vote-ordering__item">
                       <span class="vote-ordering__num" aria-hidden="true">{{ idx + 1 }}</span>
                       <span
                         class="vote-ordering__text markdown-body"
@@ -1977,7 +1977,7 @@
                       @let correctRightId = getCorrectMatchingRightId(sel.leftId);
                       @let pairCorrect = sel.rightId === correctRightId;
                       <li
-                        class="vote-matching__pair vote-matching__pair--readonly"
+                        class="vote-matching__pair"
                         [class.structured-result--correct]="pairCorrect"
                         [class.structured-result--wrong]="!pairCorrect"
                       >
@@ -2016,7 +2016,7 @@
                 </h2>
                 <ul class="vote-matching__list" role="list">
                   @for (pair of $any(q).matchingPairs || []; track pair.leftId) {
-                    <li class="vote-matching__pair vote-matching__pair--readonly">
+                    <li class="vote-matching__pair">
                       <span
                         class="vote-matching__left markdown-body"
                         [innerHTML]="renderMarkdown(pair.left, 4)"
@@ -2086,7 +2086,7 @@
                       @let correctCategoryId = getCorrectCategorizationCategoryId(sel.itemId);
                       @let categoryCorrect = sel.categoryId === correctCategoryId;
                       <li
-                        class="vote-categorization__item vote-categorization__item--readonly"
+                        class="vote-categorization__item"
                         [class.structured-result--correct]="categoryCorrect"
                         [class.structured-result--wrong]="!categoryCorrect"
                       >
@@ -3362,6 +3362,9 @@
     } @else if (showVoteSubmitAction()) {
       <div
         class="vote-page__bottom-actions vote-page__bottom-actions--floating"
+        [class.vote-page__bottom-actions--structured]="
+          isOrdering() || isMatching() || isCategorization()
+        "
         i18n-aria-label="@@sessionVote.quizActionsAria"
         aria-label="Quiz-Aktionen"
       >

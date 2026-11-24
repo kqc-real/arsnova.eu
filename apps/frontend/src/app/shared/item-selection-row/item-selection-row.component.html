@@ -2,6 +2,7 @@
   <div class="item-selection-row__item markdown-body" [innerHTML]="renderMarkdown(itemText)"></div>
   <mat-form-field
     appearance="outline"
+    subscriptSizing="dynamic"
     class="item-selection-row__field"
     (click)="openSelectionFromField($event, selectionControl)"
   >
@@ -15,11 +16,17 @@
       (openedChange)="handleSelectionOpenedChange($event, selectionControl)"
     >
       <mat-select-trigger>
-        <span class="markdown-body" [innerHTML]="renderMarkdown(selectedText())"></span>
+        <span
+          class="item-selection-row__choice markdown-body"
+          [innerHTML]="renderMarkdown(selectedText())"
+        ></span>
       </mat-select-trigger>
       @for (option of options; track option.id) {
         <mat-option [value]="option.id">
-          <span class="markdown-body" [innerHTML]="renderMarkdown(option.text)"></span>
+          <span
+            class="item-selection-row__choice markdown-body"
+            [innerHTML]="renderMarkdown(option.text)"
+          ></span>
         </mat-option>
       }
     </mat-select>
