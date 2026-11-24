@@ -1,0 +1,163 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.numeric-histogram__plot {
+  --axis-bottom: calc(var(--numeric-histogram-label-size, 0.7rem) + 0.85rem);
+  --label-lane: calc(var(--numeric-histogram-label-size, 0.7rem) * 2 + 0.95rem);
+
+  box-sizing: border-box;
+  height: var(--numeric-histogram-height, 8.25rem);
+  margin-inline: 0.7rem;
+  padding-block: var(--label-lane) var(--axis-bottom);
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: var(--axis-bottom);
+    z-index: 0;
+    height: 2px;
+    border-radius: var(--mat-sys-corner-full);
+    background: color-mix(in srgb, var(--mat-sys-on-surface) 28%, transparent);
+  }
+}
+
+.numeric-histogram__band {
+  position: absolute;
+  inset-block: calc(var(--label-lane) + 0.75rem) var(--axis-bottom);
+  z-index: 1;
+  border: 2px solid color-mix(in srgb, var(--mat-sys-tertiary) 76%, transparent);
+  border-radius: var(--mat-sys-corner-full);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 36%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-surface) 62%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--mat-sys-surface) 40%, transparent);
+  pointer-events: none;
+}
+
+.numeric-histogram__reference-line {
+  position: absolute;
+  inset-block: var(--label-lane) var(--axis-bottom);
+  z-index: 2;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--mat-sys-error);
+  box-shadow: 0 0 0 1px var(--mat-sys-surface);
+  pointer-events: none;
+}
+
+.numeric-histogram__reference-label {
+  position: absolute;
+  top: 0.35rem;
+  z-index: 5;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 48%, transparent);
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-lowest);
+  color: var(--mat-sys-error);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--mat-sys-shadow) 14%, transparent);
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  font-size: var(--numeric-histogram-label-size, 0.7rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.numeric-histogram__bin {
+  position: absolute;
+  bottom: var(--axis-bottom);
+  width: max-content;
+  height: calc(100% - var(--label-lane) - var(--axis-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  z-index: 3;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.numeric-histogram__bin-bar {
+  width: var(--numeric-histogram-bar-width, 0.55rem);
+  min-height: 0.85rem;
+  border-radius: 999px 999px 2px 2px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 54%, var(--mat-sys-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mat-sys-surface) 62%, transparent);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: height 300ms ease;
+  }
+
+  .numeric-histogram__bin--in-band & {
+    background: var(--mat-sys-primary);
+  }
+}
+
+.numeric-histogram__bin-count {
+  display: inline-grid;
+  min-width: 1.3rem;
+  padding: 0.15rem 0.25rem;
+  place-items: center;
+  margin-bottom: 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 72%, transparent);
+  border-radius: var(--mat-sys-corner-full);
+  background: var(--mat-sys-surface-container-lowest);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--mat-sys-shadow) 18%, transparent);
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+  font-size: var(--numeric-histogram-label-size, 0.625rem);
+  line-height: 1;
+}
+
+.numeric-histogram__axis-labels {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+  font-size: var(--numeric-histogram-label-size, 0.7rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+
+  span:last-child {
+    text-align: end;
+  }
+}
+
+.numeric-histogram__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-small);
+  font-size: var(--numeric-histogram-label-size, 0.75rem);
+  line-height: 1.5;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 0.35rem;
+    overflow-wrap: anywhere;
+  }
+
+  mat-icon {
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    font-size: 1rem;
+    color: var(--mat-sys-primary);
+  }
+}

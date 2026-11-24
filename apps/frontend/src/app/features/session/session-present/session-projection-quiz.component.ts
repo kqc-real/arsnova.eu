@@ -26,6 +26,8 @@ import type {
   SessionInfoDTO,
   TeamLeaderboardEntryDTO,
 } from '@arsnova/shared-types';
+import { NumericEstimateHistogramComponent } from '../../../shared/numeric-estimate-histogram/numeric-estimate-histogram.component';
+import { numericEstimateUsesYearFormat } from '../../../shared/numeric-estimate-histogram/numeric-estimate-format.util';
 import { AnswerOptionBadgeComponent } from '../../../shared/answer-option-badge/answer-option-badge.component';
 import { CountdownFingersComponent } from '../../../shared/countdown-fingers/countdown-fingers.component';
 import { formatLocaleCount, formatLocaleNumber } from '../../../core/locale-number.util';
@@ -49,7 +51,6 @@ import {
   matchingMatrixCells,
   matchingMatrixColumns,
   matchingMatrixRows,
-  numericHistogramBarPercent,
   orderingCorrectColumns,
   orderingMatrixCells,
   orderingMatrixColumns,
@@ -92,6 +93,7 @@ function countStoredFractionDigits(value: number): number {
     MatCardContent,
     MatIcon,
     AnswerOptionBadgeComponent,
+    NumericEstimateHistogramComponent,
     CountdownFingersComponent,
     MarkdownImageLightboxDirective,
   ],
@@ -783,10 +785,6 @@ export class SessionProjectionQuizComponent {
         });
   }
 
-  histogramBarPercent(count: number): number {
-    return numericHistogramBarPercent(count, this.question()?.numericHistogram ?? []);
-  }
-
   readonly freetextTopAnswers = computed(() => {
     const responses = this.question()?.freeTextResponses ?? [];
     const counts = new Map<string, number>();
@@ -1026,7 +1024,7 @@ export class SessionProjectionQuizComponent {
   }
 
   formatNumericValue(value: number): string {
-    if (this.numericUsesYearFormat()) {
+    if (numericEstimateUsesYearFormat(this.question())) {
       return formatLocaleNumber(value, this.localeId, {
         maximumFractionDigits: 0,
         useGrouping: false,
@@ -1039,41 +1037,11 @@ export class SessionProjectionQuizComponent {
 
   /** Eingabegrenzen mit konfigurierter Genauigkeit, nicht mit dem Statistik-Runder. */
   private formatNumericConstraintValue(value: number): string {
-    const year = this.numericUsesYearFormat();
+    const year = numericEstimateUsesYearFormat(this.question());
     return formatLocaleNumber(value, this.localeId, {
       maximumFractionDigits: year ? 0 : this.numericConstraintFractionDigits(value),
       useGrouping: !year,
     });
-  }
-
-  private numericUsesIntegerFormat(): boolean {
-    const question = this.question();
-    return (
-      question?.type === 'NUMERIC_ESTIMATE' &&
-      (question.numericInputType === 'INTEGER' || question.numericDecimalPlaces === 0)
-    );
-  }
-
-  private numericUsesYearFormat(): boolean {
-    const question = this.question();
-    if (!this.numericUsesIntegerFormat() || !question || question.type !== 'NUMERIC_ESTIMATE') {
-      return false;
-    }
-    const textLooksLikeYear =
-      /\b(jahr|jahreszahl|year|année|annee|año|ano|anno)\b/i.test(question.text) ||
-      /\bwann\b/i.test(question.text);
-    if (textLooksLikeYear) {
-      return true;
-    }
-    const min = question.numericMin;
-    const max = question.numericMax;
-    return (
-      typeof min === 'number' &&
-      typeof max === 'number' &&
-      min >= 1000 &&
-      max <= 2200 &&
-      max - min <= 1000
-    );
   }
 
   private numericConstraintFractionDigits(value: number): number {

@@ -204,6 +204,10 @@ Nach der Ergebnisfreigabe zeigt die Host-Ansicht:
 - zusammenfassende Statistik
 - Details im Expander
 
+Im Presenter erscheint nach der Ergebnisfreigabe dasselbe Histogramm mit Toleranzband,
+Referenzlinie und Anzahl der Schätzungen pro Bucket. Bei zwei Runden zeigt der Presenter
+die Verteilung der freigegebenen Runde.
+
 Statistische Werte:
 
 | Wert                   | Bedeutung                                                                    |

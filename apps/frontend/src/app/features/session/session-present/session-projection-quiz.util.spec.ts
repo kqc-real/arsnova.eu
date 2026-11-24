@@ -4,7 +4,6 @@ import {
   matchingCorrectColumns,
   matchingMatrixColumns,
   matchingMatrixRows,
-  numericHistogramBarPercent,
   presenterCodeColumnCount,
   presenterCompactMarkdown,
   presenterCorrectPairResults,
@@ -47,12 +46,10 @@ describe('session-projection-quiz.util', () => {
     expect(matchingCorrectColumns(question)).toEqual({ l1: 'r1', l2: 'r2' });
   });
 
-  it('bildet die Bewertungsskala und Histogrammhöhen', () => {
+  it('bildet die Bewertungsskala', () => {
     expect(ratingScaleValues(baseQuestion({ type: 'RATING', ratingMin: 0, ratingMax: 2 }))).toEqual(
       [0, 1, 2],
     );
-    expect(numericHistogramBarPercent(4, [{ count: 1 }, { count: 4 }, { count: 2 }])).toBe(100);
-    expect(numericHistogramBarPercent(2, [{ count: 1 }, { count: 4 }, { count: 2 }])).toBe(50);
   });
 
   it('mischt Optionen stabil und unabhängig von der Kanon-Reihenfolge', () => {

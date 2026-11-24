@@ -1,0 +1,58 @@
+<div class="numeric-histogram__plot">
+  @if (plot(); as chart) {
+    @if (chart.band; as band) {
+      <div
+        class="numeric-histogram__band"
+        [style.left.%]="band.left"
+        [style.width.%]="band.width"
+        aria-hidden="true"
+      ></div>
+    }
+    @if (chart.reference !== null) {
+      <div
+        class="numeric-histogram__reference-line"
+        [style.left.%]="chart.reference"
+        aria-hidden="true"
+      ></div>
+      <span
+        class="numeric-histogram__reference-label"
+        [style.left.%]="chart.reference"
+        [style.translate]="-chart.reference + '%'"
+        [attr.aria-hidden]="showLegend() ? 'true' : null"
+      >
+        {{ referenceLabel() }}
+      </span>
+    }
+    @for (bin of chart.bins; track $index) {
+      <div
+        class="numeric-histogram__bin"
+        [class.numeric-histogram__bin--in-band]="bin.inBand"
+        [style.left.%]="bin.left"
+        role="img"
+        [attr.aria-label]="bin.label"
+        [title]="bin.label"
+      >
+        <span class="numeric-histogram__bin-count" aria-hidden="true">{{ bin.count }}</span>
+        <div
+          class="numeric-histogram__bin-bar"
+          [style.height.%]="bin.height"
+          aria-hidden="true"
+        ></div>
+      </div>
+    }
+    <div class="numeric-histogram__axis-labels" aria-hidden="true">
+      <span>{{ chart.min }}</span>
+      <span>{{ chart.max }}</span>
+    </div>
+  }
+</div>
+@if (showLegend() && (referenceLabel() || toleranceLabel())) {
+  <div class="numeric-histogram__legend">
+    @if (referenceLabel(); as reference) {
+      <span><mat-icon aria-hidden="true">adjust</mat-icon>{{ reference }}</span>
+    }
+    @if (toleranceLabel(); as tolerance) {
+      <span><mat-icon aria-hidden="true">linear_scale</mat-icon>{{ tolerance }}</span>
+    }
+  </div>
+}

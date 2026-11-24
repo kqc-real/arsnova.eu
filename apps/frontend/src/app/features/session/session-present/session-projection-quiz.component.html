@@ -249,22 +249,14 @@
               </div>
             } @else if (q.type === 'NUMERIC_ESTIMATE') {
               @if (showNumericResults()) {
-                <div class="session-projection-quiz__histogram">
-                  @for (bin of q.numericHistogram; track $index) {
-                    <div class="session-projection-quiz__hist-bin" data-projection-unit>
-                      <span
-                        >{{ formatNumericValue(bin.from) }} – {{ formatNumericValue(bin.to) }}</span
-                      >
-                      <div class="session-projection-quiz__bar-track" aria-hidden="true">
-                        <div
-                          class="session-projection-quiz__bar-fill"
-                          [style.width.%]="histogramBarPercent(bin.count)"
-                        ></div>
-                      </div>
-                      <span>n={{ formatCount(bin.count) }}</span>
-                    </div>
-                  }
-                </div>
+                <app-numeric-estimate-histogram
+                  class="session-projection-quiz__histogram"
+                  [question]="q"
+                  [histogram]="q.numericHistogram ?? []"
+                  [stats]="q.numericStats ?? null"
+                  [showLegend]="true"
+                  data-projection-unit
+                />
                 @if (numericInsightStats(); as stats) {
                   <div class="session-projection-quiz__insights" role="group">
                     <div class="session-projection-quiz__insight">
@@ -324,9 +316,6 @@
                       <mat-icon aria-hidden="true">psychology_alt</mat-icon>
                       <span>{{ interpretation }}</span>
                     </p>
-                  }
-                  @if (numericReferenceLabel(); as reference) {
-                    <p class="session-projection-quiz__stat">{{ reference }}</p>
                   }
                 }
               } @else if (isResults()) {
