@@ -2414,6 +2414,34 @@ describe('SessionPresentComponent', () => {
     ).toBe('Red dragon');
     expect(fixture.nativeElement.textContent).toContain('Team A');
     expect(fixture.nativeElement.textContent).toContain('Team-Leaderboard');
+
+    const component = fixture.componentInstance;
+    const root = fixture.nativeElement as HTMLElement;
+    const teamBoard = root.querySelector('.session-present__team-board-card');
+    const teams = component.teamLeaderboard();
+    const pendingTeams = Promise.withResolvers<typeof teams>();
+    getTeamLeaderboardQueryMock.mockReturnValueOnce(pendingTeams.promise);
+    const metaRefresh = component['refreshSessionMeta']();
+    await vi.waitFor(() => {
+      expect(getTeamLeaderboardQueryMock.mock.results.at(-1)?.value).toBe(pendingTeams.promise);
+    });
+    fixture.detectChanges();
+    expect(root.querySelector('.session-present__team-board-card')).toBe(teamBoard);
+
+    const callsWhilePending = getTeamLeaderboardQueryMock.mock.calls.length;
+    const liveRefresh = component['refreshPresenterLiveData']();
+    expect(getTeamLeaderboardQueryMock).toHaveBeenCalledTimes(callsWhilePending);
+    pendingTeams.reject(new Error('Failed to fetch'));
+    await Promise.all([metaRefresh, liveRefresh]);
+    fixture.detectChanges();
+    expect(root.querySelector('.session-present__team-board-card')).toBe(teamBoard);
+
+    const updatedTeams = [{ ...teams[0], totalScore: 2500 }];
+    getTeamLeaderboardQueryMock.mockResolvedValueOnce(updatedTeams);
+    await component['refreshSessionMeta']();
+    fixture.detectChanges();
+    expect(component.teamLeaderboard()).toEqual(updatedTeams);
+    expect(root.querySelector('.session-present__team-board-card')).toBe(teamBoard);
     fixture.destroy();
   });
 
@@ -2602,9 +2630,15 @@ describe('SessionPresentComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.session-present__board-item')).not.toBeNull();
 
-    fixture.componentInstance.session.update((current) =>
-      current ? { ...current, finishProjection: 'idle' } : current,
-    );
+    const component = fixture.componentInstance;
+    const entries = component.personalLeaderboard();
+    const pendingEntries = Promise.withResolvers<typeof entries>();
+    getLeaderboardQueryMock.mockReturnValueOnce(pendingEntries.promise);
+    const refresh = component['refreshPresenterLiveData']();
+    getInfoQueryMock.mockResolvedValueOnce({ ...component.session(), finishProjection: 'idle' });
+    await component['refreshSessionMeta']();
+    pendingEntries.resolve(entries);
+    await refresh;
     fixture.detectChanges();
 
     const idle = fixture.nativeElement.querySelector(
@@ -2613,6 +2647,7 @@ describe('SessionPresentComponent', () => {
     expect(idle).not.toBeNull();
     expect(idle?.textContent).toContain('Die Session ist beendet.');
     expect(fixture.nativeElement.querySelector('.session-present__board-item')).toBeNull();
+    expect(component.personalLeaderboard()).toEqual([]);
     fixture.destroy();
   });
 

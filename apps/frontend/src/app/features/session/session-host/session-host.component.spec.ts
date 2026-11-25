@@ -25820,6 +25820,58 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält die Gesamtauswertung bei wiederholten Abschlussmeldungen sichtbar', async () => {
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'FINISHED', teamMode: true });
+    getSessionConfidenceSummaryQueryMock.mockResolvedValue(null);
+    const teams = [
+      {
+        rank: 1,
+        teamName: 'Team A',
+        teamColor: '#1E88E5',
+        totalScore: 220,
+        memberCount: 3,
+        averageScore: 220,
+        medianScore: 0,
+      },
+    ];
+    getHostTeamLeaderboardQueryMock.mockResolvedValue(teams);
+
+    const fixture = setup();
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const root = fixture.nativeElement as HTMLElement;
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(getSessionConfidenceSummaryQueryMock).toHaveBeenCalledTimes(1);
+      expect(root.querySelector('#team-leaderboard-heading')).not.toBeNull();
+    });
+    const board = root.querySelector('#team-leaderboard-heading');
+    const exportButton = root.querySelector<HTMLButtonElement>('.session-host__export-more-btn')!;
+    exportButton.focus();
+
+    const pendingTeams = Promise.withResolvers<typeof teams>();
+    getHostTeamLeaderboardQueryMock.mockReturnValueOnce(pendingTeams.promise);
+    component.statusUpdate.set({
+      status: 'FINISHED',
+      currentQuestion: null,
+      serverNow: new Date().toISOString(),
+    });
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(getHostTeamLeaderboardQueryMock.mock.results.at(-1)?.value).toBe(pendingTeams.promise);
+    });
+    expect(root.querySelector('#team-leaderboard-heading')).toBe(board);
+    expect(component.finishedConfidenceLoading()).toBe(false);
+    expect(getSessionConfidenceSummaryQueryMock).toHaveBeenCalledTimes(1);
+
+    pendingTeams.reject(new Error('Failed to fetch'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.querySelector('#team-leaderboard-heading')).toBe(board);
+    expect(document.activeElement).toBe(exportButton);
+    fixture.destroy();
+  });
+
   it('dismissed die Presenter-Abschlussprojektion beim Wechsel zur Startseite', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
@@ -26086,9 +26138,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     await vi.waitFor(() => {
       fixture.detectChanges();
-      expect(
-        fixture.nativeElement.querySelector('.session-host__learning-overview-review'),
-      ).not.toBeNull();
+      const review = fixture.nativeElement.querySelector('.session-host__learning-overview-review');
+      expect(review?.textContent).toContain('Die Formel x^2 erläutern.');
     });
 
     const text = fixture.nativeElement.textContent as string;
