@@ -6,7 +6,16 @@ import {
   calculateModerationQaBestScoreV1,
   calculateQaControversyScore,
 } from '@arsnova/shared-types';
+import { createHash } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
+const redisMocks = vi.hoisted(() => ({ getRedis: vi.fn() }));
+
+vi.mock('../redis', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../redis')>()),
+  getRedis: redisMocks.getRedis,
+}));
+
 import {
   assertModerationStateStillCurrent,
   collectQaContextCandidates,
@@ -25,6 +34,10 @@ import {
   QaSemanticTopicSnapshotSchema,
   type QaSemanticTopicSnapshot,
 } from './qaSemanticTopicSnapshot';
+import {
+  buildLatestQaSemanticTopicSnapshotCacheKey,
+  createRedisWordCloudAnalysisCache,
+} from './wordCloudAnalysisCache';
 
 const SESSION_ID = '11111111-1111-4111-8111-111111111111';
 const QUESTION_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -129,6 +142,36 @@ function topicSnapshot(input: {
         })),
       },
     ],
+  });
+}
+
+function oversizedTopicSnapshot(memberCount: number): QaSemanticTopicSnapshot {
+  const topicCount = Math.ceil(memberCount / 500);
+  const topics = Array.from({ length: topicCount }, (_, topicIndex) => {
+    const first = topicIndex * 500;
+    const size = Math.min(500, memberCount - first);
+    const members = Array.from({ length: size }, (_, offset) => {
+      const questionId = `oversized-question-${first + offset}`;
+      return { questionId, textDigest: hashQaSemanticTopicMemberText(questionId) };
+    });
+    return {
+      topicId: createHash('sha256').update(`oversized-topic-${topicIndex}`).digest('hex'),
+      confidence: 0.9,
+      labelSourceQuestionId: members[0]!.questionId,
+      members,
+    };
+  });
+  return QaSemanticTopicSnapshotSchema.parse({
+    version: 'qa-semantic-topic-snapshot-v1',
+    status: 'ready',
+    metric: 'BEST',
+    corpusRevision: '17:',
+    analyzedAt: '2026-10-04T10:00:00.000Z',
+    analysisVersion: '1.14c.4',
+    model: { id: 'intfloat/multilingual-e5-small', version: 'sha256:test-model' },
+    eligibleQuestionCount: memberCount,
+    analyzedQuestionCount: memberCount,
+    topics,
   });
 }
 
@@ -606,9 +649,112 @@ describe('moderationQaContext N7', () => {
       semanticEnabled: true,
     });
 
-    expect(disabled.topics.state).toBe('disabled');
+    expect(disabled.topics).toEqual({ state: 'disabled', reason: expect.any(String) });
+    expect(disabled.revision.state).toBe('not-applicable');
+    expect(disabled.limitations).toContainEqual(
+      expect.objectContaining({ code: 'module-disabled', section: 'topics' }),
+    );
+    expect(disabled.sources).toEqual(candidateProjection.sources);
     expect(absent.topics).toEqual({ state: 'unavailable', reason: 'no-data' });
     expect(tx.qaQuestion.findMany).not.toHaveBeenCalled();
+  });
+
+  it('keeps the topic section as failed with a reason when the snapshot exceeds 500 members', async () => {
+    const candidateProjection = await candidates();
+    const snapshot = oversizedTopicSnapshot(501);
+    expect(QaSemanticTopicSnapshotSchema.safeParse(snapshot).success).toBe(true);
+    expect(snapshot.topics).toHaveLength(2);
+    const tx = txWithTopicRows([], []);
+    const projection = await collectQaTopicContext({
+      tx,
+      state: state(),
+      candidates: candidateProjection,
+      snapshot,
+      semanticEnabled: true,
+    });
+
+    expect(projection.topics).toEqual({ state: 'failed', reason: expect.any(String) });
+    expect(projection.limitations).toContainEqual(
+      expect.objectContaining({ code: 'analysis-failed', section: 'topics' }),
+    );
+    expect(tx.qaQuestion.findMany).not.toHaveBeenCalled();
+
+    // Control: exactly 500 members is schema-valid and is not rejected by the limit.
+    const atLimitTx = txWithTopicRows([], []);
+    const atLimit = await collectQaTopicContext({
+      tx: atLimitTx,
+      state: state(),
+      candidates: candidateProjection,
+      snapshot: oversizedTopicSnapshot(500),
+      semanticEnabled: true,
+    });
+    expect(atLimit.topics.state).not.toBe('failed');
+    expect(atLimitTx.qaQuestion.findMany).toHaveBeenCalledOnce();
+  });
+
+  describe('stale topic snapshot in Redis (process version conflict)', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+      redisMocks.getRedis.mockReset();
+    });
+
+    function validSnapshot(): QaSemanticTopicSnapshot {
+      return topicSnapshot({ members: topicMembers, labelSourceQuestionId: QUESTION_B });
+    }
+
+    /** Same path as the production collector: Redis getter, then the N7 projection. */
+    async function projectFromRedis(raw: string | null) {
+      vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+      const store = new Map<string, string>();
+      if (raw !== null) store.set(buildLatestQaSemanticTopicSnapshotCacheKey(SESSION_ID), raw);
+      redisMocks.getRedis.mockReturnValue({
+        mget: vi.fn(async (...keys: string[]) => keys.map((key) => store.get(key) ?? null)),
+      });
+      const cache = createRedisWordCloudAnalysisCache(90);
+      const snapshot = await cache.getLatestQaSemanticTopicSnapshot({ sessionId: SESSION_ID });
+      const tx = txWithTopicRows([], topicRows());
+      const projection = await collectQaTopicContext({
+        tx,
+        state: state(),
+        candidates: await candidates(),
+        snapshot,
+        semanticEnabled: true,
+      });
+      return { snapshot, projection, tx };
+    }
+
+    function staleRaw(): string {
+      // Structurally valid snapshot written by another release with a different version.
+      return JSON.stringify({ ...validSnapshot(), version: 'qa-semantic-topic-snapshot-v2' });
+    }
+
+    // Characterizes current behaviour (known gap, see the todo below), not a desired contract.
+    it('negative probe: projects a structurally valid snapshot with a foreign version exactly like no data', async () => {
+      // Control: the same snapshot with the current version reaches the projection.
+      const current = await projectFromRedis(JSON.stringify(validSnapshot()));
+      expect(current.snapshot).toEqual(validSnapshot());
+      expect(current.projection.topics.state).toBe('available');
+
+      const noData = await projectFromRedis(null);
+      const stale = await projectFromRedis(staleRaw());
+
+      expect(noData.snapshot).toBeNull();
+      expect(stale.snapshot).toBeNull();
+      expect(noData.projection.topics).toEqual({ state: 'unavailable', reason: 'no-data' });
+      expect(stale.projection.topics).toEqual({ state: 'unavailable', reason: 'no-data' });
+      expect(stale.projection.revision).toEqual({ state: 'unavailable', reason: 'no-data' });
+      expect(stale.projection.limitations).toEqual([
+        expect.objectContaining({ code: 'module-unavailable', section: 'topics' }),
+      ]);
+      expect(stale.projection).toEqual(noData.projection);
+      expect(stale.tx.qaQuestion.findMany).not.toHaveBeenCalled();
+    });
+
+    // Known gap: a topic snapshot with an incompatible version in Redis is dropped by
+    // getLatestQaSemanticTopicSnapshot (safeParse -> null, no log) and the context reports
+    // "no-data". The test above characterizes this; turn this todo into a test and flip the
+    // assertions above once the context exposes a distinguishable state, reason or limitation.
+    it.todo('distinguishes a stale snapshot from no data');
   });
 });
 

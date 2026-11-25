@@ -1,0 +1,577 @@
+{
+  "regel": "ADR 1B-010. Eingabe: physische Kerne, logische Threads, RAM in GiB (abgerundet), unter Linux die Kern-ID je logischer CPU (Index = CPU-Nummer). llm-host: je vCPU ein physischer Kern, höchstens 8 (Release); ohne SMT bleiben 2 Kerne für app-host und Host. app-host: 2 vCPU, unter SMT auf den Geschwister-Threads der ersten Kerne. RAM bevorzugt llm 12, app 6, Host 4 GiB; knapp llm 10, app 4, Host 2 GiB. Warnungen in fester Reihenfolge: llm-unter-4, app-ram-4, llm-ram-10, host-ram-2. Platte (Obergrenze der dünn belegten Disk): llm 20 GiB, app 25 GiB (App-Build braucht kurz ~18 GiB, gemessen 2026-11-13).",
+  "faelle": [
+    {
+      "name": "ThinkPad P50 (Messrechner)",
+      "eingabe": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31,
+        "kernJeCpu": [0, 1, 2, 3, 0, 1, 2, 3]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 4,
+          "ramGib": 12,
+          "cpuset": "0,1,2,3",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 6,
+          "cpuset": "4,5",
+          "diskGib": 25
+        },
+        "warnungen": []
+      }
+    },
+    {
+      "name": "8 Kerne, 16 Threads, 32 GiB",
+      "eingabe": {
+        "kerne": 8,
+        "threads": 16,
+        "ramGib": 32,
+        "kernJeCpu": [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 8,
+          "ramGib": 12,
+          "cpuset": "0,1,2,3,4,5,6,7",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 6,
+          "cpuset": "8,9",
+          "diskGib": 25
+        },
+        "warnungen": []
+      }
+    },
+    {
+      "name": "Geschwister nebeneinander (typisch AMD), 4/8, 32 GiB",
+      "eingabe": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 32,
+        "kernJeCpu": [0, 0, 1, 1, 2, 2, 3, 3]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 4,
+          "ramGib": 12,
+          "cpuset": "0,2,4,6",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 6,
+          "cpuset": "1,3",
+          "diskGib": 25
+        },
+        "warnungen": []
+      }
+    },
+    {
+      "name": "16 Kerne, 32 Threads, 64 GiB (Obergrenze 8)",
+      "eingabe": {
+        "kerne": 16,
+        "threads": 32,
+        "ramGib": 64,
+        "kernJeCpu": [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+          11, 12, 13, 14, 15
+        ]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 8,
+          "ramGib": 12,
+          "cpuset": "0,1,2,3,4,5,6,7",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 6,
+          "cpuset": "16,17",
+          "diskGib": 25
+        },
+        "warnungen": []
+      }
+    },
+    {
+      "name": "8/16 mit 20 GiB (app knapp)",
+      "eingabe": {
+        "kerne": 8,
+        "threads": 16,
+        "ramGib": 20,
+        "kernJeCpu": [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 8,
+          "ramGib": 12,
+          "cpuset": "0,1,2,3,4,5,6,7",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 4,
+          "cpuset": "8,9",
+          "diskGib": 25
+        },
+        "warnungen": ["app-ram-4"]
+      }
+    },
+    {
+      "name": "6 Kerne ohne SMT, 16 GiB",
+      "eingabe": {
+        "kerne": 6,
+        "threads": 6,
+        "ramGib": 16,
+        "kernJeCpu": [0, 1, 2, 3, 4, 5]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 4,
+          "ramGib": 10,
+          "cpuset": "0,1,2,3",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 4,
+          "cpuset": "4,5",
+          "diskGib": 25
+        },
+        "warnungen": ["app-ram-4", "llm-ram-10", "host-ram-2"]
+      }
+    },
+    {
+      "name": "4 Kerne ohne SMT, 18 GiB",
+      "eingabe": {
+        "kerne": 4,
+        "threads": 4,
+        "ramGib": 18,
+        "kernJeCpu": [0, 1, 2, 3]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 2,
+          "ramGib": 10,
+          "cpuset": "0,1",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 4,
+          "cpuset": "2,3",
+          "diskGib": 25
+        },
+        "warnungen": ["llm-unter-4", "app-ram-4", "llm-ram-10"]
+      }
+    },
+    {
+      "name": "4 Kerne ohne SMT, 16 GiB (knapp, Rechner 2 GiB)",
+      "eingabe": {
+        "kerne": 4,
+        "threads": 4,
+        "ramGib": 16,
+        "kernJeCpu": [0, 1, 2, 3]
+      },
+      "erwartet": {
+        "abbruch": null,
+        "llm": {
+          "vcpu": 2,
+          "ramGib": 10,
+          "cpuset": "0,1",
+          "diskGib": 20
+        },
+        "app": {
+          "vcpu": 2,
+          "ramGib": 4,
+          "cpuset": "2,3",
+          "diskGib": 25
+        },
+        "warnungen": ["llm-unter-4", "app-ram-4", "llm-ram-10", "host-ram-2"]
+      }
+    },
+    {
+      "name": "zu wenig RAM: 2/4, 8 GiB",
+      "eingabe": {
+        "kerne": 2,
+        "threads": 4,
+        "ramGib": 8,
+        "kernJeCpu": [0, 1, 0, 1]
+      },
+      "erwartet": {
+        "abbruch": "ram-zu-klein"
+      }
+    },
+    {
+      "name": "zu wenig Kerne: 2 ohne SMT, 32 GiB",
+      "eingabe": {
+        "kerne": 2,
+        "threads": 2,
+        "ramGib": 32,
+        "kernJeCpu": [0, 1]
+      },
+      "erwartet": {
+        "abbruch": "kerne-zu-wenig"
+      }
+    }
+  ],
+  "pruefRegel": "Eigene Werte: llm 2..min(8, Kerne) vCPU und mindestens 10 GiB; app mindestens 1 vCPU und 4 GiB; vCPU-Summe höchstens Threads; RAM-Summe höchstens RAM - 2 GiB; Platte llm mindestens 20 GiB, app mindestens 25 GiB. Ergebnis: leer = gültig, sonst erster verletzter Code.",
+  "pruefFaelle": [
+    {
+      "name": "Empfehlung P50 gültig",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": ""
+    },
+    {
+      "name": "llm 1 vCPU",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 1,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "llm-vcpu"
+    },
+    {
+      "name": "llm mehr vCPU als Kerne",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 5,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "llm-vcpu"
+    },
+    {
+      "name": "app 0 vCPU",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 0,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "app-vcpu"
+    },
+    {
+      "name": "vCPU-Summe über Threads",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 5,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "vcpu-summe"
+    },
+    {
+      "name": "llm 8 GiB",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 8,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "llm-ram"
+    },
+    {
+      "name": "app 3 GiB",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 3,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "app-ram"
+    },
+    {
+      "name": "RAM-Summe zu groß",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 20,
+        "appVcpu": 2,
+        "appRamGib": 10,
+        "llmDiskGib": 20,
+        "appDiskGib": 25
+      },
+      "fehler": "ram-summe"
+    },
+    {
+      "name": "llm-Platte 16 GiB",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 16,
+        "appDiskGib": 25
+      },
+      "fehler": "llm-disk"
+    },
+    {
+      "name": "app-Platte 20 GiB",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 20,
+        "appDiskGib": 20
+      },
+      "fehler": "app-disk"
+    },
+    {
+      "name": "größere Platten gültig",
+      "rechner": {
+        "kerne": 4,
+        "threads": 8,
+        "ramGib": 31
+      },
+      "werte": {
+        "llmVcpu": 4,
+        "llmRamGib": 12,
+        "appVcpu": 2,
+        "appRamGib": 6,
+        "llmDiskGib": 40,
+        "appDiskGib": 40
+      },
+      "fehler": ""
+    }
+  ],
+  "ressourcenRegel": "Vor dem Anlegen, mit dem gerade freien RAM und Platz: Abbruch ram-frei, wenn nach den VMs weniger als die Reserve (Standard 4 GiB, mindestens 2 GiB, nur für Testrechner ohne andere Programme kleiner) RAM frei bleiben; Abbruch disk-frei, wenn der freie Platz kleiner ist als der erwartete Bedarf (Summe der Platten, höchstens 31 GiB, gemessen 2026-11-13) plus 10 GiB Reserve; Warnung disk-wachstum, wenn er kleiner ist als die Summe der Platten plus 10 GiB (die Disks könnten im schlimmsten Fall voll wachsen).",
+  "ressourcenFaelle": [
+    {
+      "name": "P50 nach dem Aufräumen",
+      "frei": {
+        "ramGib": 23,
+        "diskGib": 42
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": null,
+        "warnungen": ["disk-wachstum"]
+      }
+    },
+    {
+      "name": "reichlich Platz",
+      "frei": {
+        "ramGib": 40,
+        "diskGib": 200
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": null,
+        "warnungen": []
+      }
+    },
+    {
+      "name": "RAM: genau 4 GiB bleiben",
+      "frei": {
+        "ramGib": 22,
+        "diskGib": 200
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": null,
+        "warnungen": []
+      }
+    },
+    {
+      "name": "RAM: nur 3 GiB blieben",
+      "frei": {
+        "ramGib": 21,
+        "diskGib": 200
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": "ram-frei",
+        "warnungen": []
+      }
+    },
+    {
+      "name": "Platte: 40 GiB frei reicht nicht",
+      "frei": {
+        "ramGib": 40,
+        "diskGib": 40
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": "disk-frei",
+        "warnungen": []
+      }
+    },
+    {
+      "name": "Platte: 41 GiB frei reicht knapp",
+      "frei": {
+        "ramGib": 40,
+        "diskGib": 41
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": null,
+        "warnungen": ["disk-wachstum"]
+      }
+    },
+    {
+      "name": "RAM zuerst geprüft",
+      "frei": {
+        "ramGib": 10,
+        "diskGib": 5
+      },
+      "plan": {
+        "ramGib": 18,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": "ram-frei",
+        "warnungen": []
+      }
+    },
+    {
+      "name": "Reserve 2 GiB: 2 GiB bleiben",
+      "frei": {
+        "ramGib": 16,
+        "diskGib": 60
+      },
+      "plan": {
+        "ramGib": 14,
+        "diskGib": 45
+      },
+      "reserveGib": 2,
+      "erwartet": {
+        "abbruch": null,
+        "warnungen": []
+      }
+    },
+    {
+      "name": "Reserve 2 GiB: nur 1 GiB bliebe",
+      "frei": {
+        "ramGib": 15,
+        "diskGib": 60
+      },
+      "plan": {
+        "ramGib": 14,
+        "diskGib": 45
+      },
+      "reserveGib": 2,
+      "erwartet": {
+        "abbruch": "ram-frei",
+        "warnungen": []
+      }
+    },
+    {
+      "name": "Standardreserve am selben Rechner",
+      "frei": {
+        "ramGib": 16,
+        "diskGib": 60
+      },
+      "plan": {
+        "ramGib": 14,
+        "diskGib": 45
+      },
+      "erwartet": {
+        "abbruch": "ram-frei",
+        "warnungen": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "schema": "1b-umgebung-1",
+  "erfasstAm": "2026-11-13T13:16:37+01:00",
+  "nachtrag": {
+    "giltFuer": [
+      "messung/2026-11-13-lauf.json (Versuch 3, gewertet)",
+      "messung/2026-11-13-lauf-gestoert.json (Versuch 2)",
+      "Kalibrierung 2026-11-13T05:53Z"
+    ],
+    "grund": "umgebung.sh gab es zur Zeit der Läufe noch nicht (eingeführt mit ce59e9f9); nachgetragen am Lauftag.",
+    "quellen": {
+      "rechner": "jetzt gemessen; derselbe Systemstart wie bei den Läufen (Boot 2026-11-12 11:34, Kernel unverändert), Energieprofil laut Ergebnis-JSON performance",
+      "hypervisor": "jetzt gemessen; seit den Läufen keine Paketänderung an QEMU/libvirt",
+      "vms": "Aufbaubericht ~/labor-1b/aufbau-20261113T091423.txt (direkt vor Versuch 3) und vm-linux.sh am Commit 8e9d1317",
+      "gast": "aus dem verwendeten Cloud-Image (Serie 20261017) gelesen; die VMs liefen seit 06:46 ohne Neustart, das Update am Morgen hat den laufenden Kernel nicht getauscht",
+      "plattenMaxGib": "vm-linux.sh am Commit 8e9d1317 (damals 25/30 GiB; seit 3e58e842 sind es 25/20)"
+    }
+  },
+  "rechner": {
+    "plattform": "linux",
+    "cpu": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+    "kerne": 4,
+    "threads": 8,
+    "maxMHz": 3600,
+    "ramGib": 31.0,
+    "os": "Omarchy",
+    "kernel": "7.2.15-1-omarchy",
+    "energieprofil": "performance",
+    "cpuGovernor": "powersave",
+    "cpufreqTreiber": "intel_pstate",
+    "netzteil": true,
+    "speicherort": {
+      "pfad": "/var/lib/libvirt/images/arsnova-1b",
+      "dateisystem": "btrfs",
+      "medium": "SSD"
+    }
+  },
+  "hypervisor": {
+    "name": "KVM/QEMU (libvirt)",
+    "version": "QEMU 11.1.2",
+    "libvirt": "libvirt 12.8.0",
+    "nested": "Y",
+    "pinning": true
+  },
+  "vms": [
+    {
+      "name": "arsnova-1b-app",
+      "ip": "192.168.150.10",
+      "zustand": "running",
+      "vcpu": 2,
+      "ramGib": 6,
+      "cpuset": "4 5",
+      "cpuModell": "host-passthrough",
+      "plattenMaxGib": 25,
+      "gast": {
+        "kernel": "6.8.0-147-generic",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpus": 2,
+        "ramGib": null,
+        "docker": "29.9.3",
+        "node": "v22.23.5",
+        "virtualisierung": "kvm"
+      }
+    },
+    {
+      "name": "arsnova-1b-llm",
+      "ip": "192.168.150.20",
+      "zustand": "running",
+      "vcpu": 4,
+      "ramGib": 12,
+      "cpuset": "0 1 2 3",
+      "cpuModell": "host-passthrough",
+      "plattenMaxGib": 30,
+      "gast": {
+        "kernel": "6.8.0-147-generic",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpus": 4,
+        "ramGib": null,
+        "docker": "29.9.3",
+        "node": "v22.23.5",
+        "virtualisierung": "kvm"
+      }
+    }
+  ],
+  "laborStand": {
+    "commit": "8e9d13177b0e478552310713d75f4fd50f911b69"
+  }
+}

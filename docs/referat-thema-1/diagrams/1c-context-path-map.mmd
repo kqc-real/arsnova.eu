@@ -1,0 +1,221 @@
+---
+config:
+  look: neo
+  flowchart:
+    curve: basis
+    nodeSpacing: 36
+    rankSpacing: 64
+    wrappingWidth: 460
+    subGraphTitleMargin:
+      top: 14
+      bottom: 10
+---
+flowchart TB
+  subgraph HOST["1 · Host-Browser · session-host.component.ts⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    ui["`**Kompass-Dialog**
+    Button Zusammenfassung
+    Gate: 3+ sichtbare Fragen`"]
+    pvb["`**Button Vorschau**`"]
+    poll["`**Runtime-Abrufe**
+    sofort, dann alle 750 ms, solange ausstehend
+    auch bei Seitenaufruf, Dialogöffnung`"]
+  end
+
+  subgraph API["⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀2 · tRPC · routers/qa.ts · Host-Token + Nachlauffenster bei jedem Aufruf⠀⠀⠀⠀"]
+    rq["`**qa.requestSummary**
+    auch: Q&A aktiv · QA_SUMMARY_ENABLED
+    Job läuft → aktuelles ausstehendes Ergebnis`"]
+    pv["`**qa.summaryContextPreview**
+    ein prepare · liefert das Vorschau-DTO
+    reiht nie einen Job ein`"]
+    fresh{{"`**qa.summaryRuntime**
+    fertiges Ergebnis: prepare (4) je Abruf
+    Hash noch gleich?`"}}
+  end
+
+  herr["`**Anfrage scheitert** · TRPCError
+  NOT_FOUND · UNAUTHORIZED · FORBIDDEN
+  CONFLICT · INTERNAL_SERVER_ERROR
+  Anfrage: kein neues Ergebnis,
+  ein bisheriges bleibt stehen
+  Runtime-Abruf eines fertigen Ergebnisses:
+  Ergebnis verschwindet`"]
+
+  subgraph PREP["3 · prepare⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    auth["`**autorisieren** · 8 Rechteprüfungen
+    loadAuthorizedModerationState
+    geprüftes Feld inzwischen geändert
+    → CONFLICT, z. B. Q&A-Stimme,
+    neue Frage, Beitritt, Quizschritt`"]
+    build["`**Analyse aufbauen**
+    buildModerationPromptContext
+    Q&A-Ranking · Themen · Kompass-Signale
+    Quizergebnisse · Blitzlicht · Lernziele`"]
+    subgraph DB["nur lesend"]
+      direction LR
+      pg[("`**PostgreSQL**
+      Q&A · Stimmen · Quiz
+      RepeatableRead`")]
+      rd[("`**Redis**
+      Themen · Blitzlicht`")]
+    end
+    pack["`**ins Token-Budget packen** · Cache 30 s
+    3 Plätze (Korpus < 100) bzw. 16: geschützte
+    zuerst, Rest nach Rang · je Thema ≥ 2
+    Themen zuerst · Gleichstand nach sourceId (UUID),
+    in mehreren Lanes allein nach sourceId
+    13 Lanes · kürzen · Force-Fit`"]
+    hash["`**snapshotHash** (sha256)
+    meta · Revisionen · gepackter Kontext · Texte
+    Budget (ohne Byte-Summen) · Instruktion/Definition
+    ändert sich außerhalb von Force-Fit bei jeder
+    Q&A-Stimme, neuen Frage, Beitritt, Austritt,
+    Bearbeitung, Status, Löschung;
+    bei live Blitzlicht-Runde außer TEMPO bei jedem Aufbau,
+    auch wenn Blitzlicht nicht gesendet wird (Befund T3.1)`"]
+    asm["`**zusammensetzen** · strikter Zod-Parse
+    QaSummaryInferenceRequestV2
+    Vorschau-DTO · Adapterplan
+    prepare läuft (1)–(3) je Job,
+    plus je Runtime-Abruf und Vorschau`"]
+  end
+
+  subgraph QA["⠀⠀4 · qaSummaryQueue.ts · vor der Inferenz⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    gate{{"`**Gates beim Einreihen** (der Reihe nach)
+    läuft schon · zu wenige Fragen
+    Cooldown 30 s · Queue voll 8
+    Defaults · Queue-Grenze global,
+    läuft schon und Cooldown je Sitzung`"}}
+    pend["`**ausstehendes Ergebnis + Job**
+    Host-Token in den Job kopiert
+    Anfrage kehrt hier zurück, ohne Modell`"]
+    p2["`**prepare (2)** · Neuaufbau vor Inferenz
+    prüft Rechte neu · wieder zu wenige → regelbasiert`"]
+  end
+
+  subgraph RUN["5 · Inferenzlauf⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    adp["`**runPreparedQaSummary** · Plan
+    full-context → Open-Weight-Client
+    legacy-text → Legacy-URL
+    none · kein gepacktes Q&A → kein Modellaufruf`"]
+    cli{{"`**Client-Gates**
+    Konfig · Circuit: nach 3 Fehlern 30 s offen
+    prozessinterner Slot, geteilt mit
+    Themenlabels und Lernzielen`"}}
+    slots["`**GET /slots**
+    503 → busy · 401/403/501 → misconfigured`"]
+    post["`**POST /v1/chat/completions**
+    Bearer · 2 System- + 1 User-Nachricht
+    JSON-Schema der erlaubten IDs
+    max_tokens 640
+    ein Client-Timeout 90 s
+    für DNS, GET und POST zusammen`"]
+    subgraph LLMH["entfernter Host⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+      llm[["`**llama-server** · zweiter privater Host
+      Qwen3-4B-Instruct-2507 Q4_K_M
+      ctx 8192 · 1 Slot · API-Key
+      --cache-ram nicht gesetzt (Befund L6/N6)`"]]
+    end
+    parse["`**parseCompletion**
+    Ausgabeschema · bekannte Quellen-IDs
+    Fehler → Status, keine Exception`"]
+    qg{{"`**Quality-Gate** · Adapter
+    nur bei completed: ≥ 2 Aussagen
+    »Lead: Satz«, verschiedene,
+    nicht generische Leads,
+    kein Markdown, keine Meta-Phrasen
+    sonst extraktiv invalid_response
+    (meist ready) · zählt als Circuit-Erfolg
+    retry manual: kein Cooldown`"}}
+  end
+
+
+  subgraph QB["⠀⠀6 · qaSummaryQueue.ts · nach der Inferenz⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    p3["`**prepare (3)** · Neuaufbau nach Inferenz
+    prüft Rechte neu · Host-Token danach gelöscht`"]
+    cmp{{"`**Hash (2) = Hash (3)?**
+    dann: Timeout? dann: Laufergebnis`"}}
+  end
+
+  ok["`**Modell-Zusammenfassung**
+  effectiveMode full-context oder legacy-text
+  nur Quellen mit Text-Label aus prepare (3)
+  ready · uncertain, wenn das Modell es meldet
+  oder nichts übrig bleibt`"]
+  stored["`**Aktuelles Ergebnis zurück**
+  unverändert · pending,
+  Modell-Zusammenfassung oder Fallback
+  bei Cooldown: gleicher Hash, nicht failed,
+  nicht nach extraktiv/regelbasiert + retry manual
+  bei zu wenigen Fragen: gleicher Hash, ready/uncertain`"]
+  fb["`**Fallback**
+  effectiveMode extractive oder rule-based
+  status ist ein eigenes Feld
+  **Gate** queue_full · context_unavailable
+  **Plan** no_packed_sources
+  misconfigured · disabled
+  **Client** busy · unavailable · timeout
+  circuit_open · invalid_response
+  misconfigured · disabled
+  **Quality-Gate** invalid_response
+  **nach dem Lauf** source_changed · timeout
+  **prepare-Fehler** context_unavailable
+  permission_changed`"]
+
+  ui e1@==> rq
+  pvb e2@-.-> pv
+  poll e3@==> fresh
+  rq e4@==>|"prepare (1)"| auth
+  pv e5@-.->|prepare| auth
+  rq e40@-.->|abgelehnt| herr
+  auth e41@-.->|"CONFLICT<br/>bei der Anfrage"| herr
+  auth e6@==> build
+  build e36@-.-|liest| DB
+  build e7@==> pack
+  pack e8@==> hash
+  hash e9@==> asm
+  asm e12@==> gate
+  gate e13@==>|angenommen| pend
+  pend e14@==>|"pump: wartet,<br/>solange ein Job läuft"| p2
+  p2 e15@==>|"Queue-Timeout 90 s<br/>startet; full-context:<br/>max(Queue, Client),<br/>≤ 300 s"| adp
+  adp e35@==> cli
+  cli e17@==> slots
+  slots e18@==> post
+  post e19@==>|"privates Netz"| llm
+  llm e20@==> parse
+  parse e46@==>|"Ausgabe oder Fehlerstatus"| qg
+  qg e21@==>|"Lauf endet:<br/>Modellausgabe oder<br/>extraktiv mit Grund"| p3
+  adp e42@==>|"kein Open-Weight-Aufruf<br/>legacy-text:<br/>Quality-Gate ebenfalls"| p3
+  cli e43@-.->|"Gate gescheitert,<br/>kein Netzaufruf"| p3
+  p3 e22@==> cmp
+  cmp e23@==>|"gleich · Ausgabe gültig"| ok
+  fresh e24@-->|"Hash gleich"| stored
+  gate e44@-->|"läuft schon<br/>Cooldown · zu wenige"| stored
+  fresh e45@-.->|"prepare-Fehler"| herr
+  gate e25@-.->|"Queue voll · zu wenige"| fb
+  cmp e27@-.->|"Hash geändert · Timeout<br/>Lauf gescheitert"| fb
+  p3 e30@-.->|"prepare-Fehler"| fb
+  p2 e29@-.->|"prepare-Fehler"| fb
+  fresh e28@-.->|"Hash geändert,<br/>kein Job läuft"| fb
+
+  class ui,pvb,poll host
+  class rq,pv,auth,build,pack,asm app
+  class hash contract
+  class pg,rd store
+  class gate,cmp,cli,fresh,qg decision
+  class pend,p2,p3 queue
+  class adp,slots,post,parse,llm runtime
+  class ok result
+  class stored decision
+  class fb,herr fallback
+  class HOST hostGroup
+  class API,PREP appGroup
+  class DB storeGroup
+  class QA,QB queueGroup
+  class RUN,LLMH runtimeGroup
+  class e1,e3,e4,e6,e7,e8,e9,e12,e13,e14,e15,e35,e17,e18,e19,e20,e46,e21,e42,e22 emph
+  class e24,e44 same
+  class e23 ok
+  class e25,e27,e28,e29,e30,e40,e41,e45,e43 fail
+  class e2,e5,e36 muted
+%% palette

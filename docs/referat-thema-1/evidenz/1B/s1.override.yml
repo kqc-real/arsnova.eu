@@ -1,0 +1,26 @@
+# Nur S1-Labor: App-Dienste teilen wie auf der bisherigen App-VM zwei vCPUs.
+services:
+  app:
+    image: arsnova-1b-s1-app:source
+    cpuset: '0,1'
+  postgres:
+    image: arsnova-1b-s1-postgres:source
+    cpuset: '0,1'
+  redis:
+    image: arsnova-1b-s1-redis:source
+    cpuset: '0,1'
+  pdf-worker:
+    image: arsnova-1b-s1-pdf-worker:source
+    cpuset: '0,1'
+  wordcloud-encoder:
+    image: arsnova-1b-s1-wordcloud-encoder:source
+    cpuset: '0,1'
+    cpus: '2.0'
+
+networks:
+  app:
+    driver_opts:
+      com.docker.network.bridge.name: br-1b-s1
+    ipam:
+      config:
+        - subnet: 172.31.150.0/24

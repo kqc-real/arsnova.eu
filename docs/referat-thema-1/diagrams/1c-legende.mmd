@@ -1,0 +1,45 @@
+---
+config:
+  look: neo
+  flowchart:
+    curve: basis
+    nodeSpacing: 10
+    rankSpacing: 8
+    padding: 8
+    wrappingWidth: 320
+    subGraphTitleMargin:
+      top: 8
+      bottom: 8
+---
+flowchart LR
+  subgraph SHAPES["Farben und Formen"]
+    direction TB
+    h["`**Lehrperson · Anzeige**`"] ~~~ a["`**Schritt im App-Server**`"] ~~~ c["`⠀⠀**Vertrag · Hash**⠀⠀`"]
+    q["`**Job in der Warteschlange**`"] ~~~ x[["`⠀⠀⠀**Externer Server**⠀⠀⠀`"]] ~~~ d{{"`⠀⠀⠀⠀**Prüfung**⠀⠀⠀⠀`"}}
+    ok["`⠀**Erfolgreiches Ergebnis**⠀`"] ~~~ fb["`⠀⠀⠀**Fallback · Fehler**⠀⠀⠀`"] ~~~ fr["`**Rahmen** = Host,
+    Prozessschritt oder Schicht,
+    Farbe wie bei den Feldern`"]
+  end
+  subgraph EDGES["Linien"]
+    direction LR
+    m1[" "] e1@==> t1["Hauptpfad⠀⠀ ⠀ ⠀"]
+    o1[" "] e2@==> t2["Erfolg⠀⠀⠀⠀⠀⠀⠀⠀"]
+    f1[" "] e3@-.-> t3["Fallback · Fehler"]
+  end
+  SHAPES ~~~ EDGES
+  class h host
+  class a app
+  class c contract
+  class q queue
+  class x runtime
+  class d decision
+  class ok result
+  class fb fallback
+  class fr appGroup
+  class m1,o1,f1 dot
+  class t1,t2,t3 plain
+  class SHAPES,EDGES legendGroup
+  class e1 emph
+  class e2 ok
+  class e3 fail
+%% palette

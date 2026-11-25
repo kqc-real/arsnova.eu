@@ -1,0 +1,72 @@
+# 1B-Aufbaubericht (ohne Secrets) 2026-11-12T22:23:46+01:00
+Repo: 747c8f7ef22cad4ebba5d179ceb1d73b66c46a91
+Rechner: Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz; 8 Threads; 31 GiB
+VM arsnova-1b-llm: 4 vCPU, 12 GiB
+VM arsnova-1b-app: 2 vCPU, 6 GiB
+  <forward mode='nat'>
+  </forward>
+  <bridge name='virbr-1b' stp='on' delay='0'/>
+== arsnova-1b-app (192.168.150.10): running
+ 0      4
+ 1      5
+docker 29.9.3
+v22.23.5
+ausgehend: ok
+747c8f7ef2 fix(referat): read the runtime flags with a pid column
+== arsnova-1b-llm (192.168.150.20): running
+ 0      0
+ 1      1
+ 2      2
+ 3      3
+docker 29.9.3
+v22.23.5
+ausgehend: ok
+747c8f7ef2 fix(referat): read the runtime flags with a pid column
+== arsnova-1b-llm 2026-11-12T21:23:48+00:00 commit 747c8f7ef22c vCPU 4 RAM 11 GiB
+OK      Bind nur private IP: 192.168.150.20:8080
+OK      Speicherlimits Release: Memory=8589934592 MemorySwap=10737418240
+OK      CPU-Limit = vCPUs: NanoCpus=4000000000 vCPU=4
+OK      Container: Restarts=0 Health=healthy
+OK      Image per Digest: 127.0.0.1:5000/arsnova-open-weight-llm@sha256:d43db93bb08bcc48cca6bc904b324f52ff538c07022bb3235411da1f18891040
+OK      .env.llm Modus 600: 600
+OK      64 Bit, mindestens 10 GiB frei: x86_64, 17 GiB frei
+OK      GGUF Größe und SHA-256: Qwen3-4B-Instruct-2507-Q4_K_M.gguf: verified 2497281120 bytes, sha256:3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597
+OK      Flag --parallel 1:
+OK      Flag --ctx-size 8192:
+OK      Flag --n-predict 768:
+OK      Flag --threads 4:
+OK      Flag --no-webui:
+OK      Flag --slots:
+OK      Flag --reasoning off:
+OK      Flag --n-gpu-layers 0:
+OK      Flag --slot-prompt-similarity 0:
+OK      Flag --jinja:
+OK      Flag --offline:
+OK      Flag --api-key gesetzt: (Wert nicht ausgegeben)
+OK      kein --embedding:
+OK      kein --props:
+OK      kein --metrics:
+OK      Threads = vCPUs: THREADS=4
+OK      §10.1 /health: HTTP 200
+OK      §10.2 ohne Token: HTTP 401
+OK      §10.2 falscher Token: HTTP 401
+OK      §10.2 mit Token ein Slot:
+OK      §10.3 Testinferenz: {"antwort":"bereit","prompt_ms":133.142,"predicted_ms":223.144}
+== arsnova-1b-app 2026-11-12T21:23:56+00:00 commit 747c8f7ef22c vCPU 2 RAM 5 GiB
+OK      App healthy, Image per Digest: healthy 127.0.0.1:5000/arsnova@sha256:cec23b68ad156c89b593ca885a4b29da5d169c268a749f72dc9aaee928eca0c7
+OK      health.check: {"status":"ok","redis":"ok"}
+INFO    QA_SUMMARY_ENABLED=true
+INFO    OPEN_WEIGHT_LLM_ENABLED=true
+INFO    OPEN_WEIGHT_LLM_URL=http://192.168.150.20:8080
+INFO    QA_SUMMARY_TIMEOUT_MS=300000
+INFO    OPEN_WEIGHT_LLM_SUMMARY_TIMEOUT_MS=300000
+OK      App-Ports nur Loopback: nur 127.0.0.1
+OK      §11 /health vom app-host: HTTP 200
+OK      §11 mit Token ein Slot:
+OK      §11 aus dem App-Container:
+== Negativtests vom Rechner
+OK      Rechner → llm-host:8080 gesperrt: keine Antwort
+OK      Bridge virbr-1b nur mit VM-Schnittstellen: vnet4 vnet5
+OK      libvirt-Netz im Modus NAT (keine Portweiterleitung)
+OK      Labornetz nur über virbr-1b geroutet
+== Ergebnis: alle Prüfungen OK

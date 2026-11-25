@@ -1,0 +1,150 @@
+---
+config:
+  sequence:
+    actorMargin: 56
+    boxMargin: 8
+    noteMargin: 8
+    width: 130
+---
+sequenceDiagram
+  autonumber
+  box rgba(37, 99, 235, 0.10) Browser
+    participant UI as Lehrperson · Kompass-Dialog<br/>session-host
+    participant S as Teilnehmende
+  end
+  box rgba(217, 119, 6, 0.10) App-Server · Backend
+    participant R as tRPC-Router qa
+    participant P as prepare<br/>Kontextaufbau
+    participant Q as qaSummaryQueue
+    participant C as Adapter + LLM-Client
+  end
+  box rgba(100, 116, 139, 0.10) Daten
+    participant DB as PostgreSQL / Redis
+  end
+  box rgba(13, 148, 136, 0.10) Zweiter privater Host
+    participant L as llama-server
+  end
+
+  UI->>R: qa.requestSummary(sessionId, locale)
+  alt keine Sitzung · Token ungültig · Nachlauffenster vorbei · Q&A oder Zusammenfassung aus
+    R-->>UI: TRPCError NOT_FOUND / UNAUTHORIZED / FORBIDDEN
+  else erlaubt
+  R->>Q: requestQaSummary
+  alt Job läuft bereits
+    Q-->>R: aktuelles ausstehendes Ergebnis, kein prepare
+    R-->>UI: Runtime-DTO
+  else kein Job läuft
+  Q->>P: prepare (1)
+  P->>DB: 8 Rechteprüfungen + Lesezugriffe (RepeatableRead)
+  S-)DB: inzwischen: Q&A-Stimme · neue Frage · Beitritt
+  Note over UI,S: auch der Host kann das Quiz weiterschalten
+  alt geprüftes Feld im Aufbau geändert (z. B. Q&A-Stimme, neue Frage, Beitritt, Quizschritt) oder Schemaverstoß
+    P-->>R: CONFLICT oder INTERNAL_SERVER_ERROR
+    R-->>UI: TRPCError · Frontend zeigt kein neues Ergebnis,<br/>ein bisheriges bleibt stehen
+  else Aufbau ok
+    Note over P: ins Budget packen · snapshotHash ·<br/>strikter Parse QaSummaryInferenceRequestV2
+    P-->>Q: vorbereiteter Kontext · Hash (1)
+    alt inzwischen läuft ein Job (zweite Prüfung)
+      Q-->>R: aktuelles ausstehendes Ergebnis
+    else zu wenige Fragen
+      Q-->>R: gespeichertes Ergebnis (gleicher Hash, ready/uncertain) oder regelbasiert context_unavailable
+    else Cooldown greift (gleicher Hash, nicht failed, nicht extraktiv/regelbasiert + retry manual)
+      Q-->>R: gespeichertes Ergebnis
+    else Queue voll (Default 8, alle Sitzungen)
+      Q-->>R: extraktiver Fallback queue_full
+    else angenommen
+      Note over Q: ausstehendes Ergebnis + Job · Host-Token kopieren
+      Q-->>R: Status pending
+    end
+    R-->>UI: Runtime-DTO · Anfrage wartete nicht auf das Modell
+  end
+  end
+  end
+
+  par Lehrperson pollt, während der Job läuft
+    loop sofort, dann alle 750 ms, solange ausstehend
+      UI->>R: qa.summaryRuntime
+      R-->>UI: pending (kein prepare, solange ausstehend)
+      Note right of UI: Fehler außer UNAUTHORIZED werden während pending ignoriert
+    end
+  and asynchroner Job
+    Note over Q: pump: der Job startet, wenn kein anderer läuft<br/>(Default-Parallelität 1, alle Sitzungen)
+    Q->>P: prepare (2) · Rechte neu prüfen mit kopiertem Token
+    alt prepare (2) wirft (z. B. Rechte entzogen, CONFLICT)
+      P-->>Q: Fehler
+      rect rgba(225, 29, 72, 0.14)
+        Note over P,Q: regelbasiert failed, Job endet:<br/>permission_changed oder context_unavailable
+      end
+    else wieder zu wenige Fragen
+      P-->>Q: vorbereitet
+      rect rgba(225, 29, 72, 0.14)
+        Note over P,Q: regelbasiert context_unavailable, Job endet
+      end
+    else vorbereitet
+      P-->>Q: Hash (2)
+    end
+    Note over Q,C: Queue-Timeout startet (Default 90 s)
+    Q->>C: runPreparedQaSummary(prepared)
+    alt Plan none · kein gepackter Q&A-Text · legacy-text
+      C-->>Q: kein Open-Weight-Aufruf (Fallback-Grund oder Legacy-Lauf · legacy-text: Quality-Gate ebenfalls)
+    else Gates scheitern: disabled · misconfigured · Circuit offen · Slot im Prozess belegt
+      C-->>Q: Fehlerstatus, kein Netzaufruf
+    else Gates bestanden
+      C->>L: GET /slots?fail_on_no_slot=1 (Bearer)
+      alt 503 busy · 401/403/501 misconfigured · sonst unavailable
+        L-->>C: status
+        C-->>Q: Fehlerstatus, kein POST
+      else 200
+        L-->>C: Slot frei
+        C->>L: POST /v1/chat/completions<br/>Instruktion · Definition · Kontext-JSON · JSON-Schema
+        L-->>C: JSON-Antwort
+        Note over C: parseCompletion: Schema + bekannte Quellen-IDs<br/>Fehler → invalid_response · Client-Timeout → timeout
+        Note over C: Quality-Gate im Adapter (nur bei completed):<br/>≥ 2 Aussagen »Lead: Satz«, verschiedene, nicht generische Leads<br/>sonst extraktiv invalid_response (meist ready)
+        C-->>Q: Modellausgabe oder extraktiv mit Grund
+      end
+    end
+    S-)DB: inzwischen: Q&A-Stimme · neue Frage · Beitritt
+    Note over UI,S: oder der Host löscht oder moderiert eine Frage
+    Q->>P: prepare (3) · Rechte neu prüfen · liest alle Daten neu
+    alt prepare (3) wirft
+      P-->>Q: Fehler
+      rect rgba(225, 29, 72, 0.14)
+        Note over P,Q: regelbasiert failed:<br/>permission_changed oder context_unavailable
+      end
+    else vorbereitet
+      P-->>Q: Hash (3)
+    end
+    alt Hash (2) ≠ Hash (3)
+      rect rgba(225, 29, 72, 0.14)
+        Note over P,Q: extraktiver Fallback source_changed
+      end
+    else Queue-Timeout ausgelöst
+      rect rgba(225, 29, 72, 0.14)
+        Note over P,Q: extraktiver Fallback timeout
+      end
+    else Laufergebnis
+      Note over Q: an prepare (3) binden: nur Quellen mit Text-Label<br/>Modell meldet uncertain oder keine Aussage übrig → uncertain
+    end
+    Note over Q: kopierten Host-Token löschen
+  end
+
+  UI->>R: qa.summaryRuntime (auch bei Seitenaufruf und Dialogöffnung)
+  R->>Q: getQaSummaryRuntimeFresh
+  Q->>P: prepare (4)
+  alt prepare (4) scheitert, z. B. CONFLICT
+    P-->>R: TRPCError
+    R-->>UI: Fehler · Frontend setzt Runtime auf null,<br/>Ergebnis verschwindet
+    Note right of UI: UNAUTHORIZED vorher einmal mit erneuertem Host-Zugang wiederholt
+  else Hash unverändert
+    P-->>Q: aktueller Hash
+    Q-->>R: gespeichertes Ergebnis (Modell oder Fallback)
+    R-->>UI: finales Runtime-DTO · Polling endet
+  else Hash seit dem Ergebnis geändert, kein Job läuft
+    P-->>Q: aktueller Hash
+    Q-->>R: ersetzt durch extraktives source_changed
+    R-->>UI: finales Runtime-DTO · Polling endet
+  else Hash geändert, inzwischen läuft ein neuer Job
+    P-->>Q: aktueller Hash
+    Q-->>R: aktuelles ausstehendes Ergebnis
+    R-->>UI: pending · laufendes Polling geht weiter
+  end

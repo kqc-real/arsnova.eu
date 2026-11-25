@@ -7,6 +7,7 @@ import {
   ModerationAnalysisContextV1Schema,
   QaSummaryExecutionV2Schema,
 } from '@arsnova/shared-types';
+import { ZodError } from 'zod';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
 const { prismaMock, hostAuthMocks } = vi.hoisted(() => ({
@@ -251,6 +252,38 @@ describe('qa summary V2 (issue #456 slice 7)', () => {
       await expect(
         caller.requestSummary({ sessionId: SESSION_ID, locale: 'de' }),
       ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+    },
+  );
+
+  // Charakterisierung des Ist-Verhaltens, kein gewünschter Vertrag: Ein Codefehler im
+  // Kontextaufbau erreicht den Host als INTERNAL_SERVER_ERROR, ohne Job. Der
+  // errorFormatter (trpc.ts) reicht die ZodError-Meldung dabei unmaskiert weiter; der
+  // Test legt bewusst nur Code und fehlenden Job fest, nicht die Meldung.
+  trpcDodIt(
+    {
+      procedure: 'qa.requestSummary',
+      case: 'error',
+      mode: 'direct',
+      contract: 'INTERNAL_SERVER_ERROR',
+      title:
+        'Negativprobe: liefert INTERNAL_SERVER_ERROR, wenn der Kontext beim Anfordern nicht schemakonform ist',
+    },
+    async () => {
+      vi.stubEnv('QA_SUMMARY_ENABLED', 'true');
+      prismaMock.session.findUnique.mockResolvedValue(activeSession());
+      const prepare = vi.fn().mockRejectedValueOnce(new ZodError([]));
+      const processor = vi.fn();
+      resetQaSummaryQueueForTests({ prepare, plan: () => plan, processor });
+
+      await expect(
+        hostCaller.requestSummary({ sessionId: SESSION_ID, locale: 'de' }),
+      ).rejects.toMatchObject({ code: 'INTERNAL_SERVER_ERROR' });
+
+      expect(prepare).toHaveBeenCalledTimes(1);
+      expect(processor).not.toHaveBeenCalled();
+      await expect(hostCaller.summaryRuntime({ sessionId: SESSION_ID })).resolves.toMatchObject({
+        result: null,
+      });
     },
   );
 

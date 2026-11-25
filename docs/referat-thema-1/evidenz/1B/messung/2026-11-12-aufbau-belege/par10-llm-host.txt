@@ -1,0 +1,19 @@
+== 2026-11-12T18:06:51+00:00 commit ae648678c
+== ss
+LISTEN 0      512    192.168.150.20:8080      0.0.0.0:*    users:(("llama-server",pid=10423,fd=3))
+wildcard-8080-zeilen: 0
+== inspect
+Memory=8589934592 MemorySwap=10737418240 NanoCpus=4000000000 Restarts=0 Health=healthy
+OPEN_WEIGHT_LLM_THREADS=4
+== 10.1 health
+health mit Token: 200
+health ohne Token: 200
+== 10.2
+slots ohne Token: 401
+slots falscher Token: 401
+Mit Token: genau ein Slot erreichbar.
+== 10.3
+HTTP 200
+{"antwort":"bereit","timings":{"cache_n":0,"prompt_n":34,"prompt_ms":1161.977,"prompt_per_token_ms":34.17579411764706,"prompt_per_second":29.260475895822378,"predicted_n":3,"predicted_ms":223.937,"predicted_per_token_ms":111.9685,"predicted_per_second":8.931083295748357}}
+== stats
+arsnova-open-weight-llm 0.01% 2.839GiB / 8GiB

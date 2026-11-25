@@ -1,0 +1,51 @@
+---
+config:
+  sequence:
+    actorMargin: 12
+    boxMargin: 9
+    noteMargin: 6
+    messageMargin: 28
+    width: 130
+---
+sequenceDiagram
+  autonumber
+  box rgba(217, 119, 6, 0.10) app-host
+    participant T as Treiber
+    participant A as tRPC-API
+    participant Q as Warteschlange
+    participant AD as Adapter, LLM-Client
+  end
+  box rgba(13, 148, 136, 0.10) llm-host
+    participant L as llama-server
+  end
+
+  T->>A: qa.requestSummary
+  Note over A: Host-Token, Sessionzustand,<br/>Q&A aktiv, Zusammenfassung an
+  A->>Q: requestQaSummary
+  Note over Q: laufender Job? Kontext bauen,<br/>genug Fragen? Cooldown 30 s,<br/>Warteschlange voll?
+  Note over Q: Job einreihen
+  A-->>T: pending
+  par Statusabfrage
+    loop 1 s Pause bis Endstatus
+      T->>A: qa.summaryRuntime
+      A-->>T: pending
+    end
+  and Job per setImmediate
+    Note over Q: ⏱ Messpunkt: T_job beginnt
+    Note over Q: Kontext vorher
+    Q->>AD: runPreparedQaSummary
+    AD->>L: GET /slots
+    L-->>AD: 200
+    Note over AD,L: ⏱ Messpunkt: Drahtzeit GET
+    AD->>L: POST /v1/chat/completions
+    Note over AD,L: ⏱ Messpunkt: Inferenz =<br/>prompt_ms + predicted_ms
+    L-->>AD: 200 mit timings
+    Note over AD,L: ⏱ Messpunkt: Drahtzeit POST
+    Note over AD: timings verworfen,<br/>Quality-Gate
+    AD-->>Q: Ergebnis
+    Note over Q: Kontext nachher, Hash
+    Note over Q: ⏱ Messpunkt: T_job endet,<br/>latencyMs
+  end
+  T->>A: qa.summaryRuntime
+  Note over A,Q: Kontext zum vierten Mal,<br/>Hash-Vergleich
+  A-->>T: Endstatus

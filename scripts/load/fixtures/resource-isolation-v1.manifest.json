@@ -1,0 +1,16 @@
+{
+  "fixtureVersion": "resource-isolation-fixture-v1",
+  "seed": 438314513,
+  "sha256": "da24eeb3db1f7e08399583f527bf5f889ccb98cddd67fd0be84ec0e4dea17ded",
+  "hashAlgorithm": "sha256",
+  "serialization": "sorted-keys-json-v1",
+  "locale": "de",
+  "referenceParticipantCount": 200,
+  "eligibleQuestions": 500,
+  "exclusionControls": 3,
+  "sharedArtifact": {
+    "owner": "Niklas",
+    "consumers": ["1A", "1B", "1C"],
+    "sourceIssue": 456
+  }
+}

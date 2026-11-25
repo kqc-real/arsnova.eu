@@ -4,9 +4,11 @@ import {
   MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1,
   ModerationAnalysisContextV1Schema,
   type AppLocale,
+  type ModerationPromptContextV1,
   type ModerationAnalysisContextV1,
 } from '@arsnova/shared-types';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ZodError } from 'zod';
 import {
   QA_SUMMARY_MODERATION_PACKING_PROFILE,
   QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,
@@ -20,6 +22,7 @@ import {
   qaSummaryTechnicalHandoffTokenCounts,
   reconcileTopicSiblingQaCitations,
   resolveQaSummaryAdapterPlan,
+  type PreparedModerationSummaryContext,
   resolveSummaryMaxQuestionCandidates,
 } from './moderationSummaryContext';
 import { OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS } from './openWeightLlmConfig';
@@ -65,6 +68,15 @@ function withEmptyQaEvidence(
     emptyPack.budget.definitionTokens +
     emptyPack.budget.dataTokens;
   return emptyPack;
+}
+
+function incompatiblePromptContext(
+  prepared: PreparedModerationSummaryContext,
+): ModerationPromptContextV1 {
+  return {
+    ...structuredClone(prepared.request.promptContext),
+    contractVersion: 'moderation-prompt-context-v2',
+  } as unknown as ModerationPromptContextV1;
 }
 
 function analysisFixture(
@@ -941,6 +953,24 @@ describe('moderationSummaryContext', () => {
     expect(prepared.request.promptContext.context.limitations).toContainEqual(
       expect.objectContaining({ detail: 'qa-force-fit' }),
     );
+  });
+
+  it('Negativprobe: wirft beim Zusammenbau mit inkompatibler Kontextversion statt ein Ergebnis zu liefern', () => {
+    const base = prepareModerationSummaryContextFromAnalysis({
+      analysis: analysisFixture(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1),
+      plan,
+    });
+    for (const promptContext of [
+      incompatiblePromptContext(base),
+      {
+        ...structuredClone(base.request.promptContext),
+        schemaVersion: 2,
+      } as unknown as ModerationPromptContextV1,
+    ]) {
+      expect(() =>
+        assemblePreparedModerationSummaryContext({ promptContext, cache: 'miss', plan }),
+      ).toThrow(ZodError);
+    }
   });
 
   it('stuft Full-context auf extractive herab wenn analysierte Fragen ohne included Sources bleiben', () => {

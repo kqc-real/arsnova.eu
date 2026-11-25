@@ -645,6 +645,37 @@ describe('createRedisWordCloudAnalysisCache', () => {
     await expect(cache.getLatestQaSemanticTopicSnapshot(scope)).resolves.toBeNull();
   });
 
+  // Charakterisiert das Ist-Verhalten (bekannte Lücke, siehe it.todo in
+  // moderationQaContext.test.ts), keinen gewünschten Vertrag; bei einer Behebung umstellen.
+  it('Negativprobe: liefert für einen strukturell gültigen Latest-Snapshot mit fremder Version still null wie bei fehlenden Daten', async () => {
+    vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
+    const cache = createRedisWordCloudAnalysisCache(90);
+    const key = buildLatestQaSemanticTopicSnapshotCacheKey(scope.sessionId);
+
+    // Kontrolle: derselbe Snapshot mit aktueller Version wird geliefert.
+    store.set(key, JSON.stringify(latestQaSemanticTopicSnapshot));
+    expect(await cache.getLatestQaSemanticTopicSnapshot(scope)).toEqual(
+      latestQaSemanticTopicSnapshot,
+    );
+
+    store.delete(key);
+    const missing = await cache.getLatestQaSemanticTopicSnapshot(scope);
+    expect(missing).toBeNull();
+
+    for (const version of ['qa-semantic-topic-snapshot-v0', 'qa-semantic-topic-snapshot-v2']) {
+      // Prozesskonflikt: ein anderer Prozess (älterer oder neuerer Release) hat geschrieben.
+      store.set(key, JSON.stringify({ ...latestQaSemanticTopicSnapshot, version }));
+      mocks.warn.mockClear();
+
+      const stale = await cache.getLatestQaSemanticTopicSnapshot(scope);
+
+      expect(stale).toBeNull();
+      expect(stale).toStrictEqual(missing);
+      // Befund: der Versionskonflikt wird weder unterschieden noch protokolliert.
+      expect(mocks.warn).not.toHaveBeenCalled();
+    }
+  });
+
   it('fenced Writes atomar, purgt idempotent und isoliert wiederverwendete Codes per Session-ID', async () => {
     vi.stubEnv('WORD_CLOUD_SEMANTIC_ENABLED', 'true');
     const cache = createRedisWordCloudAnalysisCache(90);

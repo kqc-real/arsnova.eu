@@ -1,0 +1,337 @@
+{
+  "lauf": "20261113T081452",
+  "tag": "",
+  "n": 10,
+  "auswertung": "ok",
+  "timeoutMs": 300000,
+  "commit": "8e9d13177b0e478552310713d75f4fd50f911b69",
+  "rechner": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz, 8 Threads, 31 GiB",
+  "energieprofil": "performance",
+  "appHost": {
+    "vcpu": 2,
+    "image": "127.0.0.1:5000/arsnova@sha256:768caae09797d04d74ab74a4851ce6dd78f7df59839aab5763f0ae87603894bd"
+  },
+  "llmHost": {
+    "info": "\"127.0.0.1:5000/arsnova-open-weight-llm@sha256:ca8b06e12fe17f9ccdec452a2bfad0bd8c69655cdd8d76f8452516ed9fd263d4\" []\n4\n11",
+    "modellSha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+  },
+  "treiber": {
+    "startedAt": "2026-11-13T08:16:09.313Z",
+    "teilnehmer": 200,
+    "fragen": 6,
+    "stimmen": 282,
+    "pauseMs": 31000,
+    "locale": "de",
+    "auftraege": [
+      {
+        "index": 1,
+        "requestedAt": "2026-11-13T08:16:30.399Z",
+        "finishedAt": "2026-11-13T08:20:04.565Z",
+        "hostReturnMs": 80,
+        "clientWaitMs": 214166,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 2,
+        "requestedAt": "2026-11-13T08:20:35.594Z",
+        "finishedAt": "2026-11-13T08:23:07.383Z",
+        "hostReturnMs": 67,
+        "clientWaitMs": 151789,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 3,
+        "requestedAt": "2026-11-13T08:23:38.411Z",
+        "finishedAt": "2026-11-13T08:26:07.156Z",
+        "hostReturnMs": 56,
+        "clientWaitMs": 148745,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 4,
+        "requestedAt": "2026-11-13T08:26:38.185Z",
+        "finishedAt": "2026-11-13T08:29:06.753Z",
+        "hostReturnMs": 64,
+        "clientWaitMs": 148568,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 5,
+        "requestedAt": "2026-11-13T08:29:37.782Z",
+        "finishedAt": "2026-11-13T08:32:06.377Z",
+        "hostReturnMs": 54,
+        "clientWaitMs": 148595,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 6,
+        "requestedAt": "2026-11-13T08:32:37.402Z",
+        "finishedAt": "2026-11-13T08:35:06.988Z",
+        "hostReturnMs": 55,
+        "clientWaitMs": 149586,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 7,
+        "requestedAt": "2026-11-13T08:35:37.993Z",
+        "finishedAt": "2026-11-13T08:38:08.671Z",
+        "hostReturnMs": 50,
+        "clientWaitMs": 150678,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 8,
+        "requestedAt": "2026-11-13T08:38:39.687Z",
+        "finishedAt": "2026-11-13T08:41:08.158Z",
+        "hostReturnMs": 59,
+        "clientWaitMs": 148471,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 9,
+        "requestedAt": "2026-11-13T08:41:39.187Z",
+        "finishedAt": "2026-11-13T08:44:17.933Z",
+        "hostReturnMs": 52,
+        "clientWaitMs": 158747,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      },
+      {
+        "index": 10,
+        "requestedAt": "2026-11-13T08:44:48.962Z",
+        "finishedAt": "2026-11-13T08:47:18.518Z",
+        "hostReturnMs": 57,
+        "clientWaitMs": 149556,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "c3c7937c09a2aa0221838b2642f97d50e3569d3d82c640e7f83d72eb6f40c5b2",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      }
+    ]
+  },
+  "zerlegung": {
+    "auftraege": [
+      {
+        "netzMs": 0.2541542053222656,
+        "adapterMs": 92.03699111938477,
+        "inferMs": 213545.152,
+        "serverOhneInferenzMs": 16.974874923704192,
+        "jobMs": 213655,
+        "cacheN": 0,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.4458427429199219,
+        "adapterMs": 103.00317192077637,
+        "inferMs": 150756.886,
+        "serverOhneInferenzMs": 367.9790550842299,
+        "jobMs": 151229,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.4448890686035156,
+        "adapterMs": 106.77715301513672,
+        "inferMs": 148136.249,
+        "serverOhneInferenzMs": 340.93505723570706,
+        "jobMs": 148585,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.39696693420410156,
+        "adapterMs": 88.02306747436523,
+        "inferMs": 148194.87000000002,
+        "serverOhneInferenzMs": 17.108912353491178,
+        "jobMs": 148301,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.3790855407714844,
+        "adapterMs": 90.84422492980957,
+        "inferMs": 148041.19400000002,
+        "serverOhneInferenzMs": 16.038856750470586,
+        "jobMs": 148149,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 1.361846923828125,
+        "adapterMs": 161.68805694580078,
+        "inferMs": 148585.111,
+        "serverOhneInferenzMs": 17.40398222350632,
+        "jobMs": 148766,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.484466552734375,
+        "adapterMs": 101.77474784851074,
+        "inferMs": 150462.874,
+        "serverOhneInferenzMs": 17.44693048094632,
+        "jobMs": 150583,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.6167888641357422,
+        "adapterMs": 101.13300704956055,
+        "inferMs": 147972.217,
+        "serverOhneInferenzMs": 18.275105484004598,
+        "jobMs": 148094,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.41413307189941406,
+        "adapterMs": 100.43386650085449,
+        "inferMs": 158147.45500000002,
+        "serverOhneInferenzMs": 17.09101287840167,
+        "jobMs": 158267,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      },
+      {
+        "netzMs": 0.26988983154296875,
+        "adapterMs": 159.94311332702637,
+        "inferMs": 148331.81399999998,
+        "serverOhneInferenzMs": 17.443946014420362,
+        "jobMs": 148510,
+        "cacheN": 2344,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      }
+    ],
+    "kennzahlen": {
+      "n": 10,
+      "nGewertet": 10,
+      "unvollstaendig": 0,
+      "netz": {
+        "medianMs": 0.42951107025146484,
+        "maxMs": 1.361846923828125
+      },
+      "adapter": {
+        "medianMs": 101.45387744903564
+      },
+      "inferAnteilMedian": 0.9991899623667997,
+      "kalt": {
+        "n": 1,
+        "inferMsMedian": 213545.152,
+        "jobMsMedian": 213655,
+        "inferAnteilMedian": 0.9994858627226135
+      },
+      "warm": {
+        "n": 9,
+        "inferMsMedian": 148331.81399999998,
+        "jobMsMedian": 148585,
+        "inferAnteilMedian": 0.9991776641862601
+      },
+      "hB1": true,
+      "hB2": true,
+      "hB3": true
+    }
+  },
+  "kontrolleC0": {
+    "curl": "214.323306 214.323451 200",
+    "hinweis": "time_starttransfer time_total http_code; frische Runtime",
+    "timings": {
+      "prompt_ms": 83091.305,
+      "predicted_ms": 131213.671,
+      "prompt_n": 2345,
+      "predicted_n": 551,
+      "cache_n": 0
+    }
+  },
+  "speicher": {
+    "proben": 126,
+    "maxBytes": 4044881920,
+    "restartsMax": 0,
+    "oomKilled": false
+  }
+}

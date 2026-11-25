@@ -100,6 +100,14 @@ describe('Q&A summary V2 contracts', () => {
     ).toBe(false);
   });
 
+  it('negative probe: rejects an incompatible request schemaVersion and requestContract', () => {
+    for (const patch of [{ schemaVersion: 3 }, { requestContract: 'qa-summary-context-v3' }]) {
+      const result = QaSummaryInferenceRequestV2Schema.safeParse({ ...requestV2(), ...patch });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues.map((issue) => issue.path[0])).toContain(Object.keys(patch)[0]);
+    }
+  });
+
   it('keeps the legacy 2,500-byte summary request bound unchanged', () => {
     const legacy = {
       schemaVersion: OPEN_WEIGHT_LLM_SCHEMA_VERSION,

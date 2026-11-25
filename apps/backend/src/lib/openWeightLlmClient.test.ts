@@ -1803,6 +1803,69 @@ describe('openWeightLlmClient', () => {
     expect(request).not.toHaveBeenCalled();
   });
 
+  function prepareSummaryRequestV2() {
+    const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
+    const analysis = ModerationAnalysisContextV1Schema.parse({
+      schemaVersion: fixture.schemaVersion,
+      contractVersion: MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
+      assembledAt: '2026-01-15T10:05:00.000Z',
+      context: { ...fixture.context, representation: 'analysis-candidates' },
+    });
+    return prepareModerationSummaryContextFromAnalysis({
+      analysis,
+      plan: {
+        capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+        selectedMode: 'full-context',
+        fallback: null,
+        inferenceConfigured: true,
+      },
+      packedAt: new Date('2026-01-15T10:06:00.000Z'),
+    }).request;
+  }
+
+  it('Negativprobe: weist eine V2-Anfrage mit fremdem requestContract vor Config, Slot und Modellaufruf ab', async () => {
+    const config = vi.fn(() => defaultConfig);
+    const request = vi.fn();
+    resetOpenWeightLlmClientForTests({ config, request });
+    const foreignRequest = {
+      ...structuredClone(prepareSummaryRequestV2()),
+      requestContract: 'qa-summary-context-v3',
+    } as unknown as ReturnType<typeof prepareSummaryRequestV2>;
+
+    await expect(runOpenWeightLlmSummaryV2(foreignRequest)).resolves.toEqual({
+      status: 'invalid_response',
+    });
+    expect(config).not.toHaveBeenCalled();
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('Negativprobe: verwirft eine Modellantwort mit fremder Ausgabe-Version als invalid_response', async () => {
+    const summaryRequest = prepareSummaryRequestV2();
+    const sourceId = summaryRequest.promptContext.context.sources[0]!.id;
+    const foreignOutput = {
+      schemaVersion: 1,
+      taskType: 'qa_summary',
+      result: {
+        status: 'ready',
+        statements: [{ text: 'Belegt.', sourceIds: [sourceId] }],
+        suggestedNextSteps: [],
+        limitations: [],
+        modelVersion: 'runtime-fixture',
+      },
+    } satisfies OpenWeightLlmSummaryOutput;
+    resetOpenWeightLlmClientForTests({
+      config: () => defaultConfig,
+      request: async (input) =>
+        input.path.startsWith('/slots')
+          ? { status: 200, body: '[]' }
+          : completionResponse(foreignOutput),
+    });
+
+    await expect(runOpenWeightLlmSummaryV2(summaryRequest)).resolves.toEqual({
+      status: 'invalid_response',
+    });
+  });
+
   it('lehnt falschen Auftragstyp ab', async () => {
     resetOpenWeightLlmClientForTests({
       config: () => defaultConfig,
