@@ -419,6 +419,39 @@ export function countSignificantContentTokenMatches(
   return matches;
 }
 
+function hasGroupedQaSourceCoverage(
+  statement: QaSummaryStatementV2,
+  includedQaTextsById: ReadonlyMap<string, string>,
+  body: string,
+): boolean {
+  if (statement.sourceIds.length < 2) return true;
+  const summaryTokens = extractSignificantContentTokens(body);
+  const sourceTokens = statement.sourceIds.map((id) =>
+    extractSignificantContentTokens(includedQaTextsById.get(id) ?? ''),
+  );
+  const distinctTokens = sourceTokens.map((tokens, index) => {
+    const otherTokens = sourceTokens.filter((_, other) => other !== index).flat();
+    return tokens.filter(
+      (token) => !otherTokens.some((other) => tokensShareContentStem(token, other)),
+    );
+  });
+  const coversDistinctTokens = distinctTokens.map(
+    (tokens) => countSignificantContentTokenMatches(summaryTokens, tokens) > 0,
+  );
+
+  // A shared concern can be stated once. If the summary uses source-specific
+  // words, it needs an anchor for each source with distinct content. This
+  // checks observable omissions without requiring the original wording.
+  if (!coversDistinctTokens.some(Boolean)) {
+    return sourceTokens.every(
+      (tokens) => countSignificantContentTokenMatches(summaryTokens, tokens) > 0,
+    );
+  }
+  return distinctTokens.every(
+    (tokens, index) => tokens.length === 0 || coversDistinctTokens[index],
+  );
+}
+
 function hasConsistentQaCitationGrounding(
   statement: QaSummaryStatementV2,
   sourceTextsById: ReadonlyMap<string, string>,
@@ -587,6 +620,7 @@ function isCompletePlainStatement(text: string, body: string): boolean {
 export type QaSummaryQualityOptions = Readonly<{
   minimumStatements?: number;
   maximumTopicLength?: number;
+  checkGroupedQaCoverage?: boolean;
   sourceTextsById?: ReadonlyMap<string, string>;
   includedQaTextsById?: ReadonlyMap<string, string>;
 }>;
@@ -648,7 +682,13 @@ export function hasAcceptableQaSummaryQuality(
       const includedQaTextsById = options.includedQaTextsById;
       if (
         output.statements.some(
-          (statement) =>
+          (statement, index) =>
+            (options.checkGroupedQaCoverage &&
+              !hasGroupedQaSourceCoverage(
+                statement,
+                includedQaTextsById,
+                completeParts[index]!.body,
+              )) ||
             !hasConsistentQaCitationGrounding(
               statement,
               sourceTextsById,

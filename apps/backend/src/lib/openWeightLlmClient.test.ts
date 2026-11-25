@@ -884,6 +884,97 @@ describe('openWeightLlmClient', () => {
     },
   );
 
+  it.each([
+    {
+      questions: [
+        'Welche Hilfsmittel sind in der Klausur erlaubt?',
+        'Welche Aufgabentypen kommen in der Klausur vor?',
+      ],
+      topic: 'Klausur',
+      summary: 'Offen ist, welche Hilfsmittel bei der Prüfung benutzt werden dürfen.',
+      effectiveMode: 'extractive',
+    },
+    {
+      questions: [
+        'Welche Hilfsmittel sind in der Klausur erlaubt?',
+        'Welche Aufgabentypen kommen in der Klausur vor?',
+      ],
+      topic: 'Klausur',
+      summary:
+        'Offen ist, mit welchen Hilfsmitteln die Prüflinge arbeiten dürfen und auf welche Aufgabentypen sie sich einstellen sollen.',
+      effectiveMode: 'full-context',
+    },
+    {
+      questions: [
+        'Wann muss die Hausarbeit eingereicht werden?',
+        'Bis wann ist die Hausarbeit fällig?',
+      ],
+      topic: 'Abgabefrist',
+      summary: 'Offen ist, welche Abgabefrist für die Hausarbeit gilt.',
+      effectiveMode: 'full-context',
+    },
+  ])(
+    'prüft die Abdeckung beider Originalbelege: $summary',
+    async ({ questions, topic, summary, effectiveMode }) => {
+      const fixture = MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1;
+      const sources = questions.map((text, index) => ({
+        id: `qa-question:00000000-0000-4000-8000-00000000000${index + 1}`,
+        kind: 'qa-question',
+        content: { state: 'included', text, truncated: false },
+      }));
+      const analysis = ModerationAnalysisContextV1Schema.parse({
+        schemaVersion: fixture.schemaVersion,
+        contractVersion: MODERATION_ANALYSIS_CONTEXT_CONTRACT_VERSION,
+        assembledAt: '2026-01-15T10:05:00.000Z',
+        context: {
+          ...fixture.context,
+          representation: 'analysis-candidates',
+          sources,
+          questions: {
+            ...fixture.context.questions,
+            corpus: { total: 2, eligible: 2, analyzed: 2, deduplicated: 2, represented: 2 },
+            items: sources.map(({ id }) => ({
+              ...fixture.context.questions.items[0]!,
+              sourceId: id,
+            })),
+          },
+        },
+      });
+      const prepared = prepareModerationSummaryContextFromAnalysis({
+        analysis,
+        plan: {
+          capabilities: QA_SUMMARY_ADAPTER_CAPABILITIES,
+          selectedMode: 'full-context',
+          fallback: null,
+          inferenceConfigured: true,
+        },
+      });
+      const groups = prepared.request.promptContext.context.qaSummaryTopicSourceIds;
+      expect(groups).toEqual([expect.arrayContaining(sources.map(({ id }) => id))]);
+      resetOpenWeightLlmClientForTests({
+        config: () => defaultConfig,
+        request: async (input) =>
+          input.path.startsWith('/slots')
+            ? { status: 200, body: '[]' }
+            : completionResponse({ topics: [{ topic, summary, refs: ['1', '2'] }] }),
+      });
+
+      const result = await runPreparedQaSummary(prepared);
+      expect(result.execution.effectiveMode).toBe(effectiveMode);
+      if (effectiveMode === 'extractive') {
+        expect(result.execution.fallback).toMatchObject({ reason: 'invalid_response' });
+        expect(result.output.statements).toEqual(
+          sources.map(({ id, content }) => ({ text: content.text, sourceIds: [id] })),
+        );
+      } else {
+        expect(result.execution.fallback).toBeNull();
+        expect(result.output.statements).toEqual([
+          { text: `${topic}: ${summary}`, sourceIds: groups![0] },
+        ]);
+      }
+    },
+  );
+
   it('erhält Themenverweise auf Fragen ohne Modelltext und verbietet deren Zitation', async () => {
     const fixture = MODERATION_PROMPT_CONTEXT_REFERENCE_FIXTURE_V1;
     const topic = fixture.context.topics.items[0];

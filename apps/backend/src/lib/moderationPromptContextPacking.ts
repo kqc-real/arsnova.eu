@@ -315,7 +315,10 @@ function sourceText(source: ModerationPromptSource | undefined): string | null {
     : null;
 }
 
-function buildPackingIndex(context: AnalysisDomain): PackingIndex {
+function buildPackingIndex(
+  context: AnalysisDomain,
+  preferredQuestionIds: ReadonlySet<string>,
+): PackingIndex {
   const sourceById = new Map(context.sources.map((source) => [source.id, source] as const));
   const questions = context.questions.state === 'available' ? context.questions.items : [];
   const questionById = new Map(questions.map((question) => [question.sourceId, question] as const));
@@ -394,7 +397,8 @@ function buildPackingIndex(context: AnalysisDomain): PackingIndex {
   const canonicalQuestionIdById = new Map<string, string>();
   const questionGroupCountByCanonicalId = new Map<string, number>();
   for (const sourceIds of questionIdsByDedupeKey.values()) {
-    const canonicalSourceId = sourceIds[0]!;
+    // Grouped Q&A ranks the original sources before the vote metadata is removed.
+    const canonicalSourceId = sourceIds.find((id) => preferredQuestionIds.has(id)) ?? sourceIds[0]!;
     questionGroupCountByCanonicalId.set(canonicalSourceId, sourceIds.length);
     sourceIds.forEach((sourceId) => canonicalQuestionIdById.set(sourceId, canonicalSourceId));
   }
@@ -1161,7 +1165,7 @@ export function packModerationPromptContext(
 ): ModerationPromptContextV1 {
   const analysis = ModerationAnalysisContextV1Schema.parse(input.analysis);
   assertPackingProfile(input.profile);
-  const index = buildPackingIndex(analysis.context);
+  const index = buildPackingIndex(analysis.context, new Set(input.qaSummarySelection?.flat()));
   let selection = emptySelection();
   const base = buildCandidate(
     analysis.context,

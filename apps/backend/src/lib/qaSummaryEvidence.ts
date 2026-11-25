@@ -12,13 +12,6 @@ import { isStopwordToken, tokenizeWordCloudText } from './wordCloudAnalysis';
 
 const QA_SUMMARY_QUESTION_LIMIT = QA_SUMMARY_MAX_TOPICS * QA_SUMMARY_MAX_SOURCES_PER_TOPIC;
 
-function nearDuplicate(left: string, right: string): boolean {
-  const a = new Set(left.split(' '));
-  const b = new Set(right.split(' '));
-  const common = [...a].filter((word) => b.has(word)).length;
-  return common >= 5 && common / (a.size + b.size - common) >= 0.8;
-}
-
 function topicWords(text: string, locale: AppLocale): Set<string> {
   return new Set(
     tokenizeWordCloudText(text)
@@ -67,7 +60,7 @@ export function selectQaSummaryEvidence(context: ModerationAnalysisContextV1['co
           return [
             {
               id: question.sourceId,
-              text: normalizeQuestionForDedupe(text).toLowerCase() || text,
+              text: normalizeQuestionForDedupe(text) || text,
               addressed: question.answerState.state === 'addressed',
               topicSourceIds: question.topicSourceIds,
               positive: votes.state === 'available' ? votes.positive : 0,
@@ -110,7 +103,6 @@ export function selectQaSummaryEvidence(context: ModerationAnalysisContextV1['co
     (candidate) =>
       candidate.addressed === first.addressed &&
       candidate.id !== first.id &&
-      !nearDuplicate(first.text, candidate.text) &&
       !sameTopic(first, candidate),
   );
   const leads = second && limit >= 2 ? [first, second] : [first];
@@ -126,8 +118,7 @@ export function selectQaSummaryEvidence(context: ModerationAnalysisContextV1['co
       if (
         usedIds.has(candidate.id) ||
         candidate.addressed !== lead.addressed ||
-        !sameTopic(lead, candidate) ||
-        group.some((member) => nearDuplicate(member.text, candidate.text))
+        !sameTopic(lead, candidate)
       )
         continue;
       group.push(candidate);

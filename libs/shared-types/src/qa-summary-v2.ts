@@ -18,7 +18,7 @@ export const QA_SUMMARY_CONTEXT_PREVIEW_CONTRACT_VERSION = 'qa-summary-context-p
 export const QA_SUMMARY_ADAPTER_CAPABILITIES_CONTRACT_VERSION =
   'qa-summary-adapter-capabilities-v1' as const;
 export const QA_SUMMARY_FALLBACK_CONTRACT_VERSION = 'qa-summary-fallback-v1' as const;
-export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v11' as const;
+export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v12' as const;
 export const QA_SUMMARY_LEGACY_HANDOFF_VERSION = 'qa-summary-technical-handoff-v8' as const;
 export const QA_SUMMARY_MAX_TOPIC_LENGTH = 48;
 export const QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH = 64;
@@ -136,27 +136,6 @@ export function createGroupedQaSummaryModelWireSchema(
     const leadRef = z.literal(lead!);
     return z
       .object({
-        // The decoder constrains citations. Check prose after decoding to keep
-        // free-text generation within the runtime's latency budget.
-        topic: z
-          .string()
-          .trim()
-          .overwrite((value) =>
-            locale === 'de'
-              ? value
-                  .replace(/^Verschwinden (?=\p{Lu}[\p{L}-]*innen(?:\s|$))/u, 'Verschwinden von ')
-                  .replace(
-                    /^(?:Fehlende )?[Ll]ineare Modellbeurteilung$/u,
-                    'Beurteilung linearer Modelle',
-                  )
-              : value,
-          )
-          .refine(
-            (value) =>
-              value.length >= 2 &&
-              value.length <= QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH &&
-              /^[^\r\n?:]+$/u.test(value),
-          ),
         summary: z
           .string()
           .trim()
@@ -187,6 +166,27 @@ export function createGroupedQaSummaryModelWireSchema(
               value.startsWith(QA_SUMMARY_REPORTING_OPENING[locale]) &&
               /^[^\r\n?]{14,299}\.$/u.test(value) &&
               !/\brefs?\s*:/iu.test(value),
+          ),
+        // The decoder constrains citations. Check prose after decoding to keep
+        // free-text generation within the runtime's latency budget.
+        topic: z
+          .string()
+          .trim()
+          .overwrite((value) =>
+            locale === 'de'
+              ? value
+                  .replace(/^Verschwinden (?=\p{Lu}[\p{L}-]*innen(?:\s|$))/u, 'Verschwinden von ')
+                  .replace(
+                    /^(?:Fehlende )?[Ll]ineare Modellbeurteilung$/u,
+                    'Beurteilung linearer Modelle',
+                  )
+              : value,
+          )
+          .refine(
+            (value) =>
+              value.length >= 2 &&
+              value.length <= QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH &&
+              /^[^\r\n?:]+$/u.test(value),
           ),
         refs: related === undefined ? z.tuple([leadRef]) : z.tuple([leadRef, z.literal(related)]),
       })
