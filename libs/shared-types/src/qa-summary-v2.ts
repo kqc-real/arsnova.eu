@@ -18,8 +18,22 @@ export const QA_SUMMARY_CONTEXT_PREVIEW_CONTRACT_VERSION = 'qa-summary-context-p
 export const QA_SUMMARY_ADAPTER_CAPABILITIES_CONTRACT_VERSION =
   'qa-summary-adapter-capabilities-v1' as const;
 export const QA_SUMMARY_FALLBACK_CONTRACT_VERSION = 'qa-summary-fallback-v1' as const;
-export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v8' as const;
+export const QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION = 'qa-summary-technical-handoff-v12' as const;
+export const QA_SUMMARY_LEGACY_HANDOFF_VERSION = 'qa-summary-technical-handoff-v8' as const;
 export const QA_SUMMARY_MAX_TOPIC_LENGTH = 48;
+export const QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH = 64;
+export const QA_SUMMARY_REPORTING_OPENING = {
+  de: 'Offen ist, ',
+  en: 'Participants want to clarify ',
+  fr: 'Le groupe souhaite clarifier ',
+  es: 'El grupo quiere aclarar ',
+  it: 'Il gruppo vuole chiarire ',
+} as const satisfies Record<z.infer<typeof QaSummaryLocaleEnum>, string>;
+
+const QaSummaryInstructionVersionSchema = z.literal([
+  QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
+  QA_SUMMARY_LEGACY_HANDOFF_VERSION,
+]);
 
 /** Short aliases for consumers that consistently call contract literals “contracts”. */
 export const QA_SUMMARY_CONTEXT_V2_CONTRACT = QA_SUMMARY_CONTEXT_V2_CONTRACT_VERSION;
@@ -111,6 +125,82 @@ export function createQaSummaryModelWireSchema(sourceRefs: readonly string[]) {
     .strict();
 }
 
+/** Every question supplied for a topic is bound to its output as a citation. */
+export function createGroupedQaSummaryModelWireSchema(
+  locale: z.infer<typeof QaSummaryLocaleEnum>,
+  first: readonly string[],
+  second?: readonly string[],
+) {
+  const topicFor = (group: readonly string[]) => {
+    const [lead, related] = group;
+    const leadRef = z.literal(lead!);
+    return z
+      .object({
+        summary: z
+          .string()
+          .trim()
+          .overwrite((value) => {
+            // Some completions repeat their structured citations at the end
+            // of the sentence. Strip that duplicate only for this exact group.
+            const annotation =
+              value.match(/\s+\(?refs?:\s*\[?(\d+(?:\s*,\s*\d+)*)\]?\)?(\.)?$/iu) ??
+              value.match(/(?<=\.)\s+\((\d+(?:\s*,\s*\d+)+)\)(?:\s*\},\s*\{)?$/u);
+            if (annotation?.[1]?.replace(/\s+/gu, '') !== group.join(',')) return value;
+            const sentence = value.slice(0, annotation.index).trimEnd();
+            return annotation[2] && !sentence.endsWith('.') ? `${sentence}.` : sentence;
+          })
+          // Correct observed German model wording. Source labels are separate.
+          .overwrite((value) =>
+            locale === 'de'
+              ? value
+                  .replace(/\bdurchgangen\b/gu, 'durchgegangen')
+                  .replace(
+                    /\bdatenbankreproduzierbar(?=e[rmns]?\s+Migration(?:en)?\b)/gu,
+                    'reproduzierbar',
+                  )
+                  .replace(/^(Offen ist, [^,]+), und ob /u, '$1 und ob ')
+              : value,
+          )
+          .refine(
+            (value) =>
+              value.startsWith(QA_SUMMARY_REPORTING_OPENING[locale]) &&
+              /^[^\r\n?]{14,299}\.$/u.test(value) &&
+              !/\brefs?\s*:/iu.test(value),
+          ),
+        // The decoder constrains citations. Check prose after decoding to keep
+        // free-text generation within the runtime's latency budget.
+        topic: z
+          .string()
+          .trim()
+          .overwrite((value) =>
+            locale === 'de'
+              ? value
+                  .replace(/^Verschwinden (?=\p{Lu}[\p{L}-]*innen(?:\s|$))/u, 'Verschwinden von ')
+                  .replace(
+                    /^(?:Fehlende )?[Ll]ineare Modellbeurteilung$/u,
+                    'Beurteilung linearer Modelle',
+                  )
+              : value,
+          )
+          .refine(
+            (value) =>
+              value.length >= 2 &&
+              value.length <= QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH &&
+              /^[^\r\n?:]+$/u.test(value),
+          ),
+        refs: related === undefined ? z.tuple([leadRef]) : z.tuple([leadRef, z.literal(related)]),
+      })
+      .strict();
+  };
+  const firstTopic = topicFor(first);
+  return z
+    .object({
+      topics:
+        second === undefined ? z.tuple([firstTopic]) : z.tuple([firstTopic, topicFor(second)]),
+    })
+    .strict();
+}
+
 function utf8ByteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
 }
@@ -121,7 +211,7 @@ export const QaSummaryInferenceRequestV2Schema = z
     taskType: z.literal('qa_summary'),
     requestContract: z.literal(QA_SUMMARY_CONTEXT_V2_CONTRACT_VERSION),
     outputContract: z.literal(QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION),
-    instructionVersion: z.literal(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION),
+    instructionVersion: QaSummaryInstructionVersionSchema,
     instructionText: z.string().min(1).max(8_192),
     definitionVersion: z.literal(MODERATION_PROMPT_DEFINITION_SET_VERSION),
     definitionText: z.string().min(1).max(32_768),
@@ -129,6 +219,18 @@ export const QaSummaryInferenceRequestV2Schema = z
   })
   .strict()
   .superRefine((value, ctx) => {
+    const { budget, context } = value.promptContext;
+    if (
+      context.qaSummaryTopicSourceIds !== undefined &&
+      budget.tokenizer.method !== 'exact-tokenizer'
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['promptContext', 'budget', 'tokenizer'],
+        message: 'Die Zusammenfassung mit Themenbelegen erfordert eine exakte Tokenzählung.',
+      });
+    }
+    if (budget.tokenizer.method === 'exact-tokenizer') return;
     const counters = [
       {
         path: ['instructionText'],
@@ -436,7 +538,7 @@ export const QaSummaryContextPreviewDTOSchema = z
     schemaVersion: z.literal(QA_SUMMARY_CONTEXT_PREVIEW_SCHEMA_VERSION),
     contractVersion: z.literal(QA_SUMMARY_CONTEXT_PREVIEW_CONTRACT_VERSION),
     promptContext: ModerationPromptContextV1Schema,
-    instructionVersion: z.literal(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION),
+    instructionVersion: QaSummaryInstructionVersionSchema,
     definitionVersion: z.literal(MODERATION_PROMPT_DEFINITION_SET_VERSION),
     capabilities: QaSummaryAdapterCapabilitiesSchema,
     selectedMode: QaSummaryAdapterCapabilityKindSchema.nullable(),

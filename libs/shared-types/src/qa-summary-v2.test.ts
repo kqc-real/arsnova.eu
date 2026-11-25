@@ -33,6 +33,7 @@ import {
   QaSummaryInferenceResponseV2Schema,
   QaSummaryResultV2Schema,
   QaSummaryRuntimeCompatibleDTOSchema,
+  createGroupedQaSummaryModelWireSchema,
   hasOnlyAllowedQaSummaryV2References,
   type QaSummaryInferenceRequestV2,
 } from './qa-summary-v2.js';
@@ -71,6 +72,131 @@ const capabilities = {
 } as const;
 
 describe('Q&A summary V2 contracts', () => {
+  it('corrects the observed German heading and participle while retaining citations', () => {
+    const schema = createGroupedQaSummaryModelWireSchema('de', ['1', '2']);
+    expect(
+      schema.parse({
+        topics: [
+          {
+            topic: 'Verschwinden Kundinnen im LEFT JOIN',
+            summary: 'Offen ist, warum Kundinnen fehlen, und ob das Beispiel durchgangen wird.',
+            refs: ['1', '2'],
+          },
+        ],
+      }).topics[0],
+    ).toEqual({
+      topic: 'Verschwinden von Kundinnen im LEFT JOIN',
+      summary: 'Offen ist, warum Kundinnen fehlen und ob das Beispiel durchgegangen wird.',
+      refs: ['1', '2'],
+    });
+  });
+
+  it('uses a natural German model assessment heading and preserves reproducibility', () => {
+    const schema = createGroupedQaSummaryModelWireSchema('de', ['1', '2'], ['3', '4']);
+    expect(
+      schema.parse({
+        topics: [
+          {
+            topic: 'Fehlende lineare Modellbeurteilung',
+            summary: 'Offen ist, woran sich ein ungeeignetes lineares Modell erkennen lässt.',
+            refs: ['1', '2'],
+          },
+          {
+            topic: 'Projektabgabe',
+            summary:
+              'Offen ist, ob ein SQL-Dump ausreicht oder eine datenbankreproduzierbare Migration nötig ist.',
+            refs: ['3', '4'],
+          },
+        ],
+      }).topics,
+    ).toMatchObject([
+      { topic: 'Beurteilung linearer Modelle', refs: ['1', '2'] },
+      {
+        summary:
+          'Offen ist, ob ein SQL-Dump ausreicht oder eine reproduzierbare Migration nötig ist.',
+        refs: ['3', '4'],
+      },
+    ]);
+  });
+
+  it('requires two citations for each topic with related questions', () => {
+    const schema = createGroupedQaSummaryModelWireSchema('de', ['1', '2'], ['4', '5']);
+    const first = {
+      topic: 'Residuenplot',
+      summary: 'Offen ist, wie Modellprüfung und trichterförmige Residuen einzuordnen sind.',
+      refs: ['1', '2'],
+    };
+    const second = {
+      topic: 'Klausur',
+      summary: 'Offen ist, welche Themen geprüft werden und welche Hilfsmittel zugelassen sind.',
+      refs: ['4', '5'],
+    };
+    expect(schema.safeParse({ topics: [first, second] }).success).toBe(true);
+    expect(
+      schema.parse({
+        topics: [{ ...first, summary: `${first.summary} (1,2) ` }, second],
+      }).topics[0]?.summary,
+    ).toBe(first.summary);
+    expect(
+      schema.parse({
+        topics: [{ ...first, summary: `${first.summary} (1,2)},{` }, second],
+      }).topics[0]?.summary,
+    ).toBe(first.summary);
+    expect(
+      schema.parse({
+        topics: [{ ...first, summary: `${first.summary} refs:[1,2]` }, second],
+      }).topics[0]?.summary,
+    ).toBe(first.summary);
+    expect(
+      schema.parse({
+        topics: [first, { ...second, summary: `${second.summary.slice(0, -1)} (Ref: 4, 5).` }],
+      }).topics[1]?.summary,
+    ).toBe(second.summary);
+    expect(
+      schema.safeParse({
+        topics: [first, { ...second, summary: 'Eigene Formelsammlungen sind zugelassen.' }],
+      }).success,
+    ).toBe(false);
+    expect(
+      schema.safeParse({
+        topics: [
+          first,
+          { ...second, summary: 'Offen ist, welche Hilfsmittel erlaubt sind (Ref: 5).' },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(schema.safeParse({ topics: [{ ...first, refs: ['1', '3'] }, second] }).success).toBe(
+      false,
+    );
+    expect(schema.safeParse({ topics: [second, first] }).success).toBe(false);
+    expect(schema.safeParse({ topics: [first] }).success).toBe(false);
+    expect(schema.safeParse({ topics: [{ ...first, refs: ['1'] }, second] }).success).toBe(false);
+    expect(schema.safeParse({ topics: [{ ...first, refs: ['1', '5'] }, second] }).success).toBe(
+      false,
+    );
+    expect(schema.safeParse({ topics: [{ ...first, refs: ['1', '1'] }, second] }).success).toBe(
+      false,
+    );
+    expect(
+      createGroupedQaSummaryModelWireSchema('de', ['1']).safeParse({
+        topics: [{ ...first, refs: ['1'] }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it('accepts exact counts with topic groups and checks their source binding', () => {
+    const request = requestV2();
+    const { budget, context } = request.promptContext;
+    context.qaSummaryTopicSourceIds = [[SOURCE_ID]];
+    expect(QaSummaryInferenceRequestV2Schema.safeParse(request).success).toBe(false);
+    budget.tokenizer.method = 'exact-tokenizer';
+    budget.packedInputTokens -= budget.instructionTokens - 42;
+    budget.instructionTokens = 42;
+    expect(QaSummaryInferenceRequestV2Schema.safeParse(request).success).toBe(true);
+    context.qaSummaryTopicSourceIds = [['not-a-source']];
+    expect(QaSummaryInferenceRequestV2Schema.safeParse(request).success).toBe(false);
+  });
+
   it('accepts the exact full-context request without applying the legacy byte cap', () => {
     const request = requestV2();
     request.instructionText = '🧪'.repeat(800);
@@ -84,7 +210,7 @@ describe('Q&A summary V2 contracts', () => {
     expect(JSON.stringify(request).length).toBeGreaterThan(2_500);
     expect(QaSummaryInferenceRequestV2Schema.safeParse(request).success).toBe(true);
     expect(OpenWeightLlmSummaryRequestV2Schema.safeParse(request).success).toBe(true);
-    expect(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION).toBe('qa-summary-technical-handoff-v8');
+    expect(QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION).toBe('qa-summary-technical-handoff-v12');
     expect(QA_SUMMARY_MODEL_OUTPUT_V2_CONTRACT_VERSION).toBe('qa-summary-model-output-v3');
     expect(
       QaSummaryInferenceRequestV2Schema.safeParse({

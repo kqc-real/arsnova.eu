@@ -1048,7 +1048,7 @@ function sliceHasLemmaNominalHead(tokens: readonly Candidate[]): boolean {
   return tokens.some((token) => !token.pos || LEMMA_UNIGRAM_POS_TYPES.has(token.pos));
 }
 
-function isStopwordToken(token: string, locale: SupportedLocale): boolean {
+export function isStopwordToken(token: string, locale: SupportedLocale): boolean {
   if (!token) {
     return true;
   }

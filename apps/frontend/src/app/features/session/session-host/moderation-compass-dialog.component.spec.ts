@@ -39,7 +39,9 @@ describe('ModerationCompassDialogComponent', () => {
     };
   }
 
-  function contextPreviewFixture(): QaSummaryContextPreviewDTO {
+  function contextPreviewFixture(
+    method: 'exact-tokenizer' | 'conservative-estimate',
+  ): QaSummaryContextPreviewDTO {
     return {
       schemaVersion: 1,
       contractVersion: 'qa-summary-context-preview-v1',
@@ -97,6 +99,7 @@ describe('ModerationCompassDialogComponent', () => {
           ],
         },
         budget: {
+          tokenizer: { method },
           packedInputTokens: 3138,
           contextWindowTokens: 8192,
           reservedOutputTokens: 640,
@@ -981,6 +984,57 @@ describe('ModerationCompassDialogComponent', () => {
     expect(items[1]).toContain('Kapitel 4');
   });
 
+  it('zeigt eine verdichtete Aussage mit zwei Originalfragen als Belege', () => {
+    const firstId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+    const secondId = qaSummaryQuestionSourceId('22222222-2222-4222-8222-222222222222');
+    const first = 'Woran erkenne ich ein ungeeignetes lineares Modell im Residuenplot?';
+    const second = 'Können wir ein Beispiel mit trichterförmigen Residuen besprechen?';
+    const topic = 'Anzeichen für ein ungeeignetes Modell im Residuenplot';
+    const body =
+      'Die Gruppe möchte Modellgrenzen im Residuenplot erkennen und trichterförmige Residuen an einem Beispiel einordnen.';
+    const { fixture } = setup([], vi.fn(), 'rule-based', {
+      enabled: true,
+      runtime: v2Runtime({
+        inferenceConfigured: true,
+        result: {
+          schemaVersion: 2,
+          contractVersion: 'qa-summary-result-v2',
+          status: 'ready',
+          statements: [{ text: `${topic}: ${body}`, sourceIds: [firstId, secondId] }],
+          suggestedNextSteps: [],
+          limitations: [],
+          sources: [
+            { id: firstId, kind: 'qa-question', label: first },
+            { id: secondId, kind: 'qa-question', label: second },
+          ],
+          snapshotHash: 'a'.repeat(64),
+          locale: 'de',
+          execution: {
+            attemptedMode: 'full-context',
+            effectiveMode: 'full-context',
+            fallback: null,
+          },
+        },
+      }),
+    });
+
+    fixture.nativeElement.querySelector('.moderation-compass-dialog__summary-button').click();
+    fixture.detectChanges();
+    const panel = fixture.nativeElement.querySelector('[data-testid="moderation-summary"]');
+    const statements = panel.querySelectorAll('.moderation-compass-dialog__summary-statements li');
+    expect(statements).toHaveLength(1);
+    expect(
+      statements[0].querySelector('.moderation-compass-dialog__summary-lead').textContent,
+    ).toBe(`${topic}:`);
+    expect(statements[0].textContent).toContain(body);
+    expect(
+      panel.querySelector('.moderation-compass-dialog__summary-sources').textContent,
+    ).toContain(first);
+    expect(
+      panel.querySelector('.moderation-compass-dialog__summary-sources').textContent,
+    ).toContain(second);
+  });
+
   it('blendet KI-nächste-Schritte aus wenn der Kompass schon einen Vorschlag hat', () => {
     const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
     const { fixture } = setup(
@@ -1428,8 +1482,11 @@ describe('ModerationCompassDialogComponent', () => {
     expect(buttons).toEqual([`Fragen:\u00a0${questionCText}`, `Fragen:\u00a0${questionDText}`]);
   });
 
-  it('erklärt die Auswertung verständlich und verbirgt Fachbegriffe in technischen Details', async () => {
-    const preview = contextPreviewFixture();
+  it.each([
+    ['exact-tokenizer', '3138 / 8192 Tokens'],
+    ['conservative-estimate', '3138 / 8192 Tokens (Eingabe geschätzt)'],
+  ] as const)('kennzeichnet die Budgetzählung (%s)', async (method, budgetText) => {
+    const preview = contextPreviewFixture(method);
     const onRequestSummaryContextPreview = vi
       .fn<() => Promise<QaSummaryContextPreviewDTO>>()
       .mockRejectedValueOnce(new Error('temporär'))
@@ -1499,7 +1556,7 @@ describe('ModerationCompassDialogComponent', () => {
     const technicalValues = [...fixture.nativeElement.querySelectorAll('dd')].map((entry) =>
       (entry.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
-    expect(technicalValues).toContain('3138 / 8192 Tokens');
+    expect(technicalValues).toContain(budgetText);
     expect(technicalValues).toContain('640 Tokens');
     expect(technicalValues).toContain('128 Tokens');
     expect(text).toContain('Die Auswahl wurde neu erstellt.');

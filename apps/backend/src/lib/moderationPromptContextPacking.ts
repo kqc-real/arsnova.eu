@@ -44,13 +44,24 @@ export type ModerationPromptPackingProfile = Readonly<{
   definitionText: string;
   reservedOutputTokens: number;
   safetyMarginTokens: number;
+  tokenization?: {
+    tokenizer: ModerationPromptBudgetV1['tokenizer'];
+    count: (
+      context: ModerationPromptDomainContextV1,
+      instructionText: string,
+      definitionText: string,
+    ) => Pick<ModerationPromptBudgetV1, 'instructionTokens' | 'definitionTokens' | 'dataTokens'>;
+  };
 }>;
+
+type QaSummarySelection = readonly (readonly string[])[];
 
 export type PackModerationPromptContextInput = Readonly<{
   analysis: ModerationAnalysisContextV1;
   profile: ModerationPromptPackingProfile;
   packedAt?: Date;
   candidatePriority?: 'balanced' | 'topics-first' | 'questions-first';
+  qaSummarySelection?: QaSummarySelection;
 }>;
 
 type CandidateBundle = Readonly<{
@@ -183,7 +194,7 @@ function semanticProfileMaterial(profile: ModerationPromptPackingProfile) {
     definitionText: profile.definitionText,
     reservedOutputTokens: profile.reservedOutputTokens,
     safetyMarginTokens: profile.safetyMarginTokens,
-    estimator: {
+    estimator: profile.tokenization?.tokenizer ?? {
       id: MODERATION_PROMPT_UTF8_ESTIMATOR_ID,
       version: MODERATION_PROMPT_UTF8_ESTIMATOR_VERSION,
     },
@@ -282,7 +293,7 @@ function stripOuterQuestionQuotes(text: string): string {
   return text;
 }
 
-function normalizeQuestionForDedupe(text: string): string {
+export function normalizeQuestionForDedupe(text: string): string {
   // Normalize only presentation-level wrappers. Operators and punctuation
   // inside the question can carry meaning (for example `<` versus `>`, `5!`
   // versus `5`, or `f'(x)` versus `f(x)`), so broad punctuation stripping
@@ -304,7 +315,10 @@ function sourceText(source: ModerationPromptSource | undefined): string | null {
     : null;
 }
 
-function buildPackingIndex(context: AnalysisDomain): PackingIndex {
+function buildPackingIndex(
+  context: AnalysisDomain,
+  preferredQuestionIds: ReadonlySet<string>,
+): PackingIndex {
   const sourceById = new Map(context.sources.map((source) => [source.id, source] as const));
   const questions = context.questions.state === 'available' ? context.questions.items : [];
   const questionById = new Map(questions.map((question) => [question.sourceId, question] as const));
@@ -383,7 +397,8 @@ function buildPackingIndex(context: AnalysisDomain): PackingIndex {
   const canonicalQuestionIdById = new Map<string, string>();
   const questionGroupCountByCanonicalId = new Map<string, number>();
   for (const sourceIds of questionIdsByDedupeKey.values()) {
-    const canonicalSourceId = sourceIds[0]!;
+    // Grouped Q&A ranks the original sources before the vote metadata is removed.
+    const canonicalSourceId = sourceIds.find((id) => preferredQuestionIds.has(id)) ?? sourceIds[0]!;
     questionGroupCountByCanonicalId.set(canonicalSourceId, sourceIds.length);
     sourceIds.forEach((sourceId) => canonicalQuestionIdById.set(sourceId, canonicalSourceId));
   }
@@ -1064,12 +1079,18 @@ function buildBudget(
   profile: ModerationPromptPackingProfile,
   truncations: ModerationPromptBudgetV1['truncations'],
 ): ModerationPromptBudgetV1 {
-  const instructionTokens = estimateModerationPromptUtf8Tokens(profile.instructionText);
-  const definitionTokens = estimateModerationPromptUtf8Tokens(profile.definitionText);
-  const dataTokens = estimateModerationPromptUtf8Tokens(canonicalModerationPromptJson(context));
+  const { instructionTokens, definitionTokens, dataTokens } = profile.tokenization?.count(
+    context,
+    profile.instructionText,
+    profile.definitionText,
+  ) ?? {
+    instructionTokens: estimateModerationPromptUtf8Tokens(profile.instructionText),
+    definitionTokens: estimateModerationPromptUtf8Tokens(profile.definitionText),
+    dataTokens: estimateModerationPromptUtf8Tokens(canonicalModerationPromptJson(context)),
+  };
   return {
     version: MODERATION_PROMPT_BUDGET_VERSION,
-    tokenizer: {
+    tokenizer: profile.tokenization?.tokenizer ?? {
       method: 'conservative-estimate',
       id: MODERATION_PROMPT_UTF8_ESTIMATOR_ID,
       version: MODERATION_PROMPT_UTF8_ESTIMATOR_VERSION,
@@ -1092,6 +1113,7 @@ function buildCandidate(
   selection: Selection,
   profile: ModerationPromptPackingProfile,
   sourceLimitedSections?: ReadonlySet<ModerationPromptSection>,
+  qaSummarySelection?: QaSummarySelection,
 ): CandidateBuildResult {
   let built: DomainBuild;
   try {
@@ -1102,7 +1124,27 @@ function buildCandidate(
       reason: error instanceof ModerationPromptSourceLimitError ? 'source-limit' : 'invalid',
     };
   }
-  const budget = buildBudget(built.context, profile, built.truncations);
+  let context = built.context;
+  if (qaSummarySelection) {
+    const order = new Map(qaSummarySelection.flat().map((id, index) => [id, index]));
+    const includedIds = new Set(
+      context.sources
+        .filter((source) => source.kind === 'qa-question' && source.content.state === 'included')
+        .map(({ id }) => id),
+    );
+    context = {
+      ...context,
+      sources: [...context.sources].sort(
+        (left, right) =>
+          (order.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+          (order.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+      ),
+      qaSummaryTopicSourceIds: qaSummarySelection
+        .map((group) => group.filter((id) => includedIds.has(id)))
+        .filter((group) => group.length > 0),
+    };
+  }
+  const budget = buildBudget(context, profile, built.truncations);
   const parsed = ModerationPromptContextV1Schema.safeParse({
     schemaVersion: MODERATION_PROMPT_CONTEXT_SCHEMA_VERSION,
     contractVersion: MODERATION_PROMPT_CONTEXT_CONTRACT_VERSION,
@@ -1110,11 +1152,11 @@ function buildCandidate(
     hashAlgorithm: 'sha-256',
     hashMaterialVersion: MODERATION_PROMPT_HASH_MATERIAL_VERSION,
     snapshotHash: '0'.repeat(64),
-    context: built.context,
+    context,
     budget,
   });
   return parsed.success
-    ? { status: 'accepted', candidate: { context: built.context, budget } }
+    ? { status: 'accepted', candidate: { context, budget } }
     : { status: 'rejected', reason: 'invalid' };
 }
 
@@ -1123,23 +1165,39 @@ export function packModerationPromptContext(
 ): ModerationPromptContextV1 {
   const analysis = ModerationAnalysisContextV1Schema.parse(input.analysis);
   assertPackingProfile(input.profile);
-  const index = buildPackingIndex(analysis.context);
+  const index = buildPackingIndex(analysis.context, new Set(input.qaSummarySelection?.flat()));
   let selection = emptySelection();
-  const base = buildCandidate(analysis.context, index, selection, input.profile);
+  const base = buildCandidate(
+    analysis.context,
+    index,
+    selection,
+    input.profile,
+    undefined,
+    input.qaSummarySelection,
+  );
   if (base.status === 'rejected') {
     throw new Error('Moderation prompt base metadata exceeds the configured context budget.');
   }
 
   const sourceLimitedSections = new Set<ModerationPromptSection>();
-  const candidates = prioritizeCandidateBundles(
-    buildCandidateBundles(analysis.context, index),
-    input.candidatePriority,
-    index,
-  );
+  const candidates = input.qaSummarySelection
+    ? input.qaSummarySelection.flat().map((id) => bundle('question', id))
+    : prioritizeCandidateBundles(
+        buildCandidateBundles(analysis.context, index),
+        input.candidatePriority,
+        index,
+      );
   for (const candidate of candidates) {
     const trial = cloneSelection(selection);
     addCandidateBundle(trial, index, candidate);
-    const trialBuild = buildCandidate(analysis.context, index, trial, input.profile);
+    const trialBuild = buildCandidate(
+      analysis.context,
+      index,
+      trial,
+      input.profile,
+      undefined,
+      input.qaSummarySelection,
+    );
     if (trialBuild.status === 'accepted') {
       selection = trial;
     } else if (trialBuild.reason === 'source-limit') {
@@ -1153,6 +1211,7 @@ export function packModerationPromptContext(
     selection,
     input.profile,
     sourceLimitedSections,
+    input.qaSummarySelection,
   );
   if (finalBuild.status === 'rejected') {
     throw new Error('Moderation prompt packing failed after deterministic selection.');

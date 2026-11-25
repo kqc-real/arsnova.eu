@@ -1,4 +1,5 @@
 import {
+  QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH,
   QaSummaryExecutionV2Schema,
   QaSummaryModelOutputV2Schema,
   sortQaSummaryStatementsByImportance,
@@ -150,6 +151,11 @@ export async function runPreparedQaSummary(
         prepared.request.promptContext.context.locale,
         {
           minimumStatements: 1,
+          checkGroupedQaCoverage:
+            prepared.request.promptContext.context.qaSummaryTopicSourceIds !== undefined,
+          maximumTopicLength: prepared.request.promptContext.context.qaSummaryTopicSourceIds
+            ? QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH
+            : undefined,
           sourceTextsById: groundingTextsById,
           includedQaTextsById,
         },

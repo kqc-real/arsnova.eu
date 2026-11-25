@@ -1,4 +1,8 @@
-import type { QaSummaryModelOutputV2 } from '@arsnova/shared-types';
+import {
+  QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH,
+  type AppLocale,
+  type QaSummaryModelOutputV2,
+} from '@arsnova/shared-types';
 import { describe, expect, it } from 'vitest';
 import { hasAcceptableQaSummaryQuality } from './qaSummaryQuality';
 
@@ -15,6 +19,100 @@ function output(
 }
 
 describe('hasAcceptableQaSummaryQuality', () => {
+  it('wendet das längere Titellimit ausschließlich bei der gruppierten Kurzfassung an', () => {
+    const summary = output([
+      'Verschwinden von Kundinnen im LEFT JOIN bei Statusfilterung: Offen ist, wie sich der Join beim Filtern verhält.',
+    ]);
+    expect(hasAcceptableQaSummaryQuality(summary, 'de', 1)).toBe(false);
+    expect(
+      hasAcceptableQaSummaryQuality(summary, 'de', {
+        minimumStatements: 1,
+        maximumTopicLength: QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH,
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    {
+      locale: 'de',
+      questions: [
+        'Wann muss die Hausarbeit eingereicht werden?',
+        'Bis wann ist die Hausarbeit fällig?',
+      ],
+      summary: 'Abgabefrist: Offen ist, welche Abgabefrist für die Hausarbeit gilt.',
+    },
+    {
+      locale: 'en',
+      questions: ['When do we submit the term paper?', 'When is the term paper due?'],
+      summary: 'Term paper: Participants want to clarify the deadline for the term paper.',
+    },
+    {
+      locale: 'fr',
+      questions: [
+        'Quand faut-il rendre le dossier ?',
+        'Quelle est la date limite pour rendre le dossier ?',
+      ],
+      summary: 'Remise du dossier: Le groupe souhaite clarifier la date limite du dossier.',
+    },
+    {
+      locale: 'es',
+      questions: [
+        '¿Cuándo hay que entregar el trabajo?',
+        '¿Cuál es la fecha límite de entrega del trabajo?',
+      ],
+      summary: 'Entrega del trabajo: El grupo quiere aclarar el plazo del trabajo.',
+    },
+    {
+      locale: 'it',
+      questions: [
+        'Quando dobbiamo consegnare la relazione?',
+        'Qual è la scadenza per consegnare la relazione?',
+      ],
+      summary: 'Consegna della relazione: Il gruppo vuole chiarire la scadenza della relazione.',
+    },
+  ] satisfies { locale: AppLocale; questions: string[]; summary: string }[])(
+    'erkennt gleichbedeutende Abgabefristen ($locale)',
+    ({ locale, questions, summary }) => {
+      const sourceTextsById = new Map(questions.map((text, index) => [`source-${index}`, text]));
+      const modelOutput = output([summary]);
+      modelOutput.statements[0]!.sourceIds = [...sourceTextsById.keys()];
+      expect(
+        hasAcceptableQaSummaryQuality(modelOutput, locale, {
+          minimumStatements: 1,
+          checkGroupedQaCoverage: true,
+          sourceTextsById,
+          includedQaTextsById: sourceTextsById,
+        }),
+      ).toBe(true);
+    },
+  );
+
+  it.each([
+    [
+      'Wann muss die Hausarbeit als Ausdruck eingereicht werden?',
+      'Wann muss die Hausarbeit digital eingereicht werden?',
+    ],
+    ['Wann muss die Hausarbeit 1 eingereicht werden?', 'Bis wann ist die Hausarbeit 2 fällig?'],
+    ['Wann kann die Hausarbeit eingereicht werden?', 'Bis wann ist die Hausarbeit fällig?'],
+  ])('fordert konkrete Abgabebedingungen bei unterschiedlichen Anliegen (%s)', (first, second) => {
+    const sourceTextsById = new Map([
+      ['source-0', first],
+      ['source-1', second],
+    ]);
+    const modelOutput = output([
+      'Abgabefrist: Offen ist, welche Abgabefrist für die Hausarbeit gilt.',
+    ]);
+    modelOutput.statements[0]!.sourceIds = [...sourceTextsById.keys()];
+    expect(
+      hasAcceptableQaSummaryQuality(modelOutput, 'de', {
+        minimumStatements: 1,
+        checkGroupedQaCoverage: true,
+        sourceTextsById,
+        includedQaTextsById: sourceTextsById,
+      }),
+    ).toBe(false);
+  });
+
   it('akzeptiert mehrere unterscheidbare konkrete Themen', () => {
     expect(
       hasAcceptableQaSummaryQuality(

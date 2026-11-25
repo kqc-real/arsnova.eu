@@ -8,6 +8,7 @@ import type { LookupAddress } from 'node:dns';
 import { z } from 'zod';
 import {
   createQaSummaryModelWireSchema,
+  QA_SUMMARY_REPORTING_OPENING,
   hasOnlyAllowedOpenWeightLlmReferences,
   OPEN_WEIGHT_LLM_CANCEL_PATH,
   OPEN_WEIGHT_LLM_INFERENCE_ID_HEADER,
@@ -35,6 +36,12 @@ import {
   type OpenWeightLlmTopicLabelRequest,
 } from '@arsnova/shared-types';
 import { logger } from './logger';
+import { normalizeQuestionForDedupe } from './moderationPromptContextPacking';
+import {
+  compactGroupedSummaryContext,
+  groupedSummaryChatMessages,
+  groupedSummaryWireSchema,
+} from './qaSummaryModelPrompt';
 import {
   isBlockedOpenWeightLlmHost,
   isPrivateOpenWeightLlmAddress,
@@ -392,6 +399,9 @@ function compactSummaryCompass(
 }
 
 export function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): string {
+  if (request.promptContext.context.qaSummaryTopicSourceIds !== undefined) {
+    return compactGroupedSummaryContext(request.promptContext.context);
+  }
   const refs = summarySourceRefs(request);
   const { locale, questions, topics, compass, learningContext, releasedResults, feedback } =
     request.promptContext.context;
@@ -430,29 +440,52 @@ export function compactSummaryContext(request: OpenWeightLlmSummaryRequestV2): s
 }
 
 function expandSummaryWireOutput(request: OpenWeightLlmSummaryRequestV2, content: unknown) {
+  const context = request.promptContext.context;
   const refs = summarySourceRefs(request);
-  const parsed = createQaSummaryModelWireSchema(summaryCitableRefs(request, refs)).safeParse(
-    content,
-  );
+  const parsed = (
+    groupedSummaryWireSchema(context) ??
+    createQaSummaryModelWireSchema(summaryCitableRefs(request, refs))
+  ).safeParse(content);
   if (!parsed.success) return null;
+
+  if (context.qaSummaryTopicSourceIds !== undefined) {
+    const originalQuestions = new Set(
+      context.sources.flatMap((source) =>
+        source.kind === 'qa-question' && source.content.state === 'included'
+          ? [normalizeQuestionForDedupe(source.content.text).toLowerCase()]
+          : [],
+      ),
+    );
+    if (
+      parsed.data.topics.some(
+        (entry) =>
+          'summary' in entry &&
+          originalQuestions.has(
+            normalizeQuestionForDedupe(
+              entry.summary.slice(QA_SUMMARY_REPORTING_OPENING[context.locale].length),
+            ).toLowerCase(),
+          ),
+      )
+    )
+      return null;
+  }
 
   const idsByRef = new Map([...refs].map(([id, ref]) => [ref, id]));
   const sourceIds = (values: readonly string[]) => [
     ...new Set(values.map((ref) => idsByRef.get(ref)!)),
   ];
+  const next = 'next' in parsed.data ? parsed.data.next : undefined;
   return {
     schemaVersion: request.schemaVersion,
     taskType: request.taskType,
     outputContract: request.outputContract,
     output: {
       status: 'ready',
-      statements: parsed.data.topics.map(({ topic, question, refs: values }) => ({
-        text: `${topic}: ${question}`,
-        sourceIds: sourceIds(values),
+      statements: parsed.data.topics.map((entry) => ({
+        text: `${entry.topic}: ${'summary' in entry ? entry.summary : entry.question}`,
+        sourceIds: sourceIds(entry.refs),
       })),
-      suggestedNextSteps: parsed.data.next
-        ? [{ text: parsed.data.next.sentence, sourceIds: sourceIds(parsed.data.next.refs) }]
-        : [],
+      suggestedNextSteps: next ? [{ text: next.sentence, sourceIds: sourceIds(next.refs) }] : [],
       limitations: [],
     },
   };
@@ -461,7 +494,8 @@ function expandSummaryWireOutput(request: OpenWeightLlmSummaryRequestV2, content
 function wireOutputJsonSchemaFor(request: OpenWeightLlmRequest): Record<string, unknown> {
   if (request.taskType === 'qa_summary' && request.schemaVersion === 2) {
     return z.toJSONSchema(
-      createQaSummaryModelWireSchema(summaryCitableRefs(request, summarySourceRefs(request))),
+      groupedSummaryWireSchema(request.promptContext.context) ??
+        createQaSummaryModelWireSchema(summaryCitableRefs(request, summarySourceRefs(request))),
       {
         target: 'draft-7',
       },
@@ -516,14 +550,20 @@ function buildChatCompletionBody(
 ): string {
   const messages =
     request.taskType === 'qa_summary' && request.schemaVersion === 2
-      ? [
-          { role: 'system', content: request.instructionText },
-          { role: 'system', content: request.definitionText },
-          {
-            role: 'user',
-            content: compactSummaryContext(request),
-          },
-        ]
+      ? request.promptContext.context.qaSummaryTopicSourceIds !== undefined
+        ? groupedSummaryChatMessages(
+            request.promptContext.context,
+            request.instructionText,
+            request.definitionText,
+          )
+        : [
+            { role: 'system', content: request.instructionText },
+            { role: 'system', content: request.definitionText },
+            {
+              role: 'user',
+              content: compactSummaryContext(request),
+            },
+          ]
       : [
           { role: 'system', content: systemInstructionFor(request) },
           { role: 'user', content: JSON.stringify(request) },
@@ -543,7 +583,9 @@ function buildChatCompletionBody(
         ? Math.min(384, Math.max(config.maxOutputTokens.topic_label, request.clusters.length * 48))
         : request.taskType === 'qa_summary' && request.schemaVersion === 2
           ? Math.min(
-              OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
+              request.promptContext.context.qaSummaryTopicSourceIds !== undefined
+                ? request.promptContext.budget.reservedOutputTokens
+                : OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS,
               config.maxOutputTokens.qa_summary,
             )
           : config.maxOutputTokens[request.taskType],

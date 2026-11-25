@@ -1,5 +1,6 @@
 import {
   QA_SUMMARY_MAX_TOPIC_LENGTH,
+  QA_SUMMARY_REPORTING_OPENING,
   type AppLocale,
   type QaSummaryModelOutputV2,
   type QaSummaryStatementV2,
@@ -13,7 +14,10 @@ const GENERIC_LEADS: Readonly<Record<AppLocale, ReadonlySet<string>>> = {
   it: new Set(['esempio', 'esempi', 'domanda', 'domande']),
 };
 
-function statementParts(text: string): { lead: string; body: string } | null {
+function statementParts(
+  text: string,
+  maximumTopicLength = QA_SUMMARY_MAX_TOPIC_LENGTH,
+): { lead: string; body: string } | null {
   const colonIndex = text.indexOf(':');
   const spacedDash = text.match(/\s[–—-]\s/u);
   const separator =
@@ -22,8 +26,7 @@ function statementParts(text: string): { lead: string; body: string } | null {
       : spacedDash?.index !== undefined
         ? { index: spacedDash.index, length: spacedDash[0].length }
         : null;
-  if (!separator || separator.index <= 0 || separator.index > QA_SUMMARY_MAX_TOPIC_LENGTH)
-    return null;
+  if (!separator || separator.index <= 0 || separator.index > maximumTopicLength) return null;
   const lead = text
     .slice(0, separator.index)
     .normalize('NFKC')
@@ -417,13 +420,103 @@ export function countSignificantContentTokenMatches(
   return matches;
 }
 
+const SUBMISSION_DEADLINE_WORDING = {
+  de: {
+    timing: /^(?:bis\s+wann|wann\s+(?:muss|müssen|soll|sollen|ist|sind))\b/iu,
+    submission: /\b(?:abgeben|abgegeben|abzugeben|einreichen|eingereicht|einzureichen|fällig)\b/giu,
+    deadline: /\b(?:abgabefrist(?:en)?|abgabetermin(?:e|en)?)\b/giu,
+  },
+  en: {
+    timing: /^(?:by\s+when|when\s+(?:do|does|must|should|is|are))\b/iu,
+    submission: /\b(?:submit(?:ted)?|hand(?:ed)?\s+in|due)\b/giu,
+    deadline: /\b(?:submission\s+)?deadlines?\b/giu,
+  },
+  fr: {
+    timing: /^(?:(?:jusqu['’]à|pour)\s+quand|quand\s+(?:faut|dois|doit|doivent))\b/iu,
+    submission: /\b(?:rendre|remettre)\b/giu,
+    deadline: /\b(?:date\s+limite|dernier\s+délai)\b/giu,
+  },
+  es: {
+    timing: /^(?:hasta\s+cuándo|cuándo\s+(?:hay\s+que|debo|debe|debemos|deben))\b/iu,
+    submission: /\bentreg(?:a|ar|ado|ada)\b/giu,
+    deadline: /\b(?:fecha\s+límite|plazo)\b/giu,
+  },
+  it: {
+    timing: /^(?:entro\s+quando|quando\s+(?:devo|deve|dobbiamo|devono))\b/iu,
+    submission: /\bconsegn(?:a|are|ato|ata)\b/giu,
+    deadline: /\bscadenz[ae]\b/giu,
+  },
+} as const satisfies Record<AppLocale, { timing: RegExp; submission: RegExp; deadline: RegExp }>;
+
+function submissionDeadlineTokens(text: string, locale: AppLocale): string[] | null {
+  const wording = SUBMISSION_DEADLINE_WORDING[locale];
+  const normalized = text.normalize('NFKC').trimStart().replace(/^¿\s*/u, '');
+  const namedDeadline = normalized.replace(wording.deadline, ' deadline ');
+  const canonical =
+    namedDeadline !== normalized || wording.timing.test(normalized)
+      ? namedDeadline.replace(wording.submission, ' deadline ')
+      : namedDeadline;
+  return canonical === normalized ? null : extractSignificantContentTokens(canonical);
+}
+
+function hasGroupedQaSourceCoverage(
+  statement: QaSummaryStatementV2,
+  includedQaTextsById: ReadonlyMap<string, string>,
+  body: string,
+  locale: AppLocale,
+): boolean {
+  if (statement.sourceIds.length < 2) return true;
+  const opening = QA_SUMMARY_REPORTING_OPENING[locale];
+  const summary = body.startsWith(opening) ? body.slice(opening.length) : body;
+  const summaryTokens = extractSignificantContentTokens(summary);
+  const sourceTexts = statement.sourceIds.map((id) => includedQaTextsById.get(id) ?? '');
+  const sourceTokens = sourceTexts.map(extractSignificantContentTokens);
+  const distinctTokens = sourceTokens.map((tokens, index) => {
+    const otherTokens = sourceTokens.filter((_, other) => other !== index).flat();
+    return tokens.filter(
+      (token) => !otherTokens.some((other) => tokensShareContentStem(token, other)),
+    );
+  });
+
+  if (
+    distinctTokens.some((tokens) => tokens.length > 0) &&
+    distinctTokens.every(
+      (tokens, index) =>
+        countSignificantContentTokenMatches(
+          summaryTokens,
+          tokens.length > 0 ? tokens : sourceTokens[index]!,
+        ) > 0,
+    )
+  ) {
+    return true;
+  }
+
+  // A shared topic word does not establish a shared concern. For a paraphrased
+  // deadline, require the timing of submission and the concrete details of
+  // each question after folding equivalent deadline wording.
+  const deadlineSummary = submissionDeadlineTokens(summary, locale);
+  if (deadlineSummary === null) return false;
+  const summaryNumbers = extractCanonicalNumberSet(summary);
+  return sourceTexts.every((text) => {
+    const deadlineSource = submissionDeadlineTokens(text, locale);
+    return (
+      deadlineSource !== null &&
+      deadlineSource.length > 1 &&
+      countSignificantContentTokenMatches(deadlineSource, deadlineSummary) ===
+        deadlineSource.length &&
+      [...extractCanonicalNumberSet(text)].every((number) => summaryNumbers.has(number))
+    );
+  });
+}
+
 function hasConsistentQaCitationGrounding(
   statement: QaSummaryStatementV2,
   sourceTextsById: ReadonlyMap<string, string>,
   includedQaTextsById: ReadonlyMap<string, string>,
+  maximumTopicLength: number,
 ): boolean {
   if (includedQaTextsById.size < 2) return true;
-  const body = statementParts(statement.text)?.body ?? statement.text;
+  const body = statementParts(statement.text, maximumTopicLength)?.body ?? statement.text;
   const statementTokens = extractSignificantContentTokens(body);
   if (statementTokens.length < 2) return true;
 
@@ -583,6 +676,8 @@ function isCompletePlainStatement(text: string, body: string): boolean {
 
 export type QaSummaryQualityOptions = Readonly<{
   minimumStatements?: number;
+  maximumTopicLength?: number;
+  checkGroupedQaCoverage?: boolean;
   sourceTextsById?: ReadonlyMap<string, string>;
   includedQaTextsById?: ReadonlyMap<string, string>;
 }>;
@@ -603,12 +698,13 @@ export function hasAcceptableQaSummaryQuality(
       ? { minimumStatements: minimumStatementsOrOptions }
       : minimumStatementsOrOptions;
   const minimumStatements = options.minimumStatements ?? 2;
+  const maximumTopicLength = options.maximumTopicLength ?? QA_SUMMARY_MAX_TOPIC_LENGTH;
 
   if (output.status === 'failed') return true;
   if (output.status === 'uncertain' && output.statements.length === 0) return true;
   if (output.statements.length < minimumStatements) return false;
 
-  const parts = output.statements.map(({ text }) => statementParts(text));
+  const parts = output.statements.map(({ text }) => statementParts(text, maximumTopicLength));
   if (parts.some((part) => part === null)) return false;
   const completeParts = parts.filter(
     (part): part is { lead: string; body: string } => part !== null,
@@ -643,8 +739,20 @@ export function hasAcceptableQaSummaryQuality(
       const includedQaTextsById = options.includedQaTextsById;
       if (
         output.statements.some(
-          (statement) =>
-            !hasConsistentQaCitationGrounding(statement, sourceTextsById, includedQaTextsById),
+          (statement, index) =>
+            (options.checkGroupedQaCoverage &&
+              !hasGroupedQaSourceCoverage(
+                statement,
+                includedQaTextsById,
+                completeParts[index]!.body,
+                locale,
+              )) ||
+            !hasConsistentQaCitationGrounding(
+              statement,
+              sourceTextsById,
+              includedQaTextsById,
+              maximumTopicLength,
+            ),
         )
       ) {
         return false;
