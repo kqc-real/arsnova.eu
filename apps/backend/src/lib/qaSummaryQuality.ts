@@ -1,5 +1,6 @@
 import {
   QA_SUMMARY_MAX_TOPIC_LENGTH,
+  QA_SUMMARY_REPORTING_OPENING,
   type AppLocale,
   type QaSummaryModelOutputV2,
   type QaSummaryStatementV2,
@@ -419,37 +420,93 @@ export function countSignificantContentTokenMatches(
   return matches;
 }
 
+const SUBMISSION_DEADLINE_WORDING = {
+  de: {
+    timing: /^(?:bis\s+wann|wann\s+(?:muss|müssen|soll|sollen|ist|sind))\b/iu,
+    submission: /\b(?:abgeben|abgegeben|abzugeben|einreichen|eingereicht|einzureichen|fällig)\b/giu,
+    deadline: /\b(?:abgabefrist(?:en)?|abgabetermin(?:e|en)?)\b/giu,
+  },
+  en: {
+    timing: /^(?:by\s+when|when\s+(?:do|does|must|should|is|are))\b/iu,
+    submission: /\b(?:submit(?:ted)?|hand(?:ed)?\s+in|due)\b/giu,
+    deadline: /\b(?:submission\s+)?deadlines?\b/giu,
+  },
+  fr: {
+    timing: /^(?:(?:jusqu['’]à|pour)\s+quand|quand\s+(?:faut|dois|doit|doivent))\b/iu,
+    submission: /\b(?:rendre|remettre)\b/giu,
+    deadline: /\b(?:date\s+limite|dernier\s+délai)\b/giu,
+  },
+  es: {
+    timing: /^(?:hasta\s+cuándo|cuándo\s+(?:hay\s+que|debo|debe|debemos|deben))\b/iu,
+    submission: /\bentreg(?:a|ar|ado|ada)\b/giu,
+    deadline: /\b(?:fecha\s+límite|plazo)\b/giu,
+  },
+  it: {
+    timing: /^(?:entro\s+quando|quando\s+(?:devo|deve|dobbiamo|devono))\b/iu,
+    submission: /\bconsegn(?:a|are|ato|ata)\b/giu,
+    deadline: /\bscadenz[ae]\b/giu,
+  },
+} as const satisfies Record<AppLocale, { timing: RegExp; submission: RegExp; deadline: RegExp }>;
+
+function submissionDeadlineTokens(text: string, locale: AppLocale): string[] | null {
+  const wording = SUBMISSION_DEADLINE_WORDING[locale];
+  const normalized = text.normalize('NFKC').trimStart().replace(/^¿\s*/u, '');
+  const namedDeadline = normalized.replace(wording.deadline, ' deadline ');
+  const canonical =
+    namedDeadline !== normalized || wording.timing.test(normalized)
+      ? namedDeadline.replace(wording.submission, ' deadline ')
+      : namedDeadline;
+  return canonical === normalized ? null : extractSignificantContentTokens(canonical);
+}
+
 function hasGroupedQaSourceCoverage(
   statement: QaSummaryStatementV2,
   includedQaTextsById: ReadonlyMap<string, string>,
   body: string,
+  locale: AppLocale,
 ): boolean {
   if (statement.sourceIds.length < 2) return true;
-  const summaryTokens = extractSignificantContentTokens(body);
-  const sourceTokens = statement.sourceIds.map((id) =>
-    extractSignificantContentTokens(includedQaTextsById.get(id) ?? ''),
-  );
+  const opening = QA_SUMMARY_REPORTING_OPENING[locale];
+  const summary = body.startsWith(opening) ? body.slice(opening.length) : body;
+  const summaryTokens = extractSignificantContentTokens(summary);
+  const sourceTexts = statement.sourceIds.map((id) => includedQaTextsById.get(id) ?? '');
+  const sourceTokens = sourceTexts.map(extractSignificantContentTokens);
   const distinctTokens = sourceTokens.map((tokens, index) => {
     const otherTokens = sourceTokens.filter((_, other) => other !== index).flat();
     return tokens.filter(
       (token) => !otherTokens.some((other) => tokensShareContentStem(token, other)),
     );
   });
-  const coversDistinctTokens = distinctTokens.map(
-    (tokens) => countSignificantContentTokenMatches(summaryTokens, tokens) > 0,
-  );
 
-  // A shared concern can be stated once. If the summary uses source-specific
-  // words, it needs an anchor for each source with distinct content. This
-  // checks observable omissions without requiring the original wording.
-  if (!coversDistinctTokens.some(Boolean)) {
-    return sourceTokens.every(
-      (tokens) => countSignificantContentTokenMatches(summaryTokens, tokens) > 0,
-    );
+  if (
+    distinctTokens.some((tokens) => tokens.length > 0) &&
+    distinctTokens.every(
+      (tokens, index) =>
+        countSignificantContentTokenMatches(
+          summaryTokens,
+          tokens.length > 0 ? tokens : sourceTokens[index]!,
+        ) > 0,
+    )
+  ) {
+    return true;
   }
-  return distinctTokens.every(
-    (tokens, index) => tokens.length === 0 || coversDistinctTokens[index],
-  );
+
+  // A shared topic word does not establish a shared concern. For a paraphrased
+  // deadline, require the timing of submission and the concrete details of
+  // each question after folding equivalent deadline wording.
+  const deadlineSummary = submissionDeadlineTokens(summary, locale);
+  if (deadlineSummary === null) return false;
+  const summaryNumbers = extractCanonicalNumberSet(summary);
+  return sourceTexts.every((text) => {
+    const deadlineSource = submissionDeadlineTokens(text, locale);
+    return (
+      deadlineSource !== null &&
+      deadlineSource.length > 1 &&
+      countSignificantContentTokenMatches(deadlineSource, deadlineSummary) ===
+        deadlineSource.length &&
+      [...extractCanonicalNumberSet(text)].every((number) => summaryNumbers.has(number))
+    );
+  });
 }
 
 function hasConsistentQaCitationGrounding(
@@ -688,6 +745,7 @@ export function hasAcceptableQaSummaryQuality(
                 statement,
                 includedQaTextsById,
                 completeParts[index]!.body,
+                locale,
               )) ||
             !hasConsistentQaCitationGrounding(
               statement,

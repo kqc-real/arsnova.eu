@@ -88,7 +88,7 @@ Das technische Profil für gemischte Kanäle verwendet 8.192 konservative Budget
 
 Im privaten Modellpfad für reine Q&A-Sitzungen gruppiert der Packer bis zu vier freigegebene Fragetexte in bis zu zwei Themen. Er wählt pro Thema die wichtigste Frage und eine passende Ergänzung. Beim Dublettenabgleich bleibt die Reihenfolge der Wörter erhalten. Bei gleichem normalisiertem Text bleibt der anhand der Stimmen bevorzugte Originalbeleg gebunden.
 
-Qwen verbindet die offenen Anliegen in eigenen Worten. Das Ausgabeschema bindet beide Originalfragen an die Aussage, wenn ein Thema zwei Fragen enthält. Die Qualitätsprüfung vergleicht den Satz mit den gemeinsamen und den je Frage spezifischen Begriffen. Bei erkennbar einseitiger Abdeckung zeigt der extraktive Fallback die Originalfragen.
+Qwen verbindet die offenen Anliegen in eigenen Worten. Das Ausgabeschema bindet beide Originalfragen an die Aussage, wenn ein Thema zwei Fragen enthält. Die Qualitätsprüfung verlangt bei unterschiedlichen Anliegen einen konkreten Bezug zu jeder Originalfrage. Bei gleichbedeutenden Fragen nach einer Abgabefrist genügt ein Satz, der die Frist und die konkreten Angaben beider Fragen erfasst. Bei fehlender Abdeckung zeigt der extraktive Fallback die Originalfragen.
 
 Der App-Server zählt die tatsächlich gesendeten Qwen-Chatnachrichten samt Rahmen mit dem gepinnten BPE-Tokenizer. Das App-Image bringt die Tokenizer-Dateien mit. Das Kontextfenster umfasst 8.192 Tokens, davon 640 Antwortreserve und 128 Sicherheitsmarge. Die Kontextvorschau kennzeichnet konservative UTF-8-Schätzungen in den übrigen Pfaden.
 

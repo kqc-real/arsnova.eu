@@ -891,6 +891,15 @@ describe('openWeightLlmClient', () => {
         'Welche Aufgabentypen kommen in der Klausur vor?',
       ],
       topic: 'Klausur',
+      summary: 'Offen ist, welche Fragen zur Klausur noch geklärt werden müssen.',
+      effectiveMode: 'extractive',
+    },
+    {
+      questions: [
+        'Welche Hilfsmittel sind in der Klausur erlaubt?',
+        'Welche Aufgabentypen kommen in der Klausur vor?',
+      ],
+      topic: 'Klausur',
       summary: 'Offen ist, welche Hilfsmittel bei der Prüfung benutzt werden dürfen.',
       effectiveMode: 'extractive',
     },
