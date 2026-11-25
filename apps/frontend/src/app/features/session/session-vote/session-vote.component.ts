@@ -186,6 +186,11 @@ const PARTICIPANT_UUID_RE =
 function isParticipantUuid(value: string | null | undefined): value is string {
   return typeof value === 'string' && PARTICIPANT_UUID_RE.test(value);
 }
+
+function trpcErrorCode(error: unknown): string | undefined {
+  return (error as { data?: { code?: string } } | null | undefined)?.data?.code;
+}
+
 /** Geräteweite Präferenz für persönliche Timer-Anpassung (WCAG 2.2.1). */
 const TIMER_ACCOMMODATION_STORAGE_KEY = 'arsnova-timer-accommodation';
 const LIVE_SCORE_PREVIEW_STORAGE_KEY = 'arsnova-live-score-preview';
@@ -748,6 +753,7 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   readonly participantTeam = signal<ParticipantDTO | null>(null);
   readonly sessionTeams = signal<TeamDTO[]>([]);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
+  private teamLeaderboardRequestId = 0;
   readonly personalLeaderboard = signal<LeaderboardEntryDTO[]>([]);
   readonly personalLeaderboardWinner = computed(() => this.personalLeaderboard()[0] ?? null);
   readonly teamLeaderboardWinner = computed(() => {
@@ -5550,26 +5556,25 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
     requestGeneration: number,
     options: { notify?: boolean; requireDeadline?: boolean; animate?: boolean },
   ): Promise<void> {
+    const isCurrent = () =>
+      !this.destroyRef.destroyed && requestGeneration === this.qaListRequestGeneration;
     try {
       // Deep-Link auf /vote ohne Join: qa.list braucht eine participantId.
       // Ohne vorherige Identität schlägt der Abruf dauerhaft fehl (Retry allein reicht nicht).
       if (!isParticipantUuid(this.participantId())) {
         const identity = await this.resolveParticipantIdentity();
-        if (requestGeneration !== this.qaListRequestGeneration) {
+        if (!isCurrent()) {
           return;
         }
         if (!identity) {
-          this.showQaError(
-            $localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`,
-          );
-          this.scheduleQaRefreshRetry();
+          this.reportQaRefreshFailure();
           return;
         }
         this.ensureQaSubscription();
       }
 
       const snapshot = await trpc.qa.list.query(this.qaListQueryInput());
-      if (requestGeneration !== this.qaListRequestGeneration) {
+      if (!isCurrent()) {
         return;
       }
       this.qaError.set(null);
@@ -5585,10 +5590,22 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       }
       this.clearQaRefreshRetry();
     } catch {
-      if (requestGeneration !== this.qaListRequestGeneration || this.isFinished()) return;
-      this.showQaError($localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`);
-      this.scheduleQaRefreshRetry();
+      if (isCurrent() && !this.isFinished()) this.reportQaRefreshFailure();
     }
+  }
+
+  private reportQaRefreshFailure(): void {
+    const message = $localize`:@@sessionQa.voteLoadError:Fragen konnten nicht geladen werden.`;
+    if (this.qaQuestions().length === 0) {
+      this.showQaError(message);
+    } else if (
+      this.activeChannel() === 'qa' &&
+      this.isQaChannelOpen() &&
+      this.qaRefreshRetryAttempt === 0
+    ) {
+      this.snackBar.open(message, '', { duration: 5000 });
+    }
+    this.scheduleQaRefreshRetry();
   }
 
   private scheduleQaRefreshRetry(): void {
@@ -5656,23 +5673,29 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
       };
     }
     const isCurrentRequest = (): boolean =>
-      requestEpoch === this.quickFeedbackResultEpoch && isCurrentFallbackGeneration();
+      !this.destroyRef.destroyed &&
+      requestEpoch === this.quickFeedbackResultEpoch &&
+      isCurrentFallbackGeneration();
 
     try {
       const result = await trpc.quickFeedback.results.query({ sessionCode: this.code });
       if (!isCurrentRequest()) {
         return;
       }
-      if (this.isFinished() || this.sessionDeadline.isExpired()) {
+      if (
+        this.isFinished() ||
+        this.sessionDeadline.isExpired() ||
+        !this.isQuickFeedbackChannelOpen()
+      ) {
         this.applyQuickFeedbackResult(null, requestEpoch);
         return;
       }
       this.applyQuickFeedbackResult(result, requestEpoch);
-    } catch {
-      if (!isCurrentRequest()) {
-        return;
+    } catch (error: unknown) {
+      const code = trpcErrorCode(error);
+      if (isCurrentRequest() && (code === 'NOT_FOUND' || code === 'FORBIDDEN')) {
+        this.applyQuickFeedbackResult(null, requestEpoch);
       }
-      this.applyQuickFeedbackResult(null, requestEpoch);
     } finally {
       if (this.quickFeedbackFallbackRequest?.requestEpoch === requestEpoch) {
         this.quickFeedbackFallbackRequest = null;
@@ -7300,18 +7323,26 @@ export class SessionVoteComponent implements OnInit, OnDestroy {
   }
 
   private async loadTeamLeaderboard(): Promise<void> {
+    const requestId = ++this.teamLeaderboardRequestId;
     if (!this.code || this.sessionSettings().teamMode !== true) {
       this.teamLeaderboard.set([]);
       return;
     }
+    const status = this.status();
+    if (status !== 'RESULTS' && status !== 'FINISHED') return;
+    const isCurrent = () =>
+      !this.destroyRef.destroyed &&
+      requestId === this.teamLeaderboardRequestId &&
+      this.status() === status &&
+      this.sessionSettings().teamMode === true;
     try {
       const leaderboard = await trpc.session.getTeamLeaderboard.query({
         code: this.code,
         anonymousClientId: getAnonymousClientId(),
       });
-      this.teamLeaderboard.set(leaderboard);
-    } catch {
-      this.teamLeaderboard.set([]);
+      if (isCurrent()) this.teamLeaderboard.set(leaderboard);
+    } catch (error: unknown) {
+      if (isCurrent() && trpcErrorCode(error) === 'NOT_FOUND') this.teamLeaderboard.set([]);
     }
   }
 

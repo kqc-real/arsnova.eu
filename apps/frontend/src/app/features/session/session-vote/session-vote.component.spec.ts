@@ -1764,6 +1764,72 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
+  it('behält den Team-Zwischenstand bei einem vorübergehenden Abruffehler', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      serverTime: MOCK_SERVER_TIME,
+      type: 'QUIZ',
+      status: 'RESULTS',
+      teamMode: true,
+      quizName: 'Team-Quiz',
+      participantCount: 6,
+    });
+    currentQuestionQueryMock.mockResolvedValue({
+      id: '7ed3cc25-3179-4a91-9dc3-acc00971fb46',
+      order: 1,
+      text: 'Welche Antwort stimmt?',
+      type: 'SINGLE_CHOICE',
+      answers: [{ id: 'a1', text: 'Rot', isCorrect: true }],
+    });
+    let publishStatus!: (data: { status: string; currentQuestion: number }) => void;
+    statusChangedSubscribeMock.mockImplementation(
+      (_input: unknown, observer: { onData: typeof publishStatus }) => {
+        publishStatus = observer.onData;
+        return { unsubscribe: vi.fn() };
+      },
+    );
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const host = fixture.nativeElement as HTMLElement;
+    const teamCard = () => host.querySelector('.vote-team-reward');
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      fixture.detectChanges();
+      expect(teamCard()).not.toBeNull();
+    });
+    const visibleCard = teamCard();
+    const initial = component.teamLeaderboard();
+    const pending = Promise.withResolvers<typeof initial>();
+    getTeamLeaderboardQueryMock.mockReturnValueOnce(pending.promise);
+    publishStatus({ status: 'RESULTS', currentQuestion: 1 });
+    await flushComponentAfterStable(fixture);
+    expect(teamCard()).toBe(visibleCard);
+
+    pending.reject(new Error('Failed to fetch'));
+    await flushComponentAfterStable(fixture);
+    expect(teamCard()).toBe(visibleCard);
+    expect(component.teamLeaderboard()).toBe(initial);
+
+    const updated = [{ ...initial[0], totalScore: 250 }, initial[1]];
+    getTeamLeaderboardQueryMock.mockResolvedValueOnce(updated);
+    publishStatus({ status: 'RESULTS', currentQuestion: 1 });
+    await flushComponentAfterStable(fixture);
+    expect(teamCard()).toBe(visibleCard);
+    expect(component.teamLeaderboard()).toEqual(updated);
+
+    const late = Promise.withResolvers<typeof initial>();
+    getTeamLeaderboardQueryMock.mockReturnValueOnce(late.promise);
+    publishStatus({ status: 'RESULTS', currentQuestion: 1 });
+    publishStatus({ status: 'ACTIVE', currentQuestion: 2 });
+    late.resolve(initial);
+    await flushComponentAfterStable(fixture);
+    expect(teamCard()).toBeNull();
+    expect(component.teamLeaderboard()).toEqual([]);
+    fixture.destroy();
+  });
+
   it('zeigt Teamnamen mit fuehrendem Emoji-Shortcode ohne Farbpunkte im Vote-Client', async () => {
     getParticipantSelfQueryMock.mockResolvedValue({
       id: '11111111-1111-4111-8111-111111111111',
@@ -6482,42 +6548,74 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     fixture.destroy();
   });
 
-  it('zeigt im Blitzlicht-Tab den laufenden Rundenzustand', async () => {
-    getInfoQueryMock.mockResolvedValue({
-      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
-      serverTime: MOCK_SERVER_TIME,
-      code: 'ABC123',
-      type: 'QUIZ',
-      status: 'ACTIVE',
-      quizName: 'Team-Quiz',
-      title: null,
-      participantCount: 6,
-      channels: {
-        quiz: { enabled: true },
-        qa: { enabled: false, open: false, title: null, moderationMode: false },
-        quickFeedback: { enabled: true, open: true },
-      },
-    });
-    currentQuestionQueryMock.mockResolvedValue(null);
-    quickFeedbackResultsQueryMock.mockResolvedValue({
-      type: 'MOOD',
-      locked: false,
-      totalVotes: 12,
-      distribution: { POSITIVE: 5, NEUTRAL: 4, NEGATIVE: 3 },
-      currentRound: 2,
-    });
+  it.each([false, true])(
+    'behält das laufende Blitzlicht bei Abruffehlern (manueller Tab: %s)',
+    async (manual) => {
+      getInfoQueryMock.mockResolvedValue({
+        id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+        serverTime: MOCK_SERVER_TIME,
+        code: 'ABC123',
+        type: 'QUIZ',
+        status: 'ACTIVE',
+        quizName: 'Team-Quiz',
+        title: null,
+        participantCount: 6,
+        channels: {
+          quiz: { enabled: true },
+          qa: { enabled: false, open: false, title: null, moderationMode: false },
+          quickFeedback: { enabled: true, open: true },
+        },
+      });
+      currentQuestionQueryMock.mockResolvedValue(null);
+      quickFeedbackResultsQueryMock.mockResolvedValue({
+        type: 'MOOD',
+        locked: false,
+        totalVotes: 12,
+        distribution: { POSITIVE: 5, NEUTRAL: 4, NEGATIVE: 3 },
+        currentRound: 2,
+      });
 
-    const fixture = TestBed.createComponent(SessionVoteComponent);
-    fixture.detectChanges();
-    await flushComponentAfterStable(fixture, 50);
-    fixture.detectChanges();
+      const fixture = TestBed.createComponent(SessionVoteComponent);
+      fixture.detectChanges();
+      await flushComponentAfterStable(fixture, 50);
+      fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Blitzlicht');
-    expect(text).not.toContain('Abstimmen');
-    expect(text).toContain('2. Runde');
-    fixture.destroy();
-  });
+      const component = fixture.componentInstance;
+      const host = fixture.nativeElement as HTMLElement;
+      if (manual) component.selectChannel('quickFeedback');
+      const panel = host.querySelector('app-feedback-vote');
+      expect(panel?.textContent).toContain('2. Runde');
+      expect(component.activeChannel()).toBe('quickFeedback');
+      const internals = component as unknown as { refreshQuickFeedbackResult: () => Promise<void> };
+      const current = component.quickFeedbackResult();
+      const pending = Promise.withResolvers<typeof current>();
+      quickFeedbackResultsQueryMock.mockReturnValueOnce(pending.promise);
+      const refresh = internals.refreshQuickFeedbackResult();
+      fixture.detectChanges();
+      expect(host.querySelector('app-feedback-vote')).toBe(panel);
+
+      pending.reject(new Error('Failed to fetch'));
+      await refresh;
+      fixture.detectChanges();
+      expect(component.activeChannel()).toBe('quickFeedback');
+      expect(component.quickFeedbackResult()).toBe(current);
+      expect(host.querySelector('app-feedback-vote')).toBe(panel);
+      expect(panel?.textContent).toContain('2. Runde');
+
+      quickFeedbackResultsQueryMock.mockResolvedValueOnce({ ...current, totalVotes: 13 });
+      await internals.refreshQuickFeedbackResult();
+      fixture.detectChanges();
+      expect(component.quickFeedbackResult()?.totalVotes).toBe(13);
+      expect(host.querySelector('app-feedback-vote')).toBe(panel);
+
+      quickFeedbackResultsQueryMock.mockRejectedValueOnce({ data: { code: 'NOT_FOUND' } });
+      await internals.refreshQuickFeedbackResult();
+      fixture.detectChanges();
+      expect(component.quickFeedbackResult()).toBeNull();
+      expect(host.textContent).not.toContain('2. Runde');
+      fixture.destroy();
+    },
+  );
 
   it('pollt Blitzlicht-Ergebnisse nur während eines Subscription-Ausfalls', async () => {
     vi.useFakeTimers();
@@ -9379,6 +9477,89 @@ describe('SessionVoteComponent', { timeout: 30_000 }, () => {
     expect(component.qaQuestions()).toHaveLength(1);
     expect(component.visibleQaQuestions()).toHaveLength(1);
     expect(component.qaListPageIndex()).toBe(1);
+    fixture.destroy();
+  });
+
+  it('behält Q&A-Liste und Fokus bei einer vorübergehend fehlgeschlagenen Aktualisierung', async () => {
+    const session = {
+      id: '6a8edced-5f8f-4cfa-9176-454fac9570ad',
+      code: 'ABC123',
+      type: 'Q_AND_A',
+      status: 'ACTIVE',
+      serverTime: new Date().toISOString(),
+      expiresAt: '2099-09-15T12:00:00.000Z',
+      qaClosesAt: '2099-09-15T11:00:00.000Z',
+      sessionLifecycleRevision: 1,
+      participantCount: 3,
+      channels: {
+        quiz: { enabled: false },
+        qa: { enabled: true, open: true, title: 'Offene Fragen', moderationMode: false },
+        quickFeedback: { enabled: false, open: false },
+      },
+    };
+    const question = {
+      id: '44444444-4444-4444-8444-444444444444',
+      text: 'Wie funktioniert die Sortierung?',
+      upvoteCount: 2,
+      status: 'ACTIVE',
+      createdAt: MOCK_SERVER_TIME,
+      myVote: null,
+      isOwn: false,
+    };
+    const snapshot = {
+      questions: [question],
+      state: 'ACTIVE',
+      sessionLifecycleRevision: 1,
+      serverNow: session.serverTime,
+      expiresAt: session.expiresAt,
+      qaClosesAt: session.qaClosesAt,
+      endedAt: null,
+      postProcessingEndsAt: null,
+      totalCount: 1,
+    };
+    getInfoQueryMock.mockResolvedValue(session);
+    currentQuestionQueryMock.mockResolvedValue(null);
+    qaListQueryMock.mockResolvedValue(snapshot);
+
+    const fixture = TestBed.createComponent(SessionVoteComponent);
+    const component = fixture.componentInstance;
+    const host = fixture.nativeElement as HTMLElement;
+    const list = () => host.querySelector('.session-qa-list');
+    fixture.detectChanges();
+    await flushComponentAfterStable(fixture);
+    const visibleList = list();
+    const voteButton = visibleList?.querySelector<HTMLButtonElement>('button');
+    expect(voteButton?.disabled).toBe(false);
+    voteButton?.focus();
+    expect(document.activeElement).toBe(voteButton);
+
+    const internals = component as unknown as { refreshQaQuestions: () => Promise<void> };
+    const pending = Promise.withResolvers<typeof snapshot>();
+    qaListQueryMock.mockReturnValueOnce(pending.promise);
+    const refresh = internals.refreshQaQuestions();
+    fixture.detectChanges();
+    expect(list()).toBe(visibleList);
+    expect(document.activeElement).toBe(voteButton);
+
+    pending.reject(new Error('Failed to fetch'));
+    await refresh;
+    fixture.detectChanges();
+    expect(list()).toBe(visibleList);
+    expect(document.activeElement).toBe(voteButton);
+    expect(host.querySelector('.session-channel-card__error')).toBeNull();
+    expect(snackBarOpenMock).toHaveBeenCalledWith('Fragen konnten nicht geladen werden.', '', {
+      duration: 5000,
+    });
+
+    qaListQueryMock.mockResolvedValueOnce({
+      ...snapshot,
+      questions: [{ ...question, upvoteCount: 5 }],
+    });
+    await internals.refreshQaQuestions();
+    fixture.detectChanges();
+    expect(list()).toBe(visibleList);
+    expect(document.activeElement).toBe(voteButton);
+    expect(visibleList?.querySelector('.session-qa-card__vote-count')?.textContent).toContain('5');
     fixture.destroy();
   });
 

@@ -1195,7 +1195,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly finishedConfidenceSummary = signal<SessionConfidenceSummaryDTO | null>(null);
   readonly finishedConfidenceLoading = signal(false);
   private finishedConfidenceRequest: AbortController | null = null;
+  private finishedConfidenceLoadState: 'initial' | 'failed' | 'loaded' = 'initial';
   readonly learningDebriefEnabled = computed(() => this.session()?.enableLearningDebrief !== false);
+  private readonly finishedConfidenceSession = computed(() =>
+    this.effectiveStatus() === 'FINISHED' &&
+    this.learningDebriefEnabled() &&
+    !this.hostAccessRevoked() &&
+    !this.sessionUnavailable()
+      ? (this.session()?.id ?? null)
+      : null,
+  );
   readonly learningOverview = signal<SessionLearningOverviewDTO | null>(null);
   readonly learningOverviewLoading = signal(false);
   readonly learningOverviewFailed = signal(false);
@@ -4928,10 +4937,23 @@ export class SessionHostComponent implements OnInit, OnDestroy {
         this.quickFeedbackSeenVoteCount.set(result.totalVotes);
       }
     });
+    let leaderboardScope: string | null = null;
     effect((onCleanup) => {
       const status = this.effectiveStatus();
+      const session = this.session();
       if (status !== 'FINISHED' && status !== 'RESULTS') {
+        leaderboardScope = null;
         return;
+      }
+      const update = this.statusUpdate();
+      const question = update ? update.currentQuestion : session?.currentQuestion;
+      const round = update?.currentRound ?? session?.currentRound ?? 1;
+      const scope =
+        status === 'FINISHED' ? `${session?.id}:finished` : `${session?.id}:${question}:${round}`;
+      if (scope !== leaderboardScope) {
+        leaderboardScope = scope;
+        this.leaderboard.set([]);
+        this.teamLeaderboard.set([]);
       }
       let current = true;
       onCleanup(() => {
@@ -4952,14 +4974,22 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       });
     });
     effect((onCleanup) => {
+      if (!this.finishedConfidenceSession()) return;
+      onCleanup(() => {
+        this.finishedConfidenceRequest?.abort();
+        this.finishedConfidenceRequest = null;
+        this.finishedConfidenceLoadState = 'initial';
+        this.finishedConfidenceSummary.set(null);
+        this.finishedConfidenceLoading.set(false);
+      });
+    });
+    effect(() => {
       const finished = this.effectiveStatus() === 'FINISHED';
-      if (finished && this.learningDebriefEnabled()) {
-        untracked(() => void this.loadFinishedConfidenceSummary());
-        onCleanup(() => {
-          this.finishedConfidenceRequest?.abort();
-          this.finishedConfidenceRequest = null;
-          this.finishedConfidenceSummary.set(null);
-          this.finishedConfidenceLoading.set(false);
+      if (this.finishedConfidenceSession()) {
+        untracked(() => {
+          if (!this.finishedConfidenceRequest && this.finishedConfidenceLoadState !== 'loaded') {
+            void this.loadFinishedConfidenceSummary();
+          }
         });
       }
       if (finished && !this.previousFinishedForAutoScroll) {
@@ -15898,34 +15928,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private async loadLeaderboard(isCurrent: () => boolean): Promise<void> {
     if (!this.code) return;
     const code = this.code.toUpperCase();
-    this.teamLeaderboard.set([]);
     const entries = await trpc.session.getLeaderboard
       .query({ code, anonymousClientId: getAnonymousClientId() })
-      .catch(() => []);
+      .catch(() => null);
     if (!isCurrent()) return;
-    this.leaderboard.set(entries);
-    const teamEntries = await trpc.session.getHostTeamLeaderboard.query({ code }).catch(() => []);
+    if (entries) this.leaderboard.set(entries);
+    const teamEntries = await trpc.session.getHostTeamLeaderboard.query({ code }).catch(() => null);
     if (!isCurrent()) return;
-    this.teamLeaderboard.set(teamEntries);
+    if (teamEntries) this.teamLeaderboard.set(teamEntries);
     if (this.effectiveStatus() === 'FINISHED') {
       void this.loadFeedbackSummary();
     }
   }
 
   async loadFinishedConfidenceSummary(): Promise<void> {
-    if (!this.code) return;
+    const sessionId = this.finishedConfidenceSession();
+    if (!this.code || sessionId === null) return;
     this.finishedConfidenceRequest?.abort();
     const request = new AbortController();
     this.finishedConfidenceRequest = request;
-    this.finishedConfidenceLoading.set(true);
+    const isCurrent = () =>
+      !request.signal.aborted && this.finishedConfidenceSession() === sessionId;
+    this.finishedConfidenceLoading.set(
+      this.finishedConfidenceLoadState === 'initial' && this.finishedConfidenceSummary() === null,
+    );
     try {
       const summary = await trpc.session.getSessionConfidenceSummary.query(
         { code: this.code.toUpperCase(), anonymousClientId: getAnonymousClientId() },
         { signal: AbortSignal.any([request.signal, AbortSignal.timeout(10_000)]) },
       );
-      if (!request.signal.aborted) this.finishedConfidenceSummary.set(summary);
+      if (isCurrent()) {
+        this.finishedConfidenceLoadState = 'loaded';
+        this.finishedConfidenceSummary.set(summary);
+      }
     } catch {
-      if (!request.signal.aborted) this.finishedConfidenceSummary.set(null);
+      if (isCurrent() && this.finishedConfidenceLoadState === 'initial') {
+        this.finishedConfidenceLoadState = 'failed';
+      }
     } finally {
       if (this.finishedConfidenceRequest === request) {
         this.finishedConfidenceRequest = null;

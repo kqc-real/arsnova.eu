@@ -341,6 +341,18 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   private readonly personalBoardPageIndex = signal(0);
   readonly teamLeaderboard = signal<TeamLeaderboardEntryDTO[]>([]);
   private readonly teamBoardPageIndex = signal(0);
+  private leaderboardScope: string | null = null;
+  private leaderboardRefresh: Promise<void> | null = null;
+  private readonly presenterLeaderboardScope = computed(() => {
+    const session = this.session();
+    if (session?.status === 'FINISHED' && session.finishProjection !== 'idle') {
+      return `${session.id}:finished`;
+    }
+    if (session?.status === 'RESULTS' && session.showLeaderboard !== false) {
+      return `${session.id}:results:${session.currentQuestion}:${session.currentRound ?? 1}`;
+    }
+    return null;
+  });
   /** Handblättern hält den automatischen Wechsel an, bis er wieder gestartet wird. */
   readonly boardPagePaused = signal(false);
   /**
@@ -1009,14 +1021,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       );
       this.adoptPresenterStatus(result);
       void this.refreshHostQuestion();
-      if (result.status === 'FINISHED') {
-        this.finishBoardsResolved.set(false);
-        void this.loadPresenterLeaderboards().finally(() => {
-          if (!this.destroyRef.destroyed) {
-            this.finishBoardsResolved.set(true);
-          }
-        });
-      }
     });
   }
 
@@ -1079,14 +1083,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       );
       this.adoptPresenterStatus(result);
       void this.refreshHostQuestion();
-      if (result.status === 'FINISHED') {
-        this.finishBoardsResolved.set(false);
-        void this.loadPresenterLeaderboards().finally(() => {
-          if (!this.destroyRef.destroyed) {
-            this.finishBoardsResolved.set(true);
-          }
-        });
-      }
     });
   }
 
@@ -1347,6 +1343,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.dropStalePresenterQuestion();
     this.syncCountdownFromStatus(update.timer, update.activeAt);
     this.resetPresentScrollForPhase(update.status);
+    void this.loadPresenterLeaderboards();
   }
 
   /** Snapshot verwerfen, der nicht mehr zur Frage oder Runde der Session passt. */
@@ -2724,16 +2721,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.showFinishProjection()) {
-      if (this.session()?.finishProjection === 'idle') {
-        this.personalLeaderboard.set([]);
-        this.teamLeaderboard.set([]);
-        this.finishBoardsResolved.set(true);
-        this.syncBoardPageTimer();
-        return;
-      }
       await this.loadPresenterLeaderboards();
-      if (this.destroyRef.destroyed) return;
-      this.finishBoardsResolved.set(true);
       return;
     }
     this.stopBoardPageTimer();
@@ -3004,27 +2992,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.dropStalePresenterQuestion();
       this.moveFocusFromQuestionGate(this.focusedQuestionGate());
       this.ensurePresenterSubscriptions();
-      if (session.status === 'FINISHED') {
-        if (session.finishProjection === 'idle') {
-          this.personalLeaderboard.set([]);
-          this.teamLeaderboard.set([]);
-          this.finishBoardsResolved.set(true);
-          this.syncBoardPageTimer();
-          return;
-        }
-        this.finishBoardsResolved.set(false);
-        await this.loadPresenterLeaderboards();
-        if (this.destroyRef.destroyed) return;
-        this.finishBoardsResolved.set(true);
-        return;
-      }
-      this.finishBoardsResolved.set(false);
-      if (session.status === 'RESULTS' && session.showLeaderboard !== false) {
-        await this.loadPresenterLeaderboards();
-        return;
-      }
-      this.personalLeaderboard.set([]);
-      this.teamLeaderboard.set([]);
+      await this.loadPresenterLeaderboards();
     } catch (error: unknown) {
       if (this.destroyRef.destroyed || refreshEpoch !== this.presentSessionMetaRefreshEpoch) return;
       if (!this.isDefinitiveSessionError(error)) {
@@ -3040,9 +3008,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       this.session.set(null);
       this.showHomeCta.set(true);
       this.presenterInfo.set(localizeKnownServerError(error, sessionNotFoundUiMessage()));
-      this.personalLeaderboard.set([]);
-      this.teamLeaderboard.set([]);
-      this.finishBoardsResolved.set(true);
+      void this.loadPresenterLeaderboards();
       this.clearLobbyAudience();
     }
   }
@@ -3118,8 +3084,6 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
     this.hostQuestion.set(null);
     this.hostVoteProgress.set(null);
     this.emojiReactions.set(null);
-    this.personalLeaderboard.set([]);
-    this.teamLeaderboard.set([]);
     this.clearLobbyAudience();
     this.session.update((current) =>
       current
@@ -3131,40 +3095,51 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           }
         : current,
     );
+    void this.loadPresenterLeaderboards();
   }
 
   private async loadPresenterLeaderboards(): Promise<void> {
+    if (this.destroyRef.destroyed) return;
+    const scope = this.presenterLeaderboardScope();
+    if (scope !== this.leaderboardScope) {
+      this.leaderboardScope = scope;
+      this.leaderboardRefresh = null;
+      this.finishBoardsResolved.set(false);
+      this.personalLeaderboard.set([]);
+      this.teamLeaderboard.set([]);
+      this.syncBoardPageTimer();
+    }
+    if (scope === null) return;
+    if (this.leaderboardRefresh) return this.leaderboardRefresh;
+
     const code = this.code.toUpperCase();
     const anonymousClientId = getAnonymousClientId();
-    const requestedStatus = this.session()?.status;
-    try {
-      const [personal, teams] = await Promise.all([
-        trpc.session.getLeaderboard.query({ code, anonymousClientId }),
-        trpc.session.getTeamLeaderboard.query({ code, anonymousClientId }),
-      ]);
-      if (this.destroyRef.destroyed) return;
-      const current = this.session();
-      if (!current || current.status !== requestedStatus) {
-        return;
-      }
-      if (
-        (current.status === 'FINISHED' && current.finishProjection === 'idle') ||
-        (current.status === 'RESULTS' && current.showLeaderboard === false)
-      ) {
-        this.personalLeaderboard.set([]);
-        this.teamLeaderboard.set([]);
-      } else {
+    const signal = AbortSignal.timeout(10_000);
+    const isCurrent = () =>
+      !this.destroyRef.destroyed &&
+      this.leaderboardRefresh === refresh &&
+      this.presenterLeaderboardScope() === scope;
+    const refresh = Promise.all([
+      trpc.session.getLeaderboard.query({ code, anonymousClientId }, { signal }),
+      trpc.session.getTeamLeaderboard.query({ code, anonymousClientId }, { signal }),
+    ])
+      .then(([personal, teams]) => {
+        if (!isCurrent()) return;
         this.personalLeaderboard.set(personal);
         this.teamLeaderboard.set(teams);
-      }
-    } catch {
-      if (this.destroyRef.destroyed) return;
-      if (this.session()?.status === requestedStatus) {
-        this.personalLeaderboard.set([]);
-        this.teamLeaderboard.set([]);
-      }
-    }
-    this.syncBoardPageTimer();
+      })
+      .catch(() => {
+        // Bei einem fehlgeschlagenen Abruf bleibt der letzte Stand sichtbar.
+      })
+      .finally(() => {
+        if (isCurrent()) {
+          this.finishBoardsResolved.set(this.session()?.status === 'FINISHED');
+          this.syncBoardPageTimer();
+        }
+        if (this.leaderboardRefresh === refresh) this.leaderboardRefresh = null;
+      });
+    this.leaderboardRefresh = refresh;
+    await refresh;
   }
 
   private syncBoardPageTimer(): void {
@@ -4019,24 +3994,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
           this.moveFocusFromQuestionGate(this.focusedQuestionGate());
           this.syncCountdownFromStatus(data.timer, data.activeAt);
           this.resetPresentScrollForPhase(data.status);
-          if (data.status === 'FINISHED') {
-            if (data.finishProjection === 'idle') {
-              this.personalLeaderboard.set([]);
-              this.teamLeaderboard.set([]);
-              this.finishBoardsResolved.set(true);
-              this.syncBoardPageTimer();
-            } else {
-              this.finishBoardsResolved.set(false);
-              void this.loadPresenterLeaderboards().finally(() => {
-                this.finishBoardsResolved.set(true);
-              });
-            }
-          } else if (data.status === 'RESULTS' && this.session()?.showLeaderboard !== false) {
-            void this.loadPresenterLeaderboards();
-          } else {
-            this.personalLeaderboard.set([]);
-            this.teamLeaderboard.set([]);
-          }
+          void this.loadPresenterLeaderboards();
         },
         onError: () => {
           this.statusSub?.unsubscribe();
