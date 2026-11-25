@@ -39,6 +39,10 @@ zusätzliche Entwurfspersistenz für einen vollständigen Browser-Reload eingef�
 Reload/Reconnect verwenden die bestehenden serverseitigen Teilnahme- und
 Antwortdaten. Host-Fallpräferenzen gelangen nicht in Teilnehmer-Datenverträge.
 
+Bei vorübergehenden Abruffehlern bleibt der letzte geladene Team-Zwischenstand
+sichtbar. Ein bereits laufendes Blitzlicht behält seinen Stand und den gewählten
+Tab, bis eine neue Antwort eintrifft oder der Server das Ende bestätigt.
+
 ## Zustandsmatrix
 
 | Situation                         | Hauptinhalt und Aktion                         | Schutz und ergänzende Anzeige                                                                     |
@@ -81,6 +85,10 @@ geschlossen. Suche, vier Sortierungen und ihre Erläuterung bleiben erhalten.
 `BEST` bleibt Standard; Reihenfolgen und Pagination kommen unverändert vom Server.
 Einklappen verwirft keine Kriterien. Die Suche wird im geöffneten Werkzeug geleert
 und fokussiert danach den Werkzeugauslöser.
+
+Scheitert eine Aktualisierung der sichtbaren Fragenliste, bleiben die Karten an
+ihrem Platz und der Tastaturfokus bleibt auf dem gewählten Element. Der Hinweis
+erscheint als Snackbar und die Liste wird im Hintergrund erneut abgerufen.
 
 Bei Fristablauf oder Host-Schluss bleibt ein vorhandener Entwurf schreibgeschützt
 mit zugeordnetem Frist-/Schlusshinweis. Während Submit ist der Editor ebenfalls
