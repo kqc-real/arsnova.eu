@@ -1,0 +1,733 @@
+/* Folienstil Jonas (Richtung M): weißer Grund, Blau für Titel und Pfad, Petrol = 1C,
+   Bernstein = 1B, Rot = Ablehnung. Inter für Text, IBM Plex Mono für Messwerte.
+   Schriften liegen offline unter schriften/ (SIL OFL, Lizenzdateien daneben). */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('schriften/inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('schriften/inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url('schriften/inter-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: block;
+  src: url('schriften/inter-latin-800-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('schriften/ibm-plex-mono-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('schriften/ibm-plex-mono-latin-600-normal.woff2') format('woff2');
+}
+
+:root {
+  /* Farben (Global Constraints); dieselben Werte stehen als FARBEN in grafik.mjs. */
+  --blau: #0b5ea8;
+  --blau-niklas: #005a9c;
+  --petrol: #0f766e;
+  --petrol-hell: #e3f1ee;
+  --bernstein: #b45309;
+  --bernstein-text: #9a4a0b;
+  --bernstein-mittel: #e9b47a;
+  --bernstein-hell: #fbefe0;
+  --rot: #b42318;
+  --tinte: #16202c;
+  --text-2: #3d4757;
+  --gedaempft: #566173;
+  --linie: #c9d2de;
+  --raster: #e8edf3;
+  --grund: #ffffff;
+
+  /* Schrift */
+  --f-text: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  /* Typografische Stufen (Designregel T, deck.test.mjs prüft sie): Text ≥ 28 px, Sekundärtext 24 px,
+     Etiketten und Achsen 22 px, Vermerke (Beleg, Bildunterschrift, Fußzeile) 20 px gedämpft in einer Zeile. */
+  --s-notiz: 20px;
+  --s-min: 22px;
+  --s-sek: 24px;
+  --s-text: 28px;
+  --s-titel: 52px;
+  /* Abstände: eng in der Gruppe, weit zwischen Gruppen */
+  --abstand-eng: 12px;
+  --abstand-gruppe: 36px;
+
+  /* Folie */
+  --folie-breite: 1600px;
+  --folie-hoehe: 900px;
+  --rand: 90px;
+  --linie-min: 2px;
+}
+
+/* Folie als Spalte: Titel, Fläche, Fußzeile im Fluss. Ein zweizeiliger Titel schiebt die Fläche
+   nach unten, statt mit ihr zu kollidieren; der Layouttest in deck.test.mjs misst das je Folie. */
+.folie {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: var(--folie-breite);
+  height: var(--folie-hoehe);
+  padding: 92px var(--rand) 0;
+  overflow: hidden;
+  background: var(--grund);
+  color: var(--tinte);
+  font-family: var(--f-text);
+  font-size: var(--s-text);
+  line-height: 1.35;
+  hyphens: manual;
+}
+
+.folie-titel {
+  flex: none;
+  margin: 0;
+  color: var(--blau);
+  font-weight: 700;
+  font-size: var(--s-titel);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* Fläche zwischen Titel und Fußzeile (etwa 1420 × 630 px). Grafiken aus grafik.mjs (viewBox
+   1380 × 560) füllen die Breite; .grafik-box skaliert eine Grafik unter einer Frage auf die Resthöhe. */
+.folie-flaeche {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 30px 0 18px;
+  display: flex;
+  flex-direction: column;
+}
+.folie-flaeche > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.flaeche-inhalt {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Vertikaler Rhythmus (Designregel V): Der Inhaltsblock steht im optischen Zentrum der freien Fläche
+   (Rest oben 2 : unten 3), statt oben zu kleben; ein Vermerk (.beleg) bleibt unten an der Fußzeile.
+   Füllt eine Grafik die Fläche, nimmt sie den Platz, und die Abstandshalter bleiben null. */
+.flaeche-inhalt::before,
+.flaeche-inhalt::after {
+  content: '';
+  flex: 2 1 0;
+}
+.flaeche-inhalt::after {
+  flex-grow: 3;
+  order: 1;
+}
+.flaeche-inhalt > .beleg {
+  order: 2;
+}
+.flaeche-inhalt:has(> .grafik-box)::before,
+.flaeche-inhalt:has(> .grafik-box)::after {
+  flex-grow: 0;
+}
+.grafik-box {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+}
+.grafik-box > svg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+}
+/* Kopfgrammatik (README „Designregeln“, layout-pruefung.mjs kopfBefunde): Zeile 1 Wegkarte mit Ort und
+   Etikett, Zeile 2 Titel, Zeile 3 Fragezeile in festem Abstand zum Titel: zuerst das Etikett des Auftrags,
+   dann die Frage, danach höchstens ein gedämpfter Status. Die Autorzeile (nur N1, J1) folgt darunter.
+   Beide stehen im Kopf (deck.mjs), nicht in der zentrierten Fläche. */
+.folie-frage {
+  flex: none;
+  margin: 18px 0 0;
+  color: var(--text-2);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.folie-frage .etikett {
+  margin-right: 10px;
+  vertical-align: 3px;
+}
+.folie-frage .status {
+  display: inline-block;
+  margin-left: 14px;
+  padding: 2px 12px;
+  border-radius: 6px;
+  background: var(--raster);
+  color: var(--text-2);
+  font-size: var(--s-min);
+  font-weight: 600;
+  vertical-align: 3px;
+}
+.folie-autor {
+  flex: none;
+  margin: 10px 0 0;
+  color: var(--tinte);
+  font-size: var(--s-text);
+  font-weight: 600;
+  line-height: 1.3;
+}
+/* Vermerke: Beleg unten in der Fläche, Bildunterschrift, Hinweis unter einer Tabelle. Kleiner und gedämpft,
+   höchstens eine Zeile (Designregel T); Einzelheiten stehen in der Sprechnotiz (`quelle`) oder in der Reserve. */
+.beleg,
+.vermerk {
+  flex: none;
+  margin: 0;
+  color: var(--gedaempft);
+  font-size: var(--s-notiz);
+  font-weight: 400;
+  line-height: 1.35;
+}
+.beleg {
+  padding-top: 16px;
+}
+.vermerk {
+  margin-top: var(--abstand-eng);
+}
+/* Sekundärtext: Erläuterung zu einer Zahl oder Grafik, 24 px in Text-2 */
+.sekundaer {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--s-sek);
+  line-height: 1.35;
+}
+/* Merksatz auf heller Fläche (Diskussionsfrage, gemeinsames Fazit, Folgerung): Abstand zur Gruppe darüber */
+.merksatz {
+  flex: none;
+  margin: var(--abstand-gruppe) 0 0;
+  padding: 16px 24px;
+  border-radius: 8px;
+  background: var(--raster);
+  font-size: var(--s-text);
+  line-height: 1.35;
+}
+.merksatz > b:first-child {
+  color: var(--blau);
+}
+/* Übergabe an die nächste Person: letzter Satz eines Teils, rechts das Ziel mit Etikett */
+.uebergabe {
+  flex: none;
+  margin: 24px 0 0;
+  font-size: var(--s-text);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.uebergabe-ziel {
+  color: var(--blau);
+  white-space: nowrap;
+}
+.zusatz {
+  color: var(--gedaempft);
+  font-size: var(--s-min);
+  font-weight: 400;
+}
+
+/* Fußzeile: eine Zeile, Seitenzahl und Kurzquelle; die volle Quelle steht in den Sprechnotizen. */
+.folie-fuss {
+  flex: none;
+  margin: 0 0 24px;
+  padding-top: 12px;
+  border-top: var(--linie-min) solid var(--linie);
+  color: var(--gedaempft);
+  font-family: var(--f-text);
+  font-size: var(--s-notiz);
+  line-height: 1.3;
+  /* Quellenzeile nach ZL: vollständig in einer Zeile (deck.test.mjs prüft das). */
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Große Kennzahl: Inter mit Tabellenziffern; Plex Mono bleibt für kleine Messwerte im Text. */
+.kennzahl {
+  font-family: var(--f-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.zahl-was {
+  margin-top: 8px;
+  font-size: var(--s-sek);
+  line-height: 1.25;
+}
+.vermerk.zahl-gruppe {
+  margin-top: 4px;
+}
+.kennzahl .einheit {
+  font-weight: 500;
+}
+
+.folie span.mono,
+.folie .nowrap {
+  white-space: nowrap;
+}
+.folie table.eng .mono {
+  letter-spacing: -1px;
+}
+
+.mono,
+.messwert {
+  font-family: var(--f-mono);
+}
+.messwert {
+  font-weight: 600;
+}
+
+.etikett {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 6px;
+  font-family: var(--f-text);
+  font-size: var(--s-min);
+  font-weight: 700;
+}
+.etikett-1c {
+  background: var(--petrol-hell);
+  color: var(--petrol);
+}
+.etikett-1a {
+  background: #e6f0fa;
+  color: var(--blau);
+}
+.etikett-1b {
+  background: var(--bernstein-hell);
+  color: var(--bernstein-text);
+}
+.ablehnung {
+  color: var(--rot);
+}
+
+/* Keine Einzelwort-Zeilen in Listen und Absätzen der Folien. */
+.folie li,
+.folie p {
+  text-wrap: pretty;
+}
+
+/* Aufbau in Stufen (deck.js, data-aufbau): Elemente mit data-ab blenden auf Tastendruck ein, nur
+   Deckkraft, 250 ms (Leitfaden D20). Reduzierte Bewegung und Druck: ohne Übergang. */
+.folie [data-ab] {
+  transition:
+    opacity 250ms ease-out,
+    transform 250ms ease-out;
+}
+.folie [data-ab]:not([data-an]) {
+  opacity: 0;
+}
+.folie .aufbau-gross {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.folie .aufbau-gross:not([data-an]) {
+  transform: scale(0.3);
+}
+@media (prefers-reduced-motion: reduce) {
+  .folie [data-ab] {
+    transition: none;
+  }
+}
+@media print {
+  .folie [data-ab] {
+    transition: none !important;
+  }
+}
+
+/* Teilleiste oben rechts (deck.mjs, Leitfaden E24): Fahrplan von G0 im Kleinen, aktueller Teil in
+   Tinte mit blauer Unterlinie, die übrigen gedämpft. Kein Übergang, druckfest. */
+.teilleiste {
+  position: absolute;
+  right: var(--rand);
+  top: 24px;
+  display: flex;
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--f-mono);
+  font-size: var(--s-min);
+  line-height: 1.2;
+  color: var(--gedaempft);
+  white-space: nowrap;
+}
+.teilleiste li {
+  padding-bottom: 4px;
+  border-bottom: 4px solid transparent;
+}
+.teilleiste li[data-aktiv] {
+  color: var(--tinte);
+  font-weight: 600;
+  border-bottom-color: var(--blau);
+}
+
+/* Rahmenfolien (GT Titel, G0 Fahrplan, GD Dank): gleiche Ränder wie alle Folien. Titel- und Dankfolie
+   tragen den großen Titel (96 px, Entwurf A der Durchsicht 2026-11-18). */
+.folie[data-id='GT'] .flaeche-inhalt::before {
+  flex-grow: 1;
+}
+.titel-oberzeile {
+  flex: none;
+  margin: 0 0 10px;
+  color: var(--gedaempft);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.folie[data-titelfolie] .folie-titel,
+.folie[data-id='GD'] .folie-titel {
+  max-width: 1100px;
+  font-size: 96px;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+/* 1B mit Schritten als ein Chip: die Schritte stehen kleiner im selben Etikett. */
+.etikett-schritte {
+  font-size: 0.86em;
+  font-weight: 600;
+}
+.titel-unter {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 32px;
+  line-height: 1.3;
+}
+.titel-personen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 64px;
+  margin: 64px 0 0;
+}
+.titel-person {
+  padding-top: 18px;
+  border-top: 6px solid var(--linie);
+}
+.titel-name {
+  margin: 0;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.titel-auftraege {
+  margin: 14px 0 0;
+}
+.matrikel {
+  margin: 12px 0 0;
+  color: var(--gedaempft);
+  font-size: var(--s-notiz);
+  line-height: 1.35;
+}
+.matrikel[data-gefuellt] {
+  color: var(--text-2);
+  font-family: var(--f-mono);
+  font-size: var(--s-min);
+}
+.titel-meta {
+  /* Zwei Gruppen auf dem Raster der zwei Namensspalten (gleicher Spaltenabstand) */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 64px;
+  margin: 64px 0 0;
+}
+.titel-meta dl {
+  display: flex;
+  gap: 56px;
+  margin: 0;
+}
+.titel-meta dt {
+  color: var(--gedaempft);
+  font-size: var(--s-notiz);
+}
+.titel-meta dd {
+  margin: 4px 0 0;
+  font-size: var(--s-sek);
+  line-height: 1.3;
+}
+.leitfrage {
+  margin: 0;
+  color: var(--tinte);
+  font-size: 32px;
+  line-height: 1.32;
+  text-wrap: balance;
+}
+.leitfrage-kopf {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--gedaempft);
+  font-size: var(--s-notiz);
+  font-weight: 600;
+}
+.fahrplan {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 36px;
+  margin: 64px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.fahrplan-linie {
+  display: flex;
+  height: 6px;
+  margin-bottom: 16px;
+}
+.fahrplan-linie span {
+  flex: 1;
+}
+.fahrplan-wer {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.fahrplan-wer .mono {
+  color: var(--gedaempft);
+  font-size: var(--s-min);
+  font-weight: 400;
+  vertical-align: 4px;
+}
+.fahrplan-etiketten {
+  min-height: 34px;
+  margin: 10px 0 0;
+}
+.fahrplan-was {
+  margin: 10px 0 0;
+  color: var(--text-2);
+  font-size: var(--s-sek);
+  line-height: 1.35;
+}
+.dank {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 80px;
+  align-items: center;
+}
+.dank-kopf {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+}
+.dank-was {
+  margin: 12px 0 0;
+  color: var(--text-2);
+  font-size: var(--s-text);
+  line-height: 1.35;
+}
+.dank-url {
+  margin: 28px 0 0;
+  font-size: var(--s-sek);
+  line-height: 1.4;
+}
+.dank-url a {
+  color: var(--blau);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+.dank-fork {
+  margin: 20px 0 0;
+  color: var(--text-2);
+  font-size: var(--s-sek);
+  line-height: 1.35;
+}
+.dank-namen {
+  margin: 28px 0 0;
+  color: var(--gedaempft);
+  font-size: var(--s-sek);
+}
+/* Nachweisumfang auf GD: Band über die volle Breite, Kennzahlen links, Laborzeit je Auftrag rechts; ruhig,
+   ohne Wertung (nachweisumfang.md, Abschnitt Darstellung) */
+.dank-nachweis {
+  grid-column: 1 / -1;
+  margin: 18px 0 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--linie);
+  color: var(--text-2);
+}
+.nw-kopf {
+  margin: 0;
+  color: var(--gedaempft);
+  font-size: var(--s-min);
+}
+.nw-band {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+}
+.nw-zahlen {
+  display: flex;
+  justify-content: space-between;
+  column-gap: 40px;
+}
+.nw-zahl {
+  display: flex;
+  flex-direction: column;
+}
+.nw-wert {
+  color: var(--tinte);
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.nw-was {
+  margin-top: 2px;
+  font-size: var(--s-min);
+  white-space: nowrap;
+}
+.nw-balken {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 24px;
+  row-gap: 4px;
+  font-size: var(--s-min);
+}
+.nw-legende {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gedaempft);
+  font-size: 18px;
+}
+.nw-l-voll,
+.nw-l-schraffur {
+  display: inline-block;
+  width: 22px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--text-2);
+}
+.nw-l-schraffur {
+  margin-left: 18px;
+  background: repeating-linear-gradient(135deg, var(--text-2) 0 3px, transparent 3px 7px);
+  box-shadow: inset 0 0 0 1px var(--text-2);
+}
+.nw-auftrag {
+  white-space: nowrap;
+}
+.nw-spur {
+  display: flex;
+  align-items: center;
+  --farbe: var(--text-2);
+}
+.nw-1a {
+  --farbe: var(--blau);
+}
+.nw-1b {
+  --farbe: var(--bernstein);
+}
+.nw-1c {
+  --farbe: var(--petrol);
+}
+.nw-voll,
+.nw-schraffur {
+  flex: none;
+  height: 16px;
+}
+.nw-voll {
+  min-width: 4px;
+  border-radius: 3px 0 0 3px;
+  background: var(--farbe);
+}
+.nw-schraffur {
+  border-radius: 0 3px 3px 0;
+  background: repeating-linear-gradient(135deg, var(--farbe) 0 3px, transparent 3px 7px);
+  box-shadow: inset 0 0 0 1px var(--farbe);
+}
+.nw-dauer {
+  margin-left: 14px;
+  color: var(--tinte);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.nw-plus {
+  color: var(--gedaempft);
+}
+/* GN: Kennzahlen und Balken oben, darunter gerafft Tests je Werkzeug und Hypothesen je Auftrag */
+.folie[data-id='GN'] .dank-nachweis {
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+}
+.nw-gerafft {
+  display: grid;
+  grid-template-columns: 640px minmax(0, 1fr);
+  column-gap: 56px;
+  margin: 26px 0 0;
+  padding: 18px 0 0;
+  border-top: 1px solid var(--linie);
+}
+.nw-kacheln .nw-kopf {
+  margin: 0 0 10px;
+  color: var(--tinte);
+  font-size: var(--s-sek);
+  font-weight: 700;
+}
+.nw-kacheln dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 28px;
+  margin: 0;
+}
+.nw-kacheln:last-child dl {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.nw-kacheln dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--raster);
+  font-size: var(--s-min);
+}
+.nw-kacheln dt {
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.nw-kacheln dd {
+  margin: 0;
+  color: var(--tinte);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dank-qr {
+  margin: 0;
+  text-align: center;
+}
+.dank-qr svg {
+  display: block;
+  margin: 0 auto;
+}

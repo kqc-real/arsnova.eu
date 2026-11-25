@@ -4,3 +4,7 @@ coverage
 .angular
 *.tsbuildinfo
 prisma/migrations
+# Eingefrorene A1-Nachweise sind über ihre ursprünglichen Dateibytes hashgebunden.
+docs/referat-thema-1/evidenz/1A/reihe-*/**/*.json
+# Rohdaten der 1B-Läufe bleiben byte-identisch (Prüfsummen, gzip-Ablage).
+docs/referat-thema-1/evidenz/1B/messung/*.json

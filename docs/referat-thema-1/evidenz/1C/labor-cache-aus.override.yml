@@ -1,0 +1,8 @@
+# Nur für den 1C-Ursachenversuch U1 (Design Abschnitt 15), Arm "aus": schaltet den
+# Prompt-Cache im Arbeitsspeicher von llama-server ab (--cache-ram 0 über die Umgebungsvariable
+# LLAMA_ARG_CACHE_RAM; Standard im Image b10524 sind 8192 MiB). Wird zusätzlich zu
+# labor-produktionslimits.override.yml geladen; labor-lauf.sh setzt das bei LABOR_CACHE_ARM=aus selbst.
+services:
+  open-weight-llm-http:
+    environment:
+      LLAMA_ARG_CACHE_RAM: '0'

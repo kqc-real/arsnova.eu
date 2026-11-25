@@ -1,0 +1,454 @@
+{
+  "lauf": "20261113T173500-kontrolle-c0",
+  "art": "kontrolle-c0",
+  "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed",
+  "energieprofil": "performance",
+  "n": 30,
+  "anfrage": "kurz, max_tokens 16 (Design-Nachtrag 2026-11-13, M2)",
+  "vomAppHost": [
+    {
+      "connectMs": 0.815,
+      "ttfbMs": 338.981,
+      "totalMs": 339.046,
+      "http": 200
+    },
+    {
+      "connectMs": 0.356,
+      "ttfbMs": 333,
+      "totalMs": 333.082,
+      "http": 200
+    },
+    {
+      "connectMs": 0.397,
+      "ttfbMs": 342.03099999999995,
+      "totalMs": 342.12,
+      "http": 200
+    },
+    {
+      "connectMs": 0.519,
+      "ttfbMs": 370.29400000000004,
+      "totalMs": 370.41,
+      "http": 200
+    },
+    {
+      "connectMs": 0.425,
+      "ttfbMs": 360.67,
+      "totalMs": 360.742,
+      "http": 200
+    },
+    {
+      "connectMs": 0.41,
+      "ttfbMs": 354.35,
+      "totalMs": 354.511,
+      "http": 200
+    },
+    {
+      "connectMs": 0.379,
+      "ttfbMs": 357.812,
+      "totalMs": 357.89700000000005,
+      "http": 200
+    },
+    {
+      "connectMs": 0.432,
+      "ttfbMs": 338.479,
+      "totalMs": 338.552,
+      "http": 200
+    },
+    {
+      "connectMs": 0.495,
+      "ttfbMs": 353.54200000000003,
+      "totalMs": 353.614,
+      "http": 200
+    },
+    {
+      "connectMs": 0.449,
+      "ttfbMs": 339.494,
+      "totalMs": 339.578,
+      "http": 200
+    },
+    {
+      "connectMs": 0.47800000000000004,
+      "ttfbMs": 338.51300000000003,
+      "totalMs": 338.596,
+      "http": 200
+    },
+    {
+      "connectMs": 0.34600000000000003,
+      "ttfbMs": 368.743,
+      "totalMs": 368.83,
+      "http": 200
+    },
+    {
+      "connectMs": 0.447,
+      "ttfbMs": 339.777,
+      "totalMs": 339.87899999999996,
+      "http": 200
+    },
+    {
+      "connectMs": 0.435,
+      "ttfbMs": 482.3,
+      "totalMs": 482.382,
+      "http": 200
+    },
+    {
+      "connectMs": 0.323,
+      "ttfbMs": 347.039,
+      "totalMs": 347.12399999999997,
+      "http": 200
+    },
+    {
+      "connectMs": 0.38499999999999995,
+      "ttfbMs": 398.872,
+      "totalMs": 398.95599999999996,
+      "http": 200
+    },
+    {
+      "connectMs": 0.455,
+      "ttfbMs": 337.53,
+      "totalMs": 337.629,
+      "http": 200
+    },
+    {
+      "connectMs": 0.622,
+      "ttfbMs": 347.757,
+      "totalMs": 347.841,
+      "http": 200
+    },
+    {
+      "connectMs": 0.483,
+      "ttfbMs": 339.678,
+      "totalMs": 339.767,
+      "http": 200
+    },
+    {
+      "connectMs": 0.434,
+      "ttfbMs": 370.778,
+      "totalMs": 370.899,
+      "http": 200
+    },
+    {
+      "connectMs": 0.399,
+      "ttfbMs": 338.92499999999995,
+      "totalMs": 339,
+      "http": 200
+    },
+    {
+      "connectMs": 0.47300000000000003,
+      "ttfbMs": 419.034,
+      "totalMs": 419.122,
+      "http": 200
+    },
+    {
+      "connectMs": 0.426,
+      "ttfbMs": 335.777,
+      "totalMs": 335.841,
+      "http": 200
+    },
+    {
+      "connectMs": 0.49,
+      "ttfbMs": 381.34200000000004,
+      "totalMs": 381.556,
+      "http": 200
+    },
+    {
+      "connectMs": 0.474,
+      "ttfbMs": 360.283,
+      "totalMs": 360.36899999999997,
+      "http": 200
+    },
+    {
+      "connectMs": 0.47300000000000003,
+      "ttfbMs": 365.396,
+      "totalMs": 365.46299999999997,
+      "http": 200
+    },
+    {
+      "connectMs": 0.40700000000000003,
+      "ttfbMs": 334.75500000000005,
+      "totalMs": 334.824,
+      "http": 200
+    },
+    {
+      "connectMs": 0.484,
+      "ttfbMs": 348.44000000000005,
+      "totalMs": 348.50199999999995,
+      "http": 200
+    },
+    {
+      "connectMs": 0.592,
+      "ttfbMs": 356.805,
+      "totalMs": 356.902,
+      "http": 200
+    },
+    {
+      "connectMs": 0.535,
+      "ttfbMs": 348.832,
+      "totalMs": 348.919,
+      "http": 200
+    }
+  ],
+  "vomLlmHost": [
+    {
+      "connectMs": 0.192,
+      "ttfbMs": 1236.2830000000001,
+      "totalMs": 1236.34,
+      "http": 200
+    },
+    {
+      "connectMs": 0.159,
+      "ttfbMs": 334.453,
+      "totalMs": 334.521,
+      "http": 200
+    },
+    {
+      "connectMs": 0.17300000000000001,
+      "ttfbMs": 373.805,
+      "totalMs": 373.919,
+      "http": 200
+    },
+    {
+      "connectMs": 0.177,
+      "ttfbMs": 353.875,
+      "totalMs": 353.937,
+      "http": 200
+    },
+    {
+      "connectMs": 0.18100000000000002,
+      "ttfbMs": 373.651,
+      "totalMs": 373.722,
+      "http": 200
+    },
+    {
+      "connectMs": 0.29100000000000004,
+      "ttfbMs": 342.862,
+      "totalMs": 342.92699999999996,
+      "http": 200
+    },
+    {
+      "connectMs": 0.128,
+      "ttfbMs": 332.564,
+      "totalMs": 332.62399999999997,
+      "http": 200
+    },
+    {
+      "connectMs": 0.157,
+      "ttfbMs": 360.12899999999996,
+      "totalMs": 360.203,
+      "http": 200
+    },
+    {
+      "connectMs": 0.175,
+      "ttfbMs": 335.58500000000004,
+      "totalMs": 335.649,
+      "http": 200
+    },
+    {
+      "connectMs": 0.13699999999999998,
+      "ttfbMs": 363.47200000000004,
+      "totalMs": 363.53999999999996,
+      "http": 200
+    },
+    {
+      "connectMs": 0.15100000000000002,
+      "ttfbMs": 340.08,
+      "totalMs": 340.138,
+      "http": 200
+    },
+    {
+      "connectMs": 0.182,
+      "ttfbMs": 378.24,
+      "totalMs": 378.326,
+      "http": 200
+    },
+    {
+      "connectMs": 0.22,
+      "ttfbMs": 342.264,
+      "totalMs": 342.324,
+      "http": 200
+    },
+    {
+      "connectMs": 0.15100000000000002,
+      "ttfbMs": 375.01099999999997,
+      "totalMs": 375.102,
+      "http": 200
+    },
+    {
+      "connectMs": 0.22,
+      "ttfbMs": 419.49199999999996,
+      "totalMs": 419.573,
+      "http": 200
+    },
+    {
+      "connectMs": 0.159,
+      "ttfbMs": 377.968,
+      "totalMs": 378.05100000000004,
+      "http": 200
+    },
+    {
+      "connectMs": 0.129,
+      "ttfbMs": 332.9,
+      "totalMs": 332.972,
+      "http": 200
+    },
+    {
+      "connectMs": 0.164,
+      "ttfbMs": 351.617,
+      "totalMs": 351.68,
+      "http": 200
+    },
+    {
+      "connectMs": 0.205,
+      "ttfbMs": 349.714,
+      "totalMs": 349.808,
+      "http": 200
+    },
+    {
+      "connectMs": 0.224,
+      "ttfbMs": 347.96,
+      "totalMs": 348.05199999999996,
+      "http": 200
+    },
+    {
+      "connectMs": 0.215,
+      "ttfbMs": 362.407,
+      "totalMs": 362.48,
+      "http": 200
+    },
+    {
+      "connectMs": 0.187,
+      "ttfbMs": 388.837,
+      "totalMs": 388.915,
+      "http": 200
+    },
+    {
+      "connectMs": 0.16,
+      "ttfbMs": 399.884,
+      "totalMs": 399.964,
+      "http": 200
+    },
+    {
+      "connectMs": 0.184,
+      "ttfbMs": 346.62100000000004,
+      "totalMs": 346.698,
+      "http": 200
+    },
+    {
+      "connectMs": 0.133,
+      "ttfbMs": 374.88100000000003,
+      "totalMs": 374.964,
+      "http": 200
+    },
+    {
+      "connectMs": 0.22599999999999998,
+      "ttfbMs": 334.796,
+      "totalMs": 334.854,
+      "http": 200
+    },
+    {
+      "connectMs": 0.131,
+      "ttfbMs": 331.54499999999996,
+      "totalMs": 331.599,
+      "http": 200
+    },
+    {
+      "connectMs": 0.12999999999999998,
+      "ttfbMs": 339.053,
+      "totalMs": 339.126,
+      "http": 200
+    },
+    {
+      "connectMs": 0.14400000000000002,
+      "ttfbMs": 331.568,
+      "totalMs": 331.668,
+      "http": 200
+    },
+    {
+      "connectMs": 0.283,
+      "ttfbMs": 345.379,
+      "totalMs": 345.43800000000005,
+      "http": 200
+    }
+  ],
+  "kennzahlen": {
+    "medianAppMs": 348.71049999999997,
+    "medianLlmMs": 350.744,
+    "differenzMs": -2.0335000000000605,
+    "alleHttp200": true,
+    "hC0": true
+  },
+  "umgebung": {
+    "schema": "1b-umgebung-1",
+    "erfasstAm": "2026-11-13T18:37:16+01:00",
+    "rechner": {
+      "plattform": "linux",
+      "cpu": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+      "kerne": 4,
+      "threads": 8,
+      "maxMHz": 3600,
+      "ramGib": 31.0,
+      "os": "Omarchy",
+      "kernel": "7.2.15-1-omarchy",
+      "energieprofil": "performance",
+      "cpuGovernor": "powersave",
+      "cpufreqTreiber": "intel_pstate",
+      "netzteil": true,
+      "speicherort": {
+        "pfad": "/var/lib/libvirt/images/arsnova-1b",
+        "dateisystem": "btrfs",
+        "medium": "SSD"
+      }
+    },
+    "hypervisor": {
+      "name": "KVM/QEMU (libvirt)",
+      "version": "QEMU 11.1.2",
+      "libvirt": "libvirt 12.8.0",
+      "nested": "Y",
+      "pinning": true
+    },
+    "vms": [
+      {
+        "name": "arsnova-1b-app",
+        "ip": "192.168.150.10",
+        "zustand": "running",
+        "vcpu": 2,
+        "ramGib": 6,
+        "cpuset": "4 5",
+        "cpuModell": "host-passthrough",
+        "plattenMaxGib": 25,
+        "gast": {
+          "host": "arsnova-1b-app",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+          "cpus": 2,
+          "ramGib": 5.8,
+          "docker": "29.9.3",
+          "virtualisierung": "kvm"
+        }
+      },
+      {
+        "name": "arsnova-1b-llm",
+        "ip": "192.168.150.20",
+        "zustand": "running",
+        "vcpu": 4,
+        "ramGib": 12,
+        "cpuset": "0 1 2 3",
+        "cpuModell": "host-passthrough",
+        "plattenMaxGib": 20,
+        "gast": {
+          "host": "arsnova-1b-llm",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+          "cpus": 4,
+          "ramGib": 11.7,
+          "docker": "29.9.3",
+          "virtualisierung": "kvm"
+        }
+      }
+    ],
+    "laborStand": {
+      "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed"
+    }
+  }
+}

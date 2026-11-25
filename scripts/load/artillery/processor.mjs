@@ -7,11 +7,16 @@ import {
   productionRetryDelayMs,
   requireRejoinToken,
 } from '../lib/trpc-runtime.mjs';
+import {
+  initialisiereLiveMessungen,
+  LIVE_AKTIONSFELDER,
+} from '../lib/artillery-live-messungen.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_STATE_FILE = resolve(__dirname, '.runtime-state.json');
 const DEFAULT_RESULTS_READY_FILE = resolve(__dirname, '.results-ready.flag');
 const EMPTY_RUNTIME_STATE = Object.freeze({
+  ...initialisiereLiveMessungen(),
   joins: 0,
   joinErrors: 0,
   votes: 0,
@@ -38,7 +43,7 @@ const EMPTY_RUNTIME_STATE = Object.freeze({
 
 let sessionContext = null;
 let participantCounter = 0;
-/** In-memory counters avoid lost updates under concurrent VU state flushes. */
+/** Zähler im Speicher verhindern verlorene Änderungen paralleler virtueller Clients. */
 let runtimeState = { ...EMPTY_RUNTIME_STATE };
 let runtimeStateLoaded = false;
 let runtimeFlushTimer = null;
@@ -65,6 +70,7 @@ function ensureRuntimeState() {
     runtimeState = {
       ...EMPTY_RUNTIME_STATE,
       ...fromDisk,
+      ...initialisiereLiveMessungen(fromDisk),
       joinDurationMs: Array.isArray(fromDisk.joinDurationMs) ? [...fromDisk.joinDurationMs] : [],
       wsConnectDurationMs: Array.isArray(fromDisk.wsConnectDurationMs)
         ? [...fromDisk.wsConnectDurationMs]
@@ -76,6 +82,7 @@ function ensureRuntimeState() {
   } catch {
     runtimeState = {
       ...EMPTY_RUNTIME_STATE,
+      ...initialisiereLiveMessungen(),
       joinDurationMs: [],
       wsConnectDurationMs: [],
       statusFanoutDurationMs: [],
@@ -90,6 +97,11 @@ function flushRuntimeState() {
   mkdirSync(dirname(stateFilePath()), { recursive: true });
   writeFileSync(stateFilePath(), JSON.stringify(next, null, 2));
   return next;
+}
+
+/** Getrennter Messfenster-Snapshot; späte Abschlüsse ändern ihn nicht. */
+export function snapshotRuntimeState() {
+  return structuredClone(flushRuntimeState());
 }
 
 function scheduleRuntimeFlush() {
@@ -117,13 +129,63 @@ function bumpRuntimeState(field, delta = 1) {
 function recordRuntimeDuration(field, durationMs) {
   const current = ensureRuntimeState();
   const values = Array.isArray(current[field]) ? current[field] : [];
-  values.push(Math.max(0, Math.round(durationMs)));
-  current[field] = values.slice(-2_000);
+  values.push(Math.max(0, durationMs));
+  current[field] = values;
   scheduleRuntimeFlush();
 }
 
 function readRuntimeState() {
   return { ...ensureRuntimeState() };
+}
+
+const LIVE_FEHLERCODES = new Set([
+  'BAD_REQUEST',
+  'UNAUTHORIZED',
+  'FORBIDDEN',
+  'NOT_FOUND',
+  'CONFLICT',
+  'PRECONDITION_FAILED',
+  'TOO_MANY_REQUESTS',
+  'TIMEOUT',
+  'INTERNAL_SERVER_ERROR',
+  'SERVICE_UNAVAILABLE',
+  'CLIENT_CLOSED_REQUEST',
+]);
+
+async function erfasseLiveAktion(aktion, events, ausfuehren) {
+  const felder = LIVE_AKTIONSFELDER[aktion];
+  bumpRuntimeState(felder.attempts);
+  const start = performance.now();
+  try {
+    await ausfuehren();
+    const dauerMs = performance.now() - start;
+    bumpRuntimeState(felder.success);
+    recordRuntimeDuration(felder.durations, dauerMs);
+    events.emit('histogram', `custom.${felder.histogram}`, dauerMs);
+    events.emit('counter', `custom.${felder.event}_ok`, 1);
+  } catch (fehler) {
+    const dauerMs = performance.now() - start;
+    bumpRuntimeState(felder.errors);
+    recordRuntimeDuration(felder.errorDurations, dauerMs);
+    const code = LIVE_FEHLERCODES.has(fehler?.data?.code)
+      ? fehler.data.code
+      : fehler?.cause?.name === 'TypeError'
+        ? 'TRANSPORT_ERROR'
+        : 'OTHER';
+    const zustand = ensureRuntimeState();
+    zustand[felder.codes][code] = (zustand[felder.codes][code] ?? 0) + 1;
+    events.emit('histogram', `custom.${felder.histogram}_failed`, dauerMs);
+    events.emit('counter', `custom.${felder.event}_failed`, 1);
+    if (
+      aktion === 'vote' &&
+      /nicht mehr aktiv|nicht aktiv|not active/.test(fehler?.message ?? '')
+    ) {
+      bumpRuntimeState('voteRejectedInactive');
+      events.emit('counter', 'custom.votes_rejected_inactive', 1);
+      return;
+    }
+    throw fehler;
+  }
 }
 
 process.once('beforeExit', () => {
@@ -173,8 +235,7 @@ function participantTrpc(ctx, userContext) {
 }
 
 export async function joinSession(userContext, events) {
-  const startedAt = performance.now();
-  try {
+  await erfasseLiveAktion('join', events, async () => {
     const ctx = loadSessionContext();
     const trpc = createHttpTrpcSingle(ctx.trpcUrl);
     const index = nextParticipantIndex();
@@ -194,16 +255,7 @@ export async function joinSession(userContext, events) {
     userContext.vars.rejoinToken = requireRejoinToken(joined, nickname);
     userContext.vars.participantIndex = index;
     userContext.vars.nickname = nickname;
-    bumpRuntimeState('joins');
-    const durationMs = performance.now() - startedAt;
-    recordRuntimeDuration('joinDurationMs', durationMs);
-    events.emit('histogram', 'custom.join_duration_ms', durationMs);
-    events.emit('counter', 'custom.joins_ok', 1);
-  } catch (error) {
-    bumpRuntimeState('joinErrors');
-    events.emit('counter', 'custom.joins_failed', 1);
-    throw error;
-  }
+  });
 }
 
 export async function connectParticipantStatusWs(userContext, events) {
@@ -320,7 +372,7 @@ export async function submitVote(userContext, events) {
     events.emit('counter', 'custom.votes_skipped_inactive', 1);
     return;
   }
-  try {
+  await erfasseLiveAktion('vote', events, async () => {
     const ctx = loadSessionContext();
     const trpc = participantTrpc(ctx, userContext);
     await trpc.vote.submit.mutate({
@@ -331,23 +383,7 @@ export async function submitVote(userContext, events) {
       round: 1,
       responseTimeMs: 300 + (userContext.vars.participantIndex % 40) * 10,
     });
-    bumpRuntimeState('votes');
-    events.emit('counter', 'custom.votes_ok', 1);
-  } catch (error) {
-    const message = error?.message ?? String(error);
-    if (
-      message.includes('nicht mehr aktiv') ||
-      message.includes('nicht aktiv') ||
-      message.includes('not active')
-    ) {
-      bumpRuntimeState('voteSkippedInactive');
-      events.emit('counter', 'custom.votes_skipped_inactive', 1);
-      return;
-    }
-    bumpRuntimeState('voteErrors');
-    events.emit('counter', 'custom.votes_failed', 1);
-    throw error;
-  }
+  });
 }
 
 export async function maybeSubmitQa(userContext, events) {
@@ -355,7 +391,7 @@ export async function maybeSubmitQa(userContext, events) {
   if (index % 5 !== 0) {
     return;
   }
-  try {
+  await erfasseLiveAktion('qaSubmit', events, async () => {
     const ctx = loadSessionContext();
     const trpc = participantTrpc(ctx, userContext);
     await trpc.qa.submit.mutate({
@@ -364,16 +400,11 @@ export async function maybeSubmitQa(userContext, events) {
       text: `Artillery Q&A Frage von ${userContext.vars.nickname}`,
       idempotencyKey: globalThis.crypto.randomUUID(),
     });
-    bumpRuntimeState('qaSubmits');
-    events.emit('counter', 'custom.qa_submits_ok', 1);
-  } catch (error) {
-    events.emit('counter', 'custom.qa_submits_failed', 1);
-    throw error;
-  }
+  });
 }
 
 export async function submitBlitzlicht(userContext, events) {
-  try {
+  await erfasseLiveAktion('blitzlicht', events, async () => {
     const ctx = loadSessionContext();
     const trpc = createHttpTrpcSingle(
       ctx.trpcUrl,
@@ -388,12 +419,7 @@ export async function submitBlitzlicht(userContext, events) {
       voterId: userContext.vars.participantId,
       value,
     });
-    bumpRuntimeState('blitzVotes');
-    events.emit('counter', 'custom.blitz_votes_ok', 1);
-  } catch (error) {
-    events.emit('counter', 'custom.blitz_votes_failed', 1);
-    throw error;
-  }
+  });
 }
 
 function resultsPhaseTimeoutMs() {

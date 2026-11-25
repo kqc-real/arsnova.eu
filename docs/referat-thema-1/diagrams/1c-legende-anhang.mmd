@@ -1,0 +1,57 @@
+---
+config:
+  look: neo
+  flowchart:
+    curve: basis
+    nodeSpacing: 14
+    rankSpacing: 16
+    padding: 8
+    wrappingWidth: 320
+    subGraphTitleMargin:
+      top: 10
+      bottom: 10
+---
+flowchart LR
+  subgraph SHAPES["Farben und Formen"]
+    direction TB
+    h["`⠀**Host · Browser**⠀`"] ~~~ r["`⠀⠀**Inferenzpfad**⠀⠀`"] ~~~ s[("`⠀⠀**Datenspeicher**⠀`")]
+    a["`⠀⠀**Schritt im App-Server**⠀⠀`"] ~~~ x[["`⠀⠀⠀⠀**Externer Server**⠀⠀⠀⠀`"]] ~~~ d{{"`**Prüfung · Verzweigung**`"}}
+    c["`⠀⠀⠀**Vertrag · Hash**⠀⠀⠀`"] ~~~ ok["`**Erfolgreiches Ergebnis**`"] ~~~ n["`⠀**Unverändert zurück**⠀`"]
+    q["`**Job in der Warteschlange**`"] ~~~ fb["`⠀⠀⠀**Fallback · Fehler**⠀⠀⠀`"] ~~~ z[" "]
+  end
+  subgraph FRAMES["Rahmen"]
+    direction TB
+    fr["`**Rahmen** = Host,
+    Prozessschritt oder Schicht,
+    Farbe wie bei den Feldern,
+    grau = gemischt`"] ~~~ frd["`**gestrichelter Rahmen** = nur lesend`"] ~~~ fz1["⠀"]
+  end
+  subgraph EDGES["Linien"]
+    direction LR
+    m1[" "] e1@==> t1["Hauptpfad⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⠀ ⠀"]
+    o1[" "] e2@==> t2["Erfolg⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    f1[" "] e3@-.-> t3["Fallback · Fehler⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    u1[" "] e5@--> t5["Ergebnis unverändert zurück"]
+    s1[" "] e4@-.-> t4["Nebenverbindung⠀⠀⠀⠀⠀⠀⠀⠀"]
+  end
+  SHAPES ~~~ FRAMES ~~~ EDGES
+  class h host
+  class a app
+  class c contract
+  class q queue
+  class r,x runtime
+  class s store
+  class d,n decision
+  class ok result
+  class fb fallback
+  class fr appGroup
+  class frd storeGroup
+  class m1,o1,f1,u1,s1,z,fz1 dot
+  class t1,t2,t3,t4,t5 plain
+  class SHAPES,FRAMES,EDGES legendGroup
+  class e1 emph
+  class e2 ok
+  class e3 fail
+  class e5 same
+  class e4 muted
+%% palette

@@ -1,0 +1,13 @@
+Reference ID    : 4D5A0094 (148.0.90.77.hostbrr.com)
+Stratum         : 3
+Ref time (UTC)  : Fri Nov 13 17:26:16 2026
+System time     : 0.000289794 seconds slow of NTP time
+Last offset     : -0.000424787 seconds
+RMS offset      : 0.000529772 seconds
+Frequency       : 3.259 ppm slow
+Residual freq   : -0.025 ppm
+Skew            : 0.868 ppm
+Root delay      : 0.020964678 seconds
+Root dispersion : 0.006791108 seconds
+Update interval : 515.2 seconds
+Leap status     : Normal

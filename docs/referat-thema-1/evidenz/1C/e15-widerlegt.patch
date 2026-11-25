@@ -1,0 +1,109 @@
+diff --git a/apps/backend/src/__tests__/qa.summary-e2e.pg.test.ts b/apps/backend/src/__tests__/qa.summary-e2e.pg.test.ts
+index b4181ad7..0ed55c34 100644
+--- a/apps/backend/src/__tests__/qa.summary-e2e.pg.test.ts
++++ b/apps/backend/src/__tests__/qa.summary-e2e.pg.test.ts
+@@ -78,11 +78,13 @@ import {
+   changeVote,
+   cleanupFixtures,
+   createFixtureRegistry,
++  createFullContextScenario,
+   createReferenceScenario,
+   createReleasedQuiz,
+   deleteFixtureRedisKeys,
+   quizVote,
+   restorePlatformStatistic,
++  type FullContextScenario,
+   type SessionOptions,
+   type PlatformStatisticSnapshot,
+   type ReferenceScenario,
+@@ -190,6 +192,11 @@ describe.skipIf(!RUN_PG)(
+       return createReferenceScenario({ registry, session });
+     }
+ 
++    async function fullContextScenario(): Promise<FullContextScenario> {
++      if (!platformBefore) platformBefore = await capturePlatformStatistic();
++      return createFullContextScenario({ registry });
++    }
++
+     async function legacyRuntimeWith(options: TestRuntimeOptions = {}): Promise<TestRuntime> {
+       const runtime = await startTestRuntime(options);
+       runtimes.push(runtime);
+@@ -1014,5 +1021,78 @@ describe.skipIf(!RUN_PG)(
+       expect(result.limitations).toContain(DROPPED_UNSOURCED_QA_SUMMARY_LIMITATION);
+       for (const id of unknownIds) expect(JSON.stringify(result)).not.toContain(id);
+     });
++
++    it('sendet den vollen #456-Kontext mit Themen, Lernzielen, Blitzlicht, freigegebenen Ergebnissen und Kompass bytegleich zur Vorschau', async () => {
++      const room = await fullContextScenario();
++      // Themen brauchen den echten Redis-Cache: `getWordCloudAnalysisCache()` liefert bei
++      // NODE_ENV=test einen No-op-Cache (siehe Protokoll Teil 3, E15).
++      vi.stubEnv('NODE_ENV', 'development');
++      const runtime = await runtimeWith({}, { WORD_CLOUD_SEMANTIC_ENABLED: 'true' });
++
++      const shown = await preview(room.sessionId);
++      expect(shown.selectedMode).toBe('full-context');
++      const context = shown.promptContext.context;
++
++      // (1) Alle #456-Bereiche available mit mindestens einem Eintrag; Kennungen je Bereich.
++      const areaSourceIds: Record<string, string[]> = {
++        topics:
++          context.topics.state === 'available' ? context.topics.items.map((i) => i.sourceId) : [],
++        learningObjectives:
++          context.learningContext.state === 'available'
++            ? context.learningContext.objectives.map((o) => o.sourceId)
++            : [],
++        quickFeedback:
++          context.feedback.state === 'available'
++            ? context.feedback.aggregates.map((a) => a.sourceId)
++            : [],
++        releasedResults:
++          context.releasedResults.state === 'available'
++            ? context.releasedResults.aggregates.map((a) => a.sourceId)
++            : [],
++        compass:
++          context.compass.state === 'available'
++            ? context.compass.signals.map((s) => s.sourceId)
++            : [],
++      };
++      expect({
++        topics: context.topics.state,
++        learningObjectives: context.learningContext.state,
++        quickFeedback: context.feedback.state,
++        releasedResults: context.releasedResults.state,
++        compass: context.compass.state,
++      }).toEqual({
++        topics: 'available',
++        learningObjectives: 'available',
++        quickFeedback: 'available',
++        releasedResults: 'available',
++        compass: 'available',
++      });
++      expect(
++        Object.fromEntries(
++          Object.entries(areaSourceIds).map(([area, ids]) => [area, ids.length > 0]),
++        ),
++      ).toEqual({
++        topics: true,
++        learningObjectives: true,
++        quickFeedback: true,
++        releasedResults: true,
++        compass: true,
++      });
++      expect(areaSourceIds['learningObjectives']).toContain(
++        `learning-objective:${room.learningObjectiveId}`,
++      );
++
++      // (2) K (1)–(4) von E1.
++      const requested = await requestSummary(room.sessionId);
++      expect(requested.result?.status).toBe('pending');
++      const final = await waitForTerminal(room.sessionId);
++      expectPayloadEqualsPreview(runtime, shown, final);
++
++      // (3) Die Kennungen dieser Bereiche stehen im rohen Body.
++      const rawBody = completionRequests(runtime)[0]!.rawBody;
++      for (const ids of Object.values(areaSourceIds)) {
++        for (const id of ids) expect(rawBody).toContain(id);
++      }
++    });
+   },
+ );

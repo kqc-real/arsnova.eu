@@ -143,6 +143,93 @@ persistente Plattformprojektion und konkurrierende Richtungsstimmen. Der
 Migrations-Backfill läuft in einer kurzlebigen Datenbank und entfernt sie
 anschließend wieder.
 
+### Snapshot-Hash der Q&A-Zusammenfassung (PostgreSQL + Redis)
+
+Die Suite (Referat Thema 1, Auftrag 1C; nicht im CI-Job, sie belegt den Vertrag
+des Messstands `def56700`) prüft, dass echte Datenbankänderungen den
+`snapshotHash` aus `prepareFreshModerationSummaryContext` ändern. Nur so kann
+die Summary-Queue eine veraltete Modellantwort als `source_changed` verwerfen:
+
+```bash
+RUN_PG_QA_SUMMARY_HASH_TESTS=1 REDIS_URL=redis://localhost:6379 \
+  npm run test -w @arsnova/backend -- \
+  --run src/__tests__/qa.summary-hash.pg.test.ts
+```
+
+Die Suite prüft zuerst die Stabilität des Hashs ohne Änderung, auch beim
+direkten Packen am Packing-Cache vorbei. Danach prüft sie, dass sich der Hash
+nach einer Q&A-Stimme, einer neuen Frage, einem Beitritt, einer Löschung durch
+den Host (`qa.moderate`) und einer eigenen Löschung durch Teilnehmende
+(`qa.deleteOwn`) ändert und dass die Trigger die zugehörigen Revisionen
+erhöhen. Als Gegenprobe darf eine Quizstimme auf eine laufende Frage den Hash
+nicht ändern, während eine Stimme auf eine freigegebene Frage ihn ändert.
+Gemockt ist nur die Host-Tokenprüfung; Fragen, Stimmen,
+Teilnahme-Capabilities und Trigger laufen gegen die migrierte Datenbank.
+
+### Ende-zu-Ende-Pfad der Q&A-Zusammenfassung (PostgreSQL + Redis)
+
+Die Suite (Referat Thema 1, Auftrag 1C; nicht im CI-Job, sie belegt den Vertrag
+des Messstands `def56700`) prüft den Auftrag zur Moderationszusammenfassung vom
+tRPC-Router bis zur Runtime-Schnittstelle: `qa.summaryContextPreview`,
+`qa.requestSummary`, `qa.summaryRuntime` und `qa.moderate` → Summary-Queue →
+`prepareFreshModerationSummaryContext` → Open-Weight-Client → echtes HTTP →
+eine Test-Runtime im Testprozess auf `127.0.0.1`:
+
+```bash
+RUN_PG_QA_SUMMARY_E2E_TESTS=1 REDIS_URL=redis://localhost:6379 \
+  npm run test -w @arsnova/backend -- \
+  --run src/__tests__/qa.summary-e2e.pg.test.ts
+```
+
+Grundlage ist das Sechs-Fragen-Referenzszenario aus #456 mit 200
+Teilnehmenden; Fragen und Stimmen entstehen über die echten DB-Funktionen
+(`src/__tests__/lib/qa-summary-pg-fixture.ts`, gemeinsam mit der Hash-Suite).
+Die Suite prüft, dass die User-Nachricht im rohen Runtime-Body bytegleich dem
+Kontext der Host-Vorschau ist, dass Host-Token, Sitzungs- und
+Teilnehmendenkennungen sowie Hüllenfelder (`snapshotHash`, `packedAt`, Budget)
+den Server nicht verlassen und dass eine Stimme zwischen Vorschau und Auftrag
+den neuen Stand sendet. Außerdem prüft sie die Fallbacks bei einer Antwort mit
+fremder Ausgabe-Version (`invalid_response`), bei nicht erreichbarer Runtime
+(`unavailable`) und bei Überschreitung des Client-Timeouts (`timeout`), dass
+`qa.requestSummary` `pending` liefert, während die Runtime die Antwort noch
+hält, und dass eine Stimme oder eine Löschung durch den Host während der
+Inferenz die Modellaussage als `source_changed` verwirft, eine Quizstimme auf
+eine laufende Frage dagegen nicht. Die Test-Runtime
+(`src/__tests__/lib/open-weight-test-runtime.ts`) ist kein Modell: Sie
+speichert den rohen Body und antwortet mit einer festen, vertragsgültigen
+Ausgabe. Gemockt ist nur die Host-Tokenprüfung.
+
+Weitere Fälle derselben Suite: ein belegter Inferenz-Slot (`busy`, ohne
+Completion-Aufruf), eine volle Queue (`queue_full` für den dritten Auftrag),
+`CONFLICT` ohne angelegten Job, wenn während des Kontextaufbaus eine
+Q&A-Stimme eingeht, der Legacy-Text-Pfad bei abgeschaltetem
+Open-Weight-Pfad (einschließlich unbekannter Quellen-IDs) und ein
+abgelaufener Packing-Cache, nach dem der gesendete Kontext weiter der
+Host-Vorschau entspricht.
+
+Achtung: Der Test „Negativprobe: … Blitzlicht-Runde vom Typ YESNO …“
+(Befund T3.1) hält das heutige, fehlerhafte Verhalten fest: Ohne
+Datenänderung entsteht bei jedem Kontextaufbau ein neuer `snapshotHash`, und
+die Modellaussage wird als `source_changed` verworfen. Wird der Befund
+behoben ([Fork-Issue #18](https://github.com/NiklasSkulll/arsnova.eu/issues/18)),
+wird dieser Test rot; dann ist er umzukehren (gleicher Hash, `ready`), wie die
+Kontrolle mit `TEMPO` daneben.
+
+Nicht Teil der CI sind die Mess- und Laborsuiten der Q&A-Zusammenfassung; sie
+laufen nur auf ausdrücklichen Wunsch:
+`qa.summary-measurement.pg.test.ts` mit `RUN_QA_SUMMARY_MEASUREMENT=1`
+(Suite „Q&A summary local measurement“) bzw. unabhängig davon
+`RUN_QA_SUMMARY_MEASUREMENT_M6=1` und `RUN_QA_SUMMARY_MEASUREMENT_M7=1` (Suite
+„Q&A summary local measurement with full context and voting“) und
+`qa.summary-labor.pg.test.ts` mit `RUN_QA_SUMMARY_LABOR=1`, gegen eine echte
+private Runtime oder zusätzlich mit `QA_SUMMARY_LABOR_FAKE_RUNTIME=1` als
+Trockenlauf. Ablauf und Variablen:
+[Labor-Runbook](referat-thema-1/evidenz/1C/labor-runbook.md).
+
+Die Tests der 1B-Laborskripte (`docs/referat-thema-1/evidenz/1B/**/*.test.mjs`) laufen mit
+`npm run test:referat-1b` und sind Teil von `npm test`; sie starten keine VMs
+([Runbook, Abschnitt 9](referat-thema-1/evidenz/1B/runbook.md#9-tests)).
+
 ### tRPC-DoD-Non-Regression-Gate
 
 Für jede neue Query/Mutation und jede Query/Mutation mit geändertem
@@ -961,6 +1048,107 @@ docker run --rm -i \
   grafana/k6 run - < scripts/load/k6-trpc-health-50vu.js
 ```
 
+### A1-Fixture zur Ressourcenisolation (offline)
+
+`npm run load:resource-isolation:fixture:test` baut Shared-Types und führt die
+Fixture- und CLI-Vertragstests aus. Der Befehl ist auch Teil von `npm test` und
+`npm run test:coverage`. Nach dem Bau von Shared-Types gibt
+`npm run load:resource-isolation:fixture -- --validate` eine reproduzierbare
+Übersicht aus, ohne einen Dienst zu kontaktieren oder Labordaten anzulegen.
+Fixture-Inhalte, Projektionen und die unabhängige Hashprüfung sind in der
+[A1-Fixture-Anleitung](referat-thema-1/1A/1A-fixture.md) dokumentiert.
+
+### A1-Analyse-Last mit festem Korpus
+
+Die Instrumentierung für `wordCloud.analyzeQa` lässt sich ohne laufende
+Anwendung prüfen:
+
+```bash
+npm run build -w @arsnova/shared-types
+npm run load:resource-isolation:analysis -- --validate
+npm run load:resource-isolation:analysis:test
+```
+
+Der Standardzeitplan umfasst fünf getrennte Host-Sessions, jeweils einen
+Aufruf alle zehn Sekunden mit Versätzen von 0/2/4/6/8 Sekunden über 300
+Sekunden. Geplante, gestartete, fehlgeschlagene, übersprungene und zum
+Fensterende offene Aufrufe bleiben getrennt sichtbar. Die tatsächliche
+Normalisierung und Fallbackgründe werden pro Antwort erfasst. Vor und nach
+einem Lauf müssen Texte, Status und Stimmen des zulässigen Korpus zur
+gemeinsamen Fixture passen. Die Tests verwenden auch echte tRPC-Aufrufe
+gegen einen lokalen HTTP-Testserver und gehören zu `npm test` sowie
+`npm run test:coverage`.
+
+Laborzuordnung, Aufruf und Grenzen des Nachweises beschreibt die
+[A1-Analyseanleitung](referat-thema-1/1A/archiv/1A-analyse-last.md). Das Werkzeug legt
+keine Laborsessions an und startet keine weiteren Dienste.
+
+### A1-Container-Metriken und Verzögerungsproxy
+
+Die Werkzeuge für Schritt 5 lassen sich ohne Dockerdaemon, Datenbank oder
+KI-Modelle prüfen:
+
+```bash
+npm run load:resource-isolation:metrics -- --validate
+npm run load:resource-isolation:delay-proxy -- --validate
+npm run load:resource-isolation:infrastructure:test
+```
+
+Die Vertragstests verwenden synthetische Docker-API-Antworten und temporäre
+cgroup-Dateien. Der Proxytest arbeitet über echte lokale Unix-Sockets und
+prüft auch das Client-Timeout mit den Vertragswerten 6000/5000 ms. Weitere
+Fälle prüfen Neustarts, nicht verfügbare Messwerte, Zählerdifferenzen,
+Parallelität, Abbruch und bereinigte JSON-/JUnit-Artefakte. Die Tests gehören
+zu `npm test` und `npm run test:coverage`.
+
+Laborkonfiguration, CLI-Aufrufe und Messgrenzen stehen in der
+[A1-Infrastrukturanleitung](referat-thema-1/1A/archiv/1A-container-metriken-und-proxy.md).
+Die Metriken erfordern für cgroup v2 Zugriff auf den tatsächlichen
+Linux-Dockerhost. Die Messwerkzeuge ändern keine Produktionskonfiguration.
+
+### A1-Versuchsreihe
+
+```bash
+npm run load:resource-isolation:experiment -- --validate
+npm run load:resource-isolation:experiment:test
+```
+
+Die Ablauf-, CLI- und Isolationsprüfungen benötigen keine Laborcontainer und
+gehören zu `npm test` und `npm run test:coverage`. Reale Laborläufe sind
+ausdrücklich getrennt: `--pilot` prüft jede Variante mit verkürztem Profil;
+`--run` erfordert dessen vollständigen Abschluss und führt fünf Blöcke V0–V4
+aus. Sie benötigen die festgehaltenen Baseline-Images, Dockerhost-Zähler und
+eine private Konfigurationsdatei. Anleitung, Zeitbedarf und Nachweisgrenzen
+stehen in der [A1-Versuchsreihe](referat-thema-1/1A/archiv/1A-versuchsreihe.md).
+
+### A1-Auswertung und Abgabeentwürfe
+
+```bash
+npm run load:resource-isolation:evaluate -- --validate
+npm run load:resource-isolation:evaluation:test
+npm run load:resource-isolation:evaluate -- \
+  --run \
+  --evidence-root docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547 \
+  --output-dir /tmp/arsnova-1a-auswertung-neu
+npm run load:resource-isolation:documents
+```
+
+Der Ausgabeordner muss neu sein. Der Evaluator verwendet standardmäßig die aktuelle
+[Reihendefinition](referat-thema-1/specs/2026-11-14-1a-messreihe-main-a19ca70f.json).
+Er prüft beide Phasen aller 25 Läufe, Ressourcen-Prüfsummen und 50 Originalaufnahmen
+des bereinigten aufgelösten Compose. Relative und absolute Regeln gelten gleichzeitig;
+Grenzverletzungen sind Ergebnisse, fehlende oder widersprüchliche Daten Fehler.
+Ein gesondertes historisches Rekonstruktionswerkzeug ist nicht mehr vorhanden.
+Die Bereinigung/Manifestprüfung wird in `scripts/load/resource-isolation-compose.test.mjs` getestet.
+
+Die [Auswertung](referat-thema-1/1A/1A-auswertung.md) enthält die fachliche Interpretation.
+Der Dokumentbau liest ausschließlich die aktuelle versionierte Auswertung und erzeugt
+HTML, PDFs und Grafiken samt Manifest. Seitenzahlen, Textumfang und Überlauf werden geprüft.
+[Rohdaten](referat-thema-1/evidenz/1A/README.md) sind hashgebunden und von Prettier ausgenommen;
+Formatierung darf gespeicherte Prüfsummen nicht entwerten.
+Der [Prüfstand](referat-thema-1/1A/archiv/1A-pruefstand.md) nennt aktuelle Werkzeugchecks und den
+unveränderten ursprünglichen Frontend-Wording-Testfehler, ohne einen grünen Gesamtlauf zu behaupten.
+
 ### Produktions-Compose mit Replikaten
 
 `node --test scripts/deploy/deploy-by-digest.test.mjs` prüft die aufgelösten
@@ -1266,6 +1454,26 @@ gültigem Host-Token über `qa.list` auf B lesen.
 
 Unified Live-Session: Join-Welle, Quiz-Vote, Q&A (20 %), Blitzlicht, WebSocket-Status/Host-Progress, Ergebnis-Fan-out.
 
+Die Join-Welle verwendet `arrivalCount`; sie belegt keine dauerhaft 500
+gleichzeitig aktiven Clients. Der Report kennzeichnet das unter `workload`.
+Für Beitritt, Quizstimme, Q&A und Blitzlicht enthält `layers.liveActions`
+Plan-/Versuchs-/Erfolgs-/Fehlerzahlen, übersprungene und nicht gestartete
+Aktionen, Rohstichproben und getrennte Erfolgs-/Fehlerlaufzeiten. Leere
+Stichproben werden als nicht verfügbar ausgewiesen und bestehen kein Gate.
+Die Fehlerquote wird pro vorgesehener Aktion geprüft (standardmäßig ≤ 0,5 %
+der Versuche), zusätzlich zu den bisherigen Smoke-Mindestanteilen.
+Die genauen Felder, Ausnahmen und Grenzen des Nachweises beschreibt die
+[A1-Messanleitung](referat-thema-1/1A/archiv/1A-live-messungen.md).
+
+Die Instrumentierung lässt sich ohne laufende Anwendung prüfen:
+
+```bash
+npm run load:artillery:metrics:test
+```
+
+Die Tests verwenden unter anderem einen lokalen HTTP-Testserver und gehören
+zu `npm test` sowie `npm run test:coverage`. Ein Laborlauf erfolgt separat:
+
 ```bash
 npm run dev:backend
 PARTICIPANTS=500 npm run load:artillery:500
@@ -1507,3 +1715,28 @@ zweiten Lauf einzelne Zustände aus (zum Beispiel `numeric-results,freetext-resu
 720p-Fall pro Zustand. Native Vollbildberechtigung wird in diesen
 Geometrieprüfungen simuliert; Dialog-/Popup-/Guard-Tests prüfen den Einstieg separat.
 Die reale HDMI-Probe aus der letzten Reihe bleibt eine zusätzliche manuelle Abnahme.
+
+### A1-Messreihe auf main a19ca70f
+
+Die [aktuelle Anleitung](referat-thema-1/1A/archiv/1A-neue-messreihe.md) beschreibt Imagebau,
+privates Labor, passenden Vorlauf und Hauptreihe. Beide müssen dieselbe Konfigurationsdatei
+verwenden. Bei einem Neustart nicht wieder die alte `labor.json` auswählen, wenn der
+Vorlauf mit einer neuen Datei durchgeführt wurde. Jede zusätzliche Reihe braucht einen
+neuen Evidenzordner. Definition und Nachtrag werden über ihre Quellenhashes gebunden.
+Die abgeschlossene Reihe und ihre Ergebnisdokumentation sind im
+[A1-Evidenzindex](referat-thema-1/evidenz/1A/README.md) verlinkt.
+
+## 1B-Laborskripte für Störversuche
+
+Die lokalen Tests verwenden Attrappen oder Loopback-Testserver, keine Labor-VMs.
+Sie prüfen Fake-HTTP-Vertrag, Token-Prüfung, Störungs-Lease und Rücknahme,
+Abbruchpfade, vollständige Live-/Ressourcenfenster sowie Vergleichsgrenzen:
+
+```bash
+node --test docs/referat-thema-1/evidenz/1B/*.test.mjs docs/referat-thema-1/evidenz/1B/messung/*.test.mjs
+node --test scripts/load/resource-isolation-live.test.mjs scripts/load/lib/artillery-live-messungen.test.mjs scripts/load/lib/container-metrics.test.mjs
+pwsh -NoProfile -Command "Invoke-Pester -Path docs/referat-thema-1/evidenz/1B -Output Detailed"
+```
+
+Diese Tests ersetzen keinen Entwicklungslauf auf Hyper-V. Regeln und Grenzen
+stehen im [1B-Runbook, Abschnitt 8](referat-thema-1/evidenz/1B/runbook.md#8-übergabe-an-niklas-schritte-34).

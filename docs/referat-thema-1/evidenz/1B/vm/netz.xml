@@ -1,0 +1,16 @@
+<!--
+  1B-Labornetz (ADR 1B-003): privates /24, ausgehend NAT, kein Bridging an eine
+  physische Schnittstelle, keine Portweiterleitung. Feste Adressen über DHCP-Hosts.
+-->
+<network>
+  <name>arsnova-1b</name>
+  <forward mode='nat'/>
+  <bridge name='virbr-1b' stp='on' delay='0'/>
+  <ip address='192.168.150.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.150.100' end='192.168.150.199'/>
+      <host mac='52:54:00:1b:00:10' name='arsnova-1b-app' ip='192.168.150.10'/>
+      <host mac='52:54:00:1b:00:20' name='arsnova-1b-llm' ip='192.168.150.20'/>
+    </dhcp>
+  </ip>
+</network>

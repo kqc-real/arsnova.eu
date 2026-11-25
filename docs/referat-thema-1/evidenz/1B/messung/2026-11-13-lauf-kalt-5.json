@@ -1,0 +1,179 @@
+{
+  "lauf": "20261113T182354-kalt",
+  "tag": "kalt",
+  "n": 1,
+  "auswertung": "ok",
+  "b0": null,
+  "timeoutMs": 300000,
+  "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed",
+  "rechner": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz, 8 Threads, 31 GiB",
+  "energieprofil": "performance",
+  "appHost": {
+    "vcpu": 2,
+    "image": "127.0.0.1:5000/arsnova@sha256:895ab0995640deeb09de5e31a84adbdcb53d7613383c63cb8b8d5a3e29ce2b05"
+  },
+  "llmHost": {
+    "info": "\"127.0.0.1:5000/arsnova-open-weight-llm@sha256:2e039518a014229ef1adfd3335706d26ad30f7c66ec5430974107deb8993b3d1\" []\n4\n11",
+    "modellSha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597"
+  },
+  "treiber": {
+    "startedAt": "2026-11-13T18:24:56.353Z",
+    "teilnehmer": 200,
+    "fragen": 6,
+    "stimmen": 282,
+    "pauseMs": 31000,
+    "locale": "de",
+    "auftraege": [
+      {
+        "index": 1,
+        "requestedAt": "2026-11-13T18:25:10.383Z",
+        "finishedAt": "2026-11-13T18:28:26.906Z",
+        "hostReturnMs": 72,
+        "clientWaitMs": 196523,
+        "status": "ready",
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response",
+        "fallbackRetry": "manual",
+        "snapshotHash": "cf0e1e9c8efcf1b3f2830f7528d047742bc9ada5e8bae2d9807166c1ea9e8956",
+        "modelVersion": "extractive-v2",
+        "statements": 3
+      }
+    ]
+  },
+  "zerlegung": {
+    "auftraege": [
+      {
+        "netzMs": 0.225067138671875,
+        "adapterMs": 122.62796211242676,
+        "inferMs": 195745.663,
+        "serverOhneInferenzMs": 18.94514476013137,
+        "jobMs": 195888,
+        "cacheN": 0,
+        "status": "ready",
+        "effectiveMode": "extractive",
+        "fallbackReason": "invalid_response"
+      }
+    ],
+    "kennzahlen": {
+      "n": 1,
+      "nGewertet": 1,
+      "unvollstaendig": 0,
+      "netz": {
+        "medianMs": 0.225067138671875,
+        "maxMs": 0.225067138671875
+      },
+      "adapter": {
+        "medianMs": 122.62796211242676
+      },
+      "inferAnteilMedian": 0.999273375602385,
+      "kalt": {
+        "n": 1,
+        "inferMsMedian": 195745.663,
+        "jobMsMedian": 195888,
+        "inferAnteilMedian": 0.999273375602385
+      },
+      "warm": {
+        "n": 0,
+        "inferMsMedian": null,
+        "jobMsMedian": null,
+        "inferAnteilMedian": null
+      },
+      "hB1": true,
+      "hB2": true,
+      "hB3": true
+    }
+  },
+  "kontrolleC0": {
+    "curl": "188.160420 188.160596 200",
+    "hinweis": "time_starttransfer time_total http_code; frische Runtime",
+    "timings": {
+      "prompt_ms": 87572.563,
+      "predicted_ms": 100569.694,
+      "prompt_n": 2348,
+      "predicted_n": 424,
+      "cache_n": 0
+    }
+  },
+  "speicher": {
+    "proben": 15,
+    "maxBytes": 3164024832,
+    "restartsMax": 0,
+    "oomKilled": false
+  },
+  "umgebung": {
+    "schema": "1b-umgebung-1",
+    "erfasstAm": "2026-11-13T19:32:24+01:00",
+    "rechner": {
+      "plattform": "linux",
+      "cpu": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+      "kerne": 4,
+      "threads": 8,
+      "maxMHz": 3600,
+      "ramGib": 31.0,
+      "os": "Omarchy",
+      "kernel": "7.2.15-1-omarchy",
+      "energieprofil": "performance",
+      "cpuGovernor": "powersave",
+      "cpufreqTreiber": "intel_pstate",
+      "netzteil": true,
+      "speicherort": {
+        "pfad": "/var/lib/libvirt/images/arsnova-1b",
+        "dateisystem": "btrfs",
+        "medium": "SSD"
+      }
+    },
+    "hypervisor": {
+      "name": "KVM/QEMU (libvirt)",
+      "version": "QEMU 11.1.2",
+      "libvirt": "libvirt 12.8.0",
+      "nested": "Y",
+      "pinning": true
+    },
+    "vms": [
+      {
+        "name": "arsnova-1b-app",
+        "ip": "192.168.150.10",
+        "zustand": "running",
+        "vcpu": 2,
+        "ramGib": 6,
+        "cpuset": "4 5",
+        "cpuModell": "host-passthrough",
+        "plattenMaxGib": 25,
+        "gast": {
+          "host": "arsnova-1b-app",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+          "cpus": 2,
+          "ramGib": 5.8,
+          "docker": "29.9.3",
+          "virtualisierung": "kvm"
+        }
+      },
+      {
+        "name": "arsnova-1b-llm",
+        "ip": "192.168.150.20",
+        "zustand": "running",
+        "vcpu": 4,
+        "ramGib": 12,
+        "cpuset": "0 1 2 3",
+        "cpuModell": "host-passthrough",
+        "plattenMaxGib": 20,
+        "gast": {
+          "host": "arsnova-1b-llm",
+          "kernel": "6.8.0-147-generic",
+          "os": "Ubuntu 24.04.5 LTS",
+          "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+          "cpus": 4,
+          "ramGib": 11.7,
+          "docker": "29.9.3",
+          "virtualisierung": "kvm"
+        }
+      }
+    ],
+    "laborStand": {
+      "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed"
+    }
+  }
+}

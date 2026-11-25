@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "evaluationSha256": "a3bebdf236cfb3b6ae993049ebd96dbd72e2bde908e63fd5f6a6e99a9df8b82a",
+  "rendererSha256": "7a57db261907614ed1678aa4e58569d06a126c42110ad65af50cb637cf76c69d",
+  "artifacts": [
+    {
+      "file": "grafiken/live-p95.png",
+      "sha256": "f0d453ba841714ca79e5bac6fc0820ac317595805476f2507bf5ee339f147e7f"
+    },
+    {
+      "file": "grafiken/spacy-speicher.png",
+      "sha256": "e438938f811a0973545e4b552ba0634a26265442ffa23be8d600961c4a3db23c"
+    },
+    {
+      "file": "grafiken/spacy-drosselung.png",
+      "sha256": "81ef46db9fe03fd253bfaa7391a8ee10ee30f3c17389fd335fe38bb2a95caeef"
+    },
+    {
+      "file": "1A-handout.html",
+      "sha256": "f2570a6b0dc4627dae29aa847ef786c5a8eb6fff18ff340def5fb6a889bec52c"
+    },
+    {
+      "file": "1A-handout.pdf",
+      "sha256": "5a68403bf0296ae1264b45c3eb1dc873d780fafa83d0d7d5ba11ff9697c0b8db",
+      "pages": 4,
+      "words": 1179,
+      "templateSha256": "72bfc6780372f54e4cf9e107067c0d32298c1b7083e8ebc75273402ca9f6f56d"
+    },
+    {
+      "file": "1A-folien.html",
+      "sha256": "dd44d6c8c4a41de2f2adb5c37e54e03235b6db26025936c2e18f405134ebedbc"
+    },
+    {
+      "file": "1A-folien.pdf",
+      "sha256": "8db5e854dee4df3cf64acc7eface52c5524571b98eb5a515ebf3a556cbfe32b7",
+      "pages": 9,
+      "words": 615,
+      "templateSha256": "47005616c46a9a7621c6106889d1461f4e297245e0e2e6be1f75797dee747239"
+    }
+  ]
+}

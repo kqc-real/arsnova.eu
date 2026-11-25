@@ -1,0 +1,41 @@
+{
+  "theme": "base",
+  "htmlLabels": false,
+  "flowchart": {
+    "htmlLabels": false
+  },
+  "themeCSS": ".edgeLabel rect{opacity:1 !important} g rect.rect{stroke:none !important;filter:none !important} rect.rect[fill=\"rgba(225, 29, 72, 0.14)\"]{fill:rgba(251, 113, 133, 0.30) !important} rect.rect[fill=\"rgba(22, 163, 74, 0.16)\"]{fill:rgba(74, 222, 128, 0.26) !important} marker[id$=\"filled-head\"] path{fill:#9ca3af;stroke:#9ca3af}",
+  "fontFamily": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Helvetica, Arial, sans-serif",
+  "themeVariables": {
+    "darkMode": true,
+    "fontFamily": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Helvetica, Arial, sans-serif",
+    "background": "#0f1117",
+    "primaryColor": "#1a1d27",
+    "primaryTextColor": "#e6e6eb",
+    "primaryBorderColor": "#4b5163",
+    "secondaryColor": "#1a1d27",
+    "tertiaryColor": "#1a1d27",
+    "lineColor": "#9ca3af",
+    "textColor": "#e6e6eb",
+    "titleColor": "#e6e6eb",
+    "edgeLabelBackground": "#0f1117",
+    "clusterBkg": "#151821",
+    "clusterBorder": "#4b5163",
+    "actorBkg": "#1a1d27",
+    "actorBorder": "#6b7280",
+    "actorTextColor": "#e6e6eb",
+    "actorLineColor": "#6b7280",
+    "signalColor": "#9ca3af",
+    "signalTextColor": "#e6e6eb",
+    "labelBoxBkgColor": "#1a1d27",
+    "labelBoxBorderColor": "#6b7280",
+    "labelTextColor": "#e6e6eb",
+    "loopTextColor": "#e6e6eb",
+    "noteBkgColor": "#1a1d27",
+    "noteBorderColor": "#6b7280",
+    "noteTextColor": "#e6e6eb",
+    "activationBkgColor": "#262a36",
+    "activationBorderColor": "#9ca3af",
+    "sequenceNumberColor": "#0f1117"
+  }
+}

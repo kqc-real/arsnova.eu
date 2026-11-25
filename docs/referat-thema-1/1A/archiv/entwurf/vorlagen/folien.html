@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Aufgabe 1A – Ressourcenisolation und Betriebsentscheidung</title>
+    <style>
+      @page {
+        size: 320mm 180mm;
+        margin: 0;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: #17202a;
+        font:
+          23pt/1.32 Arial,
+          sans-serif;
+      }
+      .folie {
+        width: 320mm;
+        height: 180mm;
+        padding: 13mm 17mm 17mm;
+        position: relative;
+        break-after: page;
+      }
+      .folie:last-child {
+        break-after: auto;
+      }
+      h1 {
+        font-size: 42pt;
+        line-height: 1.12;
+        margin: 7mm 0;
+      }
+      h2 {
+        font-size: 30pt;
+        line-height: 1.14;
+        color: #005a9c;
+        margin: 0 0 8mm;
+      }
+      p {
+        margin: 0 0 5mm;
+      }
+      ul {
+        margin: 3mm 0;
+        padding-left: 9mm;
+      }
+      li {
+        margin-bottom: 4mm;
+      }
+      .kernsatz {
+        border-left: 7px solid #005a9c;
+        background: #edf3f8;
+        padding: 5mm;
+        font-size: 26pt;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 18pt;
+      }
+      th,
+      td {
+        padding: 3mm;
+        border-bottom: 1px solid #bbc5ce;
+        text-align: left;
+      }
+      th {
+        background: #edf3f8;
+      }
+      .grafik {
+        display: block;
+        width: 100%;
+        max-height: 105mm;
+        object-fit: contain;
+      }
+      .klein {
+        font-size: 16pt;
+      }
+      .fuss {
+        position: absolute;
+        bottom: 6mm;
+        left: 17mm;
+        right: 17mm;
+        font-size: 11pt;
+        border-top: 1px solid #bbc5ce;
+        padding-top: 2mm;
+      }
+      code {
+        font-size: 19pt;
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="folie" data-page>
+      <p>Aufgabe 1A · Niklas · 15.11.2026</p>
+      <h1>Wie viel optionale Analyse verträgt der Anwendungshost?</h1>
+      <p>spaCy als kontrollierter Vergleich für Ressourcenisolation.</p>
+      <p class="kernsatz">
+        Relative Live-Grenzen werden verletzt; CPU-Drosselung führt zusätzlich zu absoluten
+        Verletzungen.
+      </p>
+      <footer class="fuss">
+        1 / 9 · Abgabeentwurf · Persönliche Gegenprüfung und formale Vorgaben noch bestätigen.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>Systemgrenzen fachlich trennen</h2>
+      <table>
+        <tr>
+          <th>Baustein</th>
+          <th>Rolle</th>
+        </tr>
+        <tr>
+          <td>spaCy</td>
+          <td>Eigener Sidecar für sprachliche Glättung.</td>
+        </tr>
+        <tr>
+          <td>8.9b / Kontextaufbau</td>
+          <td>Arbeit im Backend-Prozess.</td>
+        </tr>
+        <tr>
+          <td>Encoder</td>
+          <td>Eigener Embedding-Sidecar; hier aus.</td>
+        </tr>
+        <tr>
+          <td>Generative Inferenz</td>
+          <td>Eigene private Serverrolle nach ADR-0035.</td>
+        </tr>
+      </table>
+      <p class="klein">
+        App, PostgreSQL und Redis ohne zusätzliche Limits; PDF-Worker aktiv. Ein spaCy-Ergebnis
+        bestätigt keine LLM-Tragfähigkeit.
+      </p>
+      <footer class="fuss">
+        2 / 9 · Quellen: geprüfte Baseline a19ca70ff37d; ADR-0035; A1-Versuchsvertrag.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>Fünf Varianten, fünf gepaarte Blöcke</h2>
+      <table>
+        <tr>
+          <th>V0</th>
+          <td>Live ohne Analyse.</td>
+          <th>V1</th>
+          <td>Analyse, spaCy aus.</td>
+        </tr>
+        <tr>
+          <th>V2</th>
+          <td>spaCy: 1 CPU / 1 GiB.</td>
+          <th>V3</th>
+          <td>spaCy: 0,25 CPU.</td>
+        </tr>
+        <tr>
+          <th>V4</th>
+          <td colspan="3">6000 ms Weiterleitungsverzögerung, 5000 ms Timeout.</td>
+        </tr>
+      </table>
+      <ul>
+        <li>60 s Aufwärmung; 300 s Messfenster; 500 Beitritte über 90 s.</li>
+        <li>500 Quiz-, 100 Q&amp;A- und 500 Tempostimmen; Freigabe bei 270 s.</li>
+        <li>Fünf Analyse-Hosts, 150 Termine, identische synthetische Korpora.</li>
+      </ul>
+      <p class="klein">
+        WSL2, 16 logische CPUs; Generator auf demselben Rechner. Anwendung unverändert aus
+        festgehaltenem main, Version 1.4.0.
+      </p>
+      <footer class="fuss">
+        3 / 9 · Quellen: Laufplan und 25 Manifeste; vollständige Reihe vom 15.11.2026.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>Die Regeln stehen vor der Messung fest</h2>
+      <ul>
+        <li>
+          Je Aktion: p95-Anstieg ≤ 10 % <strong>und</strong> ≤ 50 ms gegenüber V1 desselben Blocks.
+        </li>
+        <li>Fehler und fehlende geplante Arbeit jeweils ≤ 0,5 %.</li>
+        <li>Alle fünf Wiederholungen müssen bestehen; keine Ausreißer entfernen.</li>
+        <li>Analyseverfügbarkeit, RAM, Drosselung und OOM separat prüfen.</li>
+      </ul>
+      <p class="kernsatz">Erfassung vollständig ≠ Leistungsgrenzen erfüllt.</p>
+      <footer class="fuss">
+        4 / 9 · Quelle: Versuchsvertrag Version 2; Grenzen vor bestätigenden Läufen eingefroren.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>Absolute Quiz-Latenzen bleiben niedrig</h2>
+      <img
+        class="grafik"
+        src="{{LIVE_GRAFIK}}"
+        alt="Quiz-p95 aller Varianten über fünf Blöcke, mit erhöhtem V3-Wert in Block 5."
+      />
+      <p class="klein">
+        Höchster Lauf-p95: {{VOTE_MAX}} ms bei Ziel ≤ 1000 ms. {{LIVE_ERFOLG}} / {{LIVE_GEPLANT}}
+        geplante Live-Aktionen erfolgreich; keine Fehlversuche.
+      </p>
+      <footer class="fuss">
+        5 / 9 · Quelle: Auswertung aus ungerundeten Live-Rohstichproben; keine dauerhaft konstante
+        Last.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>H1 und H2 werden dennoch nicht bestätigt</h2>
+      <table>
+        <tr>
+          <th>H1: V2 gegen V1</th>
+          <td>{{H1_FEHLER}} / 20 Aktionsvergleiche verfehlen die relative Regel.</td>
+        </tr>
+        <tr>
+          <th>H2: V3/V4 gegen V1</th>
+          <td>
+            {{H2_FEHLER}} / 40 Aktionsvergleiche verfehlen die relative Regel; drei auch die
+            absolute.
+          </td>
+        </tr>
+      </table>
+      <ul>
+        <li>
+          Block 4, Q&amp;A: {{BEISPIEL_BASIS}} → {{BEISPIEL_KANDIDAT}} ms; +{{BEISPIEL_MS}} ms,
+          +{{BEISPIEL_PROZENT}} %.
+        </li>
+        <li>V3, Block 5: drei absolute 50-ms-Verletzungen bei Beitritt, Quiz und Q&amp;A.</li>
+        <li>Alle Blöcke bleiben erhalten; einzelne Ursache nicht zugeordnet.</li>
+      </ul>
+      <p class="klein">
+        Auch V0→V1 zeigt vier relative Verletzungen; kein isolierter Kausalbeweis für spaCy.
+      </p>
+      <footer class="fuss">
+        6 / 9 · Quelle: 80 gepaarte Aktionsvergleiche in auswertung.json / live-vergleiche.csv.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>V2 bleibt im Ressourcenbudget</h2>
+      <img
+        class="grafik"
+        src="{{RAM_GRAFIK}}"
+        alt="Lebenszeit-RAM-Peaks von V2 bis V4 einschließlich Aufwärmung und V2-Budgetlinie."
+      />
+      <p class="klein">
+        V2: {{V2_RAM}} MiB; CPU {{V2_CPU}} % einer CPU; Drosselung {{V2_THROTTLE}} %. {{V2_ERFOLG}}
+        / 750 Analysen erfolgreich; kein OOM-Zuwachs in der Reihe.
+      </p>
+      <footer class="fuss">
+        7 / 9 · Quelle: cgroup-v2-Rohzeitreihen; Peaks nicht subtrahiert; keine zugesicherte
+        Hostreserve.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>Drosselung trifft Analyse und Live-Signale</h2>
+      <ul>
+        <li>
+          <strong>V3:</strong> {{V3_THROTTLE}} % gedrosselte Perioden; Analyse-p95 {{V3_ANALYSE}}
+          ms; {{V3_ERFOLG}} / 750 erfolgreich, {{V3_ERSATZ}} Fallbacks, {{V3_OFFEN}} offen.
+        </li>
+        <li>
+          <strong>V4:</strong> {{V4_ERSATZ}} Fallbacks, {{V4_OFFEN}} offene Analysen am Fensterende;
+          Fallback-p95 {{V4_FALLBACK}} ms.
+        </li>
+        <li>
+          <strong>V4-Transport:</strong> {{V4_WEITERGELEITET}} Weiterleitungen über die
+          Proxy-Lebenszeit; Clientabbruch vor Ablauf der Verzögerung.
+        </li>
+      </ul>
+      <p class="kernsatz">
+        V4 belegt Timeout-/Ersatzpfade, keine tatsächlich langsam rechnende spaCy-Inferenz.
+      </p>
+      <footer class="fuss">
+        8 / 9 · Quellen: Analyse-Einzelaufrufe und Proxyzähler; späte Abschlüsse bleiben getrennt.
+      </footer>
+    </section>
+    <section class="folie" data-page>
+      <h2>Entscheidung: lexikalische Alternative beibehalten</h2>
+      <ul>
+        <li><code>NLP_ENABLED=false</code>; keine Freigabe durch Aufweichen der Kriterien.</li>
+        <li>Für neue Versuche: untersuchtes Budget 1 CPU / 1 GiB / 64 PIDs beibehalten.</li>
+        <li>Grenzen: gemeinsamer WSL2-Host, Beitrittswelle, kein Rendering-/LLM-Nachweis.</li>
+      </ul>
+      <p class="klein">
+        Diskussion: Wie lässt sich der erhöhte V3-Block 5 gegenprüfen? Welche Aussage erlaubt ein
+        Containerlimit wirklich? Welchen Nutzen müsste Glättung gegenüber zusätzlichem Betrieb
+        liefern?
+      </p>
+      <p class="klein">
+        Compose: 50 zeitgenössische bereinigte Aufnahmen. KI: Umsetzung, Auswertung und Entwurf mit
+        OpenAI Codex; reale Messung durch Niklas nach Anleitung. Niklas verantwortet persönliche
+        Gegenprüfung und fachliche Freigabe. Belege im Handout; Auswertungsquelle {{QUELLE_SHA}}.
+      </p>
+      <footer class="fuss">
+        9 / 9 · Abgabeentwurf · Formale Zitation, KI-Zulassung und persönliche Gegenprüfung vor
+        Einreichung bestätigen.
+      </footer>
+    </section>
+  </body>
+</html>

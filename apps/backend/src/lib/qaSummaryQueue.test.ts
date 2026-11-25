@@ -5,16 +5,20 @@ import {
   ModerationAnalysisContextV1Schema,
   QaSummaryExecutionV2Schema,
   type ModerationAnalysisContextV1,
+  type QaSummaryFallbackReason,
 } from '@arsnova/shared-types';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ZodError } from 'zod';
 import {
   QA_SUMMARY_ADAPTER_CAPABILITIES,
   assemblePreparedModerationSummaryContext,
+  createQaSummaryFallback,
   prepareModerationSummaryContextFromAnalysis,
   type PreparedModerationSummaryContext,
 } from './moderationSummaryContext';
 import { logger } from './logger';
 import type { QaSummaryConfig } from './qaSummaryConfig';
+import { createExtractiveQaSummaryOutput } from './qaSummaryExtractive';
 import {
   getQaSummaryRuntime,
   getQaSummaryRuntimeFresh,
@@ -23,6 +27,7 @@ import {
   resetQaSummaryQueueForTests,
   waitForQaSummaryIdleForTests,
 } from './qaSummaryQueue';
+import type { QaSummaryPreparedRun } from './qaSummaryRuntimeAdapter';
 
 const SESSION_ID = '6a8edced-5f8f-4cfa-9176-454fac9570ad';
 const ACCESS = { hostToken: 'host-token-123' } as const;
@@ -109,6 +114,32 @@ function completedRun(prepared: PreparedModerationSummaryContext) {
       fallback: null,
     }),
   };
+}
+
+/**
+ * Client failure as the real adapter reports it: a resolved extractive run with a fallback
+ * reason (mirrors `extractiveRun` in qaSummaryRuntimeAdapter.ts); the adapter does not throw.
+ */
+function failedRun(
+  prepared: PreparedModerationSummaryContext,
+  reason: QaSummaryFallbackReason,
+): QaSummaryPreparedRun {
+  return {
+    output: createExtractiveQaSummaryOutput(prepared.request.promptContext),
+    execution: QaSummaryExecutionV2Schema.parse({
+      attemptedMode: 'full-context',
+      effectiveMode: 'extractive',
+      fallback: createQaSummaryFallback('extractive', reason, 'manual'),
+    }),
+  };
+}
+
+function latch(): { promise: Promise<void>; release: () => void } {
+  let release: () => void = () => undefined;
+  const promise = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  return { promise, release };
 }
 
 describe('qaSummaryQueue V2', () => {
@@ -262,6 +293,28 @@ describe('qaSummaryQueue V2', () => {
         effectiveMode: 'rule-based',
         fallback: { reason: 'permission_changed' },
       },
+    });
+  });
+
+  it('Negativprobe: beendet den Job regelbasiert mit context_unavailable, wenn der Kontext nicht schemakonform gebaut werden kann', async () => {
+    const prepared = preparedReference();
+    const prepare = vi.fn().mockResolvedValueOnce(prepared).mockRejectedValueOnce(new ZodError([]));
+    const processor = vi.fn(async () => completedRun(prepared));
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      plan: () => fullContextPlan,
+      prepare,
+      processor,
+    });
+
+    await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    await expect(waitForQaSummaryIdleForTests()).resolves.toBeUndefined();
+
+    expect(processor).not.toHaveBeenCalled();
+    const result = (await getQaSummaryRuntime(SESSION_ID)).result;
+    expect(result?.status).toBe('failed');
+    expect(result).toMatchObject({
+      execution: { effectiveMode: 'rule-based', fallback: { reason: 'context_unavailable' } },
     });
   });
 
@@ -514,5 +567,161 @@ describe('qaSummaryQueue V2', () => {
     await waitForQaSummaryIdleForTests();
     expect(processor).toHaveBeenCalledTimes(1);
     expect((await getQaSummaryRuntime(SESSION_ID)).result?.status).toBe('ready');
+  });
+
+  it('lässt source_changed vor einem gleichzeitigen Queue-Timeout gewinnen', async () => {
+    const before = withHash(preparedReference(), 'a');
+    const after = withHash(preparedReference(), 'b');
+    const prepare = vi
+      .fn()
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+    let aborted = false;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig({ timeoutMs: 20 }),
+      plan: () => fullContextPlan,
+      prepare,
+      // Löst nur beim Abbruch auf, also erst nach dem Queue-Timeout.
+      processor: async (_prepared, { signal }) =>
+        new Promise((resolve) => {
+          signal.addEventListener(
+            'abort',
+            () => {
+              aborted = true;
+              resolve(completedRun(before));
+            },
+            { once: true },
+          );
+        }),
+    });
+
+    await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    await waitForQaSummaryIdleForTests();
+
+    expect(aborted).toBe(true);
+    expect(prepare).toHaveBeenCalledTimes(3);
+    const result = (await getQaSummaryRuntime(SESSION_ID)).result;
+    expect(result?.execution.fallback?.reason).toBe('source_changed');
+    expect(result?.snapshotHash).toBe('b'.repeat(64));
+  });
+
+  it('lässt source_changed vor einem gemeldeten Client-Fehler gewinnen', async () => {
+    const before = withHash(preparedReference(), 'a');
+    const after = withHash(preparedReference(), 'b');
+    const prepare = vi
+      .fn()
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(after);
+    const processor = vi.fn(async () => failedRun(before, 'unavailable'));
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      plan: () => fullContextPlan,
+      prepare,
+      processor,
+    });
+
+    await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    await waitForQaSummaryIdleForTests();
+
+    expect(processor).toHaveBeenCalledTimes(1);
+    expect(prepare).toHaveBeenCalledTimes(3);
+    const result = (await getQaSummaryRuntime(SESSION_ID)).result;
+    expect(result?.execution.fallback?.reason).toBe('source_changed');
+    expect(result?.snapshotHash).toBe('b'.repeat(64));
+  });
+
+  it('Kontrolle: behält bei unverändertem Hash den gemeldeten Client-Fehler', async () => {
+    const before = withHash(preparedReference(), 'a');
+    const prepare = vi
+      .fn()
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before)
+      .mockResolvedValueOnce(before);
+    const processor = vi.fn(async () => failedRun(before, 'unavailable'));
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      plan: () => fullContextPlan,
+      prepare,
+      processor,
+    });
+
+    await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    await waitForQaSummaryIdleForTests();
+
+    expect(processor).toHaveBeenCalledTimes(1);
+    expect(prepare).toHaveBeenCalledTimes(3);
+    const result = (await getQaSummaryRuntime(SESSION_ID)).result;
+    expect(result?.execution).toMatchObject({
+      effectiveMode: 'extractive',
+      fallback: { reason: 'unavailable' },
+    });
+    expect(result?.snapshotHash).toBe('a'.repeat(64));
+  });
+
+  it('beendet den Job bei einer Prozessor-Ausnahme regelbasiert ohne Quellenprüfung', async () => {
+    const before = withHash(preparedReference(), 'a');
+    const prepare = vi.fn().mockResolvedValueOnce(before).mockResolvedValueOnce(before);
+    const processor = vi.fn(async (): Promise<QaSummaryPreparedRun> => {
+      throw new Error('unexpected');
+    });
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      plan: () => fullContextPlan,
+      prepare,
+      processor,
+    });
+
+    await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    await waitForQaSummaryIdleForTests();
+
+    expect(processor).toHaveBeenCalledTimes(1);
+    // Charakterisierung: prepare (3) und damit die source_changed-Prüfung entfallen.
+    expect(prepare).toHaveBeenCalledTimes(2);
+    const result = (await getQaSummaryRuntime(SESSION_ID)).result;
+    expect(result?.status).toBe('failed');
+    expect(result?.execution).toMatchObject({
+      effectiveMode: 'rule-based',
+      fallback: { reason: 'context_unavailable' },
+    });
+  });
+
+  it('kehrt mit pending zurück und wartet nicht auf einen laufenden Modellauftrag', async () => {
+    const prepared = preparedReference();
+    const started = latch();
+    const gate = latch();
+    let processorStarted = false;
+    resetQaSummaryQueueForTests({
+      config: () => testConfig(),
+      plan: () => fullContextPlan,
+      prepare: async () => prepared,
+      processor: async (_prepared, { signal }) => {
+        processorStarted = true;
+        // Bei Abbruch (Reset nach einem Fehlschlag) nicht hängen bleiben.
+        signal.addEventListener('abort', gate.release, { once: true });
+        started.release();
+        await gate.promise;
+        return completedRun(prepared);
+      },
+    });
+
+    const runtime = await requestQaSummary(SESSION_ID, 'de', ACCESS);
+    // (1) Die Anfrage ist aufgelöst, bevor der Prozessor begonnen hat.
+    expect(processorStarted).toBe(false);
+    expect(runtime.result?.status).toBe('pending');
+
+    // (2) Der Modellauftrag läuft und hängt am Latch, der Status bleibt pending.
+    await started.promise;
+    expect(processorStarted).toBe(true);
+    expect((await getQaSummaryRuntime(SESSION_ID)).result?.status).toBe('pending');
+
+    // (3) Nach dem Lösen des Latches liegt das Modellergebnis vor.
+    gate.release();
+    await waitForQaSummaryIdleForTests();
+    expect((await getQaSummaryRuntime(SESSION_ID)).result).toMatchObject({
+      status: 'ready',
+      execution: { effectiveMode: 'full-context', fallback: null },
+    });
   });
 });

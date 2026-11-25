@@ -1,0 +1,121 @@
+---
+config:
+  look: neo
+  layout: elk
+  flowchart:
+    curve: basis
+    nodeSpacing: 36
+    rankSpacing: 44
+    wrappingWidth: 440
+    subGraphTitleMargin:
+      top: 14
+      bottom: 10
+---
+flowchart TB
+  subgraph L1["Schicht 1 · autorisierter interner Zustand · nie ans Modell gesendet⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    st["`**AuthorizedModerationState**
+    Sitzungszeile · Teilnehmerzahl · Sortiermodus
+    qaRankingRevision · participantRevision
+    Host-Token bleibt im Zugangsobjekt`"]
+  end
+
+  subgraph L2["Schicht 2 · Domänenkontext⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    ana["`**ModerationAnalysisContextV1**
+    moderation-analysis-context-v1 · strict
+    Domäne moderation-domain-context-v1
+    sourceRevision über die ganze Analyse`"]
+    pc["`**ModerationPromptContextV1**
+    moderation-prompt-context-v1 · schemaVersion 1
+    budget moderation-prompt-budget-v1
+    Definitionen moderation-prompt-definitions-v1
+    snapshotHash · hash material v1`"]
+    miss["`**Fehlender Kontextbereich**
+    jeder Abschnitt behält Zustand + Grund
+    unavailable · disabled · not-applicable
+    not-released · failed · pending
+    Ausnahme: veralteter Themen-Snapshot
+    in Redis liest sich als keine Daten (Befund T2.3)`"]
+    pvw["`**Vorschau-DTO** · eigenes prepare
+    qa-summary-context-preview-v1
+    voller promptContext inkl. Budget,
+    snapshotHash, packedAt`"]
+  end
+
+  subgraph L3["Schicht 3 · Modellanfrage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    req["`**QaSummaryInferenceRequestV2** · strict
+    schemaVersion 2 · requestContract qa-summary-context-v2
+    instruction qa-summary-technical-handoff-v5
+    Bytezahlen müssen dem Budget entsprechen`"]
+    wire["`**Draht-Body** an llama-server
+    keine Hüllversionen (schemaVersion,
+    requestContract, Instruktions-/Ausgabeversionen)
+    User-Nachricht: nur Kontext-JSON, behält
+    moderation-domain-context-v1
+    und definitionsVersion
+    ohne Budget, snapshotHash, packedAt
+    2 System-Nachrichten
+    JSON-Schema (Grammatik)`"]
+    n1["`**inkompatible Version oder Feld**
+    strikter Parse wirft einen ZodError
+    Anfrage: INTERNAL_SERVER_ERROR
+    Job: regelbasiert context_unavailable`"]
+  end
+
+  subgraph L4["Ausgabe · vierfach validiert⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    gram{{"`**1 · Grammatik beim Generieren**
+    2–4 Aussagen · ≤ 1 nächster Schritt
+    0 Einschränkungen · ≤ 180 Zeichen
+    1–2 IDs aus den gepackten Quellen`"}}
+    zod{{"`**2 · Client-Prüfungen**
+    QaSummaryModelOutputV2Schema
+    ≤ 4 · ≤ 2 · ≤ 2
+    Vertrag qa-summary-model-output-v3
+    und Referenzprüfung aller Quellen-IDs`"}}
+    qg{{"`**3 · Quality-Gate** (Adapter)
+    ≥ 2 Aussagen, je »Lead: Satz«
+    verschiedene, nicht generische Leads
+    kein Markdown, keine Meta-Phrasen`"}}
+    bind{{"`**4 · an prepare (3) binden**
+    Nachprüfung: IDs ohne Text-Label verworfen
+    (full-context-Antworten mit unbekannten IDs
+    scheitern schon in Schritt 2) · Grenzen 6 / 4 / 6`"}}
+    res["`**QaSummaryResultV2**
+    qa-summary-result-v2 · Fallback qa-summary-fallback-v1`"]
+    n2["`**invalid_response**
+    Anfrage, Antwort oder Form nicht valide
+    extraktiver Fallback`"]
+  end
+
+
+  st e1@==>|"Projektion: ohne Tokens, IPs, Nicknames"| ana
+  ana e2@==>|"ins Budget packen<br/>+ Hash"| pc
+  pc e3@-.->|"gleiches Objekt<br/>in einem prepare"| pvw
+  pvw e13@-.->|"gleich der Job-Nutzlast nur bei gleichem snapshotHash"| req
+  ana e14@-.-|"jeder Bereich"| miss
+  pc e4@==> req
+  req e5@==>|"Client validiert erneut, serialisiert dann"| wire
+  wire e6@==>|"llama-server generiert"| gram
+  gram e7@==> zod
+  zod e8@==> qg
+  qg e15@==> bind
+  bind e9@==> res
+  req e10@-.->|"zusammensetzen: .parse scheitert"| n1
+  req e11@-.->|"Client-safeParse scheitert"| n2
+  zod e12@-.->|"Ausgabe oder Referenzen scheitern"| n2
+  qg e16@-.->|"Form verfehlt"| n2
+
+  class st app
+  class ana,pc app
+  class pvw,miss app
+  class req,wire contract
+  class gram,zod,qg,bind decision
+  class res result
+  class n1,n2 fallback
+  class L1 appGroup
+  class L2 appGroup
+  class L3 contractGroup
+  class L4 legendGroup
+  class e1,e2,e4,e5,e6,e7,e8,e15,e9 emph
+  class e10,e11,e12,e16 fail
+  class e3,e13,e14 muted
+%% palette

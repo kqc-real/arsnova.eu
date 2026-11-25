@@ -1,0 +1,40 @@
+---
+config:
+  look: neo
+  flowchart:
+    curve: basis
+    nodeSpacing: 40
+    rankSpacing: 60
+    padding: 10
+    wrappingWidth: 320
+    subGraphTitleMargin:
+      top: 10
+      bottom: 10
+---
+flowchart TB
+  subgraph LAP["Laptop · KVM · 4 Kerne, 8 Threads, 31 GiB<br/>privates Netz 192.168.150.0/24"]
+    direction TB
+    app["`**app-host** · 192.168.150.10
+    2 vCPU, 6 GiB
+    App, postgres, redis, pdf-worker
+    App-Ports nur auf 127.0.0.1`"]
+    llm["`**llm-host** · 192.168.150.20
+    4 vCPU, 12 GiB
+    llama-server nur auf :8080
+    Bearer-Token`"]
+  end
+  net["`**Internet**
+  ausgehend, für die Einrichtung,
+  bleibt aktiv`"]
+
+  app e1@-->|"HTTP 8080, Bearer"| llm
+  LAP e2@-.->|"ausgehendes NAT,<br/>keine Portweiterleitung"| net
+
+  class app app
+  class llm runtime
+  net@{ shape: rounded }
+  class net legendGroup
+  class LAP legendGroup
+  class e1 emph
+  class e2 muted
+%% palette

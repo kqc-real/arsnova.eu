@@ -21,6 +21,10 @@ import { waitForBackend } from './lib/wait-for-backend.mjs';
 import { createHttpTrpc } from './lib/trpc-runtime.mjs';
 import { createArtilleryReconnectSession } from './artillery/setup-session.mjs';
 import { startHostMonitor } from './artillery/host-monitor.mjs';
+import {
+  fasseLiveMessungenZusammen,
+  pruefeLiveMessungen,
+} from './lib/artillery-live-messungen.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ARTILLERY_DIR = resolve(__dirname, 'artillery');
@@ -238,12 +242,14 @@ async function main() {
   const reconnectsWithinWindow = runtime.reconnectsWithinWindow ?? 0;
   const reconnectAvgMs =
     reconnects > 0 ? Math.round((runtime.reconnectMsSum ?? 0) / reconnects) : null;
+  const join = fasseLiveMessungenZusammen(runtime, { participants: PARTICIPANTS }).join;
 
   const summary = {
     scenario: 'artillery-500-reconnect-wave',
     participantsTarget: PARTICIPANTS,
     sessionCode: session.code,
     layers: {
+      liveActions: { join },
       http: {
         joins: runtime.joins ?? 0,
         joinErrors: runtime.joinErrors ?? 0,
@@ -281,10 +287,7 @@ async function main() {
 
   console.log(JSON.stringify(summary, null, 2));
 
-  const failures = [];
-  if ((runtime.joins ?? 0) < PARTICIPANTS * MIN_JOIN_RATIO) {
-    failures.push(`Joins: ${runtime.joins ?? 0}/${PARTICIPANTS}`);
-  }
+  const failures = pruefeLiveMessungen({ join }, { minSuccessRatio: MIN_JOIN_RATIO });
   if (reconnects < PARTICIPANTS * MIN_RECONNECT_RATIO) {
     failures.push(`Reconnects: ${reconnects}/${PARTICIPANTS}`);
   }

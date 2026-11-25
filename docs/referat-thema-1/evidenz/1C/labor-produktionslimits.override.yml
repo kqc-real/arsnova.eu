@@ -1,0 +1,13 @@
+# Nur für den 1C-Zusatzlauf (Design Abschnitt 14): setzt die Laborruntime `open-weight-llm-http`
+# auf die Ressourcen des ausgelieferten Inferenz-Hosts (docker-compose.llm.yml: 8 CPUs, 8 GiB,
+# 10 GiB inkl. Swap, 8 Threads). Alles andere (Image-Rezept, Entry-Point, Loopback, Healthcheck)
+# bleibt der Laborpfad aus docker-compose.yml. Verwendung:
+#   podman compose -f docker-compose.yml -f docs/referat-thema-1/evidenz/1C/labor-produktionslimits.override.yml \
+#     --profile llm-http up -d --build open-weight-llm-http
+services:
+  open-weight-llm-http:
+    mem_limit: 8g
+    memswap_limit: 10g
+    cpus: '8.0'
+    environment:
+      OPEN_WEIGHT_LLM_THREADS: '8'

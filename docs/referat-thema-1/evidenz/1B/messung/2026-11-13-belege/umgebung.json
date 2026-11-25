@@ -1,0 +1,75 @@
+{
+  "schema": "1b-umgebung-1",
+  "erfasstAm": "2026-11-13T18:34:49+01:00",
+  "rechner": {
+    "plattform": "linux",
+    "cpu": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+    "kerne": 4,
+    "threads": 8,
+    "maxMHz": 3600,
+    "ramGib": 31.0,
+    "os": "Omarchy",
+    "kernel": "7.2.15-1-omarchy",
+    "energieprofil": "performance",
+    "cpuGovernor": "powersave",
+    "cpufreqTreiber": "intel_pstate",
+    "netzteil": true,
+    "speicherort": {
+      "pfad": "/var/lib/libvirt/images/arsnova-1b",
+      "dateisystem": "btrfs",
+      "medium": "SSD"
+    }
+  },
+  "hypervisor": {
+    "name": "KVM/QEMU (libvirt)",
+    "version": "QEMU 11.1.2",
+    "libvirt": "libvirt 12.8.0",
+    "nested": "Y",
+    "pinning": true
+  },
+  "vms": [
+    {
+      "name": "arsnova-1b-app",
+      "ip": "192.168.150.10",
+      "zustand": "running",
+      "vcpu": 2,
+      "ramGib": 6,
+      "cpuset": "4 5",
+      "cpuModell": "host-passthrough",
+      "plattenMaxGib": 25,
+      "gast": {
+        "host": "arsnova-1b-app",
+        "kernel": "6.8.0-147-generic",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+        "cpus": 2,
+        "ramGib": 5.8,
+        "docker": "29.9.3",
+        "virtualisierung": "kvm"
+      }
+    },
+    {
+      "name": "arsnova-1b-llm",
+      "ip": "192.168.150.20",
+      "zustand": "running",
+      "vcpu": 4,
+      "ramGib": 12,
+      "cpuset": "0 1 2 3",
+      "cpuModell": "host-passthrough",
+      "plattenMaxGib": 20,
+      "gast": {
+        "host": "arsnova-1b-llm",
+        "kernel": "6.8.0-147-generic",
+        "os": "Ubuntu 24.04.5 LTS",
+        "cpuModell": "Intel(R) Core(TM) i7-6820HQ CPU @ 2.70GHz",
+        "cpus": 4,
+        "ramGib": 11.7,
+        "docker": "29.9.3",
+        "virtualisierung": "kvm"
+      }
+    }
+  ],
+  "laborStand": {
+    "commit": "9e111d35f45ec87c993ddc35c9d359ec91ce15ed"
+  }
+}

@@ -1,0 +1,83 @@
+---
+config:
+  look: neo
+  flowchart:
+    curve: bumpY
+    nodeSpacing: 22
+    rankSpacing: 24
+    padding: 8
+    wrappingWidth: 700
+    subGraphTitleMargin:
+      top: 10
+      bottom: 6
+---
+flowchart TB
+  host["`**Lehrperson**
+  fordert eine Zusammenfassung an`"]
+
+  subgraph APP["App-Server · Anfrage⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    spA["⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    ctx["`**Autorisierten Kontext aufbauen**
+    Q&A, Themen, Signale, Blitzlicht, freigegebene Quizergebnisse, Lernziele
+    ohne Tokens, IP-Adressen, Nicknames`"]
+    con["`**Budget, Snapshot-Hash, Vertrag V2**
+    passt ins Modellfenster
+    Hash des Datenstands · strenges Schema`"]
+    q["`**Job in die Warteschlange**
+    Anfrage kehrt zurück, ohne auf das Modell zu warten`"]
+    err["`**Anfrage scheitert**
+    z. B. neue Stimme oder Frage
+    während des Aufbaus (CONFLICT)`"]
+  end
+
+  subgraph JOB1["App-Server · Job, später⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    rb1["`**Kontext neu aufbauen**
+    Hash vorher · Rechte erneut prüfen`"]
+  end
+
+  subgraph LLMH["Zweiter privater Host · privates Netz⠀ ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    llm[["`**Open-Weight-LLM** · 1 Slot`"]]
+  end
+
+  subgraph JOB2["App-Server · Job nach der Inferenz⠀ ⠀ ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀"]
+    chk{{"`**Erneut aufbauen und prüfen**
+    Hash nachher = Hash vorher, Antwort gültig und formgerecht?`"}}
+  end
+
+  ok["`**ja:** **Modell-Zusammenfassung**
+  nur Aussagen zu Quellen mit Text`"]
+  fb["`**nein:** **Fallback** · extraktiv oder regelbasiert, auch ohne Modellaufruf
+  mit Grund, z. B. Antwort verworfen, Daten geändert, Timeout, belegt`"]
+  show["`**Anzeige**
+  jeder Abruf eines fertigen Ergebnisses
+  prüft erneut gegen die aktuellen Daten`"]
+
+  ctx ~~~ spA
+  host e1@==> ctx
+  ctx e2@==> con
+  con e3@==> q
+  ctx e12@-.-> err
+  q e5@==> rb1
+  rb1 e6@==> llm
+  llm e7@==> chk
+  chk e9@==> ok
+  chk e10@-.-> fb
+  ok e14@==> show
+  fb e15@-.-> show
+
+  class spA dot
+  class host,show host
+  class ctx app
+  class q,rb1 queue
+  class con contract
+  class chk decision
+  class llm runtime
+  class ok result
+  class fb,err fallback
+  class APP appGroup
+  class JOB1,JOB2 queueGroup
+  class LLMH runtimeGroup
+  class e1,e2,e3,e5,e6,e7 emph
+  class e9,e14 ok
+  class e10,e12,e15 fail
+%% palette

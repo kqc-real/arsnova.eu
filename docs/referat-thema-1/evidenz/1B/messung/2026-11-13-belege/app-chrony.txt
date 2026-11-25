@@ -1,0 +1,13 @@
+Reference ID    : D5AC696A (ns1.blazing.de)
+Stratum         : 3
+Ref time (UTC)  : Fri Nov 13 17:34:03 2026
+System time     : 0.000883683 seconds fast of NTP time
+Last offset     : -0.000145387 seconds
+RMS offset      : 0.001030014 seconds
+Frequency       : 3.560 ppm slow
+Residual freq   : -0.010 ppm
+Skew            : 0.816 ppm
+Root delay      : 0.020555630 seconds
+Root dispersion : 0.006235711 seconds
+Update interval : 519.4 seconds
+Leap status     : Normal

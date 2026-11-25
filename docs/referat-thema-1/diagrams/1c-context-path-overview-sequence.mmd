@@ -1,0 +1,50 @@
+---
+config:
+  sequence:
+    actorMargin: 24
+    boxMargin: 9
+    noteMargin: 6
+    messageMargin: 28
+    mirrorActors: false
+    width: 130
+---
+sequenceDiagram
+  autonumber
+  box rgba(37, 99, 235, 0.10) Browser
+    participant T as Lehrperson
+  end
+  box rgba(217, 119, 6, 0.10) App-Server
+    participant A as API und Kontextaufbau
+    participant Q as Warteschlange
+  end
+  box rgba(13, 148, 136, 0.10) Zweiter privater Host
+    participant L as Open-Weight-LLM
+  end
+
+  T->>A: Zusammenfassung anfordern
+  Note over A: Rechte prüfen, Kontext aufbauen,<br/>Snapshot-Hash, Vertrag V2
+  alt Daten ändern sich beim Aufbau
+    A-->>T: Fehler (CONFLICT)
+  else Aufbau erfolgreich
+    A-)Q: Job einreihen
+    A-->>T: »ausstehend«
+  end
+  Note over T,A: wartet nicht auf das Modell
+
+  Q->>A: Kontext neu aufbauen (Hash vorher)
+  Q->>L: Anfrage
+  L-->>Q: Antwort oder Fehler
+  Q->>A: Kontext neu aufbauen (Hash nachher)
+  alt Hash gleich,<br/>Antwort gültig und formgerecht
+    rect rgba(22, 163, 74, 0.16)
+      Note over A,Q: Modell-Zusammenfassung (nur Quellen mit Text)
+    end
+  else sonst
+    rect rgba(225, 29, 72, 0.14)
+      Note over A,Q: Fallback mit Grund (z. B. Antwort verworfen)
+    end
+  end
+
+  T->>A: Status abrufen
+  Note over A: fertiges Ergebnis erneut<br/>gegen aktuelle Daten prüfen
+  A-->>T: Zusammenfassung oder Fallback

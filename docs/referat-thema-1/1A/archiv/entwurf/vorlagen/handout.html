@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <title>Aufgabe 1A – Ressourcenisolation auf dem Anwendungshost</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 16mm;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        width: 178mm;
+        color: #17202a;
+        font:
+          10.5pt/1.38 Arial,
+          sans-serif;
+      }
+      .seite {
+        height: 263mm;
+        break-after: page;
+        position: relative;
+        padding-bottom: 12mm;
+      }
+      .seite:last-child {
+        break-after: auto;
+      }
+      h1 {
+        font-size: 21pt;
+        line-height: 1.12;
+        margin: 0 0 5mm;
+      }
+      h2 {
+        font-size: 15pt;
+        margin: 0 0 4mm;
+        color: #005a9c;
+      }
+      h3 {
+        font-size: 11.5pt;
+        margin: 4mm 0 2mm;
+      }
+      p {
+        margin: 0 0 3mm;
+      }
+      ul,
+      ol {
+        margin: 2mm 0 3mm;
+        padding-left: 6mm;
+      }
+      li {
+        margin-bottom: 1.5mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 3mm 0;
+        font-size: 9pt;
+      }
+      th,
+      td {
+        padding: 2mm;
+        border-bottom: 1px solid #bbc5ce;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #edf3f8;
+      }
+      .befund {
+        border-left: 4px solid #005a9c;
+        background: #edf3f8;
+        padding: 3mm;
+        margin-bottom: 4mm;
+      }
+      figure {
+        margin: 3mm 0;
+      }
+      img {
+        width: 100%;
+        height: auto;
+      }
+      figcaption,
+      .klein {
+        font-size: 8.5pt;
+      }
+      .fuss {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-top: 1px solid #bbc5ce;
+        padding-top: 2mm;
+        font-size: 7.5pt;
+      }
+      code {
+        font-size: 8.5pt;
+        overflow-wrap: anywhere;
+      }
+      a {
+        color: #005a9c;
+        overflow-wrap: anywhere;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="seite" data-page>
+      <h1>Ressourcenisolation auf dem Anwendungshost</h1>
+      <p><strong>Aufgabe 1A · Niklas · 15.11.2026 · Abgabeentwurf</strong></p>
+      <div class="befund">
+        <strong>Entscheidung:</strong> spaCy für das untersuchte Freigabekriterium deaktiviert
+        lassen. V2 hält das Ressourcenbudget ein; relative Live-Grenzen werden verletzt. Unter
+        CPU-Drosselung entstehen zusätzlich absolute Verletzungen.
+      </div>
+      <h2>1 Fragestellung und Systemgrenze</h2>
+      <p>
+        Kann die optionale Wortwolken-Lemmatisierung auf demselben Host laufen, ohne Beitritt,
+        Quizstimme, Q&amp;A-Einreichung und Tempostimme unzulässig zu verzögern? H1 prüft normalen
+        spaCy-Betrieb gegen Analyse ohne spaCy; H2 prüft CPU-Drosselung und Verzögerung gegen
+        dieselbe Baseline. Die ernsthafte Gegenalternative ist <code>NLP_ENABLED=false</code> mit
+        lexikalischer Wortwolke [1, 2].
+      </p>
+      <table>
+        <tr>
+          <th>Baustein</th>
+          <th>Ort und Einordnung</th>
+        </tr>
+        <tr>
+          <td>spaCy</td>
+          <td>Separater CPU-Sidecar; Glättung von Wortformen, keine generative Inferenz.</td>
+        </tr>
+        <tr>
+          <td>8.9b und Kontextaufbau</td>
+          <td>
+            Klassifikationspfad beziehungsweise Kontextaufbau im Backend-Prozess; keine eigenen
+            Inferenzcontainer.
+          </td>
+        </tr>
+        <tr>
+          <td>Encoder</td>
+          <td>Eigener Sidecar für Embeddings; im A1-Vergleich ausgeschaltet.</td>
+        </tr>
+        <tr>
+          <td>Generative Inferenz</td>
+          <td>
+            Nach ADR-0035 eigene private Serverrolle; aus diesem spaCy-Versuch nicht ableitbar [3].
+          </td>
+        </tr>
+      </table>
+      <h3>Kontrollierter Vergleich</h3>
+      <p>
+        Gemessen wurde der unveränderte Fork-<code>main</code> vom Commit
+        <code>a19ca70ff37dcb5510a77ab2745c06b70ccc3565</code> (Version 1.4.0), gemäß dokumentierter
+        Freigabe statt des ursprünglichen 1.3-Tags. Fünf deterministisch randomisierte Blöcke
+        enthalten jede Variante einmal; keine Messung wird nach ihrem Ergebnis ausgeschlossen [2,
+        4].
+      </p>
+      <table>
+        <tr>
+          <th>Variante</th>
+          <th>Analyse bei identischer Live-Last</th>
+        </tr>
+        <tr>
+          <td>V0</td>
+          <td>Keine Analyse, spaCy aus.</td>
+        </tr>
+        <tr>
+          <td>V1</td>
+          <td>Lexikalische Analyse, spaCy aus.</td>
+        </tr>
+        <tr>
+          <td>V2</td>
+          <td>spaCy mit 1 CPU, 1 GiB RAM und 64 PIDs.</td>
+        </tr>
+        <tr>
+          <td>V3</td>
+          <td>Wie V2, aber 0,25 CPU.</td>
+        </tr>
+        <tr>
+          <td>V4</td>
+          <td>Wie V2; Weiterleitung um 6000 ms verzögert bei 5000 ms Client-Timeout.</td>
+        </tr>
+      </table>
+      <p class="klein">
+        Labor: Ubuntu 24.04.5 unter WSL2, Docker 29.9.3, cgroup v2, 16 logische CPUs, rund 15,57 GiB
+        RAM. Anwendung, PostgreSQL, Redis, PDF-Worker und Lastgenerator teilen den Rechner; nur
+        V2–V4 starten spaCy. Andere NLP-/Encoder-/LLM-Funktionen bleiben aus.
+      </p>
+      <footer class="fuss">
+        1 / 4 · Entwurf: persönliche Gegenprüfung und formale Prüfungs-/KI-Vorgaben durch Niklas
+        bestätigen.
+      </footer>
+    </section>
+    <section class="seite" data-page>
+      <h2>2 Live-Signale: schnell, aber nicht durchgehend innerhalb der relativen Grenze</h2>
+      <p>
+        Je Lauf: 60 s separate Aufwärmung, 300 s Messfenster, 500 geplante Beitritte über 90 s sowie
+        500 Quiz-, 100 Q&amp;A- und 500 Tempostimmen. Die Ergebnisfreigabe ist für Sekunde 270
+        geplant. Fünf getrennte Analysesessions liefern zusammen 150 geplante Analysen je Fenster;
+        jeweils 500 zulässige synthetische Fragen bleiben konstant [2, 4].
+      </p>
+      <p>
+        p95 wird pro Aktion und Lauf aus erfolgreichen Rohstichproben neu berechnet (Nearest Rank).
+        Ein Kandidat darf gegenüber V1 desselben Blocks sowohl höchstens 10 % als auch höchstens 50
+        ms zulegen. Fehler und fehlende geplante Arbeit dürfen jeweils höchstens 0,5 % betragen;
+        alle fünf Wiederholungen müssen bestehen.
+      </p>
+      <figure>
+        <img
+          src="{{LIVE_GRAFIK}}"
+          alt="Quiz-p95 für alle fünf Varianten und Blöcke; einzelne Werte stehen in der begleitenden Auswertung."
+        />
+        <figcaption>
+          Abb. 1: Einzelne Lauf-p95, keine gepoolten Perzentile. Das absolute 1000-ms-Quizziel liegt
+          oberhalb des dargestellten Bereichs. Quelle: eigene, agentengestützt ausgeführte
+          Laborreihe [4, 5].
+        </figcaption>
+      </figure>
+      <table>
+        <tr>
+          <th>Regel</th>
+          <th>Ergebnis</th>
+        </tr>
+        <tr>
+          <td>H1: V2 gegen V1</td>
+          <td>
+            <strong>{{H1_STATUS}}</strong>; {{H1_FEHLER}} von 20 Aktionsvergleichen verfehlen die
+            relative Grenze.
+          </td>
+        </tr>
+        <tr>
+          <td>H2: V3/V4 gegen V1</td>
+          <td>
+            <strong>{{H2_STATUS}}</strong>; {{H2_FEHLER}} von 40 Aktionsvergleichen verfehlen die
+            relative Grenze.
+          </td>
+        </tr>
+        <tr>
+          <td>Absolutes Quizziel</td>
+          <td>Alle 25 Lauf-p95 unter 1000 ms; höchster Wert {{VOTE_MAX}} ms.</td>
+        </tr>
+        <tr>
+          <td>Aktionen und Fehler</td>
+          <td>
+            {{LIVE_ERFOLG}} von {{LIVE_GEPLANT}} geplanten Aktionen erfolgreich im Messfenster;
+            keine fehlgeschlagenen Versuche.
+          </td>
+        </tr>
+      </table>
+      <p>
+        Beispiel Block 4, Q&amp;A: V1 {{BEISPIEL_BASIS}} ms, V2 {{BEISPIEL_KANDIDAT}} ms. Der
+        Anstieg um {{BEISPIEL_MS}} ms beziehungsweise {{BEISPIEL_PROZENT}} % verfehlt die relative
+        Regel. V3 verletzt in Block 5 bei Beitritt, Quiz und Q&amp;A zusätzlich die absolute
+        50-ms-Regel. Kein Block wird entfernt; die einzelne Ursache ist nicht zugeordnet.
+      </p>
+      <p>
+        Auch V0→V1 verfehlt in vier Aktionsvergleichen die relative Grenze. Der Versuch liefert
+        daher keine saubere Ursachenzuordnung zu einer einzelnen Backendfunktion und keinen Beleg,
+        dass spaCy allein die beobachteten Unterschiede verursacht.
+      </p>
+      <footer class="fuss">
+        2 / 4 · Regeln vorab festgelegt; geprüft vor Anzeige-Rundung; keine Ausreißer entfernt.
+      </footer>
+    </section>
+    <section class="seite" data-page>
+      <h2>3 Ressourcen und Analyseverfügbarkeit</h2>
+      <p>
+        Docker-/cgroup-Werte wurden alle zwei Sekunden erfasst: 151 Mess- und 31 getrennte
+        Aufwärmstichproben je Lauf. CPU-Nutzung und Drosselung stammen aus Zählerdifferenzen
+        derselben Containergeneration im Messfenster. <code>memory.peak</code> umfasst die
+        Containerlebenszeit einschließlich Aufwärmung; er wird nicht von einem früheren Peak
+        subtrahiert.
+      </p>
+      <p class="klein">
+        Verfügbarkeit meint hier LEMMA im Messfenster; korrekte lexikalische Fallbackantworten
+        können weiterhin eine nutzbare Wortwolke liefern.
+      </p>
+      <table>
+        <tr>
+          <th>Normalbetrieb V2</th>
+          <th>Spannweite über fünf Wiederholungen</th>
+        </tr>
+        <tr>
+          <td>Mittlere CPU-Nutzung im Fenster</td>
+          <td>{{V2_CPU}} % einer CPU.</td>
+        </tr>
+        <tr>
+          <td>Gedrosselte CPU-Perioden</td>
+          <td>{{V2_THROTTLE}} %; Grenze ≤ 5 % eingehalten.</td>
+        </tr>
+        <tr>
+          <td>Lebenszeit-Speicherpeak</td>
+          <td>{{V2_RAM}} MiB; Grenze ≤ 819,20 MiB (80 % von 1 GiB) eingehalten.</td>
+        </tr>
+        <tr>
+          <td>Analyseerfolg</td>
+          <td>{{V2_ERFOLG}} / 750 ohne Fallback; Erfolgs-p95 {{V2_ANALYSE}} ms.</td>
+        </tr>
+        <tr>
+          <td>OOM-Zähler</td>
+          <td>Kein Zuwachs bei den gemessenen Diensten in allen Varianten.</td>
+        </tr>
+      </table>
+      <figure>
+        <img
+          src="{{THROTTLE_GRAFIK}}"
+          alt="V3 drosselt in rund 88 bis 96 Prozent der CPU-Perioden; V2 bleibt unter einem Prozent und V4 bei null."
+        />
+        <figcaption>
+          Abb. 2: Zuwachs gedrosselter Perioden geteilt durch Zuwachs aller Perioden; keine
+          Subtraktion lebenslanger Quotienten [4, 5].
+        </figcaption>
+      </figure>
+      <p>
+        V3 mit 0,25 CPU erreicht {{V3_THROTTLE}} % gedrosselte Perioden. Der Erfolgs-p95 steigt auf
+        {{V3_ANALYSE}} ms; {{V3_ERFOLG}} von 750 Analysen enden erfolgreich im Fenster,
+        {{V3_ERSATZ}} liefern Fallbacks, {{V3_OFFEN}} bleiben am Fensterende offen. Damit ist die
+        kleinere CPU-Zuteilung keine belegte gleichwertige Ersatzkonfiguration.
+      </p>
+      <p>
+        V4 liefert {{V4_ERSATZ}} Fallbackantworten und {{V4_OFFEN}} am Fensterende offene Analysen,
+        bei rund {{V4_FALLBACK}} ms Fallback-p95. Die Proxyzähler belegen {{V4_WEITERGELEITET}}
+        Weiterleitungen über ihre Lebenszeit einschließlich Aufwärmung: Abbrüche erfolgen vor den
+        6000 ms. V4 prüft daher Timeout, Rückstau und Ersatzpfad, nicht eine tatsächlich langsam
+        rechnende spaCy-Inferenz. Der Grund <code>SIDECAR_UNAVAILABLE</code> kann im geprüften
+        Client auch durch dessen Zwei-Anfragen-Grenze entstehen.
+      </p>
+      <footer class="fuss">
+        3 / 4 · Messspitzen, Ressourcenlimits und zugesicherte Reserven sind unterschiedliche
+        Größen.
+      </footer>
+    </section>
+    <section class="seite" data-page>
+      <h2>4 Betriebsentscheidung und Gültigkeitsgrenzen</h2>
+      <div class="befund">
+        <strong>Gegenalternative beibehalten:</strong> <code>NLP_ENABLED=false</code>. Die vorab
+        vereinbarte Freigabe ist durch die Live-Grenzverletzungen nicht gedeckt. Sprachliche
+        Glättung rechtfertigt hier keine Aufweichung der Kriterien.
+      </div>
+      <p>
+        Für einen weiteren isolierten Versuch bleiben 1 CPU, 1 GiB RAM und 64 PIDs das untersuchte
+        spaCy-Budget. Es ist keine Ressourcenreservierung für App, PostgreSQL oder Redis; diese
+        Dienste hatten keine zusätzlichen eigenen Limits. Eine Absenkung auf 0,25 CPU erhöht die
+        Drosselung deutlich und wird nicht als gleichwertige Einsparung empfohlen. Aus dem
+        Speicherverbrauch folgt keine geprüfte Freigabe eines kleineren RAM-Limits.
+      </p>
+      <p>
+        Betriebsaufwand entsteht durch Imagepflege, Modellstart und Healthcheck, Socket-Zuordnung,
+        Ressourcenüberwachung sowie die Kontrolle von Timeouts und Fallbacks. Deaktivierung spart
+        Sidecar-Betrieb und Modellpflege, verliert aber die Zusammenführung von Flexionsformen. Eine
+        Wirtschaftlichkeitsrechnung mit Eurobeträgen oder eine didaktische Nutzensteigerung wurde
+        nicht gemessen.
+      </p>
+      <p>
+        Die Ergebnisse gelten für eine Beitrittswelle auf einem gemeinsam genutzten WSL2-Rechner.
+        Sie bestätigen weder dauerhaft 500 aktive Clients noch die 8-vCPU-Zielumgebung,
+        Browser-Rendering, Kompassaktualität bis zur sichtbaren Anzeige oder zusätzliche
+        LLM-Tragfähigkeit. Für eine neue Freigabe wäre ein gesonderter Versuch mit externer
+        Lasterzeugung und klar zugeordneter Zielhardware sinnvoll; die jetzigen Blöcke bleiben
+        unverändert erhalten.
+      </p>
+      <h3>Nachvollziehbarkeit</h3>
+      <p>
+        Die vollständige Reihe umfasst 25 Läufe unter
+        <code>docs/referat-thema-1/evidenz/1A/reihe-main-a19ca70f-20261115-122547/</code>. JSON, CSV
+        und Tabellen unter
+        <code>evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/</code> enthalten alle
+        gepaarten Einzelvergleiche und Ressourcenwerte. SHA-256-Prüfsummen binden die Auswertung an
+        ihre Eingaben; Dokumentquelle: <code>{{QUELLE_SHA}}</code>. Der passende Vorlauf ist
+        gesondert erhalten; alte und abgebrochene Reihen wurden entfernt und werden nicht
+        eingemischt.
+      </p>
+      <p class="klein">
+        Vor jeder Phase wurde die tatsächlich aufgelöste Compose-Konfiguration bereinigt
+        gespeichert. Die 50 Aufnahmen sind per SHA-256 im Manifest gebunden und gegen die
+        aufgezeichneten Dienste geprüft. Eine nachträgliche Rekonstruktion ist nicht nötig.
+      </p>
+      <h3>Eigenanteil und KI-Unterstützung</h3>
+      <p>
+        Auftrag, schrittweise Freigaben, Laborbereitstellung und Git-Übernahmen sind Niklas
+        zugeordnet. Implementierung, Tests, Berechnung und dieser Text wurden mit OpenAI Codex
+        agentengestützt erstellt; die aktuelle reale Messung führte Niklas anhand der Anleitung aus.
+        Die persönliche Gegenprüfung der Zahlen, Betriebsentscheidung und fachliche Vertretung
+        müssen durch Niklas erfolgen; dieser Entwurf ersetzt keine Eigenständigkeitserklärung.
+        Wesentliche KI-Aufträge und die persönliche Prüfliste stehen in
+        <code>1A-abschluss-und-uebergabe.md</code>. Formale Zitation und erlaubter KI-Umfang sind
+        vor Abgabe anhand des Prüfungsauftrags beziehungsweise myCampus zu bestätigen.
+      </p>
+      <h3>Quellen und Belege</h3>
+      <ol class="klein">
+        <li>
+          Prüfungsspezifikation im Repository:
+          <a href="../../didaktik/CLOUD-COMPUTING-REFERAT-PRUEFUNG.md"
+            >CLOUD-COMPUTING-REFERAT-PRUEFUNG.md</a
+          >, Abschnitte 4.1.3 und 4.3.
+        </li>
+        <li>
+          <a href="../1A-experiment-contract.md">A1-Versuchsvertrag, Version 2</a>, vor den
+          bestätigenden Messungen festgehalten.
+        </li>
+        <li>
+          <a
+            href="../../architecture/decisions/0035-self-hosted-llm-runtime-llama-cpp-over-ollama.md"
+            >ADR-0035</a
+          >; geprüfte Anwendung: Commit a19ca70ff37dcb5510a77ab2745c06b70ccc3565.
+        </li>
+        <li>
+          <a href="../evidenz/1A/reihe-main-a19ca70f-20261115-122547/abschluss.json"
+            >Eigene Laborreihe vom 15.11.2026</a
+          >, Laufmanifeste und komprimierte Ressourcenzeitreihen; Aufbau in 1A-versuchsreihe.md.
+        </li>
+        <li>
+          <a href="../evidenz/1A/reihe-main-a19ca70f-20261115-122547/auswertung/auswertung.json"
+            >Reproduzierbare Auswertung</a
+          >
+          durch scripts/load/evaluate-resource-isolation.mjs; ungerundete Prüfwerte in JSON und CSV.
+        </li>
+      </ol>
+      <footer class="fuss">
+        4 / 4 · Abgabeentwurf; keine Produktionsänderung oder formale Prüfungsfreigabe durch dieses
+        Dokument.
+      </footer>
+    </section>
+  </body>
+</html>
