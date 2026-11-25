@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use 'sass:list';
 @use 'sass:meta';
 @use 'styles/music-equalizer-global';
 @import 'katex/dist/katex.min.css';
@@ -2474,8 +2475,8 @@ $markdown-katex-flow-hosts:
   outline-offset: -2px;
 }
 
-/* Markdown-Tabellen in Fragen, Antworten, Vorschau, Host, Vote und Quiz-Beschreibung. */
-@each $host in $markdown-katex-flow-hosts {
+/* Markdown-Tabellen in Fragen, Antworten, Vorschau, Host, Presenter, Vote und Quiz-Beschreibung. */
+@each $host in list.append($markdown-katex-flow-hosts, '.session-projection-quiz .markdown-body') {
   #{$host} table {
     line-height: 1.5;
     width: 100%;

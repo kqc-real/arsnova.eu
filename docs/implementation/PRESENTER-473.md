@@ -13,6 +13,9 @@ Absätze und Codezeilen bilden bevorzugte Seitengrenzen; Formeln, Bilder und
 vollständige Antwortoptionen bleiben zusammen. Das gilt auch für jedes
 Zuordnungspaar, jede Reihenfolgeoption sowie jedes Kategorisierungselement und
 jede Kategorie.
+Markdown-Tabellen verwenden das Tabellenlayout der Quiz-Vorschau. Der Presenter
+blättert zwischen vollständigen Tabellenzeilen und wiederholt die Kopfzeile auf
+jeder Fortsetzungsseite.
 Für Single Choice, Multiple Choice und Umfragen versucht der Presenter zuerst,
 Frage und alle Antwortoptionen gemeinsam darzustellen. Bei Platzmangel misst
 er kompaktere Karten einspaltig und bei ausreichender Breite zweispaltig.
