@@ -10,6 +10,7 @@ export const OPEN_WEIGHT_LLM_CANCEL_COOLDOWN_MS = 1_500;
 export const OPEN_WEIGHT_LLM_CIRCUIT_FAILURE_THRESHOLD = 3;
 export const OPEN_WEIGHT_LLM_CIRCUIT_OPEN_MS = 30_000;
 export const OPEN_WEIGHT_LLM_SUMMARY_V2_MAX_OUTPUT_TOKENS = 192;
+export const OPEN_WEIGHT_LLM_SUMMARY_MAX_OUTPUT_TOKENS = 640;
 /** Persisted audit identity: canonical repository plus the verified GGUF digest. */
 export const OPEN_WEIGHT_LLM_MODEL_ID =
   'unsloth/Qwen3-4B-Instruct-2507-GGUF@sha256:3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597';
@@ -232,7 +233,7 @@ export function resolveOpenWeightLlmConfig(
     },
     maxOutputTokens: {
       topic_label: 96,
-      qa_summary: 640,
+      qa_summary: OPEN_WEIGHT_LLM_SUMMARY_MAX_OUTPUT_TOKENS,
       learning_objectives: 768,
     },
   };

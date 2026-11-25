@@ -3578,12 +3578,37 @@ export type ModerationAnalysisDomainContextV1 = z.infer<
 /** Backward-compatible public name for the pre-packing domain projection. */
 export const ModerationDomainContextV1Schema = ModerationAnalysisDomainContextV1Schema;
 
+export const QA_SUMMARY_MAX_TOPICS = 2;
+export const QA_SUMMARY_MAX_SOURCES_PER_TOPIC = 2;
+
 export const ModerationPromptDomainContextV1Schema = ModerationDomainContextV1BaseSchema.extend({
   representation: z.literal('prompt-selection'),
   sources: z.array(ModerationPromptSourceSchema).max(MODERATION_PROMPT_SOURCE_LIMIT),
+  qaSummaryTopicSourceIds: z
+    .array(z.array(z.string().trim().min(1).max(160)).min(1).max(QA_SUMMARY_MAX_SOURCES_PER_TOPIC))
+    .max(QA_SUMMARY_MAX_TOPICS)
+    .optional(),
 }).superRefine((value, ctx) => {
   validateCommonDomainContext(value, ctx);
   validatePromptPacking(value, ctx);
+  if (value.qaSummaryTopicSourceIds === undefined) return;
+  const topicSources = value.qaSummaryTopicSourceIds.flat();
+  const included = new Set(
+    value.sources
+      .filter((source) => source.kind === 'qa-question' && source.content.state === 'included')
+      .map(({ id }) => id),
+  );
+  if (
+    new Set(topicSources).size !== topicSources.length ||
+    included.size !== topicSources.length ||
+    topicSources.some((id) => !included.has(id))
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['qaSummaryTopicSourceIds'],
+      message: 'Jeder enthaltene Fragetext muss genau einem Kurzfassungsthema zugeordnet sein.',
+    });
+  }
 });
 export type ModerationPromptDomainContextV1 = z.infer<typeof ModerationPromptDomainContextV1Schema>;
 

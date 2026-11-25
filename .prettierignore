@@ -4,3 +4,5 @@ coverage
 .angular
 *.tsbuildinfo
 prisma/migrations
+# Upstream Qwen artifact pinned by SHA-256.
+apps/backend/assets/qa-summary/tokenizer_config.json

@@ -543,7 +543,15 @@
                           <dd>
                             {{ preview.promptContext.budget.packedInputTokens }} /
                             {{ preview.promptContext.budget.contextWindowTokens }}
-                            <span i18n="@@sessionHost.moderationPreviewTokenUnit">Tokens</span>
+                            @if (
+                              preview.promptContext.budget.tokenizer.method === 'exact-tokenizer'
+                            ) {
+                              <span i18n="@@sessionHost.moderationPreviewTokenUnit">Tokens</span>
+                            } @else {
+                              <span i18n="@@sessionHost.moderationPreviewEstimatedTokenUnit">
+                                Tokens (Eingabe geschätzt)
+                              </span>
+                            }
                           </dd>
                         </div>
                         <div>

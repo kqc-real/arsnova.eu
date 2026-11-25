@@ -3,6 +3,7 @@ import { replaceEmojiShortcodes } from '../../../shared/emoji-shortcode.util';
 import {
   MODERATION_COMPASS_STORED_SOURCE_COUNT,
   MODERATION_COMPASS_VISIBLE_SOURCE_COUNT,
+  QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH,
   collectModerationQuizFacts as collectSharedModerationQuizFacts,
   confidenceResultResponseCount,
   isNegativeFeedbackKey,
@@ -236,21 +237,28 @@ export type ModerationSummaryScanParts = {
   readonly body: string;
 };
 
-const SUMMARY_LEAD_RE = /^([^:：]{2,36})[:：] (.+)$/u;
+const SUMMARY_LEAD_RE = /^([^:：]{2,})[:：] (.+)$/u;
 
 /** Splits "Median: Formel unklar" so the host can scan the topic first. */
 export function splitModerationSummaryLead(
   text: string,
   locale: QaSummaryScanLocale = 'de',
+  options: { readonly preserveWording?: boolean } = {},
 ): ModerationSummaryScanParts {
-  const body = toQaSummaryScanBullet(text, locale);
+  const body = options.preserveWording ? text.trim() : toQaSummaryScanBullet(text, locale);
   const match = body.match(SUMMARY_LEAD_RE);
   if (!match) {
     return { lead: null, body };
   }
   const lead = match[1].trim();
   const rest = match[2].trim();
-  if (!rest || lead.includes('.') || /\d{1,2}:\d{2}$/.test(lead)) {
+  const maxLeadLength = options.preserveWording ? QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH : 36;
+  if (
+    !rest ||
+    match[1].length > maxLeadLength ||
+    lead.includes('.') ||
+    /\d{1,2}:\d{2}$/.test(lead)
+  ) {
     return { lead: null, body };
   }
   return { lead, body: rest };

@@ -36,8 +36,8 @@ import {
 import type { OpenWeightLlmConfig } from './openWeightLlmConfig';
 import {
   QA_SUMMARY_ADAPTER_CAPABILITIES,
-  QA_SUMMARY_TECHNICAL_DEFINITION_TEXT,
-  QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
+  QA_GROUPED_SUMMARY_TECHNICAL_DEFINITION_TEXT,
+  QA_GROUPED_SUMMARY_TECHNICAL_INSTRUCTION_TEXT,
   assemblePreparedModerationSummaryContext,
   prepareModerationSummaryContextFromAnalysis,
   qaSummaryTechnicalHandoffTokenCounts,
@@ -754,13 +754,38 @@ describe('openWeightLlmClient', () => {
   );
 
   it.each([
-    { ref: '1', question: 'Wie wird die Varianz berechnet?', valid: true },
-    { ref: '1', question: 'Wie wird die Varianz berechnet?', extraTopic: true, valid: false },
-    { ref: '99', question: 'Wie wird die Varianz berechnet?', valid: false },
-    { ref: '1', question: 'Die Varianz ist das Quadrat der Standardabweichung.', valid: false },
+    {
+      ref: '1',
+      summary:
+        'Offen ist, ob die Gruppe weitere Anwendungsbeispiele zur linearen Regression bearbeiten kann.',
+      valid: true,
+    },
+    {
+      ref: '1',
+      summary:
+        'Offen ist, ob die Gruppe weitere Anwendungsbeispiele zur linearen Regression bearbeiten kann.',
+      extraTopic: true,
+      valid: false,
+    },
+    {
+      ref: '99',
+      summary:
+        'Offen ist, ob die Gruppe weitere Anwendungsbeispiele zur linearen Regression bearbeiten kann.',
+      valid: false,
+    },
+    {
+      ref: '1',
+      summary: 'Offen ist, Können wir mehr Beispiele zur linearen Regression bearbeiten.',
+      valid: false,
+    },
+    {
+      ref: '1',
+      summary: 'Offen ist, Können wir mehr Beispiele zur linearen Regression bearbeiten?',
+      valid: false,
+    },
   ])(
-    'prüft Kurzreferenz, Frageform und Themenzahl für eine belegte Frage ($ref, $question, $extraTopic)',
-    async ({ ref, question, extraTopic, valid }) => {
+    'prüft Kurzreferenz, Satzform, Eigenständigkeit und Themenzahl für eine belegte Frage ($ref, $summary, $extraTopic)',
+    async ({ ref, summary, extraTopic, valid }) => {
       const fixture = structuredClone(MODERATION_PROMPT_CONTEXT_MINIMAL_FIXTURE_V1);
       const analysis = ModerationAnalysisContextV1Schema.parse({
         schemaVersion: fixture.schemaVersion,
@@ -787,7 +812,10 @@ describe('openWeightLlmClient', () => {
         output: {
           status: 'ready',
           statements: [
-            { text: `${topic}: Wie wird die Varianz berechnet?`, sourceIds: [sourceId] },
+            {
+              text: `${topic}: Offen ist, ob die Gruppe weitere Anwendungsbeispiele zur linearen Regression bearbeiten kann.`,
+              sourceIds: [sourceId],
+            },
           ],
           suggestedNextSteps: [],
           limitations: [],
@@ -801,12 +829,12 @@ describe('openWeightLlmClient', () => {
           translatedBody = input.body;
           return completionResponse({
             topics: [
-              { topic, question, refs: [ref] },
+              { topic, summary, refs: [ref] },
               ...(extraTopic
                 ? [
                     {
                       topic: 'Stichprobe',
-                      question: 'Wie wird die Stichprobe ausgewählt?',
+                      summary: 'Offen ist, wie die Stichprobe ausgewählt wird.',
                       refs: ['1'],
                     },
                   ]
@@ -833,10 +861,12 @@ describe('openWeightLlmClient', () => {
       const body = JSON.parse(translatedBody ?? '{}') as {
         messages: Array<{ role: string; content: string }>;
         response_format: { schema: { properties?: Record<string, unknown> } };
+        max_tokens: number;
       };
+      expect(body.max_tokens).toBe(640);
       expect(body.messages).toEqual([
-        { role: 'system', content: QA_SUMMARY_TECHNICAL_INSTRUCTION_TEXT },
-        { role: 'system', content: QA_SUMMARY_TECHNICAL_DEFINITION_TEXT },
+        { role: 'system', content: QA_GROUPED_SUMMARY_TECHNICAL_INSTRUCTION_TEXT },
+        { role: 'system', content: QA_GROUPED_SUMMARY_TECHNICAL_DEFINITION_TEXT },
         {
           role: 'user',
           content: expect.any(String),
@@ -845,15 +875,12 @@ describe('openWeightLlmClient', () => {
       expect(body.messages[2]?.content).not.toContain(prepared.request.promptContext.snapshotHash);
       expect(body.messages[2]?.content).not.toContain(sourceId);
       const context = JSON.parse(body.messages[2]!.content);
-      expect(context.sources[0]).toMatchObject({ id: '1', kind: 'qa-question' });
-      expect(context.sources[0].answerState).toBe('unaddressed');
+      expect(context.groups).toEqual([[{ id: '1', text: expect.any(String) }]]);
       expect(body.response_format.schema.properties?.['topics']).toMatchObject({
         minItems: 1,
         maxItems: 1,
-        items: { properties: { topic: { type: 'string' }, refs: { items: { enum: ['1'] } } } },
+        items: [{ properties: { topic: { type: 'string' }, refs: { items: [{ const: '1' }] } } }],
       });
-      const topicsSchema = body.response_format.schema.properties?.['topics'];
-      expect(topicsSchema).not.toHaveProperty('items.properties.topic.maxLength');
     },
   );
 

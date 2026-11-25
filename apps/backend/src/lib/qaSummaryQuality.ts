@@ -13,7 +13,10 @@ const GENERIC_LEADS: Readonly<Record<AppLocale, ReadonlySet<string>>> = {
   it: new Set(['esempio', 'esempi', 'domanda', 'domande']),
 };
 
-function statementParts(text: string): { lead: string; body: string } | null {
+function statementParts(
+  text: string,
+  maximumTopicLength = QA_SUMMARY_MAX_TOPIC_LENGTH,
+): { lead: string; body: string } | null {
   const colonIndex = text.indexOf(':');
   const spacedDash = text.match(/\s[–—-]\s/u);
   const separator =
@@ -22,8 +25,7 @@ function statementParts(text: string): { lead: string; body: string } | null {
       : spacedDash?.index !== undefined
         ? { index: spacedDash.index, length: spacedDash[0].length }
         : null;
-  if (!separator || separator.index <= 0 || separator.index > QA_SUMMARY_MAX_TOPIC_LENGTH)
-    return null;
+  if (!separator || separator.index <= 0 || separator.index > maximumTopicLength) return null;
   const lead = text
     .slice(0, separator.index)
     .normalize('NFKC')
@@ -421,9 +423,10 @@ function hasConsistentQaCitationGrounding(
   statement: QaSummaryStatementV2,
   sourceTextsById: ReadonlyMap<string, string>,
   includedQaTextsById: ReadonlyMap<string, string>,
+  maximumTopicLength: number,
 ): boolean {
   if (includedQaTextsById.size < 2) return true;
-  const body = statementParts(statement.text)?.body ?? statement.text;
+  const body = statementParts(statement.text, maximumTopicLength)?.body ?? statement.text;
   const statementTokens = extractSignificantContentTokens(body);
   if (statementTokens.length < 2) return true;
 
@@ -583,6 +586,7 @@ function isCompletePlainStatement(text: string, body: string): boolean {
 
 export type QaSummaryQualityOptions = Readonly<{
   minimumStatements?: number;
+  maximumTopicLength?: number;
   sourceTextsById?: ReadonlyMap<string, string>;
   includedQaTextsById?: ReadonlyMap<string, string>;
 }>;
@@ -603,12 +607,13 @@ export function hasAcceptableQaSummaryQuality(
       ? { minimumStatements: minimumStatementsOrOptions }
       : minimumStatementsOrOptions;
   const minimumStatements = options.minimumStatements ?? 2;
+  const maximumTopicLength = options.maximumTopicLength ?? QA_SUMMARY_MAX_TOPIC_LENGTH;
 
   if (output.status === 'failed') return true;
   if (output.status === 'uncertain' && output.statements.length === 0) return true;
   if (output.statements.length < minimumStatements) return false;
 
-  const parts = output.statements.map(({ text }) => statementParts(text));
+  const parts = output.statements.map(({ text }) => statementParts(text, maximumTopicLength));
   if (parts.some((part) => part === null)) return false;
   const completeParts = parts.filter(
     (part): part is { lead: string; body: string } => part !== null,
@@ -644,7 +649,12 @@ export function hasAcceptableQaSummaryQuality(
       if (
         output.statements.some(
           (statement) =>
-            !hasConsistentQaCitationGrounding(statement, sourceTextsById, includedQaTextsById),
+            !hasConsistentQaCitationGrounding(
+              statement,
+              sourceTextsById,
+              includedQaTextsById,
+              maximumTopicLength,
+            ),
         )
       ) {
         return false;

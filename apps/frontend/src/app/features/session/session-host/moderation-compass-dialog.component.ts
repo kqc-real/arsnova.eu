@@ -225,7 +225,11 @@ export class ModerationCompassDialogComponent {
     if (result && 'execution' in result && result.execution.effectiveMode === 'extractive') {
       return { lead: null, body: text.trim() };
     }
-    return splitModerationSummaryLead(text, result?.locale ?? 'de');
+    return splitModerationSummaryLead(text, result?.locale ?? 'de', {
+      preserveWording: Boolean(
+        result && 'execution' in result && result.execution.effectiveMode === 'full-context',
+      ),
+    });
   }
 
   summaryStatements(result: CompatibleQaSummaryResult): CompatibleQaSummaryResult['statements'] {

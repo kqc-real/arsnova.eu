@@ -67,6 +67,15 @@ Exact image, file, size and SHA-256 pins are recorded in
 `docker/open-weight-llm/model-manifest.json`. Mounting the optional model does
 not relicense it or arsnova.eu.
 
+Q&A summary tokenizer (app image)
+--------------------------------
+
+The app image ships the Qwen3-4B-Instruct-2507 tokenizer data at revision
+`eb25fbe4f35f7147763bc24445679d1c00588d89` under Apache-2.0. The upstream
+source, artifact checksums and license are recorded in
+`apps/backend/assets/qa-summary/`. Local token counting uses
+`@huggingface/tokenizers` 0.2.0, also under Apache-2.0.
+
 Presenter animal icons
 ----------------------
 

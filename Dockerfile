@@ -100,6 +100,7 @@ COPY --from=builder /app/node_modules/.prisma node_modules/.prisma
 
 # Copy compiled backend
 COPY --from=builder /app/apps/backend/dist apps/backend/dist
+COPY --from=builder /app/apps/backend/assets/qa-summary apps/backend/assets/qa-summary
 
 # Copy compiled shared-types (needed at runtime via npm workspace resolution)
 COPY --from=builder /app/libs/shared-types/dist libs/shared-types/dist

@@ -24,6 +24,7 @@
   "dependencies": {
     "@arsnova/session-export-report": "*",
     "@arsnova/shared-types": "*",
+    "@huggingface/tokenizers": "0.2.0",
     "@js-temporal/polyfill": "^0.5.1",
     "@prisma/adapter-pg": "7.9.1",
     "@prisma/client": "7.9.1",

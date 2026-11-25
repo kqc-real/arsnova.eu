@@ -12,10 +12,11 @@ import {
 } from '@arsnova/shared-types';
 import { canonicalModerationPromptJson } from '../src/lib/moderationPromptContextPacking';
 import {
+  assemblePreparedModerationSummaryContext,
   buildIncludedQaQuestionTextsBySourceId,
   buildSummaryGroundingTextsBySourceId,
   countIncludedQaQuestionSources,
-  prepareModerationSummaryContextFromAnalysis,
+  packSummaryModerationPromptContext,
   QA_SUMMARY_ADAPTER_CAPABILITIES,
   QA_SUMMARY_MODERATION_PACKING_PROFILE,
   reconcileTopicSiblingQaCitations,
@@ -389,6 +390,15 @@ function fullContextPlan() {
   };
 }
 
+// Slice 8 compares the general context estimate with measured model usage.
+function prepareSlice8Summary(analysis: ModerationAnalysisContextV1) {
+  return assemblePreparedModerationSummaryContext({
+    promptContext: packSummaryModerationPromptContext({ analysis, packedAt: FIXED_PACKED_AT }),
+    cache: 'miss',
+    plan: fullContextPlan(),
+  });
+}
+
 export function evaluateSlice8PackCases(locale: AppLocale = 'de'): readonly Slice8PackCaseReport[] {
   const definitions: ReadonlyArray<{
     readonly caseId: Slice8PackCaseReport['caseId'];
@@ -412,19 +422,11 @@ export function evaluateSlice8PackCases(locale: AppLocale = 'de'): readonly Slic
     const durationsMs: number[] = [];
     const wireHashes = new Set<string>();
     const snapshotHashes = new Set<string>();
-    let latestPrepared = prepareModerationSummaryContextFromAnalysis({
-      analysis,
-      plan: fullContextPlan(),
-      packedAt: FIXED_PACKED_AT,
-    });
+    let latestPrepared = prepareSlice8Summary(analysis);
 
     for (let i = 0; i < PACK_BENCHMARK_ITERATIONS; i += 1) {
       const start = performance.now();
-      const prepared = prepareModerationSummaryContextFromAnalysis({
-        analysis,
-        plan: fullContextPlan(),
-        packedAt: FIXED_PACKED_AT,
-      });
+      const prepared = prepareSlice8Summary(analysis);
       const wireUser = projectCompactSummaryWireContext(prepared.request);
       durationsMs.push(Number((performance.now() - start).toFixed(3)));
       wireHashes.add(sha256Hex(wireUser));
@@ -560,11 +562,7 @@ export async function runSlice8SummaryEvaluation(options: {
 
   const liveCases: Slice8LiveCaseReport[] = [];
   for (const packCase of packCases) {
-    const prepared = prepareModerationSummaryContextFromAnalysis({
-      analysis: analysesByCase[packCase.caseId],
-      plan: fullContextPlan(),
-      packedAt: FIXED_PACKED_AT,
-    });
+    const prepared = prepareSlice8Summary(analysesByCase[packCase.caseId]);
     const groundingTextsById = buildSummaryGroundingTextsBySourceId(prepared.request.promptContext);
     const includedQaTextsById = buildIncludedQaQuestionTextsBySourceId(
       prepared.request.promptContext,

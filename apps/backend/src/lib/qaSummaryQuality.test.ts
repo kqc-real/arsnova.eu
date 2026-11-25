@@ -1,4 +1,7 @@
-import type { QaSummaryModelOutputV2 } from '@arsnova/shared-types';
+import {
+  QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH,
+  type QaSummaryModelOutputV2,
+} from '@arsnova/shared-types';
 import { describe, expect, it } from 'vitest';
 import { hasAcceptableQaSummaryQuality } from './qaSummaryQuality';
 
@@ -15,6 +18,19 @@ function output(
 }
 
 describe('hasAcceptableQaSummaryQuality', () => {
+  it('wendet das längere Titellimit ausschließlich bei der gruppierten Kurzfassung an', () => {
+    const summary = output([
+      'Verschwinden von Kundinnen im LEFT JOIN bei Statusfilterung: Offen ist, wie sich der Join beim Filtern verhält.',
+    ]);
+    expect(hasAcceptableQaSummaryQuality(summary, 'de', 1)).toBe(false);
+    expect(
+      hasAcceptableQaSummaryQuality(summary, 'de', {
+        minimumStatements: 1,
+        maximumTopicLength: QA_SUMMARY_GROUPED_MAX_TOPIC_LENGTH,
+      }),
+    ).toBe(true);
+  });
+
   it('akzeptiert mehrere unterscheidbare konkrete Themen', () => {
     expect(
       hasAcceptableQaSummaryQuality(

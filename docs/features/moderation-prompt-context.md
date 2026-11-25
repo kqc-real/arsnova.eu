@@ -129,6 +129,8 @@ N11 wählt in fester Code-Unit-Reihenfolge und in getrennten Lanes unter anderem
 
 Das Budget zählt konservativ jedes UTF-8-Byte als höchstens ein Modelltoken. Verbindliches tatsächliches Modellmaterial ist in Slice 7 exakt `instructionText` plus `definitionText` plus kanonisch serialisierter `context`; `packedAt`, Hash und Budgetbericht sind ausschließlich Transport- und Diagnosefelder und dürfen nicht zusätzlich in den Modellprompt geraten. Antwortreserve und Sicherheitsmarge bleiben gesondert. Der Hash bindet die tatsächlichen Instruktions- und Definitionstexte, alle semantischen Kontextwerte und die Auswahlversion ein, lässt aber reine Transportzeitstempel aus. Textgleiche, metadatenergänzte und vollständige Referenzfixtures erlauben einen deterministischen Ablationsvergleich.
 
+In reinen Q&A-Sitzungen verwendet der private Modellpfad einen [lokalen Qwen-Tokenizer und je zwei gebundene Originalfragen pro Thema](qa-summary.md#reine-qa-sitzungen).
+
 Der Cache besitzt bewusst keinen Abruf nur per Session-ID: Vor jedem Treffer muss N10 den vollständigen, frisch autorisierten Analysekontext erneut liefern. Revision, Modellprofil, Instruktion, Definitionen oder semantischer Inhalt ändern den Schlüssel. Sessionlöschung beziehungsweise Purge invalidiert vorhandene Einträge und setzt eine kurzlebige, global konservative O(1)-Sperre gegen Wiederbefüllen. Reiner Purge-Verkehr kann dadurch keinen unbegrenzten Sitzungsindex im Cache aufbauen.
 
 ### 2.5 Anfrage, Vorschau und Auslieferung in Slice 7
