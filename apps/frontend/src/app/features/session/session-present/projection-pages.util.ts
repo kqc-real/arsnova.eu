@@ -6,8 +6,9 @@ export interface ProjectionBoundary {
 }
 const ATOMIC =
   '.session-projection-quiz__answer, [data-projection-unit], .katex, img, svg, canvas, mat-icon, app-answer-option-badge';
-const BLOCK = 'p, li, pre, tr, h1, h2, h3, h4, article, mat-card, [data-projection-unit]';
+const BLOCK = 'p, li, pre, tr, table, h1, h2, h3, h4, article, mat-card, [data-projection-unit]';
 const ANSWER_LIST = '[data-projection-answer-list]';
+const MARKDOWN_TABLE = '.markdown-body table';
 
 export function projectionBoundaries(root: HTMLElement): ProjectionBoundary[] {
   const points: ProjectionBoundary[] = [];
@@ -30,6 +31,11 @@ export function projectionBoundaries(root: HTMLElement): ProjectionBoundary[] {
             '.session-projection-quiz__answer, [data-projection-unit], .katex, img, svg, canvas',
           ),
         );
+        return;
+      }
+      if (node.matches('thead, tr') && node.closest(MARKDOWN_TABLE)) {
+        // A header travels with the first body row. Body rows stay intact.
+        if (node.matches('tbody > tr')) after(node, true);
         return;
       }
     }
@@ -74,6 +80,19 @@ export function cloneProjectionRange(
   }
   const copy = root.cloneNode(false) as HTMLElement;
   copy.appendChild(content);
+  const originalTables = Array.from(root.querySelectorAll<HTMLTableElement>(MARKDOWN_TABLE)).filter(
+    (table) => range.intersectsNode(table),
+  );
+  copy.querySelectorAll<HTMLTableElement>(MARKDOWN_TABLE).forEach((table, index) => {
+    const original = originalTables[index];
+    if (!original) return;
+    const hasBodyRows = Array.from(table.tBodies).some((body) => body.rows.length > 0);
+    if (hasBodyRows && !table.tHead && original.tHead) {
+      table.prepend(original.tHead.cloneNode(true));
+    } else if (!hasBodyRows && (!table.rows.length || original.rows.length > table.rows.length)) {
+      table.remove();
+    }
+  });
   // Ordered lists and answer badges retain their meaning on continuation pages.
   const originalItems = Array.from(root.querySelectorAll('li')).filter((item) =>
     range.intersectsNode(item),

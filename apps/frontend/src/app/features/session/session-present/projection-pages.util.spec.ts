@@ -151,6 +151,45 @@ describe('semantic projection pages', () => {
       if (code) expect(code).toMatch(/^(line (one|two|three|four)\n?)+$/);
     }
   });
+  it('repeats the correct table headers and keeps each body row intact across pages', () => {
+    const source = root(`
+      <div class="markdown-body">
+        <p>Intro</p>
+        <table>
+          <thead><tr><th>Model</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>First model</td><td>Test result 1</td></tr>
+            <tr><td>Second model</td><td>Test result 2</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead><tr><th>Category</th><th>Total</th></tr></thead>
+          <tbody><tr><td>Third model</td><td>Test result 3</td></tr></tbody>
+        </table>
+        <p>End</p>
+      </div>
+    `);
+    const pages = paginateProjection(source, (page) => {
+      const paragraphs = Array.from(page.querySelectorAll('p')).filter((p) => p.textContent);
+      return paragraphs.length + page.querySelectorAll('tbody tr').length <= 1;
+    });
+
+    expect(
+      pages.map((page) => Array.from(page.querySelectorAll('p'), (p) => p.textContent)),
+    ).toEqual([['Intro'], [], [], [], ['End']]);
+    const tables = pages.flatMap((page) => Array.from(page.querySelectorAll('table')));
+    expect(tables.map((table) => table.tHead?.rows[0]?.textContent)).toEqual([
+      'ModelValue',
+      'ModelValue',
+      'CategoryTotal',
+    ]);
+    expect(tables.map((table) => table.tBodies[0]?.rows[0]?.textContent)).toEqual([
+      'First modelTest result 1',
+      'Second modelTest result 2',
+      'Third modelTest result 3',
+    ]);
+    expect(tables.every((table) => table.rows.length === 2)).toBe(true);
+  });
   it('projects every matrix value together with its row and column labels', () => {
     const source = root(
       '<div class="distribution-matrix"><table><thead><tr><th>Item</th><th>Left</th><th>Right</th></tr></thead><tbody><tr><th>First</th><td>3 / 30%</td><td>7 / 70%</td></tr></tbody></table></div>',
