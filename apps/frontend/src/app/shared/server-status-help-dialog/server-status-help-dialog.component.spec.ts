@@ -1,8 +1,10 @@
-import { signal } from '@angular/core';
+import { signal, type WritableSignal } from '@angular/core';
+import type { ServerStatsDTO } from '@arsnova/shared-types';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerStatusHelpDialogComponent } from './server-status-help-dialog.component';
+import { textAnalysisCopy as copy } from '../text-analysis/text-analysis-copy';
 import type { SpecAccess } from '../../testing/spec-access';
 
 const openWeightLlmProbeQuery = vi.fn();
@@ -49,12 +51,10 @@ describe('ServerStatusHelpDialogComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('opens the text-analysis explanation without requesting a probe', () => {
-    const open = vi.fn();
+  it('opens the text-analysis explanation without requesting a probe', async () => {
     TestBed.configureTestingModule({
       imports: [ServerStatusHelpDialogComponent],
       providers: [
-        { provide: MatDialog, useValue: { open } },
         {
           provide: MAT_DIALOG_DATA,
           useValue: { connectionOk: signal(false), loading: signal(false), stats: signal(null) },
@@ -70,7 +70,24 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(help.textContent).toContain('So wertet arsnova deine Beiträge aus');
     openWeightLlmProbeQuery.mockClear();
     help.click();
-    expect(open).toHaveBeenCalledOnce();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+    expect(dialog.getAttribute('aria-label')).toBe(copy.helpTitle);
+    expect(dialog.querySelector('h2')?.textContent).toContain(copy.helpTitle);
+    expect(
+      Array.from(dialog.querySelectorAll('dl:last-child dt'), (term) => term.textContent?.trim()),
+    ).toEqual([
+      copy.statusEnabled,
+      copy.statusReachable,
+      copy.statusBusy,
+      copy.statusUnknown,
+      copy.statusUsed,
+    ]);
+    expect(dialog.textContent).toContain(copy.neighborsInfo);
+    expect(dialog.textContent).toContain(copy.statusEnabledInfo);
+    expect(dialog.textContent).toContain(copy.statusUsedInfo);
+    TestBed.inject(MatDialog).closeAll();
     expect(openWeightLlmProbeQuery).not.toHaveBeenCalled();
   });
 
@@ -244,7 +261,15 @@ describe('ServerStatusHelpDialogComponent', () => {
     });
 
     const fixture = TestBed.createComponent(ServerStatusHelpDialogComponent);
+    const stats = fixture.componentInstance.data.stats as WritableSignal<ServerStatsDTO | null>;
+    const liveStats = stats();
+    stats.set(null);
     fixture.detectChanges();
+    const helpTrigger = fixture.nativeElement.querySelector('button[aria-haspopup="dialog"]');
+    expect(helpTrigger).not.toBeNull();
+    stats.set(liveStats);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('button[aria-haspopup="dialog"]')).toBe(helpTrigger);
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
 
     expect(text).toContain('Betrieb & Nutzung');
@@ -542,6 +567,7 @@ describe('ServerStatusHelpDialogComponent', () => {
     expect(scss).toMatch(
       /\.status-help-dialog__metric strong\.status-help-dialog__metric-value--prose\s*\{[^}]*--mat-sys-body-medium/,
     );
+    expect(scss).toMatch(/\.status-help-dialog__tabs\s*\{[^}]*min-inline-size:\s*0/);
     expect(scss).not.toContain('status-help-dialog__status-badge-wrapper');
     expect(scss).not.toMatch(/\.status-help-dialog__legend li\s*\{/);
     expect(scss).not.toContain('!important');

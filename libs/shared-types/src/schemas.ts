@@ -4601,6 +4601,8 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
   entries: z.array(WordCloudAnalysisEntryDTOSchema),
   topicLabelsPending: z.boolean().optional(),
+  /** A semantic request with too few usable sources or no reliable cluster. */
+  semanticFallbackReason: z.literal('no_shared_topics').optional(),
   labelSettlement: WordCloudLabelSettlementSchema.optional(),
   labelFallbackReason: WordCloudLabelFallbackReasonSchema.optional(),
   /** Reuse by this request. Stored snapshots and public projections omit it. */

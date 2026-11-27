@@ -72,6 +72,16 @@ export interface ServerStatusHelpDialogData {
       </span>
     </h2>
     <mat-dialog-content class="status-help-dialog__content">
+      <button
+        mat-button
+        type="button"
+        class="status-help-dialog__analysis-help"
+        aria-haspopup="dialog"
+        (click)="openTextAnalysisHelp()"
+      >
+        <mat-icon aria-hidden="true">info_outline</mat-icon>
+        {{ analysisHelpTitle }}
+      </button>
       @if (effectiveStats(); as s) {
         <mat-tab-group
           class="status-help-dialog__tabs"
@@ -253,15 +263,6 @@ export interface ServerStatusHelpDialogData {
                     Die Prüfung zeigt, ob die lokale Text-KI erreichbar ist und gerade Anfragen
                     annehmen kann.
                   </p>
-                  <button
-                    mat-button
-                    type="button"
-                    aria-haspopup="dialog"
-                    (click)="openTextAnalysisHelp()"
-                  >
-                    <mat-icon aria-hidden="true">info_outline</mat-icon>
-                    {{ analysisHelpTitle }}
-                  </button>
                   @if (llmModelLabel(); as modelLabel) {
                     <p class="status-help-dialog__copy status-help-dialog__copy--compact">
                       <span i18n="@@app.footer.statusOpenWeightLlmModel">Modell:</span>
@@ -1702,10 +1703,6 @@ export interface ServerStatusHelpDialogData {
             </p>
           }
         </section>
-        <button mat-button type="button" aria-haspopup="dialog" (click)="openTextAnalysisHelp()">
-          <mat-icon aria-hidden="true">info_outline</mat-icon>
-          {{ analysisHelpTitle }}
-        </button>
       }
       <section
         class="status-help-dialog__panel status-help-dialog__panel--legend"

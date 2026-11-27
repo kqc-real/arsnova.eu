@@ -18703,8 +18703,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
-        <source> Fragen zusammenfassen</source>
-        <target>Summarize questions</target>
+        <source>Fragen zusammenfassen</source>
+        <target>Summarise questions</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">201,203</context>
@@ -20067,18 +20067,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">658</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticPendingLabel" datatype="html">
-        <source>Themen werden vorbereitet.</source>
-        <target>Topics are being prepared.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.ts</context>
-          <context context-type="linenumber">129</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">3821,3823</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingFallback" datatype="html">
@@ -23303,8 +23291,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingHint" datatype="html">
-        <source>Themen werden vorbereitet.</source>
-        <target>Topics are being prepared.</target>
+        <source>Verwandte Themen werden gesucht …</source>
+        <target>Finding related topics…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1443</context>
@@ -23431,8 +23419,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Nach Grundform bündeln</source>
-        <target>Group by base form</target>
+        <source>Sprachformen glätten</source>
+        <target>Unify word forms</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -37635,10 +37623,6 @@
         <source>Die lokale KI kann Fragen auf Anfrage zusammenfassen. Wenn das nicht möglich ist, kann arsnova passende Originalfragen anzeigen.</source>
         <target>Local AI can summarise questions on request. If this is unavailable, arsnova can show relevant original questions.</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.statusInfo" datatype="html">
-        <source>Der Betriebsstatus beschreibt, ob ein Dienst verfügbar ist. Welche Verfahren deine Auswertung tatsächlich verwendet hat, siehst du am Ergebnis.</source>
-        <target>Service status shows whether a service is available. Check your result to see which methods were used for your analysis.</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.classificationMethodUnknown" datatype="html">
         <source>Verfahren unbekannt</source>
         <target>Method unknown</target>
@@ -37676,8 +37660,8 @@
         <target>Summary from the older model workflow</target>
       </trans-unit>
       <trans-unit id="textAnalysis.remainingTime" datatype="html">
-        <source>Verbleibende Zeit in Minuten</source>
-        <target>Time remaining in minutes</target>
+        <source>Zuletzt gemeldetes Restbudget in Minuten</source>
+        <target>Last reported time budget in minutes</target>
       </trans-unit>
       <trans-unit id="textAnalysis.basisLabel" datatype="html">
         <source>Auf Grundlage deiner Rückmeldungen</source>
@@ -37686,6 +37670,82 @@
       <trans-unit id="textAnalysis.groupingReused" datatype="html">
         <source>Vorhandene Themenbildung übernommen</source>
         <target>Previous topic grouping reused</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.noSharedTopics" datatype="html">
+        <source>Noch keine ausreichend ähnlichen Beiträge für gemeinsame Themen.</source>
+        <target>Not enough similar responses to form shared topics yet.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.newResponses" datatype="html">
+        <source>Neue Beiträge sind hinzugekommen. Du kannst die Themen aktualisieren.</source>
+        <target>New responses have arrived. You can update the topics.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.newResponsesShort" datatype="html">
+        <source>Neue Beiträge</source>
+        <target>New responses</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicSearchShort" datatype="html">
+        <source>Themen werden gesucht …</source>
+        <target>Finding topics…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.neighborsInfo" datatype="html">
+        <source>Wenn die erste Einordnung unsicher ist, helfen ähnliche Beispiele bei der Zuordnung.</source>
+        <target>When the initial classification is uncertain, similar examples help refine it.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusEnabled" datatype="html">
+        <source>Aktiviert</source>
+        <target>Enabled</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusReachable" datatype="html">
+        <source>Erreichbar</source>
+        <target>Reachable</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusBusy" datatype="html">
+        <source>Belegt</source>
+        <target>Busy</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUnknown" datatype="html">
+        <source>Status unbekannt</source>
+        <target>Status unknown</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUsed" datatype="html">
+        <source>Für dieses Ergebnis verwendet</source>
+        <target>Used for this result</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponseBasis" datatype="html">
+        <source>Grundlage: mehrfach genannte Rückmeldungen</source>
+        <target>Based on repeated responses</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicUpdateFailed" datatype="html">
+        <source>Themen nicht aktualisiert</source>
+        <target>Topics could not be updated</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusHeading" datatype="html">
+        <source>Betriebsstatus und Herkunft</source>
+        <target>Service status and result origin</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusEnabledInfo" datatype="html">
+        <source>Die Konfiguration schaltet das Verfahren für die vorgesehenen Aufgaben frei.</source>
+        <target>The configuration enables the method for its intended tasks.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusReachableInfo" datatype="html">
+        <source>Die letzte Slot-Sonde konnte den Dienst erreichen.</source>
+        <target>The last slot check reached the service.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusBusyInfo" datatype="html">
+        <source>Die letzte Slot-Sonde hat den Dienst erreicht. Alle Plätze waren zu diesem Zeitpunkt belegt.</source>
+        <target>The last slot check reached the service. All slots were occupied at that time.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUnknownInfo" datatype="html">
+        <source>Für diesen Zustand liegen keine verlässlichen Betriebsdaten vor.</source>
+        <target>There are no reliable service data for this state.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUsedInfo" datatype="html">
+        <source>Die Herkunft am konkreten Ergebnis zeigt, welches Verfahren daran beteiligt war. Die Slot-Sonde prüft Erreichbarkeit und Belegung.</source>
+        <target>The origin shown with the result identifies the method used. The slot check reports reachability and occupancy.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetrying" datatype="html">
+        <source>Die Lernzielableitung wird erneut versucht.</source>
+        <target>The learning objective request is being retried.</target>
       </trans-unit>
     </body>
   </file>

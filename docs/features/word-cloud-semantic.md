@@ -71,6 +71,14 @@ Die Endpunkte `wordCloud.analyzeQa` und `wordCloud.analyze` setzen eine geprüft
 - Während `pending` bleibt das vorherige Cluster-Ergebnis sichtbar, sofern vorhanden; sonst eine verfügbare lexikalische Ersatzansicht oder der Ladezustand. Host und Q&A-Dialog zeigen denselben Fortschritt (Text plus unbestimmte Leiste, kein Prozentwert). Die Anzeige bleibt mindestens 1 s sichtbar, damit Cache- oder Fallback-Antworten nicht nur aufblitzen; das Cluster-Ergebnis wechselt erst danach. Läuft die Analyse nach 2 s noch, kommt ein grober Zeit-Hinweis: **Das kann einen Moment dauern.**, ab etwa 100 sichtbaren Fragen bzw. Antworten **Bei vielen Fragen/Antworten kann das eine Minute dauern.** Keine exakten Anzahlen oder Obergrenzen.
 - Ohne Cluster mit mindestens zwei Mitgliedern (eine einzelne Frage oder Antwort, nur Singletons) ist der Status `fallback`, nicht `uncertain`. Der Encoder läuft erst ab zwei Quellen. `uncertain` gilt nur, wenn Themenblasen da sind, aber die Konfidenz unter der Host-Stufe **sicher** liegt.
 
+Der kompakte Hinweis zu einem veralteten Ergebnis nennt neue Beiträge nur bei
+belegtem Zuwachs. Bei einem fehlgeschlagenen Refresh erklärt der Infodialog
+zusätzlich, dass das bisherige Ergebnis weiter nutzbar ist und eine Wiederholung
+möglich bleibt. Bei belegter fehlender Clusterbildung meldet das Host-Ergebnis
+`semanticFallbackReason: no_shared_topics`. Die Anzeige von Glättung leitet sich
+aus den sichtbaren Einträgen des Lemma-Ergebnisses ab und gilt auch für einen
+lexikalischen Ersatz im Themenmodus.
+
 Einfrieren hält die sichtbare Wolke samt Ergebnistyp, Einträgen, Abdeckung und Glättung fest. Analyseaktionen im Host werden bis **Live fortsetzen** gesperrt. Der kanonische Q&A-Endpunkt lädt für jede Analyse die aktuellen Serverdaten. Der Freitext-Presenter kann mit dem eingefrorenen Antwortstand lokal weiterarbeiten. Wechselt der Host währenddessen die Sprache, übernimmt der Presenter sie beim Fortsetzen und verwirft eigene Ergebnisse der vorherigen Sprache. Eine passende geglättete Phrasenwolke bleibt beim Themenabruf und im lexikalischen Ersatzfall sichtbar.
 
 In Q&A zeigt das Blasendetail die Anzahl der enthaltenen Fragen und die Größenmetrik separat. Die Abdeckung zeigt ausgewertete und geeignete Fragen. Host-Ansichten öffnen zu einer ausgewählten Themenblase die vorhandenen Mitgliedsbelege und geben bei Kürzung den sichtbaren und gesamten Umfang an. Die Bühnenplatzierung versucht, vorhandene Positionen anhand stabiler Eintragsschlüssel zu übernehmen, wenn die Kapseln kollisionsfrei innerhalb der Bühne liegen.

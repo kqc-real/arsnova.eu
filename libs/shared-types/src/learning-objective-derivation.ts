@@ -157,6 +157,8 @@ export const LearningObjectiveDerivationProgressSchema = z
     completionTokens: z.number().int().min(0),
     queuedObjectives: z.number().int().min(0).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),
     waitingForModel: z.boolean().optional(),
+    /** Retry preparation and admission are measurable separately from inference. */
+    priorityRetryPhase: z.enum(['waiting', 'retrying']).optional(),
     remainingBudgetMs: z.number().int().nonnegative().optional(),
     /** Drafts from finished batches, stable for the whole operation. */
     drafts: z.array(LearningObjectiveDerivedDraftSchema).max(LEARNING_OBJECTIVE_MAX_OBJECTIVES),

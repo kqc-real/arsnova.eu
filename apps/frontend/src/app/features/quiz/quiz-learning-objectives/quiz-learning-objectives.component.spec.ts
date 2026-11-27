@@ -717,6 +717,7 @@ describe('QuizLearningObjectivesComponent', () => {
         completionTokens: 160,
         queuedObjectives: 2,
         waitingForModel: true,
+        priorityRetryPhase: 'waiting',
         remainingBudgetMs: 94_000,
       },
     }));
@@ -748,7 +749,9 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Die laufende Lehre hat Vorrang. Deine Lernzielableitung wartet auf einen freien KI-Platz.',
     );
-    expect(fixture.nativeElement.textContent).toContain('Verbleibende Zeit in Minuten 2');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Zuletzt gemeldetes Restbudget in Minuten 2',
+    );
     expect(fixture.nativeElement.textContent).toContain(
       '2 Lernziele stehen schon als Entwürfe in der Liste.',
     );
@@ -820,6 +823,7 @@ describe('QuizLearningObjectivesComponent', () => {
         promptTokens: 400,
         completionTokens: 80,
         queuedObjectives: 3,
+        priorityRetryPhase: 'retrying',
       },
     };
     const older = {
@@ -832,6 +836,8 @@ describe('QuizLearningObjectivesComponent', () => {
         promptTokens: 0,
         completionTokens: 0,
         queuedObjectives: 0,
+        waitingForModel: true,
+        priorityRetryPhase: 'waiting',
       },
     };
     pending[1]!(newer);
@@ -846,8 +852,29 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
       '3 Lernziele stehen schon als Entwürfe in der Liste.',
     );
+    expect(fixture.nativeElement.textContent).toContain(
+      'Die Lernzielableitung wird erneut versucht.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('wartet auf einen freien KI-Platz');
+    await vi.waitFor(() => expect(pending.length).toBe(3), {
+      timeout: LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 1_000,
+    });
+    pending[2]!({
+      ...newer,
+      progress: {
+        ...newer.progress,
+        completedGroups: 3,
+        elapsedMs: 90_000,
+        priorityRetryPhase: undefined,
+        waitingForModel: true,
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Fertig sind 3 von 4 Fragegruppen.');
+    expect(fixture.componentInstance.derivationPriorityLabel()).toBeNull();
     fixture.destroy();
-  });
+  }, 10_000);
 
   it('zeigt Fortschritt auch wenn jeder Poll länger als das Intervall dauert', async () => {
     const store = TestBed.inject(QuizStoreService);

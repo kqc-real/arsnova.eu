@@ -408,7 +408,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(status?.classList.contains('qa-word-cloud-dialog__status--cover')).toBe(true);
     expect(progress).not.toBeNull();
     expect(progress?.getAttribute('aria-busy')).toBe('true');
-    expect(progress?.textContent).toContain('Themen werden vorbereitet.');
+    expect(progress?.textContent).toContain('Themen werden gesucht …');
     expect(progress?.textContent).not.toContain('Es gelten Wörter und Wortgruppen.');
     expect(progress?.querySelector('mat-progress-bar')).not.toBeNull();
     expect(progress?.textContent).not.toContain('Das kann einen Moment dauern');

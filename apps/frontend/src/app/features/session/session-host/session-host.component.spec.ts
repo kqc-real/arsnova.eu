@@ -8435,7 +8435,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(text).toContain('Live-Freitext');
     expect(wordCloudDetails?.querySelector('.word-cloud__description')).toBeNull();
     expect(text).toContain('Anzeige anhalten');
-    expect(text).toContain('Nach Grundform bündeln');
+    expect(text).toContain('Sprachformen glätten');
     const viewHint = wordCloudDetails?.querySelector(
       '.session-host__word-cloud-view-hint',
     ) as HTMLElement | null;
@@ -9113,6 +9113,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     const analyzeCallsAfterReady = wordCloudAnalyzeQueryMock.mock.calls.length;
     expect(component.freetextWordCloudSemanticStale()).toBe(false);
+    const evidence = component
+      .moderationCompassCards()
+      .find((card) => card.kind === 'topics')
+      ?.sources.find((source) => source.kind === 'freetext-term');
+    expect(evidence?.analysisBasis).toBe('topics');
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
 
     component.freetextResponses.set([
@@ -9127,7 +9132,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.freetextWordCloudSemanticStale()).toBe(true);
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
     expect(component.freetextWordCloudSemanticHint()).toContain(
-      'Neue Antworten seit der letzten Themenanalyse',
+      'Neue Beiträge sind hinzugekommen.',
     );
     expect(
       fixture.nativeElement.querySelector('[data-testid="freetext-word-cloud-refresh-themes"]'),
@@ -14675,6 +14680,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Kapitel 4');
     expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
+    const qaEvidence = fixture.componentInstance
+      .moderationCompassCards()
+      .find((card) => card.kind === 'topics')
+      ?.sources.find((source) => source.kind === 'qa-term');
+    expect(qaEvidence?.analysisBasis).toBe('lexical');
+    expect(fixture.componentInstance.qaWordCloudAnalysisInfo().result?.status).toBe('disabled');
 
     const lemmaCallsBeforeToggle = wordCloudAnalyzeQueryMock.mock.calls.filter(
       (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
@@ -14782,7 +14793,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         text: 'Der Beamer-Haenger ist defekt.',
         upvoteCount: 2,
         status: 'ACTIVE',
-        createdAt: '2026-03-13T12:05:00.000Z',
+        createdAt: '2026-03-24T12:05:00.000Z',
         myVote: null,
         isOwn: false,
         hasUpvoted: false,
@@ -14795,7 +14806,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('stale');
     expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Bündelung aktualisieren');
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
-      'Neue Fragen seit der letzten Themenanalyse',
+      'Neue Beiträge sind hinzugekommen.',
     );
 
     const component = fixture.componentInstance;
@@ -14841,6 +14852,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(wordCloudAnalyzeQueryMock.mock.calls.length).toBeGreaterThan(calls),
     );
     const visible = component.qaWordCloudAnalysisEntries()?.map(({ label }) => label);
+    const shownAnalysis = component.qaWordCloudAnalysisInfo().result;
     component.toggleQaWordCloudFreeze();
     releaseAnalysis(
       wordCloudAnalyzeResult({
@@ -14851,6 +14863,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await Promise.resolve();
     fixture.detectChanges();
     expect(component.qaWordCloudAnalysisEntries()?.map(({ label }) => label)).toEqual(visible);
+    expect(component.qaWordCloudAnalysisInfo().result).toBe(shownAnalysis);
     component.toggleQaWordCloudFreeze();
     expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
     fixture.destroy();
@@ -15197,7 +15210,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaWordCloudSemanticStale()).toBe(true);
     expect(component.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Stichprobengröße');
     expect(component.qaWordCloudThemeFallbackHint()).toBe(
-      'Neue Fragen seit der letzten Themenanalyse',
+      'Beiträge geändert · Themen aktualisieren',
     );
     expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(analysisCalls);
     fixture.destroy();
@@ -15785,6 +15798,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
     expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudAnalysisInfo().result?.normalizationApplied).toBe(
+      'LEMMA',
+    );
     expect(
       fixture.componentInstance.qaWordCloudAnalysisEntries()?.map((entry) => entry.label),
     ).toEqual(['Kapitel 4', 'Klausur']);
@@ -15924,9 +15940,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
-      'Themen werden vorbereitet',
+      'Verwandte Themen werden gesucht',
     );
     expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudAnalysisInfo().result?.normalizationApplied).toBe(
+      'LEMMA',
+    );
     expect(
       fixture.componentInstance.qaWordCloudAnalysisEntries()?.map((entry) => entry.label),
     ).toEqual(['Kapitel 4', 'Klausur']);
@@ -30897,6 +30916,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         .find((card) => card.kind === 'topics')
         ?.sources.find((source) => source.kind === 'qa-term');
       expect(generatedSource?.target?.analysisVariant).toBe('SEMANTIC');
+      expect(generatedSource?.analysisBasis).toBe('lexical');
 
       await component.followModerationCompassSource({
         kind: 'qa-term',

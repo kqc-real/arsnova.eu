@@ -65,7 +65,13 @@ interface TextAnalysisHelpContext {
             }
           }
         </dl>
-        <p>{{ copy.statusInfo }}</p>
+        <h3>{{ copy.statusHeading }}</h3>
+        <dl>
+          @for (state of statusLegend; track state.label) {
+            <dt>{{ state.label }}</dt>
+            <dd>{{ state.description }}</dd>
+          }
+        </dl>
       </ng-template>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -106,6 +112,7 @@ export class TextAnalysisHelpDialogComponent {
       descriptions: [
         copy.classificationInfo,
         'Naive Bayes · ' + copy.naiveBayes,
+        copy.neighborsInfo,
         'k-NN · ' + copy.neighbors,
       ],
     },
@@ -116,12 +123,21 @@ export class TextAnalysisHelpDialogComponent {
     },
   ];
 
+  protected readonly statusLegend = [
+    { label: copy.statusEnabled, description: copy.statusEnabledInfo },
+    { label: copy.statusReachable, description: copy.statusReachableInfo },
+    { label: copy.statusBusy, description: copy.statusBusyInfo },
+    { label: copy.statusUnknown, description: copy.statusUnknownInfo },
+    { label: copy.statusUsed, description: copy.statusUsedInfo },
+  ];
+
   static open(
     dialog: MatDialog,
     context: Signal<TextAnalysisHelpContext | null> | null = null,
   ): void {
     dialog.open(TextAnalysisHelpDialogComponent, {
       data: context,
+      ariaLabel: context ? copy.infoButton : copy.helpTitle,
       width: '36rem',
       maxWidth: 'calc(100vw - 2rem)',
       autoFocus: 'first-heading',

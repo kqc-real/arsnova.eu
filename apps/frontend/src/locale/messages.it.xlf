@@ -18652,8 +18652,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
-        <source> Fragen zusammenfassen</source>
-        <target>Riassumi le domande</target>
+        <source>Fragen zusammenfassen</source>
+        <target>Riassumere le domande</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">201,203</context>
@@ -19931,7 +19931,7 @@
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisTheme" datatype="html">
         <source>Wortgruppen</source>
-        <target>Espressioni</target>
+        <target>Gruppi di parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">28</context>
@@ -20015,18 +20015,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">658</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticPendingLabel" datatype="html">
-        <source>Themen werden vorbereitet.</source>
-        <target>I temi sono in preparazione.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.ts</context>
-          <context context-type="linenumber">129</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">3821,3823</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingFallback" datatype="html">
@@ -21743,7 +21731,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisPhrases" datatype="html">
         <source>Wortgruppen</source>
-        <target>Espressioni</target>
+        <target>Gruppi di parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3746</context>
@@ -23250,8 +23238,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingHint" datatype="html">
-        <source>Themen werden vorbereitet.</source>
-        <target>Preparazione dei temi in corso.</target>
+        <source>Verwandte Themen werden gesucht …</source>
+        <target>Ricerca di temi affini…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1443</context>
@@ -23378,8 +23366,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Nach Grundform bündeln</source>
-        <target>Raggruppa per forma base</target>
+        <source>Sprachformen glätten</source>
+        <target>Uniformare le forme delle parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -37581,10 +37569,6 @@
         <source>Die lokale KI kann Fragen auf Anfrage zusammenfassen. Wenn das nicht möglich ist, kann arsnova passende Originalfragen anzeigen.</source>
         <target>L’IA locale può riassumere le domande su richiesta. Se non è possibile, arsnova può mostrare domande originali pertinenti.</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.statusInfo" datatype="html">
-        <source>Der Betriebsstatus beschreibt, ob ein Dienst verfügbar ist. Welche Verfahren deine Auswertung tatsächlich verwendet hat, siehst du am Ergebnis.</source>
-        <target>Lo stato del servizio indica se è disponibile. Consulta il tuo risultato per vedere quali metodi sono stati effettivamente usati.</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.classificationMethodUnknown" datatype="html">
         <source>Verfahren unbekannt</source>
         <target>Metodo sconosciuto</target>
@@ -37622,8 +37606,8 @@
         <target>Sintesi dal precedente processo del modello</target>
       </trans-unit>
       <trans-unit id="textAnalysis.remainingTime" datatype="html">
-        <source>Verbleibende Zeit in Minuten</source>
-        <target>Tempo rimanente in minuti</target>
+        <source>Zuletzt gemeldetes Restbudget in Minuten</source>
+        <target>Tempo residuo in minuti all’ultimo aggiornamento</target>
       </trans-unit>
       <trans-unit id="textAnalysis.basisLabel" datatype="html">
         <source>Auf Grundlage deiner Rückmeldungen</source>
@@ -37632,6 +37616,82 @@
       <trans-unit id="textAnalysis.groupingReused" datatype="html">
         <source>Vorhandene Themenbildung übernommen</source>
         <target>Raggruppamento tematico precedente riutilizzato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.noSharedTopics" datatype="html">
+        <source>Noch keine ausreichend ähnlichen Beiträge für gemeinsame Themen.</source>
+        <target>Non ci sono ancora abbastanza contributi simili per individuare temi comuni.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.newResponses" datatype="html">
+        <source>Neue Beiträge sind hinzugekommen. Du kannst die Themen aktualisieren.</source>
+        <target>Sono arrivati nuovi contributi. Puoi aggiornare i temi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.newResponsesShort" datatype="html">
+        <source>Neue Beiträge</source>
+        <target>Nuovi contributi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicSearchShort" datatype="html">
+        <source>Themen werden gesucht …</source>
+        <target>Ricerca dei temi…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.neighborsInfo" datatype="html">
+        <source>Wenn die erste Einordnung unsicher ist, helfen ähnliche Beispiele bei der Zuordnung.</source>
+        <target>Se la prima classificazione è incerta, il confronto con esempi simili aiuta a precisarla.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusEnabled" datatype="html">
+        <source>Aktiviert</source>
+        <target>Attivato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusReachable" datatype="html">
+        <source>Erreichbar</source>
+        <target>Raggiungibile</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusBusy" datatype="html">
+        <source>Belegt</source>
+        <target>Occupato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUnknown" datatype="html">
+        <source>Status unbekannt</source>
+        <target>Stato sconosciuto</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUsed" datatype="html">
+        <source>Für dieses Ergebnis verwendet</source>
+        <target>Utilizzato per questo risultato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponseBasis" datatype="html">
+        <source>Grundlage: mehrfach genannte Rückmeldungen</source>
+        <target>Basato su contributi ripetuti</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicUpdateFailed" datatype="html">
+        <source>Themen nicht aktualisiert</source>
+        <target>Temi non aggiornati</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusHeading" datatype="html">
+        <source>Betriebsstatus und Herkunft</source>
+        <target>Stato del servizio e origine del risultato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusEnabledInfo" datatype="html">
+        <source>Die Konfiguration schaltet das Verfahren für die vorgesehenen Aufgaben frei.</source>
+        <target>La configurazione abilita il metodo per le attività previste.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusReachableInfo" datatype="html">
+        <source>Die letzte Slot-Sonde konnte den Dienst erreichen.</source>
+        <target>L’ultima verifica ha raggiunto il servizio.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusBusyInfo" datatype="html">
+        <source>Die letzte Slot-Sonde hat den Dienst erreicht. Alle Plätze waren zu diesem Zeitpunkt belegt.</source>
+        <target>L’ultima verifica ha raggiunto il servizio. In quel momento tutti i posti erano occupati.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUnknownInfo" datatype="html">
+        <source>Für diesen Zustand liegen keine verlässlichen Betriebsdaten vor.</source>
+        <target>Per questo stato mancano dati di funzionamento affidabili.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUsedInfo" datatype="html">
+        <source>Die Herkunft am konkreten Ergebnis zeigt, welches Verfahren daran beteiligt war. Die Slot-Sonde prüft Erreichbarkeit und Belegung.</source>
+        <target>L’origine indicata con il risultato mostra quale metodo è stato usato. La verifica del servizio ne controlla la raggiungibilità e la disponibilità dei posti.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetrying" datatype="html">
+        <source>Die Lernzielableitung wird erneut versucht.</source>
+        <target>È in corso un nuovo tentativo di elaborare gli obiettivi di apprendimento.</target>
       </trans-unit>
     </body>
   </file>

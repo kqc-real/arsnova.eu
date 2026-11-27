@@ -390,6 +390,7 @@ export class ModerationCompassDialogComponent {
     classification: copy.classificationBasis,
     topics: copy.topicBasis,
     lexical: copy.lexicalBasis,
+    repeatedResponses: copy.repeatedResponseBasis,
     rules: copy.ruleBasis,
   };
 

@@ -1673,7 +1673,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'stale':
         return $localize`:@@sessionQa.wordCloudSmoothRetry:Bündelung aktualisieren`;
       default:
-        return $localize`:@@sessionQa.wordCloudSmooth:Nach Grundform bündeln`;
+        return $localize`:@@sessionQa.wordCloudSmooth:Sprachformen glätten`;
     }
   });
   readonly presenterFreetextSmoothingIcon = computed(() => {

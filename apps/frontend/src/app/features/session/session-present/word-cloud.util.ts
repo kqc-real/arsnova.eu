@@ -3,6 +3,7 @@ import {
   prepareWordCloudAnalysisText,
   WORD_CLOUD_ANALYSIS_TEXT_VERSION,
 } from '@arsnova/shared-types/word-cloud-analysis-text';
+import { textAnalysisCopy } from '../../../shared/text-analysis/text-analysis-copy';
 import type { SupportedLocale } from '../../../core/locale-from-path';
 import type { WordCloudAnalysisEntryDTO, WordCloudAnalysisVariant } from '@arsnova/shared-types';
 import {
@@ -26,10 +27,12 @@ export function hasLegacyWordCloudTopics(
   );
 }
 
-export function wordCloudTopicProgressLabel(showPrevious: boolean): string {
+export function wordCloudTopicProgressLabel(showPrevious: boolean, compact = false): string {
   return showPrevious
     ? $localize`:@@wordCloud.previousTopics:Die Themen werden aktualisiert. Der bisherige Stand bleibt sichtbar.`
-    : $localize`:@@sessionQa.wordCloudSemanticPendingHint:Themen werden vorbereitet.`;
+    : compact
+      ? textAnalysisCopy.topicSearchShort
+      : $localize`:@@sessionQa.wordCloudSemanticPendingHint:Verwandte Themen werden gesucht …`;
 }
 
 export function wordCloudViewHint(

@@ -196,7 +196,7 @@ export class QaWordCloudDialogComponent {
       this.smoothingStatus() === 'pending' &&
       this.hasPreparedThemes(),
   );
-  readonly themeProgressLabel = $localize`:@@sessionQa.wordCloudSemanticPendingLabel:Themen werden vorbereitet.`;
+  readonly themeProgressLabel = wordCloudTopicProgressLabel(false, true);
   readonly previousTopicsLabel = wordCloudTopicProgressLabel(true);
   readonly exportViewLabel = computed(() =>
     wordCloudExportViewLabel(this.analysisVariant(), this.displayMode()),

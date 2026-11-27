@@ -743,7 +743,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const analysis = this.analysisInfo();
     if (this.outputOnly() || !analysis) return null;
     const visible = this.cloudLayoutActive() ? this.positionedWords() : this.displayWords();
-    return wordCloudAnalysisInfo(analysis, visible);
+    return wordCloudAnalysisInfo(
+      analysis,
+      visible.map(({ groupKey, labelOrigin }) => ({ key: groupKey, labelOrigin })),
+    );
   });
 
   protected openAnalysisInfo(): void {

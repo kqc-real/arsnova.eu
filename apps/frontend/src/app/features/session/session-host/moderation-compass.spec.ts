@@ -772,7 +772,8 @@ describe('buildModerationCompassCards', () => {
           memberTexts: ['Wie berechnet man den Median?'],
           memberSourceIds: ['topic-question'],
           sortMode: 'BEST',
-          analysisVariant: 'THEME',
+          analysisVariant: 'SEMANTIC',
+          analysisBasis: 'lexical',
         },
       ],
       qaQuestions: [
@@ -816,6 +817,7 @@ describe('buildModerationCompassCards', () => {
       },
       {
         kind: 'clarification',
+        analysisBasis: ['rules'],
         tone: 'caution',
         nextStepReason: 'quiz-confusion',
         sources: [
@@ -841,6 +843,7 @@ describe('buildModerationCompassCards', () => {
             label: 'Median',
             evidence: 'Wie berechnet man den Median?',
             focusHint: 'Median',
+            analysisBasis: 'lexical',
             target: {
               channel: 'qa',
               surface: 'word-cloud',
@@ -850,7 +853,7 @@ describe('buildModerationCompassCards', () => {
               questionId: 'topic-question',
               questionIds: ['topic-question'],
               sortMode: 'BEST',
-              analysisVariant: 'THEME',
+              analysisVariant: 'SEMANTIC',
             },
           },
         ],

@@ -74,7 +74,10 @@ Im Host-Detail einer Frage stehen Kategorie oder unsichere Einordnung und, bei
 bekannter Modellversion, das verwendete Verfahren. Eine unsichere Einordnung
 kann das Ergebnis einer vollständig durchlaufenen Kaskade sein. Der
 Moderationskompass weist die Einordnung als Grundlage der betreffenden
-Hinweise aus.
+Hinweise aus. Die Grundlage eines Kompassbelegs folgt seiner tatsächlichen
+Auswertung. Ein lexikalisch gewonnener Begriff behält diese Kennzeichnung auch
+bei einem Sprung in die Themenwolke. Semantische Freitext-Themen und wiederholte
+Freitextantworten haben jeweils eine eigene Grundlage.
 
 ## Level 2 (k-NN-Fallback)
 

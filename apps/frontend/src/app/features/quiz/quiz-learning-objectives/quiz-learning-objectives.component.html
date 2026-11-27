@@ -182,8 +182,8 @@
                       id="learning-objective-derivation-live-progress-label"
                       class="learning-objectives__derivation-progress-label"
                     >
-                      @if (derivationWaitingLabel(); as waitingLabel) {
-                        {{ waitingLabel }}
+                      @if (derivationPriorityLabel(); as priorityLabel) {
+                        {{ priorityLabel }}
                       } @else {
                         <ng-container i18n="@@learningObjectives.derivationLiveProgress"
                           >Die Abfrage läuft.</ng-container

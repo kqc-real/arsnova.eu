@@ -288,11 +288,14 @@ export class QuizLearningObjectivesComponent {
     return $localize`:@@learningObjectives.derivationGroupsScale:Fertig sind ${completed}:completed: von ${total}:total: Fragegruppen.`;
   });
   protected readonly analysisCopy = copy;
-  readonly derivationWaitingLabel = computed(() => {
+  readonly derivationPriorityLabel = computed(() => {
     const progress = this.derivationProgress();
-    if (!progress?.waitingForModel || progress.remainingBudgetMs === undefined) return null;
+    if (!progress?.priorityRetryPhase) return null;
+    const label =
+      progress.priorityRetryPhase === 'waiting' ? copy.objectivesWaiting : copy.objectivesRetrying;
+    if (progress.remainingBudgetMs === undefined) return label;
     const minutes = formatLocaleCount(Math.ceil(progress.remainingBudgetMs / 60_000), this.locale);
-    return copy.objectivesWaiting + ' · ' + copy.remainingTime + ' ' + minutes;
+    return label + ' · ' + copy.remainingTime + ' ' + minutes;
   });
   readonly derivationRemainingEstimate = computed(() => {
     const minutes = estimateRemainingDerivationMinutes(

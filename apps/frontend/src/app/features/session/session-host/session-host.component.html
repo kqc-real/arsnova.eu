@@ -4084,7 +4084,7 @@
                               [attr.aria-label]="freetextWordCloudSemanticProgressAria()"
                             >
                               <p class="session-host__word-cloud-progress-label">
-                                {{ freetextWordCloudSemanticHint() }}
+                                {{ freetextWordCloudSemanticProgressLabel() }}
                               </p>
                               @if (freetextWordCloudSemanticWaitHint(); as waitHint) {
                                 <p class="session-host__word-cloud-progress-wait">{{ waitHint }}</p>
@@ -4121,17 +4121,17 @@
                         [focusedTermLabel]="moderationCompassFocusedTerm()"
                         [analysisModelVersion]="
                           freetextWordCloudDisplayMode() === 'SEMANTIC'
-                            ? (freetextWordCloudSemanticAnalysisResult()?.modelVersion ?? null)
+                            ? (freetextWordCloudAnalysisInfo().result?.modelVersion ?? null)
                             : null
                         "
                         [labelModelId]="
-                          freetextWordCloudSemanticAnalysisResult()?.labelModelId ?? null
+                          freetextWordCloudAnalysisInfo().result?.labelModelId ?? null
                         "
                         [labelModelVersion]="
-                          freetextWordCloudSemanticAnalysisResult()?.labelModelVersion ?? null
+                          freetextWordCloudAnalysisInfo().result?.labelModelVersion ?? null
                         "
                         [labelPromptVersion]="
-                          freetextWordCloudSemanticAnalysisResult()?.labelPromptVersion ?? null
+                          freetextWordCloudAnalysisInfo().result?.labelPromptVersion ?? null
                         "
                       />
                     </div>

@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
@@ -119,6 +120,7 @@ describe('ModerationCompassDialogComponent', () => {
       enabled?: boolean;
       visibleQuestionCount?: number;
       runtime?: QaSummaryRuntimeCompatibleDTO | null;
+      currentRuntime?: () => QaSummaryRuntimeCompatibleDTO | null;
       onRequestSummary?: () => void;
       onSummarySourceActivate?: (source: {
         id: string;
@@ -154,7 +156,7 @@ describe('ModerationCompassDialogComponent', () => {
             onSourceActivate,
             summaryEnabled: () => summary?.enabled === true,
             summaryVisibleQuestionCount: () => summary?.visibleQuestionCount ?? 0,
-            summary: () => summary?.runtime ?? null,
+            summary: () => summary?.currentRuntime?.() ?? summary?.runtime ?? null,
             onRequestSummary: summary?.onRequestSummary,
             onSummarySourceActivate: summary?.onSummarySourceActivate,
             onRequestSummaryContextPreview: summary?.onRequestSummaryContextPreview,
@@ -787,6 +789,66 @@ describe('ModerationCompassDialogComponent', () => {
     });
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ['rule-based', 'Regelbasierter Überblick'],
+    ['legacy-text', 'Zusammenfassung über den älteren Modellpfad'],
+  ] as const)(
+    'zeigt die belegte Herkunft %s und entfernt abgelöste Belege',
+    (effectiveMode, origin) => {
+      const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+      const oldQuestion = 'Kommt Kapitel 4 in der Klausur vor?';
+      const result: NonNullable<QaSummaryRuntimeV2DTO['result']> = {
+        schemaVersion: 2,
+        contractVersion: 'qa-summary-result-v2',
+        status: 'ready',
+        statements: [{ text: 'Frage zum Prüfungsumfang.', sourceIds: [sourceId] }],
+        suggestedNextSteps: [],
+        limitations: [],
+        sources: [{ id: sourceId, kind: 'qa-question', label: oldQuestion }],
+        snapshotHash: 'a'.repeat(64),
+        locale: 'de',
+        execution: {
+          attemptedMode: effectiveMode === 'legacy-text' ? 'legacy-text' : null,
+          effectiveMode,
+          fallback: {
+            contractVersion: 'qa-summary-fallback-v1',
+            requestedRequestContract: 'qa-summary-context-v2',
+            requestedOutputContract: 'qa-summary-model-output-v3',
+            mode: effectiveMode,
+            reason: 'adapter_incompatible',
+            retry: 'not-applicable',
+          },
+        },
+      };
+      const runtime = signal(v2Runtime({ inferenceConfigured: true, result }));
+      const { fixture } = setup([], vi.fn(), 'rule-based', {
+        enabled: true,
+        visibleQuestionCount: 3,
+        currentRuntime: runtime,
+      });
+      const root = fixture.nativeElement as HTMLElement;
+      root.querySelector<HTMLButtonElement>('.moderation-compass-dialog__summary-button')!.click();
+      fixture.detectChanges();
+      expect(root.textContent).toContain(origin);
+      expect(root.textContent).toContain(oldQuestion);
+
+      runtime.set(
+        v2Runtime({
+          inferenceConfigured: true,
+          result: {
+            ...runtime().result!,
+            statements: [],
+            sources: [],
+            snapshotHash: 'b'.repeat(64),
+          },
+        }),
+      );
+      fixture.detectChanges();
+      expect(root.textContent).not.toContain(oldQuestion);
+      expect(root.textContent).toContain(origin);
+    },
+  );
 
   it('wartet beim Sprung aus den verwendeten Beiträgen und bleibt bei Fehler offen', async () => {
     const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');

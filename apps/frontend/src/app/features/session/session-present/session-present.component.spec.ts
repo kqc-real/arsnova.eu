@@ -1160,7 +1160,7 @@ describe('SessionPresentComponent', () => {
     expect(text).toContain('Frage 2: Was war hilfreich?');
     expect(text).toContain('Wortgruppen');
     expect(text).toContain('Anzeige anhalten');
-    expect(text).toContain('Nach Grundform bündeln');
+    expect(text).toContain('Sprachformen glätten');
     expect(text).toContain('Wörter und kurze Wortgruppen');
     expect(fixture.nativeElement.querySelector('.word-cloud__description')).toBeNull();
     const viewHint = fixture.nativeElement.querySelector(
