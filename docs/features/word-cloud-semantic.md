@@ -131,7 +131,7 @@ Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln. Q&A v
 
 ### Herkunft in der Host-Oberfläche
 
-Q&A und Freitext zeigen die Themenbildung und die Herkunft jedes Namens getrennt.
+Q&A und Freitext zeigen die Themenbildung und die Herkunft jedes Namens getrennt. Der kompakte Status benennt die sichtbaren Themennamen. Angaben zur Wiederverwendung stehen im Infodetail. Dort erklärt die Themenansicht direkt die Gruppierung nach Bedeutung und die optionale Benennung bei unveränderten Gruppen. Die Hilfe beschreibt auch vor der Moduswahl Wörter, Wortgruppen und Themen. Ein Themenbeleg erklärt zuerst die Herkunft von Gruppe und Name. Danach folgen die verfügbaren Angaben zu Encoder, Benennungsmodell und Versionen.
 Die erste Wolke bleibt benutzbar, während Namen vorbereitet werden. Nach Abschluss
 bleiben auch extraktive Namen und Belege zugänglich. Die Statusanzeige bezieht
 sich auf die sichtbaren Themen. Der Infodialog nennt belegte Fallback-Gründe und

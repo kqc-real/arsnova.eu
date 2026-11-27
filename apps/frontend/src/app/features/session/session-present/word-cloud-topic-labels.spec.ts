@@ -141,11 +141,25 @@ describe('wordCloudAnalysisInfo', () => {
     const result = { ...enriched, topicLabelsPending: false, labelFallbackReason: 'busy' as const };
     const names = [enriched.entries[0]!, base.entries[0]!];
     const info = wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, names);
-    expect(info.status).toBe('Teils KI-generiert');
+    expect(info.status).toBe('Einige Themennamen KI-generiert');
+    expect(info.process).toContain('Die Gruppen bleiben dabei unverändert.');
     expect(info.details).toContain('Die KI war belegt. Du siehst die verfügbaren Themennamen.');
     expect(wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, []).status).toBeNull();
     expect(wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, names.slice(1)).status).toBe(
-      'Originalformulierungen',
+      'Themennamen aus Originalbeiträgen',
+    );
+  });
+
+  it('belässt die Namensherkunft auch bei einem Cachetreffer im kompakten Status', () => {
+    const result = { ...enriched, reuse: { snapshot: true } };
+    const info = wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, [
+      enriched.entries[0]!,
+      base.entries[0]!,
+    ]);
+    expect(info.status).toBe(copy.someModel);
+    expect(info.details).toContain(copy.snapshotReused);
+    expect(wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, enriched.entries).status).toBe(
+      copy.allModelShort,
     );
   });
 

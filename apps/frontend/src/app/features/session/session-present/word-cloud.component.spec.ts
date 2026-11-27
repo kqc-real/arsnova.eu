@@ -694,6 +694,39 @@ describe('WordCloudComponent', () => {
     expect(help.nativeElement.getAttribute('aria-haspopup')).toBe('dialog');
   });
 
+  it('erklärt alle drei Modi vor der Moduswahl und den Themenprozess auf der ersten Detailebene', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisInfo', { mode: 'LEXICAL', result: null });
+    fixture.detectChanges();
+    const help = fixture.debugElement.query(By.directive(MatIconButton)).nativeElement;
+    help.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const dialog = document.querySelector('app-text-analysis-help-dialog')!;
+    const modeHelp = dialog.querySelector('details')!;
+    expect(modeHelp.querySelector('summary')?.textContent).toBe('Wörter, Wortgruppen und Themen');
+    expect([...modeHelp.querySelectorAll('dt')].map((term) => term.textContent)).toEqual([
+      'Wörter',
+      'Wortgruppen',
+      'Themen',
+    ]);
+    TestBed.inject(MatDialog).closeAll();
+    fixture.componentRef.setInput('analysisInfo', { mode: 'SEMANTIC', result: null });
+    fixture.detectChanges();
+    help.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const dialogs = document.querySelectorAll('app-text-analysis-help-dialog');
+    const topics = dialogs[dialogs.length - 1]!;
+    expect(topics.querySelector('mat-dialog-content > p')?.textContent).toContain(
+      'Entdecke gemeinsame Themen',
+    );
+    expect(topics.querySelector('mat-dialog-content > p:nth-child(2)')?.textContent).toContain(
+      'Die Gruppen bleiben dabei unverändert.',
+    );
+    TestBed.inject(MatDialog).closeAll();
+  });
+
   it('zeigt standardmäßig nur den Gewichtungshinweis für bessere Orientierung', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation', 'Teamarbeit']);
@@ -2001,7 +2034,12 @@ describe('WordCloudComponent', () => {
     expect(original).toContain('Aus einem Originalbeitrag');
     expect(original).not.toContain('test-label-model');
     expect(tooltip).toContain('Themenbildung · intfloat/multilingual-e5-small@sha256:testdigest');
-    expect(tooltip).toContain('Themenname · test-label-model · Von der lokalen KI formuliert');
+    expect(tooltip).toContain('Beiträge nach ähnlicher Bedeutung gruppiert');
+    expect(tooltip).toContain('Themenname · Von der lokalen KI formuliert');
+    expect(tooltip.indexOf('Von der lokalen KI formuliert')).toBeLessThan(
+      tooltip.indexOf('intfloat/multilingual-e5-small'),
+    );
+    expect(tooltip).toContain('Themenname · test-label-model');
     expect(tooltip).toContain('Ist Kapitel 4 klausurrelevant?');
 
     const downloadSpy = vi

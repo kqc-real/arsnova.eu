@@ -30854,6 +30854,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         fixture.nativeElement.querySelector(
           '#host-qa-question-' + id + ' .session-qa-card__classification',
         ) as HTMLDetailsElement | null;
+      const closedLabels = [
+        '11111111-1111-4111-8111-111111111111',
+        '22222222-2222-4222-8222-222222222222',
+        '33333333-3333-4333-8333-333333333333',
+        '44444444-4444-4444-8444-444444444444',
+      ].map((id) => {
+        const disclosure = detail(id)!;
+        expect(disclosure.open).toBe(false);
+        return disclosure.querySelector('summary')?.textContent;
+      });
+      expect(closedLabels).toEqual([
+        'Inhaltliche Frage',
+        'Inhaltliche Frage',
+        'Frage zum Ablauf',
+        'Keine eindeutige Einordnung',
+      ]);
       expect(detail('11111111-1111-4111-8111-111111111111')?.textContent).toContain('Naive Bayes');
       expect(detail('22222222-2222-4222-8222-222222222222')?.textContent).toContain('k-NN');
       expect(detail('33333333-3333-4333-8333-333333333333')?.textContent).toContain(

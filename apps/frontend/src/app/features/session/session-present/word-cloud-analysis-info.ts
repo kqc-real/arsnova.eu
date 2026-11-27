@@ -104,13 +104,18 @@ export function wordCloudTopicAnalysisHint(
 export function wordCloudAnalysisInfo(
   analysis: WordCloudAnalysisInfo,
   visible: readonly Pick<WordCloudAnalysisEntryDTO, 'key' | 'labelOrigin'>[],
-): { status: string | null; description: string; details: readonly string[] } {
+): {
+  status: string | null;
+  description: string;
+  process: string | null;
+  details: readonly string[];
+} {
   const { mode, result, namingPending, topicState, phraseFallbackHint } = analysis;
   const description =
     mode === 'SEMANTIC' ? copy.topicsInfo : mode === 'THEME' ? copy.phrasesInfo : copy.wordsInfo;
   const statusLines: { short: string; detail: string }[] = [];
   const semantic = result?.mode === 'SEMANTIC' && !result.fallbackUsed;
-  const details = mode === 'SEMANTIC' ? [copy.topicNamingInfo] : [copy.smoothInfo];
+  const details = mode === 'SEMANTIC' ? [] : [copy.smoothInfo];
 
   if (topicState?.freshness) {
     statusLines.push(
@@ -127,13 +132,12 @@ export function wordCloudAnalysisInfo(
     statusLines.push({ short: outcome, detail: outcome });
   }
   if (namingPending) statusLines.push({ short: copy.topicPreviewShort, detail: copy.topicPreview });
-  if (semantic && result.reuse?.snapshot)
-    statusLines.push({ short: copy.snapshotReusedShort, detail: copy.snapshotReused });
+  if (semantic && result.reuse?.snapshot) details.push(copy.snapshotReused);
   if (semantic && visible.length) {
     const count = visible.filter((entry) => entry.labelOrigin === 'model').length;
     if (count === visible.length)
       statusLines.push({ short: copy.allModelShort, detail: copy.allModel });
-    else if (count) statusLines.push({ short: copy.someModelShort, detail: copy.someModel });
+    else if (count) statusLines.push({ short: copy.someModel, detail: copy.someModel });
     else if (visible.every((entry) => entry.labelOrigin === 'extractive'))
       statusLines.push({ short: copy.allExtractiveShort, detail: copy.allExtractive });
     else statusLines.push({ short: copy.unknownOrigin, detail: copy.unknownOrigin });
@@ -169,6 +173,7 @@ export function wordCloudAnalysisInfo(
   return {
     status: topicState?.progress ? null : (compactStatus ?? null),
     description,
+    process: mode === 'SEMANTIC' ? copy.topicProcess : null,
     details,
   };
 }

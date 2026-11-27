@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  derivationGroupScaleTicks,
   derivationProgressPercent,
   emptyLearningObjectiveDerivationProgress,
   estimateRemainingDerivationMinutes,
@@ -36,45 +35,6 @@ describe('learning-objective derivation progress helpers', () => {
         coveredSourceQuestionIds: [],
       }),
     ).toBe(100);
-  });
-
-  it('builds a numeric scale for known question groups', () => {
-    expect(derivationGroupScaleTicks(null)).toEqual([]);
-    expect(derivationGroupScaleTicks(emptyLearningObjectiveDerivationProgress())).toEqual([]);
-    expect(
-      derivationGroupScaleTicks({
-        completedGroups: 2,
-        totalGroups: 4,
-        elapsedMs: 1_000,
-        promptTokens: 10,
-        completionTokens: 2,
-        queuedObjectives: 0,
-        drafts: [],
-        coveredSourceQuestionIds: [],
-      }),
-    ).toEqual([
-      { value: 0, percent: 0, current: false },
-      { value: 1, percent: 25, current: false },
-      { value: 2, percent: 50, current: true },
-      { value: 3, percent: 75, current: false },
-      { value: 4, percent: 100, current: false },
-    ]);
-    expect(
-      derivationGroupScaleTicks({
-        completedGroups: 4,
-        totalGroups: 12,
-        elapsedMs: 1_000,
-        promptTokens: 10,
-        completionTokens: 2,
-        queuedObjectives: 0,
-        drafts: [],
-        coveredSourceQuestionIds: [],
-      }),
-    ).toEqual([
-      { value: 0, percent: 0, current: false },
-      { value: 4, percent: (4 / 12) * 100, current: true },
-      { value: 12, percent: 100, current: false },
-    ]);
   });
 
   it('estimates remaining time only after at least one group finished', () => {

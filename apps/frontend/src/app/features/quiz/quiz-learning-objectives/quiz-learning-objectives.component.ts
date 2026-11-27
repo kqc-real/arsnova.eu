@@ -22,7 +22,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBar } from '@angular/material/progress-bar';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import {
@@ -50,7 +49,6 @@ import { QuizStoreService, type QuizQuestion } from '../data/quiz-store.service'
 import { LearningObjectiveDerivationClient } from './learning-objective-derivation.client';
 import {
   LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS,
-  derivationGroupScaleTicks as buildDerivationGroupScaleTicks,
   derivationProgressPercent,
   estimateRemainingDerivationMinutes,
   estimateRemainingDerivationMs,
@@ -178,7 +176,6 @@ export function mapQuestionForLearningObjectiveDerivation(
     MatInputModule,
     MatRadioModule,
     MatProgressBar,
-    MatProgressSpinner,
   ],
   templateUrl: './quiz-learning-objectives.component.html',
   styleUrls: [
@@ -274,12 +271,6 @@ export class QuizLearningObjectivesComponent {
   readonly derivationProgressPercent = computed(() =>
     derivationProgressPercent(this.derivationProgress()),
   );
-  readonly derivationGroupScaleTicks = computed(() =>
-    buildDerivationGroupScaleTicks(this.derivationProgress()).map((tick) => ({
-      ...tick,
-      label: formatLocaleCount(tick.value, this.locale),
-    })),
-  );
   readonly derivationGroupScaleLabel = computed(() => {
     const progress = this.derivationProgress();
     if (!progress || progress.totalGroups <= 0) return null;
@@ -288,15 +279,36 @@ export class QuizLearningObjectivesComponent {
     return $localize`:@@learningObjectives.derivationGroupsScale:Fertig sind ${completed}:completed: von ${total}:total: Fragegruppen.`;
   });
   protected readonly analysisCopy = copy;
+  protected readonly derivationPriorityPhase = computed(
+    () => this.derivationProgress()?.priorityRetryPhase,
+  );
   readonly derivationPriorityLabel = computed(() => {
-    const progress = this.derivationProgress();
-    if (!progress?.priorityRetryPhase) return null;
-    const label =
-      progress.priorityRetryPhase === 'waiting' ? copy.objectivesWaiting : copy.objectivesRetrying;
-    if (progress.remainingBudgetMs === undefined) return label;
-    const minutes = formatLocaleCount(Math.ceil(progress.remainingBudgetMs / 60_000), this.locale);
-    return label + ' · ' + copy.remainingTime + ' ' + minutes;
+    const phase = this.derivationPriorityPhase();
+    return phase === 'waiting'
+      ? copy.objectivesWaitingShort
+      : phase === 'retrying'
+        ? copy.objectivesRetryingShort
+        : null;
   });
+  protected readonly derivationCurrentLabel = computed(
+    () => this.derivationPriorityLabel() ?? copy.objectivesPreparing,
+  );
+  protected readonly derivationBudgetMinutes = computed(() => {
+    const budget = this.derivationProgress()?.remainingBudgetMs;
+    if (!this.derivationPriorityPhase() || budget === undefined) return null;
+    return formatLocaleCount(Math.ceil(budget / 60_000), this.locale);
+  });
+  protected readonly derivationAnnouncement = computed(() =>
+    this.derivationIsPending()
+      ? [
+          this.derivationCurrentLabel(),
+          this.derivationGroupScaleLabel(),
+          this.derivationQueuedObjectivesLabel(),
+        ]
+          .filter(Boolean)
+          .join(' ')
+      : '',
+  );
   readonly derivationRemainingEstimate = computed(() => {
     const minutes = estimateRemainingDerivationMinutes(
       estimateRemainingDerivationMs(this.derivationProgress()),

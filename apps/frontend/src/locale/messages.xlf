@@ -31607,9 +31607,6 @@
       <trans-unit id="learningObjectives.derivationPendingGroups" datatype="html">
         <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert. Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
       </trans-unit>
-      <trans-unit id="learningObjectives.derivationLiveProgress" datatype="html">
-        <source>Die Abfrage läuft.</source>
-      </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsProgress" datatype="html">
         <source>Fragegruppen</source>
       </trans-unit>
@@ -33027,14 +33024,11 @@
       <trans-unit id="textAnalysis.allExtractive" datatype="html">
         <source>Themen erkannt · Originalformulierungen verwendet</source>
       </trans-unit>
-      <trans-unit id="textAnalysis.someModelShort" datatype="html">
-        <source>Teils KI-generiert</source>
-      </trans-unit>
       <trans-unit id="textAnalysis.allModelShort" datatype="html">
         <source>KI-Themennamen</source>
       </trans-unit>
       <trans-unit id="textAnalysis.allExtractiveShort" datatype="html">
-        <source>Originalformulierungen</source>
+        <source>Themennamen aus Originalbeiträgen</source>
       </trans-unit>
       <trans-unit id="textAnalysis.snapshotReused" datatype="html">
         <source>Vorhandene Auswertung übernommen</source>
@@ -33102,9 +33096,6 @@
       <trans-unit id="textAnalysis.qwen" datatype="html">
         <source>Formuliert kurze Themennamen und Zusammenfassungen aus Beiträgen oder Lernzielentwürfe aus deinen Quizfragen.</source>
       </trans-unit>
-      <trans-unit id="textAnalysis.snapshotReusedShort" datatype="html">
-        <source>Ergebnis übernommen</source>
-      </trans-unit>
       <trans-unit id="textAnalysis.infoButton" datatype="html">
         <source>Details zur Textauswertung</source>
       </trans-unit>
@@ -33165,9 +33156,6 @@
       <trans-unit id="textAnalysis.remainingTime" datatype="html">
         <source>Zuletzt gemeldetes Restbudget in Minuten</source>
       </trans-unit>
-      <trans-unit id="textAnalysis.basisLabel" datatype="html">
-        <source>Auf Grundlage deiner Rückmeldungen</source>
-      </trans-unit>
       <trans-unit id="textAnalysis.groupingReused" datatype="html">
         <source>Vorhandene Themenbildung übernommen</source>
       </trans-unit>
@@ -33224,6 +33212,54 @@
       </trans-unit>
       <trans-unit id="textAnalysis.statusUsedInfo" datatype="html">
         <source>Die Herkunft am konkreten Ergebnis zeigt, welches Verfahren daran beteiligt war. Die Slot-Sonde prüft Erreichbarkeit und Belegung.</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicProcess" datatype="html">
+        <source>arsnova gruppiert Beiträge mit ähnlicher Bedeutung. Die lokale KI kann die Themennamen kürzen oder neu formulieren. Die Gruppen bleiben dabei unverändert.</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationContent" datatype="html">
+        <source>Inhaltliche Frage</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationSession" datatype="html">
+        <source>Frage zum Ablauf</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationTechnical" datatype="html">
+        <source>Technische Frage</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.mixedBasis" datatype="html">
+        <source>So entstand dieser Hinweis</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesWaitingShort" datatype="html">
+        <source>Live-Unterricht hat Vorrang. Deine Lernzielableitung wartet.</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetryingShort" datatype="html">
+        <source>Neuer Versuch …</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.groupedByMeaning" datatype="html">
+        <source>Beiträge nach ähnlicher Bedeutung gruppiert</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationUncertainInfo" datatype="html">
+        <source>Die Hinweise in der Frage reichen für eine eindeutige Zuordnung nicht aus.</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponsesInfo" datatype="html">
+        <source>Diese Freitextantwort wurde mehrfach gegeben.</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudModes" datatype="html">
+        <source>Wörter, Wortgruppen und Themen</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudWords" datatype="html">
+        <source>Wörter</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudPhrases" datatype="html">
+        <source>Wortgruppen</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesPreparing" datatype="html">
+        <source>Lernziele werden vorbereitet …</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesProgressDetails" datatype="html">
+        <source>Ablauf und Hinweise</source>
+      </trans-unit>
+      <trans-unit id="textAnalysis.remainingBudgetInfo" datatype="html">
+        <source>Das Restbudget ist die verbleibende Laufzeitgrenze zum zuletzt gemeldeten Stand.</source>
       </trans-unit>
       <trans-unit id="textAnalysis.objectivesRetrying" datatype="html">
         <source>Die Lernzielableitung wird erneut versucht.</source>

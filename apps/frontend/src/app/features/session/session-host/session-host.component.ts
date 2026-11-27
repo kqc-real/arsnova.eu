@@ -14680,22 +14680,26 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected readonly textClassificationLabel = analysisCopy.classification;
-  protected readonly textClassificationInfo = analysisCopy.classificationInfo;
+  protected readonly analysisCopy = analysisCopy;
 
-  protected qaClassificationDetails(result: QaNlpResult): readonly string[] {
-    const classified = result.status === 'classified';
-    const category =
-      classified && result.category
-        ? this.moderationNlpCategoryLabels()[result.category]
-        : analysisCopy.classificationUncertain;
+  protected qaClassificationLabel(result: QaNlpResult): string {
+    if (result.status !== 'classified' || !result.category)
+      return analysisCopy.classificationUncertain;
+    return {
+      content: analysisCopy.classificationContent,
+      organization: analysisCopy.classificationSession,
+      technical: analysisCopy.classificationTechnical,
+    }[result.category];
+  }
+
+  protected qaClassificationMethod(result: QaNlpResult): string {
     if (result.modelVersion === QA_NLP_FALLBACK_MODEL_VERSION) {
-      return [category, 'k-NN · ' + analysisCopy.neighbors];
+      return 'k-NN · ' + analysisCopy.neighbors;
     }
-    if (classified && result.modelVersion === QA_NLP_GATEKEEPER_MODEL_VERSION) {
-      return [category, 'Naive Bayes · ' + analysisCopy.naiveBayes];
+    if (result.status === 'classified' && result.modelVersion === QA_NLP_GATEKEEPER_MODEL_VERSION) {
+      return 'Naive Bayes · ' + analysisCopy.naiveBayes;
     }
-    return [category, analysisCopy.classificationMethodUnknown];
+    return analysisCopy.classificationMethodUnknown;
   }
 
   private moderationNlpCategoryLabels(): Record<QaNlpCategory, string> {

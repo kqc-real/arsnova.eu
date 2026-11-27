@@ -386,18 +386,19 @@ export class ModerationCompassDialogComponent {
   }
 
   protected readonly analysisCopy = copy;
-  private readonly analysisBasisLabels = {
-    classification: copy.classificationBasis,
-    topics: copy.topicBasis,
-    lexical: copy.lexicalBasis,
-    repeatedResponses: copy.repeatedResponseBasis,
-    rules: copy.ruleBasis,
+  private readonly analysisBasis = {
+    classification: { label: copy.classificationBasis, description: copy.classificationInfo },
+    topics: { label: copy.topicBasis, description: copy.topicProcess },
+    lexical: { label: copy.lexicalBasis, description: copy.lexiconInfo },
+    repeatedResponses: {
+      label: copy.repeatedResponseBasis,
+      description: copy.repeatedResponsesInfo,
+    },
+    rules: { label: copy.ruleBasis, description: copy.rulesInfo },
   };
 
-  protected cardAnalysisBasis(card: ModerationCompassCard): readonly string[] {
-    return (card.analysisBasis ?? ['rules' as const]).map(
-      (basis) => this.analysisBasisLabels[basis],
-    );
+  protected cardAnalysisBasis(card: ModerationCompassCard) {
+    return (card.analysisBasis ?? ['rules' as const]).map((basis) => this.analysisBasis[basis]);
   }
 
   protected summaryOrigin(result: CompatibleQaSummaryResult): string | null {

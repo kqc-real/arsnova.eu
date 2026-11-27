@@ -755,21 +755,26 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.nativeElement.textContent).toContain(
       '2 Lernziele stehen schon als Entwürfe in der Liste.',
     );
-    const liveSpinner = fixture.nativeElement.querySelector('mat-progress-spinner');
-    const progressBar = fixture.nativeElement.querySelector('mat-progress-bar');
-    const scaleTicks = [
-      ...fixture.nativeElement.querySelectorAll('.learning-objectives__derivation-progress-tick'),
-    ].map((tick: HTMLElement) => tick.textContent?.trim());
-    expect(liveSpinner?.getAttribute('mode')).toBe('indeterminate');
-    expect(progressBar?.getAttribute('mode')).toBe('determinate');
-    expect(fixture.nativeElement.textContent).toContain(
+    const host = fixture.nativeElement as HTMLElement;
+    const card = host.querySelector('#learning-objective-derivation-status')!;
+    const details = card.querySelector('details')!;
+    const progressBar = card.querySelector('mat-progress-bar');
+    expect(details.open).toBe(false);
+    expect(details.textContent).toContain('Das Restbudget ist die verbleibende Laufzeitgrenze');
+    expect(details.textContent).toContain(
       'Schließe den Editor nicht, solange die Erstellung läuft.',
     );
-    expect(fixture.nativeElement.textContent).toContain('Fertig sind 1 von 3 Fragegruppen.');
-    expect(scaleTicks).toEqual(['0', '1', '2', '3']);
-    expect(progressBar?.getAttribute('aria-labelledby')).toBe(
-      'learning-objective-derivation-groups-progress-label',
-    );
+    expect(
+      card.querySelector('.learning-objectives__derivation-current')?.textContent?.trim(),
+    ).toBe('Live-Unterricht hat Vorrang. Deine Lernzielableitung wartet.');
+    expect(card.textContent).toContain('Fertig sind 1 von 3 Fragegruppen.');
+    expect(card.textContent).not.toContain('Noch etwa 2 Minuten');
+    expect(progressBar?.getAttribute('mode')).toBe('determinate');
+    expect(progressBar?.getAttribute('aria-valuetext')).toBe('Fertig sind 1 von 3 Fragegruppen.');
+    expect(card.getAttribute('aria-live')).toBeNull();
+    expect(
+      host.querySelector('[data-testid="learning-objective-progress-announcer"]')?.textContent,
+    ).toContain('2 Lernziele stehen schon als Entwürfe in der Liste.');
     expect(fixture.componentInstance.derivationProgressPercent()).toBe(33);
     fixture.destroy();
   });
@@ -852,14 +857,29 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
       '3 Lernziele stehen schon als Entwürfe in der Liste.',
     );
-    expect(fixture.nativeElement.textContent).toContain(
-      'Die Lernzielableitung wird erneut versucht.',
-    );
+    expect(fixture.nativeElement.textContent).toContain('Neuer Versuch …');
     expect(fixture.nativeElement.textContent).not.toContain('wartet auf einen freien KI-Platz');
     await vi.waitFor(() => expect(pending.length).toBe(3), {
       timeout: LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 1_000,
     });
+    const announcer = (fixture.nativeElement as HTMLElement).querySelector(
+      '[data-testid="learning-objective-progress-announcer"]',
+    )!;
+    const mutations = vi.fn();
+    const observer = new MutationObserver(mutations);
+    observer.observe(announcer, { childList: true, characterData: true, subtree: true });
     pending[2]!({
+      ...newer,
+      progress: { ...newer.progress, elapsedMs: 88_000, remainingBudgetMs: 55_000 },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(mutations).not.toHaveBeenCalled();
+    observer.disconnect();
+    await vi.waitFor(() => expect(pending.length).toBe(4), {
+      timeout: LEARNING_OBJECTIVE_DERIVATION_PROGRESS_POLL_MS + 1_000,
+    });
+    pending[3]!({
       ...newer,
       progress: {
         ...newer.progress,
@@ -874,7 +894,7 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Fertig sind 3 von 4 Fragegruppen.');
     expect(fixture.componentInstance.derivationPriorityLabel()).toBeNull();
     fixture.destroy();
-  }, 10_000);
+  }, 14_000);
 
   it('zeigt Fortschritt auch wenn jeder Poll länger als das Intervall dauert', async () => {
     const store = TestBed.inject(QuizStoreService);
@@ -1006,7 +1026,7 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(message).not.toMatch(/Token|Batch/i);
   });
 
-  it('zählt Fragegruppen erst, nachdem mindestens eine fertig ist', async () => {
+  it('zeigt den Gruppenstand, sobald die Anzahl der Fragegruppen feststeht', async () => {
     const store = TestBed.inject(QuizStoreService);
     const quiz = store.createQuiz({ name: 'Noch keine Gruppe' });
     const question = store.addQuestion(quiz.id, {
@@ -1044,6 +1064,10 @@ describe('QuizLearningObjectivesComponent', () => {
     (
       fixture.nativeElement.querySelector('#learning-objective-derive') as HTMLButtonElement
     ).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('mat-progress-bar')?.getAttribute('mode')).toBe(
+      'indeterminate',
+    );
     await vi.waitFor(() => expect(progressDerivationMock).toHaveBeenCalled());
     await fixture.whenStable();
 
@@ -1057,19 +1081,11 @@ describe('QuizLearningObjectivesComponent', () => {
       ),
     );
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('mat-progress-spinner')?.getAttribute('mode')).toBe(
-      'indeterminate',
-    );
-    expect(fixture.nativeElement.querySelector('mat-progress-bar')?.getAttribute('mode')).toBe(
-      'determinate',
-    );
-    expect(fixture.nativeElement.textContent).toContain('Die Abfrage läuft.');
+    const progress = fixture.nativeElement.querySelector('mat-progress-bar');
+    expect(progress?.getAttribute('mode')).toBe('determinate');
+    expect(progress?.getAttribute('aria-valuetext')).toBe('Fertig sind 0 von 4 Fragegruppen.');
+    expect(fixture.nativeElement.textContent).toContain('Lernziele werden vorbereitet …');
     expect(fixture.nativeElement.textContent).toContain('Fertig sind 0 von 4 Fragegruppen.');
-    expect(
-      [
-        ...fixture.nativeElement.querySelectorAll('.learning-objectives__derivation-progress-tick'),
-      ].map((tick: HTMLElement) => tick.textContent?.trim()),
-    ).toEqual(['0', '1', '2', '3', '4']);
     fixture.destroy();
   });
 

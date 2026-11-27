@@ -35772,17 +35772,13 @@
         <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert. Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
         <target>Les objectifs d’apprentissage sont formulés successivement à partir de groupes de questions. <x id="completed" equiv-text="completed"/> groupes de questions sur <x id="total" equiv-text="total"/> sont déjà prêts.</target>
         </trans-unit>
-      <trans-unit id="learningObjectives.derivationLiveProgress" datatype="html">
-        <source>Die Abfrage läuft.</source>
-        <target>La requête se poursuit.</target>
-        </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsProgress" datatype="html">
         <source>Fragegruppen</source>
         <target>Groupes de questions</target>
         </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsScale" datatype="html">
         <source>Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
-        <target><x id="completed" equiv-text="completed"/> groupes de questions sur <x id="total" equiv-text="total"/> sont déjà prêts.</target>
+        <target>Groupes de questions terminés · <x id="completed" equiv-text="completed"/> sur <x id="total" equiv-text="total"/>.</target>
         </trans-unit>
       <trans-unit id="learningObjectives.derivationRemainingUnderMinute" datatype="html">
         <source>Noch weniger als eine Minute.</source>
@@ -37457,17 +37453,13 @@
         <source>Themen erkannt · Originalformulierungen verwendet</source>
         <target>Thèmes repérés · formulations d’origine utilisées</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.someModelShort" datatype="html">
-        <source>Teils KI-generiert</source>
-        <target>En partie générés par l’IA</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.allModelShort" datatype="html">
         <source>KI-Themennamen</source>
         <target>Intitulés générés par l’IA</target>
       </trans-unit>
       <trans-unit id="textAnalysis.allExtractiveShort" datatype="html">
-        <source>Originalformulierungen</source>
-        <target>Formulations d’origine</target>
+        <source>Themennamen aus Originalbeiträgen</source>
+        <target>Intitulés issus des contributions d’origine</target>
       </trans-unit>
       <trans-unit id="textAnalysis.snapshotReused" datatype="html">
         <source>Vorhandene Auswertung übernommen</source>
@@ -37557,10 +37549,6 @@
         <source>Formuliert kurze Themennamen und Zusammenfassungen aus Beiträgen oder Lernzielentwürfe aus deinen Quizfragen.</source>
         <target>Formule des intitulés de thèmes et des synthèses à partir des contributions, ou des propositions d’objectifs d’apprentissage à partir de tes questions de quiz.</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.snapshotReusedShort" datatype="html">
-        <source>Ergebnis übernommen</source>
-        <target>Résultat réutilisé</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.infoButton" datatype="html">
         <source>Details zur Textauswertung</source>
         <target>Détails de l’analyse des textes</target>
@@ -37641,10 +37629,6 @@
         <source>Zuletzt gemeldetes Restbudget in Minuten</source>
         <target>Temps restant indiqué lors de la dernière mise à jour, en minutes</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.basisLabel" datatype="html">
-        <source>Auf Grundlage deiner Rückmeldungen</source>
-        <target>À partir de tes retours</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.groupingReused" datatype="html">
         <source>Vorhandene Themenbildung übernommen</source>
         <target>Regroupement thématique précédent réutilisé</target>
@@ -37720,6 +37704,70 @@
       <trans-unit id="textAnalysis.statusUsedInfo" datatype="html">
         <source>Die Herkunft am konkreten Ergebnis zeigt, welches Verfahren daran beteiligt war. Die Slot-Sonde prüft Erreichbarkeit und Belegung.</source>
         <target>L’origine affichée avec le résultat indique le procédé utilisé. La vérification du service évalue son accessibilité et la disponibilité des places.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicProcess" datatype="html">
+        <source>arsnova gruppiert Beiträge mit ähnlicher Bedeutung. Die lokale KI kann die Themennamen kürzen oder neu formulieren. Die Gruppen bleiben dabei unverändert.</source>
+        <target>arsnova regroupe les contributions dont le sens est proche. L’IA locale peut raccourcir ou reformuler les intitulés des thèmes sans modifier les groupes.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationContent" datatype="html">
+        <source>Inhaltliche Frage</source>
+        <target>Question sur le contenu</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationSession" datatype="html">
+        <source>Frage zum Ablauf</source>
+        <target>Question sur le déroulement</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationTechnical" datatype="html">
+        <source>Technische Frage</source>
+        <target>Question technique</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.mixedBasis" datatype="html">
+        <source>So entstand dieser Hinweis</source>
+        <target>D’où vient cette indication</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesWaitingShort" datatype="html">
+        <source>Live-Unterricht hat Vorrang. Deine Lernzielableitung wartet.</source>
+        <target>La séance en cours est prioritaire. Ta demande est en attente.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetryingShort" datatype="html">
+        <source>Neuer Versuch …</source>
+        <target>Nouvelle tentative…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.groupedByMeaning" datatype="html">
+        <source>Beiträge nach ähnlicher Bedeutung gruppiert</source>
+        <target>Contributions regroupées selon leur sens</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationUncertainInfo" datatype="html">
+        <source>Die Hinweise in der Frage reichen für eine eindeutige Zuordnung nicht aus.</source>
+        <target>Les indices dans la question ne suffisent pas pour la classer avec certitude.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponsesInfo" datatype="html">
+        <source>Diese Freitextantwort wurde mehrfach gegeben.</source>
+        <target>Cette réponse libre a été donnée plusieurs fois.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudModes" datatype="html">
+        <source>Wörter, Wortgruppen und Themen</source>
+        <target>Mots, groupes de mots et thèmes</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudWords" datatype="html">
+        <source>Wörter</source>
+        <target>Mots</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudPhrases" datatype="html">
+        <source>Wortgruppen</source>
+        <target>Groupes de mots</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesPreparing" datatype="html">
+        <source>Lernziele werden vorbereitet …</source>
+        <target>Préparation des objectifs d’apprentissage…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesProgressDetails" datatype="html">
+        <source>Ablauf und Hinweise</source>
+        <target>Déroulement et informations</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.remainingBudgetInfo" datatype="html">
+        <source>Das Restbudget ist die verbleibende Laufzeitgrenze zum zuletzt gemeldeten Stand.</source>
+        <target>Le temps restant sur le budget correspond à la durée encore disponible au dernier relevé.</target>
       </trans-unit>
       <trans-unit id="textAnalysis.objectivesRetrying" datatype="html">
         <source>Die Lernzielableitung wird erneut versucht.</source>

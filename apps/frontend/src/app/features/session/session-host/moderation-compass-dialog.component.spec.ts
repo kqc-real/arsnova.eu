@@ -175,6 +175,31 @@ describe('ModerationCompassDialogComponent', () => {
     return { fixture, dialogRef, onSourceActivate };
   }
 
+  it('zeigt die einzelne Grundlage direkt und erläutert gemischte Belegbasen im Detail', () => {
+    const { fixture } = setup([
+      { kind: 'topics', tone: 'neutral', sources: [], analysisBasis: ['classification', 'topics'] },
+      { kind: 'clarification', tone: 'neutral', sources: [], analysisBasis: ['rules'] },
+    ]);
+    const root = fixture.nativeElement as HTMLElement;
+    const details = [
+      ...root.querySelectorAll<HTMLDetailsElement>('.moderation-compass-card details'),
+    ];
+    expect(details.map((item) => item.querySelector('summary')?.textContent?.trim())).toEqual([
+      'So entstand dieser Hinweis',
+      'Grundlage: Regeln und Rückmeldungen aus der Live-Runde',
+    ]);
+    expect(details.every((item) => !item.open)).toBe(true);
+    expect(
+      [...details[0]!.querySelectorAll('li')].map((basis) => basis.textContent?.trim()),
+    ).toEqual([
+      'Grundlage: automatische Einordnung der Fragen',
+      'Grundlage: Beiträge aus der Themenwolke',
+    ]);
+    expect(details[1]!.querySelector('p')?.textContent).toContain(
+      'Der Moderationskompass nutzt Regeln',
+    );
+  });
+
   it('zeigt den Leerzustand ohne Signale', () => {
     const { fixture } = setup([]);
     const text = fixture.nativeElement.textContent as string;

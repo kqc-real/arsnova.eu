@@ -140,14 +140,23 @@
               }
             </ul>
           }
-          <details class="moderation-compass-card__more">
-            <summary class="moderation-compass-card__more-summary">
-              {{ analysisCopy.basisLabel }}
-            </summary>
-            @for (basis of cardAnalysisBasis(card); track basis) {
-              <p>{{ basis }}</p>
-            }
-          </details>
+          @let bases = cardAnalysisBasis(card);
+          @if (bases.length) {
+            <details class="moderation-compass-card__more">
+              <summary class="moderation-compass-card__more-summary">
+                {{ bases.length === 1 ? bases[0].label : analysisCopy.mixedBasis }}
+              </summary>
+              @if (bases.length === 1) {
+                <p>{{ bases[0].description }}</p>
+              } @else {
+                <ul>
+                  @for (basis of bases; track basis.label) {
+                    <li>{{ basis.label }}</li>
+                  }
+                </ul>
+              }
+            </details>
+          }
           @if (extraSources(card).length > 0) {
             <details class="moderation-compass-card__more">
               <summary class="moderation-compass-card__more-summary">

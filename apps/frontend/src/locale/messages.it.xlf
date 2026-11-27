@@ -35772,17 +35772,13 @@
         <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert. Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
         <target>Generazione degli obiettivi di apprendimento per gruppi. <x id="completed" equiv-text="completed"/> gruppi completati su <x id="total" equiv-text="total"/>.</target>
         </trans-unit>
-      <trans-unit id="learningObjectives.derivationLiveProgress" datatype="html">
-        <source>Die Abfrage läuft.</source>
-        <target>La richiesta è in corso.</target>
-        </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsProgress" datatype="html">
         <source>Fragegruppen</source>
         <target>Gruppi di domande</target>
         </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsScale" datatype="html">
         <source>Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
-        <target><x id="completed" equiv-text="completed"/> gruppi di domande completati su <x id="total" equiv-text="total"/>.</target>
+        <target>Gruppi di domande completati · <x id="completed" equiv-text="completed"/> su <x id="total" equiv-text="total"/>.</target>
         </trans-unit>
       <trans-unit id="learningObjectives.derivationRemainingUnderMinute" datatype="html">
         <source>Noch weniger als eine Minute.</source>
@@ -37457,17 +37453,13 @@
         <source>Themen erkannt · Originalformulierungen verwendet</source>
         <target>Temi individuati · formulazioni originali utilizzate</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.someModelShort" datatype="html">
-        <source>Teils KI-generiert</source>
-        <target>In parte generati dall’IA</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.allModelShort" datatype="html">
         <source>KI-Themennamen</source>
         <target>Titoli generati dall’IA</target>
       </trans-unit>
       <trans-unit id="textAnalysis.allExtractiveShort" datatype="html">
-        <source>Originalformulierungen</source>
-        <target>Formulazioni originali</target>
+        <source>Themennamen aus Originalbeiträgen</source>
+        <target>Titoli tratti dai contributi originali</target>
       </trans-unit>
       <trans-unit id="textAnalysis.snapshotReused" datatype="html">
         <source>Vorhandene Auswertung übernommen</source>
@@ -37557,10 +37549,6 @@
         <source>Formuliert kurze Themennamen und Zusammenfassungen aus Beiträgen oder Lernzielentwürfe aus deinen Quizfragen.</source>
         <target>Formula brevi titoli tematici e sintesi a partire dai contributi, oppure proposte di obiettivi di apprendimento a partire dalle domande del tuo quiz.</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.snapshotReusedShort" datatype="html">
-        <source>Ergebnis übernommen</source>
-        <target>Risultato riutilizzato</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.infoButton" datatype="html">
         <source>Details zur Textauswertung</source>
         <target>Dettagli dell’analisi dei testi</target>
@@ -37641,10 +37629,6 @@
         <source>Zuletzt gemeldetes Restbudget in Minuten</source>
         <target>Tempo residuo in minuti all’ultimo aggiornamento</target>
       </trans-unit>
-      <trans-unit id="textAnalysis.basisLabel" datatype="html">
-        <source>Auf Grundlage deiner Rückmeldungen</source>
-        <target>A partire dai tuoi riscontri</target>
-      </trans-unit>
       <trans-unit id="textAnalysis.groupingReused" datatype="html">
         <source>Vorhandene Themenbildung übernommen</source>
         <target>Raggruppamento tematico precedente riutilizzato</target>
@@ -37720,6 +37704,70 @@
       <trans-unit id="textAnalysis.statusUsedInfo" datatype="html">
         <source>Die Herkunft am konkreten Ergebnis zeigt, welches Verfahren daran beteiligt war. Die Slot-Sonde prüft Erreichbarkeit und Belegung.</source>
         <target>L’origine indicata con il risultato mostra quale metodo è stato usato. La verifica del servizio ne controlla la raggiungibilità e la disponibilità dei posti.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicProcess" datatype="html">
+        <source>arsnova gruppiert Beiträge mit ähnlicher Bedeutung. Die lokale KI kann die Themennamen kürzen oder neu formulieren. Die Gruppen bleiben dabei unverändert.</source>
+        <target>arsnova raggruppa i contributi dal significato simile. L’IA locale può accorciare o riformulare i titoli dei temi senza modificare i gruppi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationContent" datatype="html">
+        <source>Inhaltliche Frage</source>
+        <target>Domanda sui contenuti</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationSession" datatype="html">
+        <source>Frage zum Ablauf</source>
+        <target>Domanda sullo svolgimento della sessione</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationTechnical" datatype="html">
+        <source>Technische Frage</source>
+        <target>Domanda tecnica</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.mixedBasis" datatype="html">
+        <source>So entstand dieser Hinweis</source>
+        <target>Come è emersa questa indicazione</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesWaitingShort" datatype="html">
+        <source>Live-Unterricht hat Vorrang. Deine Lernzielableitung wartet.</source>
+        <target>La lezione in corso ha la priorità. La tua richiesta è in attesa.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetryingShort" datatype="html">
+        <source>Neuer Versuch …</source>
+        <target>Nuovo tentativo…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.groupedByMeaning" datatype="html">
+        <source>Beiträge nach ähnlicher Bedeutung gruppiert</source>
+        <target>Contributi raggruppati per somiglianza di significato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationUncertainInfo" datatype="html">
+        <source>Die Hinweise in der Frage reichen für eine eindeutige Zuordnung nicht aus.</source>
+        <target>Gli indizi nella domanda non bastano per assegnarla a una categoria con certezza.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponsesInfo" datatype="html">
+        <source>Diese Freitextantwort wurde mehrfach gegeben.</source>
+        <target>Questa risposta a testo libero è stata data più volte.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudModes" datatype="html">
+        <source>Wörter, Wortgruppen und Themen</source>
+        <target>Parole, gruppi di parole e temi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudWords" datatype="html">
+        <source>Wörter</source>
+        <target>Parole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudPhrases" datatype="html">
+        <source>Wortgruppen</source>
+        <target>Gruppi di parole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesPreparing" datatype="html">
+        <source>Lernziele werden vorbereitet …</source>
+        <target>Preparazione degli obiettivi di apprendimento…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesProgressDetails" datatype="html">
+        <source>Ablauf und Hinweise</source>
+        <target>Procedura e indicazioni</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.remainingBudgetInfo" datatype="html">
+        <source>Das Restbudget ist die verbleibende Laufzeitgrenze zum zuletzt gemeldeten Stand.</source>
+        <target>Il budget residuo indica il tempo ancora disponibile entro il limite all’ultimo aggiornamento.</target>
       </trans-unit>
       <trans-unit id="textAnalysis.objectivesRetrying" datatype="html">
         <source>Die Lernzielableitung wird erneut versucht.</source>

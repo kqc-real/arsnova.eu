@@ -2331,10 +2331,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const result = this.analysisInfo()?.result;
     const encoder = result?.modelId ?? this.analysisModelVersion();
     const labelModel = modelLabel ? this.labelModelId() : null;
-    const lines = [
-      ...(encoder ? [copy.topicGrouping + ' · ' + encoder] : []),
-      copy.topicName + ' · ' + (labelModel ? labelModel + ' · ' : '') + name,
-    ];
+    const lines = [copy.groupedByMeaning, copy.topicName + ' · ' + name];
+    if (encoder) lines.push(copy.topicGrouping + ' · ' + encoder);
+    if (labelModel) lines.push(copy.topicName + ' · ' + labelModel);
     const encoderVersion = this.analysisModelVersion();
     if (encoderVersion && encoderVersion !== encoder)
       lines.push(copy.topicGrouping + ' · ' + copy.version + ' · ' + encoderVersion);

@@ -158,23 +158,6 @@
   color: var(--mat-sys-on-error-container);
 }
 
-.learning-objectives__derivation-progress-stack {
-  display: grid;
-  gap: 0.65rem;
-  margin-block-start: 0.65rem;
-}
-
-.learning-objectives__derivation-live {
-  align-items: center;
-  display: flex;
-  gap: 0.5rem;
-  min-height: 1.25rem;
-}
-
-.learning-objectives__derivation-live-spinner {
-  flex: 0 0 auto;
-}
-
 .learning-objectives__derivation-progress {
   display: grid;
   gap: 0.45rem;
@@ -194,33 +177,25 @@
   width: 100%;
 }
 
-.learning-objectives__derivation-progress-scale {
-  min-height: 1.4em;
-  overflow: visible;
-  position: relative;
-}
-
-.learning-objectives__derivation-progress-tick {
-  color: inherit;
-  font: var(--mat-sys-label-medium);
-  font-variant-numeric: tabular-nums;
-  inset-inline-start: var(--tick-percent);
-  line-height: 1.4;
-  position: absolute;
-  top: 0;
-  translate: -50% 0;
-}
-
-.learning-objectives__derivation-progress-tick--current {
-  color: var(--mat-sys-primary);
-  font-weight: 700;
-}
-
-.learning-objectives__derivation-keep-open {
-  color: inherit;
-  font: var(--mat-sys-label-medium);
-  line-height: 1.4;
+.learning-objectives__derivation-current {
+  font: var(--mat-sys-label-large);
+  line-height: 1.5;
   margin: 0;
+}
+
+.learning-objectives__derivation-details {
+  font: var(--mat-sys-body-small);
+  line-height: 1.5;
+}
+
+.learning-objectives__derivation-details summary {
+  align-content: center;
+  cursor: pointer;
+  min-block-size: 2.75rem;
+}
+
+.learning-objectives__derivation-details p {
+  margin-block: 0.35rem 0;
 }
 
 .learning-objectives__derivation-status ul {

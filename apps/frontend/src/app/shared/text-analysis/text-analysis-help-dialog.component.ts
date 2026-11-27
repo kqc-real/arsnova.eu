@@ -14,6 +14,7 @@ import { textAnalysisCopy as copy } from './text-analysis-copy';
 
 interface TextAnalysisHelpContext {
   description: string;
+  process: string | null;
   details: readonly string[];
 }
 
@@ -41,6 +42,9 @@ interface TextAnalysisHelpContext {
     <mat-dialog-content>
       @if (context(); as current) {
         <p>{{ current.description }}</p>
+        @if (current.process; as process) {
+          <p>{{ process }}</p>
+        }
         @if (current.details.length) {
           <ul>
             @for (detail of current.details; track $index) {
@@ -48,6 +52,17 @@ interface TextAnalysisHelpContext {
             }
           </ul>
         }
+        <details>
+          <summary>{{ copy.wordCloudModes }}</summary>
+          <dl>
+            <dt>{{ copy.wordCloudWords }}</dt>
+            <dd>{{ copy.wordsInfo }}</dd>
+            <dt>{{ copy.wordCloudPhrases }}</dt>
+            <dd>{{ copy.phrasesInfo }}</dd>
+            <dt>{{ copy.topics }}</dt>
+            <dd>{{ copy.topicsInfo }}</dd>
+          </dl>
+        </details>
         <details>
           <summary>{{ copy.helpTitle }}</summary>
           <ng-container *ngTemplateOutlet="overview" />
@@ -106,7 +121,10 @@ export class TextAnalysisHelpDialogComponent {
   protected readonly copy = copy;
   protected readonly paths = [
     { title: copy.lexicon, descriptions: [copy.lexiconInfo, 'spaCy · ' + copy.spacy] },
-    { title: copy.topics, descriptions: [copy.topicPath, 'E5 · ' + copy.e5] },
+    {
+      title: copy.topics,
+      descriptions: [copy.topicProcess, copy.topicPath, 'E5 · ' + copy.e5, copy.topicNamingInfo],
+    },
     {
       title: copy.classification,
       descriptions: [

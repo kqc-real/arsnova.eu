@@ -5395,11 +5395,12 @@
                         @if (question.nlp; as nlp) {
                           @if (nlp.status === 'classified' || nlp.status === 'uncertain') {
                             <details class="session-qa-card__classification">
-                              <summary>{{ textClassificationLabel }}</summary>
-                              <p>{{ textClassificationInfo }}</p>
-                              @for (label of qaClassificationDetails(nlp); track $index) {
-                                <p>{{ label }}</p>
+                              <summary>{{ qaClassificationLabel(nlp) }}</summary>
+                              <p>{{ analysisCopy.classificationInfo }}</p>
+                              @if (nlp.status === 'uncertain') {
+                                <p>{{ analysisCopy.classificationUncertainInfo }}</p>
                               }
+                              <p>{{ qaClassificationMethod(nlp) }}</p>
                             </details>
                           }
                         }
