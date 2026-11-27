@@ -70,6 +70,12 @@ Dieselbe Kompass-UI, kein neuer Bildschirm. Statuszeile:
 
 Klassifizierte Fragen erscheinen in der Karte **Häufige Themen** als Inhalt, Ablauf und Technik (mit Anzahl). Ein Tipp darauf hebt die passenden Q&A-Fragen mit Badge **Aus dem Kompass · Inhaltliche Fragen** (bzw. Ablauf/Technik) hervor. Andere Kompass-Sprünge nutzen dieselbe Badge-Form mit Karten- oder Begriffshinweis. 8.9a-Karten bleiben der Fallback. Keine automatischen Pin-/Archiv-/Phasenaktionen.
 
+Im Host-Detail einer Frage stehen Kategorie oder unsichere Einordnung und, bei
+bekannter Modellversion, das verwendete Verfahren. Eine unsichere Einordnung
+kann das Ergebnis einer vollständig durchlaufenen Kaskade sein. Der
+Moderationskompass weist die Einordnung als Grundlage der betreffenden
+Hinweise aus.
+
 ## Level 2 (k-NN-Fallback)
 
 Wenn der Gatekeeper **nicht** early-exitet (Konfidenz ≥ `QA_NLP_MIN_CONFIDENCE`, Abstand der beiden Top-Klassen ≥ 0.22 **und** mindestens 6 Tokens), läuft ein In-Process-k-NN (`modelVersion: fallback-knn-v3`, k=5, Cosinus) im **selben gehashten n-Gramm-Raum**. Prototypen kommen aus Train-Split und `prototype`-Beispielen. Der Cosinus summiert nur über die belegten Merkmale der Anfrage. Eine Klassifikation braucht mindestens 0,60 Nachbarübereinstimmung und im Mittel mindestens 0,14 Ähnlichkeit für die gewählte Klasse.

@@ -1,6 +1,6 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ServerStatusHelpDialogComponent } from './server-status-help-dialog.component';
 import type { SpecAccess } from '../../testing/spec-access';
@@ -47,6 +47,31 @@ describe('ServerStatusHelpDialogComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('opens the text-analysis explanation without requesting a probe', () => {
+    const open = vi.fn();
+    TestBed.configureTestingModule({
+      imports: [ServerStatusHelpDialogComponent],
+      providers: [
+        { provide: MatDialog, useValue: { open } },
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: { connectionOk: signal(false), loading: signal(false), stats: signal(null) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(ServerStatusHelpDialogComponent);
+    fixture.detectChanges();
+
+    const help = fixture.nativeElement.querySelector(
+      'button[aria-haspopup="dialog"]',
+    ) as HTMLButtonElement;
+    expect(help.textContent).toContain('So wertet arsnova deine Beiträge aus');
+    openWeightLlmProbeQuery.mockClear();
+    help.click();
+    expect(open).toHaveBeenCalledOnce();
+    expect(openWeightLlmProbeQuery).not.toHaveBeenCalled();
   });
 
   it('shows live metrics and the session attendance record when stats are available', () => {

@@ -26,6 +26,11 @@ Der Summary-V2-Referenzkontext passt im 8.192-Profil mit Q&A-Belegen und sichtba
 
 Der Betriebsstatus-Dialog (Startseite → Betrieb & Nutzung) zeigt unter **Lokale Text-KI** das Ergebnis von `health.openWeightLlmProbe`. Die App fragt die Slot-Sonde des Modellservers mit einem Budget von 2,5 Sekunden ab. Die Prüfung belegt keinen Inferenzslot. Sie ist vom Footer-Poll und vom allgemeinen Betriebsstatus getrennt. Die App cached das Ergebnis fünf Minuten und bündelt parallele Abfragen, auch bei manuellem Wiederholen. Die drei Beschreibungen erklären die Einsatzbereiche. Ob Modellantworten die jeweiligen Verträge erfüllen, prüfen die separaten Modell- und Contract-Tests.
 
+Über »Betrieb & Nutzung« ist die Hilfe »So wertet arsnova deine Beiträge aus«
+erreichbar. Sie erklärt die lokalen Verfahren, die Auswertungswege und ihre
+Ersatzverfahren. Die Hilfe verwendet keine Inferenz und ist auch verfügbar,
+wenn gerade keine Live-Betriebsdaten vorliegen.
+
 ## Gepinnte Artefakte
 
 | Artefakt          | Pin                                                                                       |

@@ -11,6 +11,7 @@ import type {
   WordCloudAnalysisEntryDTO,
   WordCloudAnalysisVariant,
 } from '@arsnova/shared-types';
+import type { WordCloudAnalysisInfo } from '../session-present/word-cloud-analysis-info';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
 import { PresenterIconComponent } from '../presenter-icon.component';
@@ -46,6 +47,7 @@ export type QaWordCloudDialogData = {
   analyzedQuestionCount: () => number;
   eligibleQuestionCount: () => number;
   analysisModelVersion?: () => string | null;
+  analysisInfo?: () => WordCloudAnalysisInfo;
   labelModelId?: () => string | null;
   labelModelVersion?: () => string | null;
   labelPromptVersion?: () => string | null;
@@ -122,6 +124,7 @@ export class QaWordCloudDialogComponent {
   readonly tooltipMetricLabel = computed(() => this.data.tooltipMetricLabel());
   readonly analyzedQuestionCount = computed(() => this.data.analyzedQuestionCount());
   readonly analysisModelVersion = computed(() => this.data.analysisModelVersion?.() ?? null);
+  readonly analysisInfo = computed(() => this.data.analysisInfo?.() ?? null);
   readonly labelModelId = computed(() => this.data.labelModelId?.() ?? null);
   readonly labelModelVersion = computed(() => this.data.labelModelVersion?.() ?? null);
   readonly labelPromptVersion = computed(() => this.data.labelPromptVersion?.() ?? null);

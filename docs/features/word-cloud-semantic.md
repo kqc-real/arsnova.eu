@@ -121,6 +121,17 @@ Wert daher `true` sein, obwohl `labelModelCalled=false` ist.
 
 Snapshot an den Encoder: nur `{ id, text }` mit anonymen Quellschlüsseln. Q&A verwendet UUID-basierte Schlüssel; Freitext verwendet die stabilen `response-{index}`-Schlüssel des unveränderlichen Host-Snapshots. Der interne Encodertransport versieht beide mit demselben Prefix und bildet sie anschließend auf die ursprünglichen IDs zurück. Keine Tokens, IPs, Nicknames, Participant-IDs oder Session-Codes in den Item-Feldern. Extra-Felder lehnt der Sidecar ab.
 
+### Herkunft in der Host-Oberfläche
+
+Q&A und Freitext zeigen die Themenbildung und die Herkunft jedes Namens getrennt.
+Die erste Wolke bleibt benutzbar, während Namen vorbereitet werden. Nach Abschluss
+bleiben auch extraktive Namen und Belege zugänglich. Die Statusanzeige bezieht
+sich auf die sichtbaren Themen. Der Infodialog nennt belegte Fallback-Gründe und
+macht wiederverwendete Gruppierung oder Namen kenntlich. Der CSV-Export enthält
+die Herkunft pro Themenzeile. Angaben zum Labelmodell stehen nur in generativen
+Zeilen. Bei fehlender Herkunft bleibt sie als unbekannt gekennzeichnet. Die
+Bühne verwendet die bereits projizierte Herkunft und zeigt einen kurzen Hinweis.
+
 ## Betrieb
 
 Der Encoder läuft als **optionaler Sidecar** hinter dem Backend, analog spaCy: Compose-Profil `encoder`, Unix-Socket, `network_mode: none`, kein öffentlicher Port. Alternativ internes HTTP analog 8.9c (`WORD_CLOUD_ENCODER_URL`), nur Loopback (`localhost`, `127.0.0.0/8`, `::1`) oder RFC1918/`fc00::/7`-Literale. Browser sprechen den Dienst nie an. Öffentliche DNS-Namen, öffentliche IPs und SaaS-Hosts sind blockiert. `deploy.sh` startet den Encoder nicht.

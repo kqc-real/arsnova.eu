@@ -1,3 +1,4 @@
+import { textAnalysisCopy as copy } from '../../../shared/text-analysis/text-analysis-copy';
 import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, LOCALE_ID, signal, ViewEncapsulation } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
@@ -384,6 +385,36 @@ export class ModerationCompassDialogComponent {
     }
   }
 
+  protected readonly analysisCopy = copy;
+  private readonly analysisBasisLabels = {
+    classification: copy.classificationBasis,
+    topics: copy.topicBasis,
+    lexical: copy.lexicalBasis,
+    rules: copy.ruleBasis,
+  };
+
+  protected cardAnalysisBasis(card: ModerationCompassCard): readonly string[] {
+    return (card.analysisBasis ?? ['rules' as const]).map(
+      (basis) => this.analysisBasisLabels[basis],
+    );
+  }
+
+  protected summaryOrigin(result: CompatibleQaSummaryResult): string | null {
+    if (!('execution' in result) || result.status === 'pending') return null;
+    switch (result.execution.effectiveMode) {
+      case 'full-context':
+        return copy.summaryModel;
+      case 'extractive':
+        return copy.summaryExtractive;
+      case 'rule-based':
+        return copy.summaryRules;
+      case 'legacy-text':
+        return copy.summaryLegacy;
+      default:
+        return null;
+    }
+  }
+
   summaryStatusText(result: CompatibleQaSummaryResult | null): string | null {
     if (!result) {
       return null;
@@ -430,7 +461,7 @@ export class ModerationCompassDialogComponent {
   private genericSummaryStatus(status: CompatibleQaSummaryResult['status']): string | null {
     switch (status) {
       case 'pending':
-        return $localize`:@@sessionHost.moderationSummaryPending:Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.`;
+        return copy.summaryPending;
       case 'uncertain':
         return $localize`:@@sessionHost.moderationSummaryUncertain:Die Fragen lassen sich nicht eindeutig zusammenfassen.`;
       case 'failed':

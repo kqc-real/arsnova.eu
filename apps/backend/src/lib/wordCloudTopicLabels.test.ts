@@ -517,6 +517,7 @@ describe('applyWordCloudTopicLabels', () => {
       { env: enabledEnv, label },
     );
     expect(result.entries[0]?.label).toBe('Kurzer Satz hier');
+    expect(result.labelFallbackReason).toBe('invalid_response');
     expect(result.labelSettlement).toBe('complete');
     expect(result.labelModelId).toBeNull();
   });
@@ -538,6 +539,7 @@ describe('applyWordCloudTopicLabels', () => {
     expect(getWordCloudResultDisplayMode(result)).toBe('SEMANTIC');
     expect(result.labelSettlement).toBe('transient');
     expect(result.labelModelId).toBeNull();
+    expect(result.labelFallbackReason).toBe('timeout');
     expect(result.entries).toEqual(
       original.entries.map((item) => ({ ...item, labelOrigin: 'extractive' })),
     );
@@ -641,11 +643,13 @@ describe('applyWordCloudTopicLabels', () => {
       labelModelCalled: true,
       labelCacheHits: 0,
       labelCacheMisses: 1,
+      reusedLabelKeys: [],
     });
     expect(getWordCloudTopicLabelTelemetry(second)).toEqual({
       labelModelCalled: false,
       labelCacheHits: 1,
       labelCacheMisses: 0,
+      reusedLabelKeys: [clusterEntry.key],
     });
   });
 
@@ -888,6 +892,7 @@ describe('applyWordCloudTopicLabels', () => {
         labelModelCalled: true,
         labelCacheHits: 0,
         labelCacheMisses: 0,
+        reusedLabelKeys: [],
       });
       expect(result.labelSettlement).toBe('complete');
       expect(result.entries[0]?.label).toBe('Steigung linearer Funktionen');

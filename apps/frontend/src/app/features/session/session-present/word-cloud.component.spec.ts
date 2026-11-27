@@ -1931,6 +1931,25 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('labelPromptVersion', 'topic-label-system-v1');
     fixture.componentRef.setInput('analysisEntries', [
       {
+        key: 'semantic-1-extractive',
+        label: 'Originalfrage',
+        count: 2,
+        basisLabel: 'Originalfrage',
+        members: [{ sourceId: 'question-3', text: 'Originalfrage', weight: 2 }],
+        variants: [],
+        confidence: 0.81,
+        labelOrigin: 'extractive',
+      },
+      {
+        key: 'semantic-2-legacy',
+        label: 'Älteres Ergebnis',
+        count: 1,
+        basisLabel: null,
+        members: [{ sourceId: 'question-4', text: 'Älteres Ergebnis', weight: 1 }],
+        variants: [],
+        confidence: 0.72,
+      },
+      {
         key: 'semantic-0',
         label: 'Kommt Kapitel 4 in die Klausur?',
         count: 6,
@@ -1955,8 +1974,21 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
-    const tooltip = component.wordTooltipDisplay(component.words()[0]!);
-    expect(tooltip).toContain('Modell: intfloat/multilingual-e5-small@sha256:testdigest');
+    component.setConfidenceFilter('all');
+    fixture.detectChanges();
+    const generated = component.words().find(({ groupKey }) => groupKey === 'semantic-0')!;
+    const extractive = component
+      .words()
+      .find(({ groupKey }) => groupKey === 'semantic-1-extractive')!;
+    const tooltip = component.wordTooltipDisplay(generated);
+    const original = component
+      .wordTooltipBlocks(extractive)
+      .map((block) => (block.kind === 'text' ? block.text : ''))
+      .join(' ');
+    expect(original).toContain('Aus einem Originalbeitrag');
+    expect(original).not.toContain('test-label-model');
+    expect(tooltip).toContain('Themenbildung · intfloat/multilingual-e5-small@sha256:testdigest');
+    expect(tooltip).toContain('Themenname · test-label-model · Von der lokalen KI formuliert');
     expect(tooltip).toContain('Ist Kapitel 4 klausurrelevant?');
 
     const downloadSpy = vi
@@ -1975,6 +2007,14 @@ describe('WordCloudComponent', () => {
     expect(csv).toContain(
       '"model","test-label-model","test-label-model-version","topic-label-system-v1"',
     );
+    expect(csv).toContain('"extractive","","",""');
+    expect(csv).toContain('"unknown","","",""');
+
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.detectChanges();
+    const stage = component.wordTooltip(generated);
+    expect(stage).toContain('Von der lokalen KI formuliert');
+    expect(stage).not.toContain('test-label-model');
   });
 
   it('exportiert PNG mit erfolgreichem Status statt schwarzem Leerbild', async () => {

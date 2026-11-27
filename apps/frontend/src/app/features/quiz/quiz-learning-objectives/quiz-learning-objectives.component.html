@@ -112,13 +112,7 @@
           <h3 id="learning-objective-derivation-title" i18n="@@learningObjectives.derivationTitle">
             Lernziele vorschlagen lassen
           </h3>
-          <p
-            id="learning-objective-derivation-description"
-            i18n="@@learningObjectives.derivationHelp"
-          >
-            Auf Klick erstellt die lokale Text-KI passende Lernziel-Entwürfe aus deinen aktiven
-            Fragen und Lösungen. Deine bestehenden Lernziele bleiben unverändert.
-          </p>
+          <p id="learning-objective-derivation-description">{{ analysisCopy.objectivesInfo }}</p>
           <div class="learning-objectives__derivation-actions">
             <button
               mat-stroked-button
@@ -144,9 +138,7 @@
                   >Erneut automatisch formulieren</span
                 >
               } @else {
-                <span i18n="@@learningObjectives.derivationStart"
-                  >Automatisch aus Fragen formulieren</span
-                >
+                <span>{{ analysisCopy.objectivesAction }}</span>
               }
             </button>
             @if (derivationIsPending()) {

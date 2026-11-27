@@ -2,6 +2,7 @@ import { Injector, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { AnalyzeWordCloudOutput } from '@arsnova/shared-types';
 import { describe, expect, it, vi } from 'vitest';
+import { wordCloudAnalysisInfo } from './word-cloud-analysis-info';
 import { enrichCurrentTopicCloud } from './word-cloud-topic-labels';
 
 const base: AnalyzeWordCloudOutput = {
@@ -83,6 +84,24 @@ describe('enrichCurrentTopicCloud', () => {
     );
   });
 
+  it('beendet die Benennung nach einer abgelehnten zweiten Anfrage und erhält die Vorschau', async () => {
+    TestBed.configureTestingModule({});
+    const apply = vi.fn();
+    const onPendingChange = vi.fn();
+
+    await enrichCurrentTopicCloud({
+      base,
+      injector: TestBed.inject(Injector),
+      isCurrent: () => true,
+      fetch: vi.fn().mockRejectedValue(new Error('request failed')),
+      apply,
+      onPendingChange,
+    });
+
+    expect(onPendingChange.mock.calls).toEqual([[true], [false]]);
+    expect(apply).toHaveBeenCalledWith({ ...base, topicLabelsPending: false });
+  });
+
   it('bricht bei einem Snapshotwechsel ab und ignoriert die verspätete Modellantwort', async () => {
     TestBed.configureTestingModule({});
     const current = signal(true);
@@ -105,5 +124,29 @@ describe('enrichCurrentTopicCloud', () => {
     reply(enriched);
     await pending;
     expect(apply).not.toHaveBeenCalled();
+  });
+});
+
+describe('wordCloudAnalysisInfo', () => {
+  it('leitet die Herkunft aus sichtbaren Labels ab und benennt nur belegte Ursachen', () => {
+    const result = { ...enriched, topicLabelsPending: false, labelFallbackReason: 'busy' as const };
+    const names = [enriched.entries[0]!, base.entries[0]!];
+    const info = wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, names);
+    expect(info.status).toBe('Teils KI-generiert');
+    expect(info.details).toContain('Die KI war belegt. Du siehst die verfügbaren Themennamen.');
+    expect(wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, []).status).toBeNull();
+    expect(wordCloudAnalysisInfo({ mode: 'SEMANTIC', result }, names.slice(1)).status).toBe(
+      'Originalformulierungen',
+    );
+  });
+
+  it('zeigt eine wiederverwendete Gruppierung und einen neutralen Wartestatus', () => {
+    const result = { ...base, reuse: { preview: true } };
+    const info = wordCloudAnalysisInfo(
+      { mode: 'SEMANTIC', result, namingPending: true },
+      base.entries,
+    );
+    expect(info.status).toBe('Themennamen werden vorbereitet …');
+    expect(info.details).toContain('Vorhandene Themenbildung übernommen');
   });
 });

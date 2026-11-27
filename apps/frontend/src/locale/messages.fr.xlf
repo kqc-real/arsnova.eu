@@ -18651,22 +18651,6 @@
           <context context-type="linenumber">169,171</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.moderationSummaryTitle" datatype="html">
-        <source> Wichtige offene Fragen</source>
-        <target>Questions importantes en attente de réponse</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
-          <context context-type="linenumber">184,186</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.moderationSummaryIntro" datatype="html">
-        <source>Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.</source>
-        <target>Les principales questions de la session en un coup d’œil.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
-          <context context-type="linenumber">190,192</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
         <source> Fragen zusammenfassen</source>
         <target>Résumer les questions</target>
@@ -18752,14 +18736,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">207</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
-        <source>Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.</source>
-        <target>Les principales questions sont rassemblées. Les questions similaires sont regroupées.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
-          <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryProgressHint" datatype="html">
@@ -27879,14 +27855,6 @@
           <context context-type="linenumber">1988</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="wordCloud.modelVersionTooltip" datatype="html">
-        <source>Modell: <x id="version" equiv-text="version"/></source>
-        <target>Modèle : <x id="version" equiv-text="version"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">1997</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="wordCloud.themeConfidenceHigh" datatype="html">
         <source>sicher</source>
         <target>fiable</target>
@@ -35820,10 +35788,6 @@
         <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
         <target><x id="count" equiv-text="count"/> objectifs d’apprentissage figurent déjà comme brouillons dans la liste.</target>
         </trans-unit>
-      <trans-unit id="learningObjectives.derivationWaitingForModel" datatype="html">
-        <source>Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: <x id="minutes" equiv-text="minutes"/>.</source>
-        <target>Une demande plus urgente est en cours. La génération reprendra automatiquement. Temps restant en minutes : <x id="minutes" equiv-text="minutes"/>.</target>
-      </trans-unit>
       <trans-unit id="learningObjectives.derivationPreemptedWhy" datatype="html">
         <source>Ein dringenderer Auftrag hat die Erstellung unterbrochen.</source>
         <target>Une demande prioritaire a interrompu la génération.</target>
@@ -37388,6 +37352,286 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.ts</context>
           <context context-type="linenumber">112</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topics" datatype="html">
+        <source>Themen</source>
+        <target>Thèmes</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordsInfo" datatype="html">
+        <source>Entdecke, welche Wörter in den Beiträgen besonders häufig vorkommen.</source>
+        <target>Repère les mots qui reviennent le plus souvent dans les contributions.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.phrasesInfo" datatype="html">
+        <source>Erkenne wiederkehrende Wortverbindungen und typische Formulierungen.</source>
+        <target>Repère les groupes de mots et les expressions qui reviennent souvent.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicsInfo" datatype="html">
+        <source>Entdecke gemeinsame Themen – auch wenn deine Lernenden dasselbe ganz unterschiedlich ausdrücken.</source>
+        <target>Découvre les thèmes communs, même lorsque tes élèves et étudiants expriment une même idée de façons très différentes.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.smoothInfo" datatype="html">
+        <source>Fasse unterschiedliche Formen desselben Wortes zusammen. So werden wiederkehrende Begriffe leichter sichtbar.</source>
+        <target>Regroupe les différentes formes d’un même mot pour mieux repérer les notions récurrentes.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicNamingInfo" datatype="html">
+        <source>Die lokale KI bringt verwandte Beiträge mit kurzen Themennamen auf den Punkt.</source>
+        <target>L’IA locale résume les idées communes en intitulés de thèmes concis.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classification" datatype="html">
+        <source>Fragen einordnen</source>
+        <target>Classer les questions</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationInfo" datatype="html">
+        <source>Erkenne auf einen Blick, ob Fragen den Inhalt, den Ablauf oder die Technik betreffen.</source>
+        <target>Vois d’un coup d’œil si les questions portent sur le contenu, le déroulement de la séance ou des difficultés techniques.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryTitle" datatype="html">
+        <source>Das Wesentliche auf einen Blick</source>
+        <target>L’essentiel en un coup d’œil</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryInfo" datatype="html">
+        <source>Verschaffe dir einen Überblick über wichtige offene Fragen, gestützt auf die tatsächlichen Beiträge.</source>
+        <target>Fais le point sur les principales questions encore ouvertes, à partir des contributions réelles.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesAction" datatype="html">
+        <source>Lernziele ableiten</source>
+        <target>Déduire les objectifs d’apprentissage</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesInfo" datatype="html">
+        <source>Entdecke, welche Lernziele in deinen Quizfragen stecken. Die KI schlägt Entwürfe vor, die du prüfen und anpassen kannst.</source>
+        <target>Découvre les objectifs d’apprentissage qui se dégagent de tes questions de quiz. L’IA te propose des formulations que tu peux vérifier et adapter.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.helpTitle" datatype="html">
+        <source>So wertet arsnova deine Beiträge aus</source>
+        <target>Comment arsnova analyse tes contributions</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.helpIntro" datatype="html">
+        <source>Je nach Auswertung kommen unterschiedliche Verfahren zum Einsatz. Hier erfährst du, was sie leisten und wie dein Ergebnis zustande kommt.</source>
+        <target>Selon l’analyse choisie, différents procédés entrent en jeu. Découvre leur rôle et comment ton résultat est obtenu.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.normalizationDone" datatype="html">
+        <source>Sprachformen vereinheitlicht</source>
+        <target>Formes des mots harmonisées</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.normalizationShort" datatype="html">
+        <source>Sprachformen geglättet</source>
+        <target>Formes harmonisées</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicPreview" datatype="html">
+        <source>Themen erkannt · Themennamen werden vorbereitet …</source>
+        <target>Thèmes repérés · préparation des intitulés…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicPreviewShort" datatype="html">
+        <source>Themennamen werden vorbereitet …</source>
+        <target>Préparation des intitulés…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allModel" datatype="html">
+        <source>Themennamen KI-generiert</source>
+        <target>Intitulés générés par l’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.someModel" datatype="html">
+        <source>Einige Themennamen KI-generiert</source>
+        <target>Certains intitulés générés par l’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allExtractive" datatype="html">
+        <source>Themen erkannt · Originalformulierungen verwendet</source>
+        <target>Thèmes repérés · formulations d’origine utilisées</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.someModelShort" datatype="html">
+        <source>Teils KI-generiert</source>
+        <target>En partie générés par l’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allModelShort" datatype="html">
+        <source>KI-Themennamen</source>
+        <target>Intitulés générés par l’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allExtractiveShort" datatype="html">
+        <source>Originalformulierungen</source>
+        <target>Formulations d’origine</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.snapshotReused" datatype="html">
+        <source>Vorhandene Auswertung übernommen</source>
+        <target>Analyse précédente réutilisée</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelReused" datatype="html">
+        <source>Vorhandenes Ergebnis wiederverwendet</source>
+        <target>Résultat existant réutilisé</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.slotMissed" datatype="html">
+        <source>Die KI war belegt. Du siehst die verfügbaren Themennamen.</source>
+        <target>L’IA était occupée. Tu vois les intitulés disponibles.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelTimeout" datatype="html">
+        <source>Die Zeit für die KI-Benennung ist abgelaufen. Du siehst die verfügbaren Themennamen.</source>
+        <target>Le délai imparti à l’IA est écoulé. Tu vois les intitulés disponibles.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelsDisabled" datatype="html">
+        <source>KI-generierte Themennamen sind deaktiviert.</source>
+        <target>Les intitulés générés par l’IA sont désactivés.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.invalidLabel" datatype="html">
+        <source>Die KI konnte keinen passenden Themennamen liefern.</source>
+        <target>L’IA n’a pas pu proposer d’intitulé adapté.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelUnavailable" datatype="html">
+        <source>KI-Themenname nicht verfügbar</source>
+        <target>Intitulé généré par l’IA indisponible</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.unknownOrigin" datatype="html">
+        <source>Herkunft des Themennamens unbekannt</source>
+        <target>Origine de l’intitulé inconnue</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicGrouping" datatype="html">
+        <source>Themenbildung</source>
+        <target>Regroupement thématique</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicName" datatype="html">
+        <source>Themenname</source>
+        <target>Intitulé du thème</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.extractive" datatype="html">
+        <source>Aus einem Originalbeitrag</source>
+        <target>Issu d’une contribution d’origine</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.generative" datatype="html">
+        <source>Von der lokalen KI formuliert</source>
+        <target>Formulé par l’IA locale</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationUncertain" datatype="html">
+        <source>Keine eindeutige Einordnung</source>
+        <target>Classement incertain</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryPending" datatype="html">
+        <source>Die Fragen werden zusammengefasst …</source>
+        <target>Synthèse des questions en cours…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryModel" datatype="html">
+        <source>KI-generierte Zusammenfassung</source>
+        <target>Synthèse générée par l’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryExtractive" datatype="html">
+        <source>Zusammenfassung aus Originalbeiträgen</source>
+        <target>Synthèse à partir des contributions d’origine</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesWaiting" datatype="html">
+        <source>Die laufende Lehre hat Vorrang. Deine Lernzielableitung wartet auf einen freien KI-Platz.</source>
+        <target>La séance en cours est prioritaire. Tes objectifs d’apprentissage sont en attente de traitement par l’IA.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.spacy" datatype="html">
+        <source>Erkennt Grundformen von Wörtern, ohne ihre Bedeutung zu bewerten.</source>
+        <target>Identifie les formes de base des mots sans interpréter leur sens.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.naiveBayes" datatype="html">
+        <source>Ordnet Fragen anhand typischer Wort- und Zeichenmuster ein.</source>
+        <target>Classe les questions à partir de motifs récurrents dans les mots et les suites de caractères.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.neighbors" datatype="html">
+        <source>Vergleicht bei unsicherer Einordnung die Frage mit ähnlichen Beispielen.</source>
+        <target>Si le classement est incertain, compare la question à des exemples similaires.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.e5" datatype="html">
+        <source>Erfasst die Ähnlichkeit der Bedeutung, damit verwandte Beiträge zu Themen gruppiert werden können.</source>
+        <target>Repère les ressemblances de sens pour permettre de regrouper les contributions par thème.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.qwen" datatype="html">
+        <source>Formuliert kurze Themennamen und Zusammenfassungen aus Beiträgen oder Lernzielentwürfe aus deinen Quizfragen.</source>
+        <target>Formule des intitulés de thèmes et des synthèses à partir des contributions, ou des propositions d’objectifs d’apprentissage à partir de tes questions de quiz.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.snapshotReusedShort" datatype="html">
+        <source>Ergebnis übernommen</source>
+        <target>Résultat réutilisé</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.infoButton" datatype="html">
+        <source>Details zur Textauswertung</source>
+        <target>Détails de l’analyse des textes</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.close" datatype="html">
+        <source>Schließen</source>
+        <target>Fermer</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.corpusStale" datatype="html">
+        <source>Beiträge geändert · Themen aktualisieren</source>
+        <target>Contributions modifiées · Actualise les thèmes</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.corpusStaleShort" datatype="html">
+        <source>Beiträge geändert</source>
+        <target>Contributions modifiées</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.lexicon" datatype="html">
+        <source>Wörter und Wortgruppen</source>
+        <target>Mots et groupes de mots</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.lexiconInfo" datatype="html">
+        <source>Wörter und Wortgruppen werden gezählt. Auf Wunsch fasst spaCy verschiedene Formen desselben Wortes zusammen.</source>
+        <target>Les mots et groupes de mots sont comptés. Si tu le souhaites, spaCy regroupe les formes d’un même mot.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.rules" datatype="html">
+        <source>Regeln</source>
+        <target>Règles</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.rulesInfo" datatype="html">
+        <source>Der Moderationskompass nutzt Regeln für Hinweise, etwa wenn mehrere Fragen auf Freigabe warten. Je nach Karte kommen Einordnungen oder Themenbelege hinzu.</source>
+        <target>La boussole de modération utilise des règles, par exemple quand plusieurs questions attendent une validation. Selon la carte, elle s’appuie aussi sur le classement ou les thèmes.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicPath" datatype="html">
+        <source>Ähnliche Beiträge werden zu Themen gruppiert. Zuerst steht ein Name aus einem Originalbeitrag bereit. Die lokale KI kann danach einen kürzeren Namen formulieren.</source>
+        <target>Les contributions similaires sont regroupées par thème. Le premier intitulé provient d’une contribution d’origine. L’IA locale peut ensuite proposer un intitulé plus court.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryPath" datatype="html">
+        <source>Die lokale KI kann Fragen auf Anfrage zusammenfassen. Wenn das nicht möglich ist, kann arsnova passende Originalfragen anzeigen.</source>
+        <target>L’IA locale peut résumer les questions à la demande. Si ce n’est pas possible, arsnova peut afficher des questions d’origine pertinentes.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusInfo" datatype="html">
+        <source>Der Betriebsstatus beschreibt, ob ein Dienst verfügbar ist. Welche Verfahren deine Auswertung tatsächlich verwendet hat, siehst du am Ergebnis.</source>
+        <target>L’état du service indique sa disponibilité. Consulte ton résultat pour voir les procédés réellement utilisés pour ton analyse.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationMethodUnknown" datatype="html">
+        <source>Verfahren unbekannt</source>
+        <target>Méthode inconnue</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationBasis" datatype="html">
+        <source>Grundlage: automatische Einordnung der Fragen</source>
+        <target>Fondé sur le classement automatique des questions</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicBasis" datatype="html">
+        <source>Grundlage: Beiträge aus der Themenwolke</source>
+        <target>Fondé sur les contributions du nuage de thèmes</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.lexicalBasis" datatype="html">
+        <source>Grundlage: Wörter oder Wortgruppen aus den Beiträgen</source>
+        <target>Fondé sur les mots ou groupes de mots des contributions</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.ruleBasis" datatype="html">
+        <source>Grundlage: Regeln und Rückmeldungen aus der Live-Runde</source>
+        <target>Fondé sur des règles et les retours de la séance en direct</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryRules" datatype="html">
+        <source>Regelbasierter Überblick</source>
+        <target>Aperçu fondé sur des règles</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.promptVersion" datatype="html">
+        <source>Prompt-Version</source>
+        <target>Version de l’invite</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.version" datatype="html">
+        <source>Version</source>
+        <target>Version</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryLegacy" datatype="html">
+        <source>Zusammenfassung über den älteren Modellpfad</source>
+        <target>Synthèse issue de l’ancien parcours du modèle</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.remainingTime" datatype="html">
+        <source>Verbleibende Zeit in Minuten</source>
+        <target>Temps restant en minutes</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.basisLabel" datatype="html">
+        <source>Auf Grundlage deiner Rückmeldungen</source>
+        <target>À partir de tes retours</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.groupingReused" datatype="html">
+        <source>Vorhandene Themenbildung übernommen</source>
+        <target>Regroupement thématique précédent réutilisé</target>
       </trans-unit>
     </body>
   </file>

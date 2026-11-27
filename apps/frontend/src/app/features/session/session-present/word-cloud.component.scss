@@ -911,3 +911,26 @@
   font-size: 1.25rem;
   line-height: 1.5;
 }
+
+.word-cloud__analysis-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.5;
+}
+
+.word-cloud__analysis-info > span,
+.word-cloud__topic-provenance {
+  overflow-wrap: anywhere;
+}
+
+.word-cloud__topic-provenance {
+  margin-block: 0;
+  padding-inline-start: 1.25em;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.5;
+}

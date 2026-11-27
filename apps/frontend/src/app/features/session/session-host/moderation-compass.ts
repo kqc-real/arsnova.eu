@@ -90,9 +90,12 @@ export type ModerationCompassSource = {
 
 export type ModerationCompassCardTone = SharedModerationCompassCardTone;
 
+type ModerationCompassAnalysisBasis = 'classification' | 'topics' | 'lexical' | 'rules';
+
 export type ModerationCompassCard = {
   readonly kind: ModerationCompassCardKind;
   readonly sources: readonly ModerationCompassSource[];
+  readonly analysisBasis?: readonly ModerationCompassAnalysisBasis[];
   readonly nextStepReason?: ModerationCompassNextStepReason;
   readonly title?: string;
   readonly hint?: string;
@@ -851,8 +854,22 @@ export function buildModerationCompassView(
           ...(snapshot.tempo?.tempoStatus ? { tempoStatus: snapshot.tempo.tempoStatus } : {}),
         };
       }
-      if (card.kind === 'topics' && snapshot.topicWeightLabel) {
-        return { ...mapped, hint: snapshot.topicWeightLabel };
+      if (card.kind === 'topics' || card.kind === 'clarification') {
+        const analysisBasis = new Set<ModerationCompassAnalysisBasis>();
+        for (const sourceId of card.sourceIds) {
+          const source = registry.get(sourceId);
+          if (sourceId.startsWith('topic:nlp:')) analysisBasis.add('classification');
+          else if (source?.kind === 'qa-term' || source?.kind === 'freetext-term') {
+            analysisBasis.add(source.target?.analysisVariant === 'SEMANTIC' ? 'topics' : 'lexical');
+          }
+        }
+        return {
+          ...mapped,
+          ...(analysisBasis.size ? { analysisBasis: [...analysisBasis] } : {}),
+          ...(card.kind === 'topics' && snapshot.topicWeightLabel
+            ? { hint: snapshot.topicWeightLabel }
+            : {}),
+        };
       }
       return mapped;
     }),

@@ -204,7 +204,7 @@
     </p>
   }
   <div class="qa-word-cloud-dialog__stage">
-    @if (themesPending() || (themeFallbackHint() && !themesRefreshing())) {
+    @if (themesPending() || (!analysisInfo() && themeFallbackHint() && !themesRefreshing())) {
       <div
         class="qa-word-cloud-dialog__status"
         [class.qa-word-cloud-dialog__status--cover]="themesPending()"
@@ -242,6 +242,7 @@
       [terms]="terms()"
       [analysisEntries]="analysisEntries()"
       [analysisMode]="'qa'"
+      [analysisInfo]="analysisInfo()"
       [title]="title()"
       [exportViewLabel]="exportViewLabel()"
       [eyebrow]="data.eyebrow"

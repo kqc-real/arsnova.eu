@@ -834,6 +834,7 @@ describe('buildModerationCompassCards', () => {
       {
         kind: 'topics',
         tone: 'neutral',
+        analysisBasis: ['lexical'],
         sources: [
           {
             kind: 'qa-term',

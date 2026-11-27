@@ -4067,10 +4067,7 @@
                       <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
                     }
                     <div class="session-host__word-cloud-stage">
-                      @if (
-                        freetextWordCloudSemanticAnalysisPending() ||
-                        freetextWordCloudSemanticHint()
-                      ) {
+                      @if (freetextWordCloudSemanticAnalysisPending()) {
                         <div
                           class="session-host__word-cloud-status"
                           [class.session-host__word-cloud-status--cover]="
@@ -4097,10 +4094,6 @@
                                 mode="indeterminate"
                               />
                             </div>
-                          } @else if (freetextWordCloudSemanticHint()) {
-                            <p class="session-host__extra-note" role="status" aria-live="polite">
-                              {{ freetextWordCloudSemanticHint() }}
-                            </p>
                           }
                         </div>
                       }
@@ -4109,6 +4102,7 @@
                         [responses]="displayedFreetextResponses()"
                         [terms]="displayedFreetextVisibleTerms()"
                         [analysisEntries]="displayedFreetextAnalysisEntries()"
+                        [analysisInfo]="freetextWordCloudAnalysisInfo()"
                         [hiddenLabels]="freetextVisibilitySnapshot()?.hiddenLabels ?? []"
                         [hideEntry]="freetextVisibilitySnapshot() ? hideFreetextWord : null"
                         [visibilityPending]="freetextVisibilityPending()"
@@ -5398,6 +5392,17 @@
                           class="session-qa-card__text markdown-body"
                           [innerHTML]="renderMarkdown(question.text)"
                         ></div>
+                        @if (question.nlp; as nlp) {
+                          @if (nlp.status === 'classified' || nlp.status === 'uncertain') {
+                            <details class="session-qa-card__classification">
+                              <summary>{{ textClassificationLabel }}</summary>
+                              <p>{{ textClassificationInfo }}</p>
+                              @for (label of qaClassificationDetails(nlp); track $index) {
+                                <p>{{ label }}</p>
+                              }
+                            </details>
+                          }
+                        }
                         <div class="session-qa-card__meta">
                           <span class="session-qa-card__time">{{
                             relativeTime(question.createdAt)

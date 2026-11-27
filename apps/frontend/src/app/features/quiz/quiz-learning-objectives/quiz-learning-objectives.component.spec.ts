@@ -716,6 +716,8 @@ describe('QuizLearningObjectivesComponent', () => {
         promptTokens: 800,
         completionTokens: 160,
         queuedObjectives: 2,
+        waitingForModel: true,
+        remainingBudgetMs: 94_000,
       },
     }));
     const fixture = TestBed.createComponent(QuizLearningObjectivesComponent);
@@ -743,7 +745,10 @@ describe('QuizLearningObjectivesComponent', () => {
     expect(fixture.componentInstance.derivationQueuedObjectivesLabel()).toBe(
       '2 Lernziele stehen schon als Entwürfe in der Liste.',
     );
-    expect(fixture.nativeElement.textContent).toContain('Noch etwa 2 Minuten.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Die laufende Lehre hat Vorrang. Deine Lernzielableitung wartet auf einen freien KI-Platz.',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Verbleibende Zeit in Minuten 2');
     expect(fixture.nativeElement.textContent).toContain(
       '2 Lernziele stehen schon als Entwürfe in der Liste.',
     );
@@ -754,7 +759,6 @@ describe('QuizLearningObjectivesComponent', () => {
     ].map((tick: HTMLElement) => tick.textContent?.trim());
     expect(liveSpinner?.getAttribute('mode')).toBe('indeterminate');
     expect(progressBar?.getAttribute('mode')).toBe('determinate');
-    expect(fixture.nativeElement.textContent).toContain('Die Abfrage läuft.');
     expect(fixture.nativeElement.textContent).toContain(
       'Schließe den Editor nicht, solange die Erstellung läuft.',
     );
@@ -1188,7 +1192,7 @@ describe('QuizLearningObjectivesComponent', () => {
     ).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('#learning-objective-derive').textContent).toContain(
-      'Automatisch aus Fragen formulieren',
+      'Lernziele ableiten',
     );
     await vi.waitFor(() => expect(fixture.componentInstance.derivationStatus()).toBe(interruption));
     fixture.detectChanges();
@@ -1454,7 +1458,7 @@ describe('QuizLearningObjectivesComponent', () => {
     ) as HTMLButtonElement;
     expect(derive).not.toBeNull();
     expect(derive.classList.contains('mat-mdc-outlined-button')).toBe(true);
-    expect(derive.textContent).toContain('Automatisch aus Fragen formulieren');
+    expect(derive.textContent).toContain('Lernziele ableiten');
   });
 
   it('zeigt bei fokussierter Frage nur deren Lernziele und ordnet neue Ziele dieser Frage zu', () => {

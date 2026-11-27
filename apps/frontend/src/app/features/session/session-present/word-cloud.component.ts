@@ -67,6 +67,9 @@ import {
   type WordCloudStopwordContext,
   type WeightedWordSource,
 } from './word-cloud.util';
+import { textAnalysisCopy as copy } from '../../../shared/text-analysis/text-analysis-copy';
+import { TextAnalysisHelpDialogComponent } from '../../../shared/text-analysis/text-analysis-help-dialog.component';
+import { wordCloudAnalysisInfo, type WordCloudAnalysisInfo } from './word-cloud-analysis-info';
 import type { WordCloudTerm } from './word-cloud-term.service';
 import type { WordCloudDialogData } from './word-cloud-dialog.component';
 
@@ -82,6 +85,7 @@ interface CloudWord {
   groupKey: string;
   variants: string[];
   basisLabel: string | null;
+  labelOrigin?: WordCloudAnalysisEntryDTO['labelOrigin'];
   confidence: number | null;
   size: number;
   rank: number;
@@ -225,7 +229,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly tooltipMetricLabel = input<string | null>(null);
   readonly exportViewLabel = input<string | null>(null);
   readonly analysisModelVersion = input<string | null>(null);
+  readonly analysisInfo = input<WordCloudAnalysisInfo | null>(null);
   readonly labelModelId = input<string | null>(null);
+  protected readonly analysisInfoLabel = copy.infoButton;
   readonly labelModelVersion = input<string | null>(null);
   readonly labelPromptVersion = input<string | null>(null);
   readonly disableCloudLayout = input(false);
@@ -579,6 +585,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         groupKey: entry.key,
         variants: entry.variants.length > 0 ? entry.variants : [entry.label],
         basisLabel: entry.basisLabel,
+        labelOrigin: entry.labelOrigin,
         confidence: entry.confidence,
         size: scaleWordCloudFontSize(entry.count / maxCount, minFontSize, maxFontSize),
         rank: index,
@@ -725,6 +732,24 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     return this.words().find((entry) => entry.groupKey === selected) ?? null;
   });
+
+  protected readonly selectedTopicProvenance = computed(() => {
+    const entry = this.selectedWordEntry();
+    return entry ? this.topicProvenance(entry) : [];
+  });
+
+  protected readonly currentAnalysisInfo = computed(() => {
+    const analysis = this.analysisInfo();
+    if (this.outputOnly() || !analysis) return null;
+    const visible = this.cloudLayoutActive() ? this.positionedWords() : this.displayWords();
+    return wordCloudAnalysisInfo(analysis, visible);
+  });
+
+  protected openAnalysisInfo(): void {
+    const info = this.currentAnalysisInfo();
+    if (this.dialog && info)
+      TextAnalysisHelpDialogComponent.open(this.dialog, this.currentAnalysisInfo);
+  }
 
   readonly selectedWordLabel = computed(() => this.selectedWordEntry()?.word ?? null);
 
@@ -1361,10 +1386,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     if (confidenceLine) {
       meta.push(confidenceLine);
     }
-    const modelLine = this.analysisModelVersionLine();
-    if (modelLine) {
-      meta.push(modelLine);
-    }
+    meta.push(...this.topicProvenance(entry));
     if (meta.length > 0) {
       blocks.push({ kind: 'text', text: meta.join('\n') });
     }
@@ -1443,10 +1465,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       lines.push(confidenceLine);
     }
 
-    const modelLine = this.analysisModelVersionLine();
-    if (modelLine) {
-      lines.push(modelLine);
-    }
+    lines.push(...this.topicProvenance(entry));
 
     if (entry.variants.length > 1) {
       const variants = this.wordVariantPreview(entry.variants);
@@ -1486,10 +1505,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       lines.push(confidenceLine);
     }
 
-    const modelLine = this.analysisModelVersionLine();
-    if (modelLine) {
-      lines.push(modelLine);
-    }
+    lines.push(...this.topicProvenance(entry));
 
     if (entry.variants.length > 1) {
       const variants = this.wordVariantPreview(entry.variants);
@@ -1538,13 +1554,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     if (analysisEntries && analysisEntries.length > 0) {
       const entries = this.visibleEntries(analysisEntries);
       const includeSemanticMeta = Boolean(this.analysisModelVersion());
-      const includeLabelModel = entries.some((entry) => entry.labelOrigin === 'model');
+      const includeLabelOrigin = entries.some(({ key, labelOrigin }) =>
+        this.isTopicEntry(key, labelOrigin),
+      );
       const rows = [
         [
           includeSemanticMeta
             ? 'label,count,variants,basis,members,confidence,modelVersion'
             : 'label,count,variants,basis,members',
-          includeLabelModel ? 'labelOrigin,labelModelId,labelModelVersion,labelPromptVersion' : '',
+          includeLabelOrigin ? 'labelOrigin,labelModelId,labelModelVersion,labelPromptVersion' : '',
         ]
           .filter((column) => column.length > 0)
           .join(','),
@@ -1561,12 +1579,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
                   this.escapeCsvField(this.analysisModelVersion() ?? ''),
                 ]
               : []),
-            ...(includeLabelModel
+            ...(includeLabelOrigin
               ? [
-                  this.escapeCsvField(entry.labelOrigin ?? 'extractive'),
-                  this.escapeCsvField(this.labelModelId() ?? ''),
-                  this.escapeCsvField(this.labelModelVersion() ?? ''),
-                  this.escapeCsvField(this.labelPromptVersion() ?? ''),
+                  this.escapeCsvField(entry.labelOrigin ?? 'unknown'),
+                  this.escapeCsvField(
+                    entry.labelOrigin === 'model' ? (this.labelModelId() ?? '') : '',
+                  ),
+                  this.escapeCsvField(
+                    entry.labelOrigin === 'model' ? (this.labelModelVersion() ?? '') : '',
+                  ),
+                  this.escapeCsvField(
+                    entry.labelOrigin === 'model' ? (this.labelPromptVersion() ?? '') : '',
+                  ),
                 ]
               : []),
           ].join(','),
@@ -2284,13 +2308,39 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return $localize`:@@wordCloud.themeConfidenceLabel:Sicherheit der Gruppierung: ${tier}:tier: (${percent}:percent:)`;
   }
 
-  private analysisModelVersionLine(): string | null {
-    const version = this.analysisModelVersion()?.trim();
-    if (this.outputOnly() || !version) {
-      return null;
-    }
+  private isTopicEntry(key: string, origin: CloudWord['labelOrigin']): boolean {
+    return (
+      origin !== undefined || /^semantic-\d+(?:-|$)/u.test(key) || !!this.analysisModelVersion()
+    );
+  }
 
-    return $localize`:@@wordCloud.modelVersionTooltip:Modell: ${version}:version:`;
+  private topicProvenance(entry: CloudWord): string[] {
+    if (!this.isTopicEntry(entry.groupKey, entry.labelOrigin)) return [];
+    const modelLabel = entry.labelOrigin === 'model';
+    const name = modelLabel
+      ? copy.generative
+      : entry.labelOrigin === 'extractive'
+        ? copy.extractive
+        : copy.unknownOrigin;
+    if (this.outputOnly()) return [name];
+
+    const result = this.analysisInfo()?.result;
+    const encoder = result?.modelId ?? this.analysisModelVersion();
+    const labelModel = modelLabel ? this.labelModelId() : null;
+    const lines = [
+      ...(encoder ? [copy.topicGrouping + ' · ' + encoder] : []),
+      copy.topicName + ' · ' + (labelModel ? labelModel + ' · ' : '') + name,
+    ];
+    const encoderVersion = this.analysisModelVersion();
+    if (encoderVersion && encoderVersion !== encoder)
+      lines.push(copy.topicGrouping + ' · ' + copy.version + ' · ' + encoderVersion);
+    if (modelLabel && this.labelModelVersion())
+      lines.push(copy.topicName + ' · ' + copy.version + ' · ' + this.labelModelVersion());
+    if (modelLabel && this.labelPromptVersion())
+      lines.push(copy.promptVersion + ' · ' + this.labelPromptVersion());
+    if (result?.reuse?.snapshot || result?.reuse?.topicLabelKeys?.includes(entry.groupKey))
+      lines.push(copy.labelReused);
+    return lines;
   }
 
   private analysisConfidenceTierLabel(confidence: number): string {
@@ -2497,6 +2547,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       terms: this.terms(),
       analysisEntries: this.analysisEntries(),
       analysisMode: this.analysisMode(),
+      analysisInfo: this.analysisInfo(),
+      analysisModelVersion: this.analysisModelVersion(),
+      labelModelId: this.labelModelId(),
+      labelModelVersion: this.labelModelVersion(),
+      labelPromptVersion: this.labelPromptVersion(),
       disableCloudLayout: false,
       title: this.title(),
       exportViewLabel: this.exportViewLabel(),

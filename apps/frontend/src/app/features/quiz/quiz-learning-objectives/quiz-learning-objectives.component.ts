@@ -1,3 +1,4 @@
+import { textAnalysisCopy as copy } from '../../../shared/text-analysis/text-analysis-copy';
 import {
   afterNextRender,
   effect,
@@ -286,11 +287,12 @@ export class QuizLearningObjectivesComponent {
     const total = formatLocaleCount(progress.totalGroups, this.locale);
     return $localize`:@@learningObjectives.derivationGroupsScale:Fertig sind ${completed}:completed: von ${total}:total: Fragegruppen.`;
   });
+  protected readonly analysisCopy = copy;
   readonly derivationWaitingLabel = computed(() => {
     const progress = this.derivationProgress();
     if (!progress?.waitingForModel || progress.remainingBudgetMs === undefined) return null;
     const minutes = formatLocaleCount(Math.ceil(progress.remainingBudgetMs / 60_000), this.locale);
-    return $localize`:@@learningObjectives.derivationWaitingForModel:Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: ${minutes}:minutes:.`;
+    return copy.objectivesWaiting + ' · ' + copy.remainingTime + ' ' + minutes;
   });
   readonly derivationRemainingEstimate = computed(() => {
     const minutes = estimateRemainingDerivationMinutes(

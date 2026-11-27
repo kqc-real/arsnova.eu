@@ -1,3 +1,5 @@
+import { textAnalysisCopy as copy } from '../text-analysis/text-analysis-copy';
+import { TextAnalysisHelpDialogComponent } from '../text-analysis/text-analysis-help-dialog.component';
 import {
   Component,
   DestroyRef,
@@ -14,6 +16,7 @@ import type { Signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
+  MatDialog,
   MatDialogActions,
   MatDialogClose,
   MatDialogContent,
@@ -250,6 +253,15 @@ export interface ServerStatusHelpDialogData {
                     Die Prüfung zeigt, ob die lokale Text-KI erreichbar ist und gerade Anfragen
                     annehmen kann.
                   </p>
+                  <button
+                    mat-button
+                    type="button"
+                    aria-haspopup="dialog"
+                    (click)="openTextAnalysisHelp()"
+                  >
+                    <mat-icon aria-hidden="true">info_outline</mat-icon>
+                    {{ analysisHelpTitle }}
+                  </button>
                   @if (llmModelLabel(); as modelLabel) {
                     <p class="status-help-dialog__copy status-help-dialog__copy--compact">
                       <span i18n="@@app.footer.statusOpenWeightLlmModel">Modell:</span>
@@ -1690,6 +1702,10 @@ export interface ServerStatusHelpDialogData {
             </p>
           }
         </section>
+        <button mat-button type="button" aria-haspopup="dialog" (click)="openTextAnalysisHelp()">
+          <mat-icon aria-hidden="true">info_outline</mat-icon>
+          {{ analysisHelpTitle }}
+        </button>
       }
       <section
         class="status-help-dialog__panel status-help-dialog__panel--legend"
@@ -1761,6 +1777,13 @@ export interface ServerStatusHelpDialogData {
   `,
 })
 export class ServerStatusHelpDialogComponent {
+  private readonly dialog = inject(MatDialog, { optional: true });
+  protected readonly analysisHelpTitle = copy.helpTitle;
+
+  protected openTextAnalysisHelp(): void {
+    if (this.dialog) TextAnalysisHelpDialogComponent.open(this.dialog);
+  }
+
   private readonly locale = inject(LOCALE_ID);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dailyHighscoresCanvas =

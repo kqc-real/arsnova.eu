@@ -739,9 +739,9 @@ describe('ModerationCompassDialogComponent', () => {
 
     let text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Fragen zusammenfassen');
-    expect(text).toContain('Wichtige offene Fragen');
+    expect(text).toContain('Das Wesentliche auf einen Blick');
     expect(text).toContain(
-      'Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.',
+      'Verschaffe dir einen Überblick über wichtige offene Fragen, gestützt auf die tatsächlichen Beiträge.',
     );
     expect(text).not.toContain('Es gibt eine Frage zur Klausur.');
     expect(text).not.toContain('Mögliche nächste Schritte');
@@ -1022,6 +1022,7 @@ describe('ModerationCompassDialogComponent', () => {
     fixture.detectChanges();
     const panel = fixture.nativeElement.querySelector('[data-testid="moderation-summary"]');
     const statements = panel.querySelectorAll('.moderation-compass-dialog__summary-statements li');
+    expect(panel.textContent).toContain('KI-generierte Zusammenfassung');
     expect(statements).toHaveLength(1);
     expect(
       statements[0].querySelector('.moderation-compass-dialog__summary-lead').textContent,
@@ -1120,6 +1121,7 @@ describe('ModerationCompassDialogComponent', () => {
         ?.textContent,
     ).toContain('Die Daten haben sich seit der Anfrage geändert.');
     expect(fixture.nativeElement.textContent).toContain('Wie berechnet man den Median?');
+    expect(fixture.nativeElement.textContent).toContain('Zusammenfassung aus Originalbeiträgen');
   });
 
   it('zeigt failed ruhig und sperrt den Button während pending', () => {
@@ -1146,7 +1148,7 @@ describe('ModerationCompassDialogComponent', () => {
       }),
     });
     expect(pending.fixture.nativeElement.textContent).toContain(
-      'Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.',
+      'Die Fragen werden zusammengefasst …',
     );
     expect(pending.fixture.nativeElement.textContent).toContain(
       'Das kann bei vielen Fragen etwas dauern.',
@@ -1157,16 +1159,14 @@ describe('ModerationCompassDialogComponent', () => {
       'mat-progress-bar.moderation-compass-dialog__summary-progress-bar',
     ) as HTMLElement | null;
     expect(progress).not.toBeNull();
-    expect(progress?.getAttribute('aria-label')).toBe(
-      'Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.',
-    );
+    expect(progress?.getAttribute('aria-label')).toBe('Die Fragen werden zusammengefasst …');
     expect(
       (
         pending.fixture.nativeElement.querySelector(
           '.moderation-compass-dialog__summary-button',
         ) as HTMLButtonElement | null
-      )?.disabled,
-    ).toBe(true);
+      )?.getAttribute('aria-disabled'),
+    ).toBe('true');
 
     TestBed.resetTestingModule();
     const failed = setup([], vi.fn(), 'rule-based', {

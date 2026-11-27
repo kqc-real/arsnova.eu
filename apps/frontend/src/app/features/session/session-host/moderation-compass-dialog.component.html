@@ -140,6 +140,14 @@
               }
             </ul>
           }
+          <details class="moderation-compass-card__more">
+            <summary class="moderation-compass-card__more-summary">
+              {{ analysisCopy.basisLabel }}
+            </summary>
+            @for (basis of cardAnalysisBasis(card); track basis) {
+              <p>{{ basis }}</p>
+            }
+          </details>
           @if (extraSources(card).length > 0) {
             <details class="moderation-compass-card__more">
               <summary class="moderation-compass-card__more-summary">
@@ -193,23 +201,14 @@
       data-testid="moderation-summary"
       aria-live="polite"
     >
-      <h3
-        class="moderation-compass-dialog__summary-title"
-        i18n="@@sessionHost.moderationSummaryTitle"
-      >
-        Wichtige offene Fragen
-      </h3>
-      <p
-        class="moderation-compass-dialog__summary-intro"
-        i18n="@@sessionHost.moderationSummaryIntro"
-      >
-        Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.
-      </p>
+      <h3 class="moderation-compass-dialog__summary-title">{{ analysisCopy.summaryTitle }}</h3>
+      <p class="moderation-compass-dialog__summary-intro">{{ analysisCopy.summaryInfo }}</p>
       <button
         mat-stroked-button
         type="button"
         class="moderation-compass-dialog__summary-button"
         [disabled]="summaryPending()"
+        [disabledInteractive]="true"
         [attr.aria-busy]="summaryPending()"
         (click)="requestSummary()"
       >
@@ -242,6 +241,9 @@
       }
       @if (showSummaryBody()) {
         @if (summaryResult(); as result) {
+          @if (summaryOrigin(result); as origin) {
+            <p class="moderation-compass-dialog__summary-status">{{ origin }}</p>
+          }
           @if (result.statements.length > 0) {
             <ul class="moderation-compass-dialog__summary-statements">
               @for (statement of summaryStatements(result); track statement.text) {

@@ -63,6 +63,11 @@ Alle Größen zum verfügbaren Platz, zur Antwortreserve und zur Sicherheitsmarg
 
 Die native, standardmäßig geschlossene **Diagnose** lädt nicht beim Öffnen oder Aufklappen. Erst **Informationen laden** ruft `qa.summaryContextPreview` auf. Pending-, Fehler- und Retryzustand werden zugänglich angekündigt, ohne den Fokus zu stehlen. Die Vorschau erklärt Versionen, Modus, vorbereitete Auswahl, Bereichszustände und -mengen, Quellarten, verfügbaren Platz sowie Gründe für ausgelassene Inhalte in verständlicher Sprache. Interne Kürzungs- und Grenzcodes, technische Systemtexte, vollständige Quellenlabels und kanonisches Modell-JSON werden nicht angezeigt. Ein nach Dialogschluss, Sessionwechsel oder Rechteentzug eintreffendes Ergebnis wird verworfen.
 
+Der Moderationskompass zeigt die belegte Herkunft der fertigen Kurzfassung und
+ihre Quellen. Während der Auftrag aussteht, meldet er neutral, dass die Fragen
+zusammengefasst werden. Bei einer extraktiven Kurzfassung erläutert er den
+vorhandenen Fallback-Grund.
+
 ## Adapter, Fallback und Lebenszyklus
 
 Die Adapterwahl ist ausdrücklich und nachvollziehbar:

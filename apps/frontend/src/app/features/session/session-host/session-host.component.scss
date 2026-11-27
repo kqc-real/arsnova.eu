@@ -9010,3 +9010,20 @@ $round2-color: var(--mat-sys-primary);
   gap: 0.65rem;
   padding-block: 0.45rem;
 }
+
+.session-qa-card__classification {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+
+  summary {
+    min-block-size: 2.75rem;
+    align-content: center;
+    cursor: pointer;
+  }
+
+  p {
+    margin-block: 0.25rem;
+  }
+}

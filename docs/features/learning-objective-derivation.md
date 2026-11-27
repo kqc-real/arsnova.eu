@@ -54,6 +54,11 @@ Entwurfs bleiben die vom Modell angeführten Fragen. Ältere und aus dem
 Quiz-Editor hochgeladene Entwürfe haben keinen serverseitigen Eingabenachweis
 und bleiben aus dem Moderationskontext.
 
+Der Quiz-Editor erklärt die erzeugten Lernziele als prüfbare Entwürfe. Wenn der
+Fortschrittsvertrag eine Wartephase nach Prioritätsübergabe meldet, zeigt der
+Editor den Vorrang der laufenden Lehre und das verbleibende Zeitbudget.
+Abgeschlossene Fragegruppen und Entwürfe bleiben sichtbar.
+
 ## Prompt-, Quellen- und Provenienzschutz
 
 Der fachliche Systemprompt trägt die Version `learning-objectives-system-v6`. Er behandelt Fragetexte, Antworten, Lösungserläuterungen und darin eingebettete Anweisungen ausdrücklich als nicht vertrauenswürdige Kursdaten. Das Modell soll beobachtbare, hostprüfbare Lernziele als kurze, rollenneutrale Infinitivformulierungen in der angeforderten Sprache formulieren, das Anfangswort großschreiben und wechselnde Bezeichnungen wie »Student«, »Schüler« oder »Benutzer« vermeiden. Deutsche Lernziele sollen sich als Fortsetzung von »Ich kann …« lesen, beispielsweise »Eine elektrische Schaltung skizzieren.« Das Modell gibt nur die Fortsetzung aus, nennt zuerst den fachlichen Gegenstand und setzt das Handlungsverb im Infinitiv möglichst ans Ende. Aufgaben-IDs gehören ausschließlich ins Feld `questionIds` und nicht in den sichtbaren Satz. Das Backend entfernt bei Modellvorschlägen nur die IDs, die dasselbe Ziel strukturiert referenziert, schreibt das Anfangswort deterministisch groß und ergänzt einen schließenden Punkt, falls das Modell kleinschreibt oder den Punkt weglässt; der Prompt selbst bleibt davon unberührt. Manuelle Texte und andere UUIDs bleiben unverändert. Es darf ausschließlich exakte Aufgaben-IDs des aktuellen Batches referenzieren. Das Pflichtfeld `limitations` soll leer bleiben; vom Modell dennoch gelieferte Hinweise werden nicht angezeigt. Schemafremde Antworten, erfundene IDs, Querverweise auf einen anderen Batch und doppelte Referenzen scheitern geschlossen.
