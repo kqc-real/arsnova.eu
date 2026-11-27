@@ -905,6 +905,17 @@ describe('WordCloudComponent', () => {
     expect(words[4]?.rank).toBeGreaterThan(words[3]!.rank);
   });
 
+  it('zeigt in der schmalen Analyseansicht die wichtigsten Begriffe zuerst', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('responses', ['Alpha Beta Gamma', 'Alpha Beta', 'Alpha']);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayWords().map(({ rank }) => rank)).toEqual([0, 1, 2]);
+  });
+
   it('begrenzt die D3-Buehnenhoehe im mobilen Vollbild ohne gemessene Rahmenhoehe', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('presentationMode', true);

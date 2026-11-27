@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 0%;
-  gap: clamp(0.9rem, 2vw, 1.35rem);
+  gap: 0.75rem;
   width: 100%;
   min-height: 0;
   height: 100%;
@@ -76,12 +76,10 @@
 }
 
 .qa-word-cloud-dialog__language-label {
-  flex: 0 0 auto;
   padding-block: 0.2rem;
   font: var(--mat-sys-label-medium);
   font-weight: 700;
   color: var(--mat-sys-on-surface-variant);
-  white-space: nowrap;
 }
 
 .qa-word-cloud-dialog__language-select {
@@ -176,22 +174,9 @@
   line-height: 1.5;
 }
 
-.qa-word-cloud-dialog__options {
-  max-width: 100%;
-
-  summary {
-    display: flex;
-    align-items: center;
-    min-height: 44px;
-    cursor: pointer;
-    color: var(--mat-sys-on-surface);
-    font: var(--mat-sys-label-large);
-  }
-
-  summary:focus-visible {
-    outline: 2px solid var(--mat-sys-primary);
-    outline-offset: 2px;
-  }
+.qa-word-cloud-dialog__analysis-options {
+  display: grid;
+  gap: 0.65rem;
 }
 
 .qa-word-cloud-dialog__options-body {
@@ -199,7 +184,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
-  padding-block: 0.45rem;
 }
 
 .qa-word-cloud-dialog__smooth-cluster {
@@ -222,56 +206,16 @@
   display: flex;
   flex: 1 1 0%;
   flex-direction: column;
-  min-height: 0;
+  min-height: 20rem;
   height: 0;
   width: 100%;
 }
 
-.qa-word-cloud-dialog__status {
-  position: relative;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.45rem;
-  width: auto;
-  padding: 0.55rem 0.75rem 0.65rem;
-  pointer-events: none;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-  border-radius: var(--mat-sys-corner-small, 0.5rem);
-  background: color-mix(in srgb, var(--mat-sys-surface) 82%, transparent);
-  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
-  backdrop-filter: blur(14px) saturate(1.2);
-}
-
-.qa-word-cloud-dialog__status--cover {
-  position: absolute;
-  inset: 0;
-  top: 0;
-  left: 0;
-  width: auto;
-  justify-content: center;
-  padding: 1.25rem;
-  pointer-events: auto;
-  transform: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: var(--app-bg-root);
-  backdrop-filter: none;
-}
-
-.qa-word-cloud-dialog__mode-note,
-.qa-word-cloud-dialog__projection-status {
+.qa-word-cloud-dialog__mode-note {
   margin: 0;
-  text-align: center;
-  font: var(--mat-sys-label-medium);
+  font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
   line-height: 1.5;
-}
-
-.qa-word-cloud-dialog__view-hint {
-  text-align: start;
 }
 
 .qa-word-cloud-dialog__progress {
@@ -281,7 +225,7 @@
   gap: 0.45rem;
   width: 100%;
   max-width: 22rem;
-  margin: 0 auto;
+  margin: auto;
   text-align: center;
 }
 
@@ -295,12 +239,6 @@
 .qa-word-cloud-dialog__progress-wait {
   margin: 0;
   font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.qa-word-cloud-dialog__progress-fallback {
-  margin: 0;
-  font: var(--mat-sys-label-medium);
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -318,8 +256,6 @@
 
 .qa-word-cloud-dialog__cloud {
   display: flex;
-  position: relative;
-  z-index: 1;
   flex: 1 1 0%;
   flex-direction: column;
   min-height: 0;
@@ -327,7 +263,6 @@
   width: 100%;
   max-width: none;
   margin: 0;
-  overflow: hidden;
   justify-self: stretch;
 }
 
@@ -366,17 +301,12 @@
 
   .qa-word-cloud-dialog__language-select {
     flex: 0 1 auto;
-    max-width: min(100%, 22rem);
+    min-width: 0;
   }
 
   .qa-word-cloud-dialog__analysis-toggle {
     width: 100%;
     font-size: 0.8125rem;
-  }
-
-  .qa-word-cloud-dialog__stage {
-    flex: 1 0 34rem;
-    height: auto;
   }
 }
 
@@ -385,7 +315,6 @@
     gap: 0.7rem;
     padding: max(0.5rem, env(safe-area-inset-top, 0px)) 0.5rem
       max(0.5rem, env(safe-area-inset-bottom, 0px));
-    overflow: hidden;
   }
 
   .qa-word-cloud-dialog__toolbar {
@@ -401,10 +330,5 @@
   .qa-word-cloud-dialog__smooth,
   .qa-word-cloud-dialog__refresh {
     min-height: 2.35rem;
-  }
-
-  .qa-word-cloud-dialog__stage,
-  .qa-word-cloud-dialog__cloud {
-    min-height: 0;
   }
 }

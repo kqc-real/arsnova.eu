@@ -1091,7 +1091,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
-  readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
+  readonly qaWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
   private readonly wordCloudSemanticWaitMomentHint = $localize`:@@sessionQa.wordCloudSemanticWaitMoment:Das kann einen Moment dauern.`;
   private readonly wordCloudSemanticWaitMinuteQuestionsHint = $localize`:@@sessionQa.wordCloudSemanticWaitMinute:Bei vielen Fragen kann das eine Minute dauern.`;
   private readonly wordCloudSemanticWaitMinuteResponsesHint = $localize`:@@sessionQa.wordCloudSemanticWaitMinuteFreetext:Bei vielen Antworten kann das eine Minute dauern.`;
@@ -2464,16 +2464,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       ? $localize`:@@sessionQa.wordCloudTitleSemantic:Themen in den Fragen`
       : $localize`:@@sessionQa.wordCloudTitle:Q&A-Wortwolke`,
   );
-  readonly qaWordCloudDescription = computed(() => {
-    switch (this.qaWordCloudDisplayMode()) {
-      case 'SEMANTIC':
-        return $localize`:@@sessionQa.wordCloudDescriptionSemantic:Inhaltlich ähnliche Fragen sind zu Themen zusammengefasst.`;
-      case 'LEXICAL':
-        return $localize`:@@sessionQa.wordCloudDescriptionLexical:Einzelne Wörter aus den freigegebenen Fragen.`;
-      default:
-        return $localize`:@@sessionQa.wordCloudDescriptionPhrases:Wörter und Wortgruppen, zum Beispiel »roter Faden«.`;
-    }
-  });
   readonly qaWordCloudWordLabelSingular = computed(() => {
     switch (this.qaWordCloudDisplayMode()) {
       case 'SEMANTIC':
@@ -2961,8 +2951,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           languageLocked: () => this.wordCloudLocaleLocked(),
           setAnalysisLanguage: (locale: string) => this.setWordCloudLemmaLocale(locale),
           title: () => this.qaWordCloudTitle(),
-          eyebrow: this.qaWordCloudEyebrow,
-          description: () => this.qaWordCloudDescription(),
+          analysisLabel: this.qaWordCloudAnalysisLabel,
           wordLabelSingular: () => this.qaWordCloudWordLabelSingular(),
           wordLabelPlural: () => this.qaWordCloudWordLabelPlural(),
           weightingHint: () => this.qaWordCloudWeightingHint(),
@@ -3002,6 +2991,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           focusedGroupKey: () => this.qaWordCloudFocusedGroupKey(),
           returnToCompassVisible: () => this.moderationCompassReturn() !== null,
         },
+        role: 'dialog',
+        ariaLabel: this.qaWordCloudTitle(),
         autoFocus: '.qa-word-cloud-dialog__close',
         disableClose: true,
         restoreFocus: true,

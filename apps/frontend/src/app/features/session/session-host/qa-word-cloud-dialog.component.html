@@ -26,20 +26,17 @@
       </button>
     }
     @if (data.projectionControlsOffered()) {
-      @if (projectionPending() || projected()) {
-        <p class="qa-word-cloud-dialog__projection-status" role="status" aria-live="polite">
-          @if (projectionPending()) {
-            <span i18n="@@sessionQa.wordCloudProjectionPending">Präsentation wird geändert …</span>
-          } @else {
-            <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
-            @if (ownsProjection()) {
-              <span i18n="@@sessionQa.wordCloudCloseProjection"
-                >Beim Schließen erscheint dort wieder die Fragenwand.</span
-              >
-            }
-          }
-        </p>
-      }
+      <p class="sr-only" role="status">
+        @if (projectionPending()) {
+          <ng-container i18n="@@sessionQa.wordCloudProjectionPending"
+            >Präsentation wird geändert …</ng-container
+          >
+        } @else if (projected()) {
+          <ng-container i18n="@@sessionQa.wordCloudProjected"
+            >Auf der Präsentation sichtbar.</ng-container
+          >
+        }
+      </p>
       <button
         mat-button
         type="button"
@@ -127,54 +124,6 @@
       <span>{{ freezeLabel() }}</span>
     </button>
 
-    <details class="qa-word-cloud-dialog__options">
-      <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
-      <div class="qa-word-cloud-dialog__options-body">
-        @if (data.analysisLanguage; as analysisLanguage) {
-          <label class="qa-word-cloud-dialog__language">
-            <span class="qa-word-cloud-dialog__language-label" i18n="@@wordCloud.analysisLanguage"
-              >Sprache der Beiträge:</span
-            >
-            <select
-              class="qa-word-cloud-dialog__language-select"
-              [value]="analysisLanguage()"
-              [disabled]="projectionPending() || (data.languageLocked?.() ?? frozen())"
-              (change)="data.setAnalysisLanguage?.($any($event.target).value)"
-            >
-              <option value="de" lang="de">Deutsch</option>
-              <option value="en" lang="en">English</option>
-              <option value="fr" lang="fr">Français</option>
-              <option value="es" lang="es">Español</option>
-              <option value="it" lang="it">Italiano</option>
-            </select>
-          </label>
-        }
-
-        @if (showSmoothingControls()) {
-          <div class="qa-word-cloud-dialog__smooth-cluster">
-            <button
-              mat-button
-              type="button"
-              class="qa-word-cloud-dialog__smooth"
-              [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
-              [attr.aria-disabled]="smoothingDisabled() || frozen() ? true : null"
-              [attr.aria-pressed]="smoothingPressed()"
-              [attr.aria-busy]="smoothingBusy() ? true : null"
-              (click)="toggleSmoothing()"
-            >
-              <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
-              <span>{{ smoothingLabel() }}</span>
-            </button>
-          </div>
-        }
-
-        @if (showSmoothingControls()) {
-          @if (smoothingHint()) {
-            <p class="qa-word-cloud-dialog__mode-note" role="status">{{ smoothingHint() }}</p>
-          }
-        }
-      </div>
-    </details>
     @if (showThemeRefresh()) {
       <button
         mat-button
@@ -190,50 +139,29 @@
     }
   </div>
 
-  <p class="qa-word-cloud-dialog__mode-note qa-word-cloud-dialog__view-hint">
-    {{ viewHint() }}
+  <p class="sr-only" role="status">
+    @if (themesRefreshing()) {
+      {{ previousTopicsLabel }}
+    }
   </p>
 
-  @if (frozen()) {
-    <p
-      class="qa-word-cloud-dialog__mode-note"
+  <ng-template #themeProgress>
+    <div
+      class="qa-word-cloud-dialog__progress"
       role="status"
-      i18n="@@sessionHost.wordCloudFrozenInfo"
+      aria-live="polite"
+      aria-busy="true"
+      [attr.aria-label]="themeProgressAria()"
     >
-      Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.
-    </p>
-  }
-  <div class="qa-word-cloud-dialog__stage">
-    @if (themesPending() || (!analysisInfo() && themeFallbackHint() && !themesRefreshing())) {
-      <div
-        class="qa-word-cloud-dialog__status"
-        [class.qa-word-cloud-dialog__status--cover]="themesPending()"
-      >
-        @if (themesPending()) {
-          <div
-            class="qa-word-cloud-dialog__progress"
-            role="status"
-            aria-live="polite"
-            aria-busy="true"
-            [attr.aria-label]="themeProgressAria()"
-          >
-            <p class="qa-word-cloud-dialog__progress-label">{{ themeProgressLabel }}</p>
-            @if (themeWaitHint(); as waitHint) {
-              <p class="qa-word-cloud-dialog__progress-wait">{{ waitHint }}</p>
-            }
-            <mat-progress-bar class="qa-word-cloud-dialog__progress-bar" mode="indeterminate" />
-          </div>
-        } @else if (themeFallbackHint() && !themesRefreshing()) {
-          <p class="qa-word-cloud-dialog__mode-note" role="status">{{ themeFallbackHint() }}</p>
-        }
-      </div>
-    }
-    @if (themesRefreshing()) {
-      <p class="qa-word-cloud-dialog__mode-note" role="status">
-        {{ previousTopicsLabel }}
-      </p>
-    }
+      <p class="qa-word-cloud-dialog__progress-label">{{ themeProgressLabel }}</p>
+      @if (themeWaitHint(); as waitHint) {
+        <p class="qa-word-cloud-dialog__progress-wait">{{ waitHint }}</p>
+      }
+      <mat-progress-bar class="qa-word-cloud-dialog__progress-bar" mode="indeterminate" />
+    </div>
+  </ng-template>
 
+  <div class="qa-word-cloud-dialog__stage">
     <app-word-cloud
       class="qa-word-cloud-dialog__cloud"
       [responses]="responses()"
@@ -246,8 +174,8 @@
       [emptyMessage]="emptyMessage()"
       [title]="title()"
       [exportViewLabel]="exportViewLabel()"
-      [eyebrow]="data.eyebrow"
-      [description]="null"
+      [analysisDisclosureLabel]="data.analysisLabel"
+      [stagePlaceholder]="themesPending() ? themeProgress : null"
       [itemLabelSingular]="data.itemLabelSingular"
       [itemLabelPlural]="data.itemLabelPlural"
       [itemCount]="analyzedQuestionCount()"
@@ -256,7 +184,7 @@
       [wordLabelSingular]="wordLabelSingular()"
       [wordLabelPlural]="wordLabelPlural()"
       [showConfidenceFilter]="displayMode() === 'SEMANTIC'"
-      [showResponsesPanel]="displayMode() === 'SEMANTIC'"
+      [showResponsesPanel]="true"
       [weightingHint]="data.weightingHint()"
       [tooltipMetricLabel]="tooltipMetricLabel()"
       [analysisModelVersion]="analysisModelVersion()"
@@ -266,8 +194,80 @@
       [showReleaseNote]="false"
       [showMaximizeAction]="false"
       [presentationMode]="true"
+      [disableCloudLayout]="true"
       [focusedTermLabel]="focusedTermLabel()"
       [focusedGroupKey]="focusedGroupKey()"
-    />
+    >
+      <div wordCloudAnalysisOptions class="qa-word-cloud-dialog__analysis-options">
+        <p class="qa-word-cloud-dialog__mode-note qa-word-cloud-dialog__view-hint">
+          {{ viewHint() }}
+        </p>
+        @if (data.projectionControlsOffered() && projected()) {
+          <p class="qa-word-cloud-dialog__mode-note">
+            <span i18n="@@sessionQa.wordCloudProjected">Auf der Präsentation sichtbar.</span>
+            @if (ownsProjection()) {
+              <span i18n="@@sessionQa.wordCloudCloseProjection"
+                >Beim Schließen erscheint dort wieder die Fragenwand.</span
+              >
+            }
+          </p>
+        }
+        @if (frozen()) {
+          <p class="qa-word-cloud-dialog__mode-note" i18n="@@sessionHost.wordCloudFrozenInfo">
+            Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.
+          </p>
+        }
+        @if (themesRefreshing()) {
+          <p class="qa-word-cloud-dialog__mode-note qa-word-cloud-dialog__refresh-note">
+            {{ previousTopicsLabel }}
+          </p>
+        } @else if (!themesPending() && !analysisInfo() && themeFallbackHint()) {
+          <p class="qa-word-cloud-dialog__mode-note">{{ themeFallbackHint() }}</p>
+        }
+        <div class="qa-word-cloud-dialog__options-body">
+          @if (data.analysisLanguage; as analysisLanguage) {
+            <label class="qa-word-cloud-dialog__language">
+              <span class="qa-word-cloud-dialog__language-label" i18n="@@wordCloud.analysisLanguage"
+                >Sprache der Beiträge:</span
+              >
+              <select
+                class="qa-word-cloud-dialog__language-select"
+                [value]="analysisLanguage()"
+                [disabled]="projectionPending() || (data.languageLocked?.() ?? frozen())"
+                (change)="data.setAnalysisLanguage?.($any($event.target).value)"
+              >
+                <option value="de" lang="de">Deutsch</option>
+                <option value="en" lang="en">English</option>
+                <option value="fr" lang="fr">Français</option>
+                <option value="es" lang="es">Español</option>
+                <option value="it" lang="it">Italiano</option>
+              </select>
+            </label>
+          }
+
+          @if (showSmoothingControls()) {
+            <div class="qa-word-cloud-dialog__smooth-cluster">
+              <button
+                mat-button
+                type="button"
+                class="qa-word-cloud-dialog__smooth"
+                [class.qa-word-cloud-dialog__smooth--active]="smoothingPressed()"
+                [attr.aria-disabled]="smoothingDisabled() || frozen() ? true : null"
+                [attr.aria-pressed]="smoothingPressed()"
+                [attr.aria-busy]="smoothingBusy() ? true : null"
+                (click)="toggleSmoothing()"
+              >
+                <mat-icon aria-hidden="true">{{ smoothingIcon() }}</mat-icon>
+                <span>{{ smoothingLabel() }}</span>
+              </button>
+            </div>
+          }
+
+          @if (showSmoothingControls() && smoothingHint()) {
+            <p class="qa-word-cloud-dialog__mode-note" role="status">{{ smoothingHint() }}</p>
+          }
+        </div>
+      </div>
+    </app-word-cloud>
   </div>
 </section>

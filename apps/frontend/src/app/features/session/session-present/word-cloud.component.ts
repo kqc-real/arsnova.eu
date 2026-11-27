@@ -1,4 +1,4 @@
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   afterEveryRender,
@@ -8,6 +8,7 @@ import {
   Injector,
   LOCALE_ID,
   OnDestroy,
+  TemplateRef,
   computed,
   effect,
   inject,
@@ -169,6 +170,7 @@ interface RoundedRectStyle {
     MatCardTitle,
     MatIcon,
     MatIconButton,
+    NgTemplateOutlet,
     WordCloudMarkdownTooltipDirective,
   ],
   templateUrl: './word-cloud.component.html',
@@ -176,6 +178,7 @@ interface RoundedRectStyle {
   host: {
     '[class.word-cloud-host--presentation]': 'presentationMode()',
     '[class.word-cloud-host--output]': 'outputOnly()',
+    '[class.word-cloud-host--with-analysis-disclosure]': 'analysisDisclosureLabel()',
     '[class.word-cloud-host--responses-expanded]':
       'presentationMode() && !outputOnly() && showResponses()',
   },
@@ -231,6 +234,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly exportViewLabel = input<string | null>(null);
   readonly analysisModelVersion = input<string | null>(null);
   readonly analysisInfo = input<WordCloudAnalysisInfo | null>(null);
+  readonly analysisDisclosureLabel = input<string | null>(null);
+  readonly stagePlaceholder = input<TemplateRef<unknown> | null>(null);
   readonly labelModelId = input<string | null>(null);
   protected readonly analysisInfoLabel = copy.infoButton;
   readonly labelModelVersion = input<string | null>(null);
@@ -291,6 +296,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly maximizeAriaLabel = $localize`:@@wordCloud.maximizeAria:Wortwolke maximieren`;
   readonly selectedFilterPrefix = $localize`:@@wordCloud.selectedFilterPrefix:Ausgewählt:`;
   readonly focusFilterPrefix = $localize`:@@wordCloud.focusFilterPrefix:Im Fokus:`;
+  private readonly relatedQuestionsLabel = $localize`:@@wordCloud.tooltipRelatedQuestions:Zugehörige Fragen`;
   readonly exportCsvLabel = $localize`:@@wordCloud.exportCsv:CSV speichern`;
   readonly exportPngLabel = $localize`:@@wordCloud.exportPngOrdered:PNG speichern`;
   readonly hideWordLabel = $localize`:@@wordCloud.hideWord:Wort ausblenden`;
@@ -619,7 +625,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       : this.words();
     const width = this.stageWidth();
     if (this.disableCloudLayout() || !shouldUseWordCloudLayout(width, words.length)) {
-      if (this.presentationMode() && this.disableCloudLayout()) {
+      if (
+        this.presentationMode() &&
+        this.disableCloudLayout() &&
+        (!this.analysisDisclosureLabel() || width >= MOBILE_WORD_CLOUD_BREAKPOINT)
+      ) {
         return this.arrangeWrappedPresentationWords(words);
       }
 
@@ -794,6 +804,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const details: AnalysisDetailChip[] = [];
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     const metric = this.tooltipMetricLine();
+    if (this.analysisDisclosureLabel() && this.showsSelectedFilterDetails()) {
+      details.push({ label: this.tooltipValueLine(entry.count), tone: 'neutral' });
+      const forms = this.tooltipExtraVariants(entry);
+      if (forms.length > 0) {
+        const variants = this.wordVariantPreview(forms);
+        details.push({
+          label: $localize`:@@wordCloud.variantsTooltip:Auch gezählt: ${variants}:variants:`,
+          tone: 'neutral',
+        });
+      }
+    }
     if (sourceCount) details.push({ label: sourceCount, tone: 'neutral' });
     if (metric) details.push({ label: metric, tone: 'neutral' });
 
@@ -1133,6 +1154,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   showResponsesLabel(count: number): string {
+    if (this.analysisDisclosureLabel() && this.analysisMode() === 'qa') {
+      return this.relatedQuestionsLabel;
+    }
     return count === 1 ? this.showResponsesSingularLabel() : this.showResponsesPluralLabel();
   }
 
@@ -1411,7 +1435,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       if (related.length > 0) {
         blocks.push({
           kind: 'heading',
-          text: $localize`:@@wordCloud.tooltipRelatedQuestions:Zugehörige Fragen`,
+          text: this.relatedQuestionsLabel,
         });
         for (const response of related) {
           if (response === '...') {

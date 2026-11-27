@@ -505,14 +505,13 @@ async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures
     name: /Größe nach Bewertungen oder Häufigkeit/i,
   });
   await sizeSelect.waitFor({ state: 'visible', timeout: 10_000 });
-  const questionCountPill = page
+  const analysis = cloud.locator('.word-cloud__analysis-disclosure');
+  if ((await analysis.getAttribute('open')) !== null) {
+    failures.push('Q&A-Analyse ist beim Öffnen der Wortwolke bereits aufgeklappt.');
+  }
+  const questionCountPill = analysis
     .locator('.word-cloud__meta-pill')
     .filter({ hasText: /\d+\s+Fragen?/i });
-  await questionCountPill
-    .first()
-    .waitFor({ state: 'visible', timeout: 20_000 })
-    .catch(() => undefined);
-  await page.waitForTimeout(500);
 
   let firstWordLabels = [];
   for (const [label, optionIndex] of [
@@ -548,6 +547,7 @@ async function assertRankedQaHostViews(page, hostTrpc, created, seeded, failures
     }
   }
 
+  await analysis.locator(':scope > summary').press('Enter');
   const questionCountVisible = await questionCountPill
     .first()
     .waitFor({ state: 'visible', timeout: 10_000 })

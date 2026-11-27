@@ -1,4 +1,4 @@
-import { Component, NO_ERRORS_SCHEMA, input, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -10,16 +10,6 @@ import {
   QaWordCloudDialogComponent,
   type QaWordCloudDialogData,
 } from './qa-word-cloud-dialog.component';
-import { WordCloudComponent } from '../session-present/word-cloud.component';
-
-@Component({
-  selector: 'app-word-cloud',
-  standalone: true,
-  template: '{{ emptyMessage() }}',
-})
-class WordCloudStubComponent {
-  readonly emptyMessage = input('');
-}
 
 describe('QaWordCloudDialogComponent', () => {
   function setup(
@@ -40,8 +30,7 @@ describe('QaWordCloudDialogComponent', () => {
       terms: () => null,
       analysisEntries: () => null,
       title: () => 'Q&A-Wortwolke',
-      eyebrow: 'Q&A-Analyse',
-      description: () => 'Wörter und Wortgruppen, zum Beispiel »roter Faden«.',
+      analysisLabel: 'Q&A-Analyse',
       wordLabelSingular: () => 'Begriff',
       wordLabelPlural: () => 'Begriffe',
       weightingHint: () => null,
@@ -81,11 +70,6 @@ describe('QaWordCloudDialogComponent', () => {
         { provide: MatDialogRef, useValue: { close: vi.fn() } },
       ],
     });
-    TestBed.overrideComponent(QaWordCloudDialogComponent, {
-      remove: { imports: [WordCloudComponent] },
-      add: { imports: [WordCloudStubComponent], schemas: [NO_ERRORS_SCHEMA] },
-    });
-
     const fixture = TestBed.createComponent(QaWordCloudDialogComponent);
     fixture.detectChanges();
     return { fixture, setAnalysisVariant, setSortMode };
@@ -143,9 +127,6 @@ describe('QaWordCloudDialogComponent', () => {
     });
 
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__project')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__projection-status'),
-    ).toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain('Präsentation');
   });
 
@@ -160,7 +141,7 @@ describe('QaWordCloudDialogComponent', () => {
     ) as HTMLElement;
 
     expect(hint.textContent).toContain(expected);
-    expect(hint.closest('details')).toBeNull();
+    expect(hint.closest('details')?.open).toBe(false);
   });
 
   it('nennt die Grundform nur bei einer tatsächlich sichtbaren Bündelung', () => {
@@ -188,9 +169,6 @@ describe('QaWordCloudDialogComponent', () => {
     const button = fixture.nativeElement.querySelector(
       '.qa-word-cloud-dialog__project',
     ) as HTMLButtonElement;
-    expect(
-      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__projection-status'),
-    ).toBeNull();
     expect(button.textContent).toContain('Präsentationsansicht öffnen');
     const presenterIcon = button.querySelector('app-presenter-icon');
     expect(presenterIcon).not.toBeNull();
@@ -377,6 +355,62 @@ describe('QaWordCloudDialogComponent', () => {
     expect(await select.isDisabled()).toBe(true);
   });
 
+  it('bündelt Optionen, Herkunft, Kennzahlen, Belege und Exporte in einem geschlossenen Akkordeon', () => {
+    const setAnalysisLanguage = vi.fn();
+    const { fixture } = setup('SEMANTIC', {
+      analysisLanguage: () => 'de',
+      setAnalysisLanguage,
+      analysisInfo: () => ({ mode: 'SEMANTIC', result: null }),
+      analysisEntries: () => [
+        {
+          key: 'stichprobe',
+          label: 'Stichprobe',
+          count: 3,
+          basisLabel: 'Beispiel mit Stichproben',
+          confidence: 0.8,
+          variants: [],
+          members: [],
+        },
+      ],
+      weightingHint: () => 'Gewichtung nach Stimmensaldo',
+    });
+    const root = fixture.nativeElement as HTMLElement;
+    const disclosure = root.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const summary = disclosure.querySelector('summary')!;
+    const language = disclosure.querySelector<HTMLSelectElement>('select')!;
+    expect(summary.querySelector('span')?.textContent?.trim()).toBe('Q&A-Analyse');
+    expect(disclosure.open).toBe(false);
+    expect(root.querySelector('.word-cloud__header')).toBeNull();
+    expect(root.querySelector('.word-cloud__word')?.closest('details')).toBeNull();
+    expect(root.querySelector('.word-cloud__visual--wrapped-presentation')).not.toBeNull();
+    expect(root.querySelector('.word-cloud__responses-summary')?.textContent).toContain(
+      'Zugehörige Fragen',
+    );
+    expect(root.querySelector('.qa-word-cloud-dialog__freeze')?.closest('details')).toBeNull();
+    for (const selector of [
+      '.word-cloud__analysis-info',
+      '.word-cloud__meta',
+      '.word-cloud__reading-hint',
+      '.word-cloud__grouping-details',
+      '.word-cloud__summary-hero',
+      '.word-cloud__responses-panel',
+      '.word-cloud__actions',
+      '.qa-word-cloud-dialog__language',
+    ]) {
+      expect(root.querySelector(selector)?.closest('.word-cloud__analysis-disclosure')).toBe(
+        disclosure,
+      );
+    }
+
+    summary.click();
+    expect(disclosure.open).toBe(true);
+    language.value = 'fr';
+    language.dispatchEvent(new Event('change'));
+    expect(setAnalysisLanguage).toHaveBeenCalledWith('fr');
+    summary.click();
+    expect(disclosure.open).toBe(false);
+  });
+
   it('zeigt Glaettung bei Woertern ohne Sprachschalter', () => {
     const { fixture } = setup('LEXICAL');
     const text = fixture.nativeElement.textContent as string;
@@ -415,11 +449,10 @@ describe('QaWordCloudDialogComponent', () => {
     const stage = fixture.nativeElement.querySelector(
       '.qa-word-cloud-dialog__stage',
     ) as HTMLElement | null;
-    const status = stage?.querySelector('.qa-word-cloud-dialog__status') as HTMLElement | null;
-    const progress = status?.querySelector('.qa-word-cloud-dialog__progress') as HTMLElement | null;
+    const progress = stage?.querySelector(
+      '.word-cloud__visual-frame .qa-word-cloud-dialog__progress',
+    );
     expect(stage).not.toBeNull();
-    expect(status).not.toBeNull();
-    expect(status?.classList.contains('qa-word-cloud-dialog__status--cover')).toBe(true);
     expect(progress).not.toBeNull();
     expect(progress?.getAttribute('aria-busy')).toBe('true');
     expect(progress?.textContent).toContain('Themen werden gesucht …');
@@ -427,7 +460,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(progress?.querySelector('mat-progress-bar')).not.toBeNull();
     expect(progress?.textContent).not.toContain('Das kann einen Moment dauern');
     expect(
-      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__mode-note')?.textContent,
+      fixture.nativeElement.querySelector('.qa-word-cloud-dialog__view-hint')?.textContent,
     ).toContain('Ähnliche Beiträge, zusammengefasst als Themen');
     expect(stage?.querySelector('.qa-word-cloud-dialog__cloud')).not.toBeNull();
   });
@@ -458,7 +491,7 @@ describe('QaWordCloudDialogComponent', () => {
     );
   });
 
-  it('zeigt den Fortschritt auch wenn Wörter und Phrasen als Fallback sichtbar bleiben', () => {
+  it('zeigt den Fortschritt auf der Bühne, solange nur der lexikalische Fallback vorliegt', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
       hasPreparedThemes: () => false,
@@ -480,16 +513,12 @@ describe('QaWordCloudDialogComponent', () => {
       '.qa-word-cloud-dialog__progress',
     ) as HTMLElement | null;
     expect(progress).not.toBeNull();
-    expect(
-      fixture.nativeElement
-        .querySelector('.qa-word-cloud-dialog__status')
-        ?.classList.contains('qa-word-cloud-dialog__status--cover'),
-    ).toBe(true);
+    expect(progress?.closest('.word-cloud__visual-frame')).not.toBeNull();
     expect(progress?.querySelector('mat-progress-bar')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__sr-status')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.word-cloud__word')).toBeNull();
   });
 
-  it('kennzeichnet vorhandene Themen während des Refreshs sichtbar als bisherigen Stand', () => {
+  it('behält die bisherige Wolke beim Refresh und erklärt ihren Stand in der Analyse', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
       hasPreparedThemes: () => true,
@@ -509,9 +538,14 @@ describe('QaWordCloudDialogComponent', () => {
 
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__progress')).toBeNull();
     const status = fixture.nativeElement.querySelector(
-      '.qa-word-cloud-dialog__stage .qa-word-cloud-dialog__mode-note[role="status"]',
+      '.word-cloud__analysis-disclosure .qa-word-cloud-dialog__refresh-note',
     ) as HTMLElement | null;
-    expect(status?.classList.contains('sr-only')).toBe(false);
+    expect(status?.closest('details')?.open).toBe(false);
+    expect(fixture.nativeElement.querySelector('.word-cloud__word')).not.toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.qa-word-cloud-dialog > .sr-only[role="status"]')
+        ?.textContent,
+    ).toContain('Der bisherige Stand bleibt sichtbar.');
     expect(status?.textContent).toContain('Der bisherige Stand bleibt sichtbar.');
   });
 
@@ -576,7 +610,6 @@ describe('QaWordCloudDialogComponent', () => {
     expect(dialogStyles).toMatch(/:host \{[^}]*display:\s*flex/);
     expect(dialogStyles).toMatch(/\.qa-word-cloud-dialog__stage \{[^}]*flex:\s*1 1 0%/);
     expect(dialogStyles).toMatch(/\.qa-word-cloud-dialog__stage \{[^}]*height:\s*0/);
-    expect(dialogStyles).toMatch(/\.qa-word-cloud-dialog__status--cover \{[^}]*inset:\s*0/);
     expect(panelStyles).toMatch(
       /\.cdk-overlay-pane\.word-cloud-dialog-panel \.mat-mdc-dialog-surface > \* \{[^}]*height:\s*100%/,
     );

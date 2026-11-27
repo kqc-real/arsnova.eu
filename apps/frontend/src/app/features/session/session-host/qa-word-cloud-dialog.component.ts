@@ -38,8 +38,7 @@ export type QaWordCloudDialogData = {
   terms: () => WordCloudTerm[] | null;
   analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
   title: () => string;
-  eyebrow: string | null;
-  description: () => string | null;
+  analysisLabel: string;
   wordLabelSingular: () => string;
   wordLabelPlural: () => string;
   weightingHint: () => string | null;
@@ -118,7 +117,6 @@ export class QaWordCloudDialogComponent {
   readonly terms = computed(() => this.data.terms());
   readonly analysisEntries = computed(() => this.data.analysisEntries());
   readonly title = computed(() => this.data.title());
-  readonly description = computed(() => this.data.description());
   readonly wordLabelSingular = computed(() => this.data.wordLabelSingular());
   readonly wordLabelPlural = computed(() => this.data.wordLabelPlural());
   readonly tooltipMetricLabel = computed(() => this.data.tooltipMetricLabel());

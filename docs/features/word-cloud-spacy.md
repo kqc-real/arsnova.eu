@@ -39,7 +39,7 @@ Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine 
 
 Der Presenter übernimmt die Host-Projektion als Ausgangszustand. Seine Werkzeugleiste kann Ansicht, Sprache und Grundform-Bündelung für die Projektion lokal überschreiben; diese Auswahl bleibt bestehen, wenn der Host später erneut projiziert. Der Host behält davon unabhängig seine eigene Steueransicht.
 
-Die **Wolkensprache** steht unter **Weitere Optionen** neben **Nach Grundform bündeln** und nur in der Ansicht, in der Glättung wirkt (Q&A und Freitext jeweils in **Wörter** und **Wortgruppen**). Sie ist unabhängig von Quiz und Participant-Browser. Standard ist die Host-UI-Sprache (`de`, `en`, `fr`, `es`, `it`). Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
+Die **Wolkensprache** steht in Q&A unter **Q&A-Analyse** und bei Freitext unter **Weitere Optionen**. Dort steht in den Ansichten **Wörter** und **Wortgruppen** auch **Nach Grundform bündeln**. Sie ist unabhängig von Quiz und Participant-Browser. Standard ist die Host-UI-Sprache (`de`, `en`, `fr`, `es`, `it`). Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
 
 In der Q&A-Wolke steht **Größe nach:** (Geteilte Stimmen / Klare Zustimmung / Stimmensaldo / Vorkommen in Fragen) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
 

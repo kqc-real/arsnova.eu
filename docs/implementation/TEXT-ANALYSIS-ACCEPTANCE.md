@@ -52,3 +52,13 @@ Für den menschlichen Kurztest liest eine fachfremde Lehrkraft zunächst die sic
 4. Warum wartet der Auftrag, und welche Arbeit bleibt dabei erhalten?
 
 Die Browser- und Komponententests prüfen, dass die nötigen Hinweise in diesen Ebenen stehen und per Tastatur erreichbar sind. Die unabhängige Rückmeldung einer fachfremden Lehrkraft steht aus.
+
+## Q&A-Wortwolke mit Analyse-Akkordeon
+
+Die Q&A-Hostansicht zeigt beim Öffnen die Wortwolke und ihre obere Aktionsleiste. **Q&A-Analyse** öffnet die bisher sichtbaren Kennzahlen, die Herkunft der Themennamen, die Einstellungen, die Belege zu ausgewählten Begriffen und die Exporte. Die früheren Q&A-Wortwolken-Bilder in diesem Protokoll dokumentieren den Stand vor der neuen Anordnung.
+
+Die Browserabnahme umfasst 14 Chromium-Fälle mit einer lokalen Testsitzung und kontrollierten Analyseantworten. Alle fünf Sprachen wurden bei 320 und 390 CSS-Pixeln geprüft. Dazu kommen Französisch im Hochformat und Italienisch im Querformat mit 150 Prozent Schriftgröße sowie zwei Desktop-Varianten. Die Prüfungen decken das geschlossene Akkordeon, Touch, Eingabe- und Leertaste, sichtbaren Fokus, fehlende Überdeckung der Begriffe, den ersten Ladezustand, Begriffsbelege, Rückfokus aus der Hilfe und CSV-/PNG-Downloads ab. Im hellen Seriös-Design wurde das geöffnete Akkordeon zusätzlich mit axe geprüft.
+
+- [Desktop mit geschlossener Q&A-Analyse](../screenshots/text-analysis-acceptance/qa-cloud-desktop-closed.webp)
+- [Desktop mit geöffneter Q&A-Analyse](../screenshots/text-analysis-acceptance/qa-cloud-desktop-open.webp)
+- [320 Pixel mit geschlossener Q&A-Analyse](../screenshots/text-analysis-acceptance/qa-cloud-mobile-closed.webp)
