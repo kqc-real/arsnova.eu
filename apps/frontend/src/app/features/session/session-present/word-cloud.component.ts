@@ -15,6 +15,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
   viewChild,
   viewChildren,
 } from '@angular/core';
@@ -57,6 +58,7 @@ import {
   getWordCloudWidthScale,
   MIN_WORD_CLOUD_LAYOUT_WIDTH,
   packWordCloudPills,
+  type WordCloudPillPlacement,
   MOBILE_WORD_CLOUD_BREAKPOINT,
   scaleWordCloudFontSize,
   shouldUseWordCloudLayout,
@@ -234,6 +236,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly terms = input<WordCloudTerm[] | null>(null);
   readonly analysisEntries = input<WordCloudAnalysisEntryDTO[] | null>(null);
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
+  readonly semanticTopics = input(false);
   readonly selectionScopeKey = input<string | null>(null);
   readonly focusedTermLabel = input<string | null>(null);
   readonly focusedGroupKey = input<string | null>(null);
@@ -365,11 +368,14 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     words: readonly CloudWord[];
     width: number;
     height: number;
-    positions: ReadonlyMap<string, { left: number; top: number }>;
+    scope: string | null;
+    positions: ReadonlyMap<string, WordCloudPillPlacement>;
   } | null>(null);
   protected readonly packedAnalysis = computed(() => {
     const layout = this.analysisPacking();
-    return layout?.words === this.displayWords() && layout.width === this.stageWidth()
+    return layout?.words === this.displayWords() &&
+      layout.width === this.stageWidth() &&
+      layout.scope === this.selectionScopeKey()
       ? layout
       : null;
   });
@@ -805,6 +811,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly analysisSummaryHero = computed(() => {
+    if (this.outputOnly()) return null;
     const entry = this.analysisDetailEntry();
     if (!entry) {
       return null;
@@ -990,6 +997,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         }
 
         const words = this.displayWords();
+        const scope = this.selectionScopeKey();
         const pills = this.analysisPills();
         const height = this.usableVisualFrameHeight();
         if (pills.length === 0 || pills.length !== words.length) {
@@ -1014,13 +1022,22 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           ].join('/');
           if (geometry === previousGeometry) return;
           previousGeometry = geometry;
-          const packed = packWordCloudPills(sizes, width, height, allowOverlap);
+          const previous = untracked(this.analysisPacking);
+          const anchors =
+            previous?.width === width && previous.scope === scope
+              ? {
+                  height: previous.height,
+                  positions: words.map(({ groupKey }) => previous.positions.get(groupKey)),
+                }
+              : undefined;
+          const packed = packWordCloudPills(sizes, width, height, allowOverlap, anchors);
           this.analysisPacking.set(
             packed
               ? {
                   words,
                   width,
                   height: packed.height,
+                  scope,
                   positions: new Map(
                     words.map((word, index) => [word.groupKey, packed.positions[index]!]),
                   ),
@@ -1250,7 +1267,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
     this.selectedGroupKey.set(groupKey);
     if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses(true);
-    if (this.outputOnly() && this.hideEntry() && this.selectedGroupKey() && event) {
+    // A pointer selection keeps its tooltip on the word. Keyboard activation leads to its action.
+    if (
+      this.outputOnly() &&
+      this.hideEntry() &&
+      event instanceof MouseEvent &&
+      event.detail === 0
+    ) {
       const trigger = event.currentTarget;
       const wasFocused = this.document.activeElement === trigger;
       afterNextRender(
@@ -1492,24 +1515,23 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return Math.max(1, 200 - rank);
   }
 
+  private wordTooltipMetrics(entry: CloudWord): string[] {
+    const lines = [this.tooltipValueLine(entry.count)];
+    const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
+    if (sourceCount) lines.push(sourceCount);
+    const metric = this.tooltipMetricLine();
+    if (metric) lines.push(metric);
+    return lines;
+  }
+
   wordTooltipBlocks(entry: CloudWord): readonly WordCloudTooltipBlock[] {
-    if (this.analysisDisclosureLabel()) {
+    const meta = this.wordTooltipMetrics(entry);
+    if (this.outputOnly() || this.analysisDisclosureLabel()) {
       const provenance = this.topicProvenance(entry);
-      if (!provenance.length) return [];
-      const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
-      const lines = [...provenance, sourceCount ?? this.tooltipValueLine(entry.count)];
-      return [{ kind: 'text', text: lines.join('\n') }];
+      if (!this.outputOnly() && !provenance.length) return [];
+      return [{ kind: 'text', text: [...provenance, ...meta].join('\n') }];
     }
     const blocks: WordCloudTooltipBlock[] = [];
-    const meta = [this.tooltipValueLine(entry.count)];
-    const sourceCountLine = this.tooltipSourceCountLine(entry.sourceCount);
-    if (sourceCountLine) {
-      meta.push(sourceCountLine);
-    }
-    const metricLine = this.tooltipMetricLine();
-    if (metricLine) {
-      meta.push(metricLine);
-    }
     const basisLine = this.analysisBasisLine(entry);
     if (basisLine) {
       meta.push(basisLine);
@@ -1576,16 +1598,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   wordTooltip(entry: CloudWord): string {
-    const lines = [this.tooltipValueLine(entry.count)];
-    const sourceCountLine = this.tooltipSourceCountLine(entry.sourceCount);
-    if (sourceCountLine) {
-      lines.push(sourceCountLine);
-    }
-
-    const metricLine = this.tooltipMetricLine();
-    if (metricLine) {
-      lines.push(metricLine);
-    }
+    const lines = this.wordTooltipMetrics(entry);
+    if (this.outputOnly()) return [...lines, ...this.topicProvenance(entry)].join('\n');
 
     const basisLine = this.analysisBasisLine(entry);
     if (basisLine) {
@@ -1616,16 +1630,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   wordTooltipDisplay(entry: CloudWord): string {
-    const lines = [this.tooltipValueLine(entry.count)];
-    const sourceCountLine = this.tooltipSourceCountLine(entry.sourceCount);
-    if (sourceCountLine) {
-      lines.push(sourceCountLine);
-    }
-
-    const metricLine = this.tooltipMetricLine();
-    if (metricLine) {
-      lines.push(metricLine);
-    }
+    const lines = this.wordTooltipMetrics(entry);
+    if (this.outputOnly()) return [...lines, ...this.topicProvenance(entry)].join('\n');
 
     const basisLine = this.analysisBasisLine(entry);
     if (basisLine) {
@@ -2446,7 +2452,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private isTopicEntry(key: string, origin: CloudWord['labelOrigin']): boolean {
     return (
-      origin !== undefined || /^semantic-\d+(?:-|$)/u.test(key) || !!this.analysisModelVersion()
+      this.semanticTopics() ||
+      origin !== undefined ||
+      /^semantic-\d+(?:-|$)/u.test(key) ||
+      !!this.analysisModelVersion()
     );
   }
 

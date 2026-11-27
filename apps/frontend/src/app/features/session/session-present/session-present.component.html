@@ -1298,7 +1298,7 @@
               [terms]="presenterQaWordCloudTerms()"
               [analysisEntries]="presenterQaWordCloudAnalysisEntries()"
               [analysisMode]="'qa'"
-              [analysisModelVersion]="qaWordCloudProjection()?.modelVersion ?? null"
+              [semanticTopics]="qaWordCloudDisplayMode() === 'SEMANTIC'"
               [analysisDisclosureLabel]="qaWordCloudAnalysisLabel"
               [title]="qaWordCloudTitle()"
               [itemLabelSingular]="qaWordCloudItemSingular"
@@ -1309,6 +1309,7 @@
               [wordLabelSingular]="qaWordCloudWordLabelSingular()"
               [wordLabelPlural]="qaWordCloudWordLabelPlural()"
               [weightingHint]="qaWordCloudReadingHint()"
+              [tooltipMetricLabel]="qaWordCloudMetricLabel()"
               [emptyMessage]="qaWordCloudEmptyMessage"
               [presentationMode]="true"
               [disableCloudLayout]="true"
@@ -1519,7 +1520,7 @@
           [wordLabelSingular]="presenterFreetextWordCloudWordLabelSingular()"
           [wordLabelPlural]="presenterFreetextWordCloudWordLabelPlural()"
           [weightingHint]="null"
-          [showConfidenceFilter]="presenterFreetextDisplayMode() === 'SEMANTIC'"
+          [semanticTopics]="presenterFreetextDisplayMode() === 'SEMANTIC'"
           [selectionScopeKey]="
             freetextQuestionId() +
             ':' +

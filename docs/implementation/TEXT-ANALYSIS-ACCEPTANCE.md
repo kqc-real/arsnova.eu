@@ -31,7 +31,7 @@ Die vollständige manuelle Prüfung mit einem Screenreader und die manuelle Kont
 
 ## Textabgleich
 
-62 der 72 Textzeilen aus #732 stimmen in allen fünf Katalogen wortgleich überein. Kategorie und Methodenname stehen im Forumsdetail jeweils am belegten Ergebnis. Der kompakte Themenstatus nennt die Herkunft der sichtbaren Namen. Bestätigte Namens-Fallbacks stehen im Detail. Warten und Wiederzulassung bleiben neutral, solange die Oberfläche kein Signal über laufende Inferenz hat. [UX-Solltexte](https://github.com/kqc-real/arsnova.eu/issues/732), [Re-Review](https://github.com/kqc-real/arsnova.eu/pull/737#pullrequestreview-6090763330)
+59 der 72 Textzeilen aus #732 stimmen in allen fünf Katalogen wortgleich überein. Die drei früheren Kurztexte für gemischte und extraktive Namensherkunft sowie für Cachetreffer wurden gezielt überarbeitet. Die Kurztexte beziehen sich eindeutig auf Themennamen. Die Übernahme vorhandener Ergebnisse steht in den Details. Der Wortgleichheitsabgleich erfasst keine Verständlichkeit. Kategorie und Methodenname stehen im Forumsdetail jeweils am belegten Ergebnis. Der kompakte Themenstatus nennt die Herkunft der sichtbaren Namen. Bestätigte Namens-Fallbacks stehen im Detail. Warten und Wiederzulassung bleiben neutral, solange die Oberfläche kein Signal über laufende Inferenz hat. [UX-Solltexte](https://github.com/kqc-real/arsnova.eu/issues/732), [Re-Review](https://github.com/kqc-real/arsnova.eu/pull/737#pullrequestreview-6092079162)
 
 ## UX-Re-Review
 
@@ -85,3 +85,18 @@ Die finale Browserprüfung verwendet lokale Sitzungen und kontrollierte Analysea
 | Presenter     | [Quiz-Freitext](../screenshots/text-analysis-acceptance/presenter-freitext-organisch.webp), [Q&A](../screenshots/text-analysis-acceptance/presenter-qa-organisch.webp) |                                                                                                               |
 
 Im Quiz-Editor war die kurze Warnung vor dem Schließen in 15 weiteren Chromium-Fällen sichtbar. Die Prüfung erfasst die Warte- und Retryphase, das geschlossene Budgetdetail, erhaltene Entwürfe und den Fokus beim Abbrechen in allen fünf Sprachen.
+
+## Stabile Presenter-Packung und mobile Themenbelege
+
+Das Re-Review prüft die organische Packung in Quiz-Freitext und Q&A mit je 24 sichtbaren Begriffen. Bei kürzeren und längeren Themennamen bleiben die Positionen und Schriftgrößen der 23 unveränderten Begriffe erhalten. Der Wechsel zwischen Desktop und 390 CSS-Pixeln löst die passende Neuanordnung aus. Die Browserprüfung vergleicht gerenderte Text- und Kapselrechtecke. Auf Touch bleiben getrennte Kapseln, auf dem Desktop sind lesbare Randüberlappungen möglich.
+
+Die gerenderten Presenter-Tooltips wurden in Q&A mit der Maus und bei berechtigtem Quiz-Freitext per Touch für Wörter, Wortgruppen und Themen geprüft. Sie zeigen die Einzelwerte und die belegte Themenherkunft. Modell- und Promptversionen sowie Originalbelege stehen im Host. Ein Komponententest deckt zusätzlich Rangänderungen und einen neuen Analysekontext ab.
+
+Vier ergänzende Chromium-Fälle zeigen den kompakten Herkunftsstatus und die zugehörigen Originalbelege auf 360 und 390 CSS-Pixeln. Der Freitext-Fall bei 360 Pixeln lehnt eine laufende Ausblendung nach dem Schließen der Analyse ab. Die Meldung bleibt sichtbar. Der erneute Versuch blendet das Wort aus und führt den Fokus zurück zum Analyse-Auslöser.
+
+| Hostansicht | Breite | Sichtbare Herkunft                                                                                      | Geöffnete Belege                                                                                      |
+| ----------- | -----: | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Q&A         | 360 px | [Geschlossen](../screenshots/text-analysis-acceptance/qa-themen-nach-review-360-geschlossen.webp)       | [Originalbelege](../screenshots/text-analysis-acceptance/qa-themen-nach-review-360-belege.webp)       |
+| Freitext    | 360 px | [Geschlossen](../screenshots/text-analysis-acceptance/freitext-themen-nach-review-360-geschlossen.webp) | [Originalbelege](../screenshots/text-analysis-acceptance/freitext-themen-nach-review-360-belege.webp) |
+| Q&A         | 390 px | [Geschlossen](../screenshots/text-analysis-acceptance/qa-themen-nach-review-390-geschlossen.webp)       | [Originalbelege](../screenshots/text-analysis-acceptance/qa-themen-nach-review-390-belege.webp)       |
+| Freitext    | 390 px | [Geschlossen](../screenshots/text-analysis-acceptance/freitext-themen-nach-review-390-geschlossen.webp) | [Originalbelege](../screenshots/text-analysis-acceptance/freitext-themen-nach-review-390-belege.webp) |

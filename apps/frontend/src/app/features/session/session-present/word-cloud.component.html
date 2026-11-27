@@ -34,9 +34,6 @@
           <ng-content select="[wordCloudAnalysisOptions]" />
           <ng-container *ngTemplateOutlet="analysisMetadata" />
           <ng-container *ngTemplateOutlet="summaryContent" />
-          @if (!outputOnly()) {
-            <ng-container *ngTemplateOutlet="visibilityError" />
-          }
           <ng-container *ngTemplateOutlet="supportingContent" />
         </div>
       </details>
@@ -57,6 +54,11 @@
         <mat-icon aria-hidden="true">visibility_off</mat-icon>
         {{ hideWordLabel }}
       </button>
+    }
+    @if (visibilityFeedback() === 'failed') {
+      <p role="alert" i18n="@@wordCloud.hideWordFailed">
+        Das Wort konnte nicht ausgeblendet werden.
+      </p>
     }
     <div
       #exportSurface
@@ -170,9 +172,6 @@
         <ng-container i18n="@@wordCloud.wordHidden">Wort ausgeblendet.</ng-container>
       }
     </span>
-    @if (outputOnly() || !analysisDisclosureLabel()) {
-      <ng-container *ngTemplateOutlet="visibilityError" />
-    }
     @if (!analysisDisclosureLabel()) {
       <ng-container *ngTemplateOutlet="summaryContent" />
     }
@@ -422,11 +421,5 @@
         </p>
       }
     </div>
-  }
-</ng-template>
-
-<ng-template #visibilityError>
-  @if (visibilityFeedback() === 'failed') {
-    <p role="alert" i18n="@@wordCloud.hideWordFailed">Das Wort konnte nicht ausgeblendet werden.</p>
   }
 </ng-template>

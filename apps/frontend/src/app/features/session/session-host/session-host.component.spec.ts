@@ -8585,6 +8585,89 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('meldet eine abgelehnte Wort-Ausblendung bei geschlossener Freitext-Analyse und erlaubt Retry', async () => {
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId,
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      responses: ['Gravitation', 'Orbit'],
+      wordCloudVisibility: { questionId, hiddenLabels: [] },
+    });
+
+    let rejectHide!: (error: Error) => void;
+    setFreetextWordCloudEntryVisibilityMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectHide = reject;
+          }),
+      )
+      .mockResolvedValueOnce({ questionId, hiddenLabels: ['Gravitation'] });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.freetextVisibilitySnapshot() !== null);
+    fixture.componentInstance.wordCloudExpanded.set(true);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const cloud = host.querySelector('#host-freetext-word-cloud')!;
+    const analysis = cloud.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const summary = analysis.querySelector('summary')!;
+    const findWord = () =>
+      [...cloud.querySelectorAll<HTMLButtonElement>('.word-cloud__word')].find(
+        (word) => word.textContent?.trim().toLowerCase() === 'gravitation',
+      );
+    findWord()!.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(true);
+
+    const action = analysis.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+    action.focus();
+    action.click();
+    fixture.detectChanges();
+    expect(action.getAttribute('aria-busy')).toBe('true');
+    summary.focus();
+    summary.click();
+    expect(analysis.open).toBe(false);
+
+    rejectHide(new Error('offline'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const alert = cloud.querySelector('[role="alert"]')!;
+    expect(alert.textContent).toContain('Das Wort konnte nicht ausgeblendet werden.');
+    expect(analysis.contains(alert)).toBe(false);
+    expect(findWord()).toBeTruthy();
+    expect(document.activeElement).toBe(summary);
+
+    summary.click();
+    action.focus();
+    action.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setFreetextWordCloudEntryVisibilityMock).toHaveBeenCalledTimes(2);
+    expect(findWord()).toBeUndefined();
+    expect(cloud.querySelector('[role="alert"]')).toBeNull();
+    expect(cloud.querySelector('[role="status"].sr-only')?.textContent).toContain(
+      'Wort ausgeblendet.',
+    );
+    expect(document.activeElement).toBe(summary);
+    fixture.destroy();
+  });
+
   it('kann die Host-Anzeige anhalten und wieder live fortsetzen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({

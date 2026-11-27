@@ -1944,6 +1944,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         return $localize`:@@wordCloud.wordPlural:Wörter`;
     }
   });
+  readonly qaWordCloudMetricLabel = computed(() => {
+    const metric = this.qaWordCloudProjection()?.metric ?? 'BEST';
+    return metric === 'TIME'
+      ? $localize`:@@sessionQa.wordCloudMetricTime:Vorkommen in Fragen`
+      : this.qaSortModeLabel(metric);
+  });
   readonly qaWordCloudReadingHint = computed(() =>
     qaWordCloudReadingHint(this.qaWordCloudProjection()?.metric ?? 'BEST'),
   );

@@ -84,6 +84,31 @@ describe('WordCloudComponent', () => {
     },
   );
 
+  it('lässt auf der Freitext-Bühne bei Zeigerauswahl den Fokus und Tooltip am Begriff', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Freitext-Analyse');
+    fixture.componentRef.setInput('responses', ['Orbit']);
+    fixture.componentRef.setInput('hideEntry', vi.fn());
+    fixture.detectChanges();
+
+    const pill = host.querySelector<HTMLButtonElement>('button.word-cloud__word')!;
+    pill.focus();
+    pill.dispatchEvent(new Event('touchstart'));
+    pill.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(host.querySelector('.word-cloud__hide-action--stage')).not.toBeNull();
+    expect(document.activeElement).toBe(pill);
+    expect(document.getElementById(pill.getAttribute('aria-describedby')!)?.textContent).toContain(
+      'Nennungen: 1',
+    );
+  });
+
   it('behält nach einer abgelehnten Änderung Auswahl und Schaltfläche für den nächsten Versuch', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     const host = fixture.nativeElement as HTMLElement;
@@ -1041,6 +1066,169 @@ describe('WordCloudComponent', () => {
       pillHeight.mockRestore();
     }
   });
+
+  it('behält im gepackten Presenter passende Positionen bei Namens- und Rangwechseln', async () => {
+    let width = 1200;
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(() => width);
+    vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(600);
+    const widths = new Map([
+      ['Originaler Gruppenname', 299],
+      ['Kurz', 199],
+      ['Viel längerer Gruppenname', 499],
+      ['Varianz', 199],
+      ['Konfidenz', 174],
+      ['Auswertung', 139],
+      ['Median', 159],
+    ]);
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return widths.get(this.textContent?.trim() ?? '') ?? 100;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.textContent?.includes('Viel längerer Gruppenname')) return 179;
+      return this.textContent?.includes('Gruppenname') || this.textContent?.includes('Kurz')
+        ? 79
+        : 59;
+    });
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('selectionScopeKey', 'quiz-question-1');
+
+    const labels = ['Originaler Gruppenname', 'Varianz', 'Konfidenz', 'Auswertung', 'Median'];
+    const entries = labels.map((label, index) => ({
+      key: `semantic-${index}`,
+      label,
+      count: 10 - index,
+      variants: [],
+      basisLabel: null,
+      confidence: 0.95,
+      members: [],
+    }));
+    const render = async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+    const position = (label: string) => {
+      const root = fixture.nativeElement as HTMLElement;
+      const pill = [
+        ...root.querySelectorAll<HTMLElement>('.word-cloud__word--packed-analysis'),
+      ].find((element) => element.textContent?.trim() === label)!;
+      return [pill.style.left, pill.style.top];
+    };
+
+    fixture.componentRef.setInput('analysisEntries', entries);
+    await render();
+    const unchanged = labels.slice(1).map(position);
+    const original = position(labels[0]!);
+    const shortened = { ...entries[0]!, label: 'Kurz', labelOrigin: 'model' as const };
+    fixture.componentRef.setInput('analysisEntries', [shortened, ...entries.slice(1)]);
+    await render();
+    expect(labels.slice(1).map(position)).toEqual(unchanged);
+    expect(parseFloat(position('Kurz')[0]!) - parseFloat(original[0]!)).toBe(50);
+
+    fixture.componentRef.setInput('analysisEntries', [
+      { ...shortened, label: 'Viel längerer Gruppenname' },
+      ...entries.slice(1),
+    ]);
+    await render();
+    expect(labels.slice(1).map(position)).toEqual(unchanged);
+    expect(parseFloat(position('Viel längerer Gruppenname')[1]!)).not.toBe(
+      parseFloat(original[1]!) - 50,
+    );
+
+    const reranked = [{ ...entries[4]!, count: 16 }, shortened, ...entries.slice(1, 4)];
+    fixture.componentRef.setInput('analysisEntries', reranked);
+    await render();
+    expect(labels.slice(1).map(position)).toEqual(unchanged);
+
+    fixture.componentRef.setInput('selectionScopeKey', 'quiz-question-2');
+    await render();
+    expect(parseFloat(position('Median')[0]!)).toBe((width - 160) / 2);
+
+    width = 1000;
+    Reflect.get(fixture.componentInstance, 'stageWidth').set(width);
+    await render();
+    expect(parseFloat(position('Median')[0]!)).toBe((width - 160) / 2);
+  });
+
+  it.each(['qa', 'default'] as const)(
+    'rendert Einzelwerte auf der %s-Projektion per Maus und Touch',
+    async (analysisMode) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      fixture.componentRef.setInput('presentationMode', true);
+      fixture.componentRef.setInput('outputOnly', true);
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('analysisDisclosureLabel', 'Analyse');
+      fixture.componentRef.setInput('analysisMode', analysisMode);
+      fixture.componentRef.setInput('itemCount', 5);
+      if (analysisMode === 'qa')
+        fixture.componentRef.setInput('tooltipMetricLabel', 'Stimmensaldo');
+      const cases = [
+        { label: 'Orbit', topic: false, origin: undefined, provenance: null },
+        { label: 'Lineare Regression', topic: false, origin: undefined, provenance: null },
+        {
+          label: 'Umlaufbahnen',
+          topic: true,
+          origin: 'model',
+          provenance: 'Von der lokalen KI formuliert',
+        },
+        {
+          label: 'Bedeutung der Umlaufbahn',
+          topic: true,
+          origin: 'extractive',
+          provenance: 'Aus einem Originalbeitrag',
+        },
+        {
+          label: 'Orbit im Altbestand',
+          topic: true,
+          origin: undefined,
+          provenance: 'Herkunft des Themennamens unbekannt',
+        },
+      ] as const;
+      const root = fixture.nativeElement as HTMLElement;
+      for (const { label, topic, origin, provenance } of cases) {
+        fixture.componentRef.setInput('semanticTopics', topic);
+        fixture.componentRef.setInput('labelModelId', 'internes Namensmodell');
+        fixture.componentRef.setInput('labelPromptVersion', 'interne Promptversion');
+        fixture.componentRef.setInput('analysisEntries', [
+          {
+            key: 'stable-topic-key',
+            label,
+            labelOrigin: origin,
+            count: 9,
+            variants: [],
+            basisLabel: 'Interner Originalbeleg',
+            members: [{ sourceId: 'response-1', text: 'Interner Originalbeleg', weight: 1 }],
+          },
+        ]);
+        fixture.detectChanges();
+        const pill = root.querySelector<HTMLElement>('span.word-cloud__word--output')!;
+        for (const event of ['mouseenter', 'touchstart']) {
+          pill.dispatchEvent(new Event(event));
+          const tooltip = document.getElementById(pill.getAttribute('aria-describedby')!)!;
+          const text = tooltip.textContent!;
+          expect(tooltip.getAttribute('role')).toBe('tooltip');
+          expect(text).toContain(analysisMode === 'qa' ? 'Größenwert: 9' : 'Nennungen: 9');
+          if (analysisMode === 'qa') {
+            expect(text).toContain('In 1 von 5 analysierten Fragen');
+            expect(text).toContain('Gewichtung: Stimmensaldo');
+          }
+          if (provenance) expect(text).toContain(provenance);
+          else expect(text).not.toContain('Themenname');
+          expect(text).not.toMatch(/interne[rs]? (Originalbeleg|Namensmodell|Promptversion)/i);
+          document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+        }
+        expect(root.textContent).not.toContain('Interner Originalbeleg');
+      }
+    },
+  );
 
   it('begrenzt die D3-Buehnenhoehe im mobilen Vollbild ohne gemessene Rahmenhoehe', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
