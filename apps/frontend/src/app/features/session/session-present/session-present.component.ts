@@ -125,6 +125,7 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { textAnalysisCopy } from '../../../shared/text-analysis/text-analysis-copy';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   findKindergartenNicknameBadge,
@@ -1749,7 +1750,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         (this.presenterFreetextSemanticAnalyzedKey() !== null &&
           this.presenterFreetextSemanticAnalyzedKey() !== this.presenterFreetextResponseKey())
       ) {
-        return $localize`:@@sessionWordCloud.freetextTopicsStale:Neue Antworten seit der letzten Themenanalyse`;
+        return textAnalysisCopy.corpusStaleShort;
       }
     }
     if (this.presenterFreetextWordCloudFrozen()) {
@@ -1898,7 +1899,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'pending':
         return wordCloudTopicProgressLabel(this.qaWordCloudDisplayMode() === 'SEMANTIC');
       case 'stale':
-        return $localize`:@@sessionQa.wordCloudSemanticStaleHint:Neue Fragen seit der letzten Themenanalyse`;
+        return textAnalysisCopy.corpusStaleShort;
       case 'failed':
         return $localize`:@@sessionQa.wordCloudSemanticFailedHint:Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.`;
       case 'disabled':

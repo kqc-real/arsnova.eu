@@ -1638,6 +1638,38 @@ describe('SessionPresentComponent', () => {
     fixture.destroy();
   });
 
+  it('meldet im Freitext-Presenter eine Änderung bei gleich vielen Antworten', async () => {
+    const fixture = TestBed.createComponent(SessionPresentComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const component = fixture.componentInstance;
+    const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
+    component.freetextQuestionId.set(questionId);
+    component.freetextWordCloudProjection.set({
+      mode: 'THEME',
+      locale: 'de',
+      questionId,
+      smoothingActive: false,
+      entries: [],
+    });
+    component.freetextResponses.set(['Die Stichprobe wird größer.', 'Mehr Daten helfen.']);
+    analyzeWordCloudMutateMock.mockResolvedValueOnce({
+      mode: 'SEMANTIC',
+      status: 'ready',
+      fallbackUsed: false,
+      entries: [wordCloudEntry('Stichprobe', 'semantic-0', 0.92)],
+    });
+    component.setPresenterFreetextWordCloudMode('SEMANTIC');
+    await vi.waitFor(() => expect(component.presenterFreetextDisplayMode()).toBe('SEMANTIC'));
+    expect(component.presenterFreetextWordCloudHint()).toBeNull();
+
+    component.freetextResponses.set(['Die Stichprobe wird kleiner.', 'Mehr Daten helfen.']);
+    expect(component.presenterFreetextWordCloudHint()).toBe('Beiträge geändert');
+    fixture.destroy();
+  });
+
   it('verwirft das eigene Analyseergebnis bei einem Sprachwechsel während des Einfrierens', async () => {
     const fixture = TestBed.createComponent(SessionPresentComponent);
     fixture.detectChanges();
@@ -1971,6 +2003,16 @@ describe('SessionPresentComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Stichprobengröße');
     expect(fixture.componentInstance.presenterFreetextDisplayMode()).toBe('SEMANTIC');
     expect(fixture.componentInstance.freetextWordCloudTerms()).toBeNull();
+
+    fixture.componentInstance.freetextWordCloudProjection.update((projection) =>
+      projection ? { ...projection, analysisStatus: 'stale' } : null,
+    );
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement
+        .querySelector('.session-present__word-cloud-toolbar-status[role="status"]')
+        ?.textContent?.trim(),
+    ).toBe('Beiträge geändert');
 
     fixture.componentInstance.freetextWordCloudProjection.set({
       mode: 'SEMANTIC',
@@ -4625,6 +4667,16 @@ describe('SessionPresentComponent', () => {
     );
     expect(text).toContain('Durch Rundung und Obergrenze können Fragen gleiches Gewicht erhalten.');
     expect(text).not.toContain('ohne Wort-Glättung');
+
+    fixture.componentInstance.qaWordCloudProjection.update((projection) =>
+      projection ? { ...projection, analysisStatus: 'stale' } : null,
+    );
+    fixture.detectChanges();
+    expect(
+      fixture.nativeElement
+        .querySelector('.session-present__word-cloud-card > [role="status"]')
+        ?.textContent?.trim(),
+    ).toBe('Beiträge geändert');
 
     fixture.componentInstance.qaWordCloudProjection.update((projection) =>
       projection ? { ...projection, effectiveMode: undefined } : null,

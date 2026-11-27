@@ -29,7 +29,7 @@ Wenn das kurze Themenlabel von einer längeren repräsentativen Frage oder Antwo
 | Zustand         | Host-Text                                                                                                                      |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Läuft           | **Themen werden vorbereitet.**                                                                                                 |
-| Veraltet        | **Neue Fragen seit der letzten Themenanalyse** bzw. **Neue Antworten seit der letzten Themenanalyse**                          |
+| Veraltet        | **Beiträge geändert**. Der Host zeigt **Neue Beiträge**, wenn ein Zuwachs belegt ist.                                          |
 | Unsicher        | **Einige Themen sind unsicher. Prüfe die Mitgliedsfragen.**                                                                    |
 | Fehlgeschlagen  | **Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.**                      |
 | Nicht belastbar | **Ähnliche Beiträge lassen sich gerade nicht zuverlässig zusammenfassen. Stattdessen werden Wörter oder Wortgruppen gezeigt.** |
@@ -39,7 +39,7 @@ Die Sprachwahl zeigt die wirksame Analysesprache. Im Q&A-Host-Dialog liegt sie i
 
 `mode` hält die Wahl der Toolbar fest. `effectiveMode` beschreibt die sichtbaren Einträge. `analysisStatus` beschreibt den Analysestand in der Projektion. Titel, Zähler, Beschreibungen und Themenfilter folgen den sichtbaren Einträgen. Die Ersatzansicht kann je nach Daten Wörter oder Wörter und Wortgruppen enthalten. Während einer Aktualisierung können vorherige Themen sichtbar bleiben. `THEME` bezeichnet die lexikalische Wortgruppenansicht.
 
-Der Q&A-Presenter übernimmt die Host-Projektion einschließlich Gewichtung, Glättung und Korpusabdeckung. Der Quiz-Freitext-Presenter folgt zunächst der Projektion und kann mit Host-Berechtigung selbst analysieren. Er verwendet dabei die gewählte Host-Analysesprache. Das öffentliche Freitext-DTO enthält die kompakten Einträge samt sichtbaren Labels und gegebenenfalls deren Herkunft. Bei älteren Projektionen ohne Ergebnistyp erkennt die Bühne Themen an der Namensherkunft oder am früheren Cluster-Schlüssel. Bei lexikalischen Einträgen bestimmt sie die passende Wort- oder Phrasenansicht. Die Bühnenansichten verwenden weiterhin `outputOnly` und die bestehende Begrenzung der sichtbaren Blasen.
+Der Q&A-Presenter übernimmt die Host-Projektion einschließlich Gewichtung, Glättung und Korpusabdeckung. Der Quiz-Freitext-Presenter folgt zunächst der Projektion und kann mit Host-Berechtigung selbst analysieren. Er verwendet dabei die gewählte Host-Analysesprache. Das öffentliche Freitext-DTO enthält die kompakten Einträge samt sichtbaren Labels und gegebenenfalls deren Herkunft. Bei älteren Projektionen ohne Ergebnistyp erkennt die Bühne Themen an der Namensherkunft oder am früheren Cluster-Schlüssel. Bei lexikalischen Einträgen bestimmt sie die passende Wort- oder Phrasenansicht. Die Bühnenansichten verwenden weiterhin `outputOnly` und die bestehende Begrenzung der sichtbaren Blasen. Eine veraltete Projektion oder ein abweichender Freitext-Analysefingerabdruck wird auf der Bühne als **Beiträge geändert** gekennzeichnet.
 
 Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 

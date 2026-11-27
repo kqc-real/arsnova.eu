@@ -23281,22 +23281,6 @@
           <context context-type="linenumber">2411</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
-        <source>Neue Fragen seit der letzten Themenanalyse</source>
-        <target>Hay nuevas preguntas desde el último análisis de temas</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1447</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2375</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2414</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionWordCloud.freetextSemanticUncertainHint" datatype="html">
         <source>Einige Themen sind unsicher. Prüfe die zugehörigen Antworten.</source>
         <target>Algunos temas son inciertos. Revisa las respuestas asociadas.</target>
@@ -36593,10 +36577,6 @@
       <trans-unit id="wordCloud.analysisLanguage" datatype="html">
         <source>Sprache der Beiträge:</source>
         <target>Idioma de las aportaciones:</target>
-        </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
-        <source>Neue Antworten seit der letzten Themenanalyse</source>
-        <target>Hay nuevas respuestas desde el último análisis de temas</target>
         </trans-unit>
       <trans-unit id="wordCloud.qaCoverage" datatype="html">
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>

@@ -23334,22 +23334,6 @@
           <context context-type="linenumber">2411</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
-        <source>Neue Fragen seit der letzten Themenanalyse</source>
-        <target>New questions since the last topic analysis</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1447</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2375</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2414</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionWordCloud.freetextSemanticUncertainHint" datatype="html">
         <source>Einige Themen sind unsicher. Prüfe die zugehörigen Antworten.</source>
         <target>Some topics are uncertain. Review the associated answers.</target>
@@ -36647,10 +36631,6 @@
       <trans-unit id="wordCloud.analysisLanguage" datatype="html">
         <source>Sprache der Beiträge:</source>
         <target>Contribution language:</target>
-        </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
-        <source>Neue Antworten seit der letzten Themenanalyse</source>
-        <target>New answers since the last topic analysis</target>
         </trans-unit>
       <trans-unit id="wordCloud.qaCoverage" datatype="html">
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
