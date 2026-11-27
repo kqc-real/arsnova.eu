@@ -62,3 +62,12 @@ Die Browserabnahme umfasst 14 Chromium-Fälle mit einer lokalen Testsitzung und 
 - [Desktop mit geschlossener Q&A-Analyse](../screenshots/text-analysis-acceptance/qa-cloud-desktop-closed.webp)
 - [Desktop mit geöffneter Q&A-Analyse](../screenshots/text-analysis-acceptance/qa-cloud-desktop-open.webp)
 - [320 Pixel mit geschlossener Q&A-Analyse](../screenshots/text-analysis-acceptance/qa-cloud-mobile-closed.webp)
+
+## Wolkenform im Q&A-Host
+
+Die Q&A-Wortwolke legt breite Ansichten vom stärksten Begriff nach außen. Sie verwendet die tatsächlich gerenderten Kapselmaße und hält die Schrift auch bei randlicher Überlappung frei. Die Kapseln auf Touch-Geräten haben getrennte Ziele. Auf schmalen Bildschirmen bleiben die wichtigsten Begriffe zuerst sichtbar. Das Akkordeon **Q&A-Analyse** startet weiterhin geschlossen.
+
+17 Chromium-Fälle prüfen die geschlossene und geöffnete Ansicht in fünf Sprachen, bei 320 und 390 CSS-Pixeln, mit 150 Prozent Schriftgröße, im Querformat und auf dem Desktop. Die Browserprüfung vergleicht die gerenderten Text- und Kapselrechtecke. Auf dem Desktop überlappen sich Kapselränder um höchstens vier CSS-Pixel, die Textrechtecke bleiben frei. Die Touch-Prüfung bei 840 Pixeln findet getrennte Ziele. Weitere Fälle prüfen den Fokus beim Größenwechsel, Belege und Exporte. Im Viewport von 1.440 × 1.080 CSS-Pixeln sind alle 80 Begriffe der dichten Wolke gleichzeitig sichtbar.
+
+- [Wolkenform auf dem Desktop](../screenshots/text-analysis-acceptance/qa-cloud-organic-desktop.webp)
+- [Dichte Wolke mit 80 Begriffen](../screenshots/text-analysis-acceptance/qa-cloud-organic-dense.webp)

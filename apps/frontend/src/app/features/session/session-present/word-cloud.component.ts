@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   afterEveryRender,
   afterNextRender,
+  afterRenderEffect,
   Component,
   ElementRef,
   Injector,
@@ -15,6 +16,7 @@ import {
   input,
   signal,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import {
@@ -54,6 +56,7 @@ import {
   getWordCloudRotation,
   getWordCloudWidthScale,
   MIN_WORD_CLOUD_LAYOUT_WIDTH,
+  packWordCloudPills,
   MOBILE_WORD_CLOUD_BREAKPOINT,
   scaleWordCloudFontSize,
   shouldUseWordCloudLayout,
@@ -193,6 +196,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly exportSurface = viewChild<ElementRef<HTMLElement>>('exportSurface');
   private readonly visualFrame = viewChild<ElementRef<HTMLElement>>('visualFrame');
   private readonly layoutStage = viewChild<ElementRef<HTMLElement>>('layoutStage');
+  private readonly analysisPills = viewChildren<unknown, ElementRef<HTMLElement>>('analysisPill', {
+    read: ElementRef,
+  });
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
   private readonly hideWordButton = viewChild('hideWordButton', {
     read: ElementRef,
@@ -351,6 +357,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private readonly stageWidth = signal(0);
   private readonly availableVisualFrameHeight = signal(0);
+  private readonly analysisPacking = signal<{
+    words: readonly CloudWord[];
+    width: number;
+    height: number;
+    positions: ReadonlyMap<string, { left: number; top: number }>;
+  } | null>(null);
+  protected readonly packedAnalysis = computed(() => {
+    const layout = this.analysisPacking();
+    return layout?.words === this.displayWords() && layout.width === this.stageWidth()
+      ? layout
+      : null;
+  });
   private readonly usableVisualFrameHeight = computed(() => {
     const availableHeight = this.availableVisualFrameHeight();
     return availableHeight < WordCloudComponent.COLLAPSED_PRESENTATION_FRAME_HEIGHT_PX
@@ -625,11 +643,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       : this.words();
     const width = this.stageWidth();
     if (this.disableCloudLayout() || !shouldUseWordCloudLayout(width, words.length)) {
-      if (
-        this.presentationMode() &&
-        this.disableCloudLayout() &&
-        (!this.analysisDisclosureLabel() || width >= MOBILE_WORD_CLOUD_BREAKPOINT)
-      ) {
+      if (this.presentationMode() && this.disableCloudLayout() && !this.analysisDisclosureLabel()) {
         return this.arrangeWrappedPresentationWords(words);
       }
 
@@ -959,6 +973,65 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   constructor() {
+    afterRenderEffect({
+      read: (onCleanup) => {
+        const width = this.stageWidth();
+        if (!this.analysisDisclosureLabel() || width < MOBILE_WORD_CLOUD_BREAKPOINT) {
+          this.analysisPacking.set(null);
+          return;
+        }
+
+        const words = this.displayWords();
+        const pills = this.analysisPills();
+        const height = this.usableVisualFrameHeight();
+        if (pills.length === 0 || pills.length !== words.length) {
+          this.analysisPacking.set(null);
+          return;
+        }
+
+        const touch = this.document.defaultView?.matchMedia?.('(any-pointer: coarse)');
+        let previousGeometry = '';
+        const measure = () => {
+          const allowOverlap = !touch?.matches;
+          const sizes = pills.map(({ nativeElement }) => {
+            const { offsetWidth, offsetHeight } = nativeElement;
+            return {
+              width: offsetWidth && offsetWidth + 1,
+              height: offsetHeight && offsetHeight + 1,
+            };
+          });
+          const geometry = [
+            allowOverlap,
+            ...sizes.map(({ width, height }) => `${width}:${height}`),
+          ].join('/');
+          if (geometry === previousGeometry) return;
+          previousGeometry = geometry;
+          const packed = packWordCloudPills(sizes, width, height, allowOverlap);
+          this.analysisPacking.set(
+            packed
+              ? {
+                  words,
+                  width,
+                  height: packed.height,
+                  positions: new Map(
+                    words.map((word, index) => [word.groupKey, packed.positions[index]!]),
+                  ),
+                }
+              : null,
+          );
+        };
+
+        measure();
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+        for (const pill of pills) observer?.observe(pill.nativeElement, { box: 'border-box' });
+        touch?.addEventListener('change', measure);
+        onCleanup(() => {
+          observer?.disconnect();
+          touch?.removeEventListener('change', measure);
+        });
+      },
+    });
+
     afterEveryRender({
       read: () => {
         if (!this.outputOnly() || !this.cloudLayoutActive() || this.layoutPending()) return;

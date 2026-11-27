@@ -74,7 +74,8 @@
             presentationMode() && disableCloudLayout()
           "
           [style.--word-cloud-stage-height]="stageMinHeight()"
-          [style.height.px]="renderedCloudStageHeightPx() || null"
+          [class.word-cloud__visual--packed-analysis]="packedAnalysis()"
+          [style.height.px]="packedAnalysis()?.height ?? (renderedCloudStageHeightPx() || null)"
         >
           @if (cloudLayoutActive()) {
             @for (entry of positionedWords(); track entry.groupKey) {
@@ -133,10 +134,15 @@
                   {{ entry.word }}
                 </span>
               } @else {
+                @let placement = packedAnalysis()?.positions?.get(entry.groupKey);
                 <button
+                  #analysisPill
                   type="button"
                   mat-button
                   class="word-cloud__word"
+                  [class.word-cloud__word--packed-analysis]="placement"
+                  [style.left.px]="placement?.left"
+                  [style.top.px]="placement?.top"
                   [class.word-cloud__word--active]="selectedGroupKey() === entry.groupKey"
                   [class.word-cloud__word--top]="entry.rank < 2"
                   [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"

@@ -916,6 +916,43 @@ describe('WordCloudComponent', () => {
     expect(fixture.componentInstance.displayWords().map(({ rank }) => rank)).toEqual([0, 1, 2]);
   });
 
+  it('positioniert die gemessenen Material-Buttons und erhält den Fokus beim Layoutwechsel', async () => {
+    const stageWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(820);
+    const pillWidth = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(112);
+    const pillHeight = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(44);
+    try {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      fixture.componentRef.setInput('presentationMode', true);
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+      fixture.componentRef.setInput('responses', ['Alpha Beta Gamma', 'Alpha Beta', 'Alpha']);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const pill = fixture.nativeElement.querySelector(
+        'button.word-cloud__word',
+      ) as HTMLButtonElement;
+      expect(pill.classList.contains('word-cloud__word--packed-analysis')).toBe(true);
+      expect(Number.parseFloat(pill.style.left)).toBeGreaterThan(300);
+      pill.focus();
+
+      stageWidth.mockReturnValue(320);
+      Reflect.get(fixture.componentInstance, 'stageWidth').set(320);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(pill.classList.contains('word-cloud__word--packed-analysis')).toBe(false);
+      expect(pill.style.left).toBe('');
+      expect(document.activeElement).toBe(pill);
+    } finally {
+      stageWidth.mockRestore();
+      pillWidth.mockRestore();
+      pillHeight.mockRestore();
+    }
+  });
+
   it('begrenzt die D3-Buehnenhoehe im mobilen Vollbild ohne gemessene Rahmenhoehe', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('presentationMode', true);

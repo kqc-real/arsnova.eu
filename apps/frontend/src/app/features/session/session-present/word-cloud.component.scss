@@ -955,7 +955,25 @@
   min-height: var(--word-cloud-stage-height, 100%);
 
   .word-cloud__word {
+    inline-size: max-content;
     max-inline-size: min(100%, 28rem);
+    padding-block: max(8px, clamp(0.5rem, 0.32em, 0.9rem));
+    padding-inline: max(8px, 1rem);
+  }
+}
+
+.word-cloud--with-analysis-disclosure .word-cloud__visual--packed-analysis {
+  position: relative;
+  flex: 0 0 auto;
+
+  .word-cloud__word--packed-analysis {
+    position: absolute;
+
+    &:focus-visible {
+      z-index: 1;
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: 2px;
+    }
   }
 }
 
