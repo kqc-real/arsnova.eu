@@ -6,7 +6,15 @@
   max-height: none;
 }
 
+.status-help-dialog__analysis-help {
+  justify-self: start;
+  max-inline-size: 100%;
+  white-space: normal;
+  text-align: start;
+}
+
 .status-help-dialog__tabs {
+  min-inline-size: 0;
   margin: 0 -0.15rem;
 }
 

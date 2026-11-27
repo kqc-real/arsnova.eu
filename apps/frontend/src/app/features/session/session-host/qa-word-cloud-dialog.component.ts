@@ -11,6 +11,7 @@ import type {
   WordCloudAnalysisEntryDTO,
   WordCloudAnalysisVariant,
 } from '@arsnova/shared-types';
+import type { WordCloudAnalysisInfo } from '../session-present/word-cloud-analysis-info';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
 import { PresenterIconComponent } from '../presenter-icon.component';
@@ -37,8 +38,7 @@ export type QaWordCloudDialogData = {
   terms: () => WordCloudTerm[] | null;
   analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
   title: () => string;
-  eyebrow: string | null;
-  description: () => string | null;
+  analysisLabel: string;
   wordLabelSingular: () => string;
   wordLabelPlural: () => string;
   weightingHint: () => string | null;
@@ -46,6 +46,7 @@ export type QaWordCloudDialogData = {
   analyzedQuestionCount: () => number;
   eligibleQuestionCount: () => number;
   analysisModelVersion?: () => string | null;
+  analysisInfo?: () => WordCloudAnalysisInfo;
   labelModelId?: () => string | null;
   labelModelVersion?: () => string | null;
   labelPromptVersion?: () => string | null;
@@ -116,12 +117,12 @@ export class QaWordCloudDialogComponent {
   readonly terms = computed(() => this.data.terms());
   readonly analysisEntries = computed(() => this.data.analysisEntries());
   readonly title = computed(() => this.data.title());
-  readonly description = computed(() => this.data.description());
   readonly wordLabelSingular = computed(() => this.data.wordLabelSingular());
   readonly wordLabelPlural = computed(() => this.data.wordLabelPlural());
   readonly tooltipMetricLabel = computed(() => this.data.tooltipMetricLabel());
   readonly analyzedQuestionCount = computed(() => this.data.analyzedQuestionCount());
   readonly analysisModelVersion = computed(() => this.data.analysisModelVersion?.() ?? null);
+  readonly analysisInfo = computed(() => this.data.analysisInfo?.() ?? null);
   readonly labelModelId = computed(() => this.data.labelModelId?.() ?? null);
   readonly labelModelVersion = computed(() => this.data.labelModelVersion?.() ?? null);
   readonly labelPromptVersion = computed(() => this.data.labelPromptVersion?.() ?? null);
@@ -187,14 +188,12 @@ export class QaWordCloudDialogComponent {
       this.smoothingStatus() === 'pending' &&
       !this.hasPreparedThemes(),
   );
-  readonly themesRefreshing = computed(
-    () =>
-      this.analysisVariant() === 'SEMANTIC' &&
-      this.smoothingStatus() === 'pending' &&
-      this.hasPreparedThemes(),
+  readonly emptyMessage = computed(() =>
+    this.eligibleQuestionCount() === 0
+      ? $localize`:@@sessionQa.wordCloudEmpty:Noch keine sichtbaren Q&A-Fragen.`
+      : $localize`:@@sessionQa.wordCloudNoResult:Für diese Ansicht liegt noch keine Wortwolke vor.`,
   );
-  readonly themeProgressLabel = $localize`:@@sessionQa.wordCloudSemanticPendingLabel:Themen werden vorbereitet.`;
-  readonly previousTopicsLabel = wordCloudTopicProgressLabel(true);
+  readonly themeProgressLabel = wordCloudTopicProgressLabel(false, true);
   readonly exportViewLabel = computed(() =>
     wordCloudExportViewLabel(this.analysisVariant(), this.displayMode()),
   );

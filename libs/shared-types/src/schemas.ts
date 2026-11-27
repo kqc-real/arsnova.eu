@@ -4562,6 +4562,8 @@ export const WordCloudLabelOriginSchema = z.enum(['extractive', 'model']);
 export type WordCloudLabelOrigin = z.infer<typeof WordCloudLabelOriginSchema>;
 export const WordCloudLabelSettlementSchema = z.enum(['complete', 'transient', 'disabled']);
 export type WordCloudLabelSettlement = z.infer<typeof WordCloudLabelSettlementSchema>;
+export const WordCloudLabelFallbackReasonSchema = z.enum(['busy', 'timeout', 'invalid_response']);
+export type WordCloudLabelFallbackReason = z.infer<typeof WordCloudLabelFallbackReasonSchema>;
 
 /** Ein analysierter Word-Cloud-Eintrag inklusive Erklärbarkeitsdaten. */
 export const WordCloudAnalysisEntryDTOSchema = z.object({
@@ -4599,7 +4601,18 @@ export const WordCloudAnalysisResultDTOSchema = z.object({
   snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
   entries: z.array(WordCloudAnalysisEntryDTOSchema),
   topicLabelsPending: z.boolean().optional(),
+  /** A semantic request with too few usable sources or no reliable cluster. */
+  semanticFallbackReason: z.literal('no_shared_topics').optional(),
   labelSettlement: WordCloudLabelSettlementSchema.optional(),
+  labelFallbackReason: WordCloudLabelFallbackReasonSchema.optional(),
+  /** Reuse by this request. Stored snapshots and public projections omit it. */
+  reuse: z
+    .object({
+      snapshot: z.boolean().optional(),
+      preview: z.boolean().optional(),
+      topicLabelKeys: z.array(z.string().min(1)).optional(),
+    })
+    .optional(),
   labelModelId: z.string().trim().min(1).max(220).nullable().optional(),
   labelModelVersion: z.string().trim().min(1).max(220).nullable().optional(),
   labelPromptVersion: z.string().trim().min(1).max(120).nullable().optional(),
@@ -6504,6 +6517,10 @@ export type AdminWhoAmIOutput = z.infer<typeof AdminWhoAmIOutputSchema>;
 // ---------------------------------------------------------------------------
 // Q&A-Modus (Epic 8)
 // ---------------------------------------------------------------------------
+
+/** Persisted versions used by the Q&A classifier and its host-only provenance display. */
+export const QA_NLP_GATEKEEPER_MODEL_VERSION = 'gatekeeper-hash-nb-v3';
+export const QA_NLP_FALLBACK_MODEL_VERSION = 'fallback-knn-v3';
 
 /** Host-only Hilfssignal der optionalen Q&A-NLP-Kaskade (Story 8.9b / ADR-0032). */
 export const QaNlpResultSchema = z

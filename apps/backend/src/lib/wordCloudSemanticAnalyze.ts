@@ -316,6 +316,7 @@ export function buildSemanticAnalysisOutput(input: {
   readonly modelVersion: string | null;
   readonly modelId?: string | null;
   readonly encoderCalled?: boolean;
+  readonly semanticFallbackReason?: AnalyzeWordCloudOutput['semanticFallbackReason'];
 }): AnalyzeWordCloudOutput {
   const output = AnalyzeWordCloudOutputSchema.parse({
     mode: input.request.mode,
@@ -323,6 +324,9 @@ export function buildSemanticAnalysisOutput(input: {
     metric: input.request.metric,
     generatedAt: new Date(hooks.now()).toISOString(),
     fallbackUsed: input.fallbackUsed,
+    ...(input.semanticFallbackReason
+      ? { semanticFallbackReason: input.semanticFallbackReason }
+      : {}),
     status: input.status,
     modelVersion: input.modelVersion,
     entries: input.entries,
@@ -554,6 +558,7 @@ async function runSemanticEncoderJob(
       entries: fallbackEntries,
       meta,
       status: 'fallback',
+      semanticFallbackReason: 'no_shared_topics',
       fallbackUsed: true,
       modelVersion: null,
       modelId: null,
@@ -571,6 +576,7 @@ async function runSemanticEncoderJob(
         entries: fallbackEntries,
         meta,
         status: 'fallback',
+        semanticFallbackReason: 'no_shared_topics',
         fallbackUsed: true,
         modelVersion: cachedClusters.modelVersion,
         modelId: cachedClusters.modelId,
@@ -641,6 +647,7 @@ async function runSemanticEncoderJob(
         entries: fallbackEntries,
         meta,
         status: 'fallback',
+        semanticFallbackReason: 'no_shared_topics',
         fallbackUsed: true,
         modelVersion: resolved.modelVersion,
         modelId: resolved.modelId,

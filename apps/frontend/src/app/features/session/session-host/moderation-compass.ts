@@ -86,13 +86,18 @@ export type ModerationCompassSource = {
   readonly focusHint?: string;
   readonly target?: ModerationCompassSourceTarget;
   readonly evidenceRole?: ModerationCompassEvidenceRole;
+  readonly analysisBasis?: ModerationCompassAnalysisBasis;
 };
 
 export type ModerationCompassCardTone = SharedModerationCompassCardTone;
 
+type ModerationCompassAnalysisBasis =
+  'classification' | 'topics' | 'lexical' | 'repeatedResponses' | 'rules';
+
 export type ModerationCompassCard = {
   readonly kind: ModerationCompassCardKind;
   readonly sources: readonly ModerationCompassSource[];
+  readonly analysisBasis?: readonly ModerationCompassAnalysisBasis[];
   readonly nextStepReason?: ModerationCompassNextStepReason;
   readonly title?: string;
   readonly hint?: string;
@@ -123,10 +128,10 @@ export type ModerationCompassQaQuestion = {
   readonly nlp?: QaNlpResult;
 };
 
-export type ModerationCompassTermOrigin = {
-  readonly sortMode?: ModerationCompassSortMode;
-  readonly analysisVariant?: ModerationCompassAnalysisVariant;
-};
+export type ModerationCompassTermOrigin = Pick<
+  ModerationCompassTerm,
+  'sortMode' | 'analysisVariant' | 'analysisBasis'
+>;
 
 export type ModerationCompassTerm = {
   readonly label: string;
@@ -138,6 +143,8 @@ export type ModerationCompassTerm = {
   readonly memberSourceIds?: readonly string[];
   readonly questionId?: string;
   readonly sortMode?: ModerationCompassSortMode;
+  /** Origin of the evidence. The analysis variant selects the navigation target. */
+  readonly analysisBasis?: ModerationCompassAnalysisBasis;
   readonly analysisVariant?: ModerationCompassAnalysisVariant;
 };
 
@@ -612,6 +619,7 @@ function termSource(
     label: presentation,
     ...(example ? { evidence: example } : {}),
     focusHint: topic,
+    ...(term.analysisBasis ? { analysisBasis: term.analysisBasis } : {}),
     target: {
       channel,
       surface: 'word-cloud',
@@ -851,8 +859,21 @@ export function buildModerationCompassView(
           ...(snapshot.tempo?.tempoStatus ? { tempoStatus: snapshot.tempo.tempoStatus } : {}),
         };
       }
-      if (card.kind === 'topics' && snapshot.topicWeightLabel) {
-        return { ...mapped, hint: snapshot.topicWeightLabel };
+      if (card.kind === 'topics' || card.kind === 'clarification') {
+        const analysisBasis = new Set<ModerationCompassAnalysisBasis>();
+        for (const source of mapped.sources) {
+          if (source.analysisBasis) analysisBasis.add(source.analysisBasis);
+          else if (source.kind !== 'qa-term' && source.kind !== 'freetext-term') {
+            analysisBasis.add('rules');
+          }
+        }
+        return {
+          ...mapped,
+          ...(analysisBasis.size ? { analysisBasis: [...analysisBasis] } : {}),
+          ...(card.kind === 'topics' && snapshot.topicWeightLabel
+            ? { hint: snapshot.topicWeightLabel }
+            : {}),
+        };
       }
       return mapped;
     }),
@@ -880,6 +901,7 @@ export function collectQaNlpCategorySources(
     .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0]))
     .map(([category, questionIds]) => ({
       kind: 'qa-question' as const,
+      analysisBasis: 'classification' as const,
       label:
         questionIds.length > 1 ? `${labels[category]} · ${questionIds.length}` : labels[category],
       focusHint: labels[category],

@@ -15,6 +15,7 @@ import {
   getWordCloudLayoutWordCap,
   getWordCloudRotation,
   getWordCloudWidthScale,
+  packWordCloudPills,
   retainWordCloudPillPositions,
   keepWordCloudSizesOnRelabel,
   scaleWordCloudFontSize,
@@ -22,6 +23,61 @@ import {
 } from './word-cloud-layout';
 
 describe('word-cloud layout helpers', () => {
+  it.each([false, true])(
+    'packt alle Begriffe versetzt und hält die Textflächen frei (Randüberlappung: %s)',
+    (allowOverlap) => {
+      const stageWidth = 840;
+      const sizes = Array.from({ length: 80 }, (_, i) => ({
+        width: i === 0 ? 360 : 74 + ((i * 23) % 150),
+        height: i === 0 ? 60 : 45 + ((i * 7) % 28),
+      }));
+      const layout = packWordCloudPills(sizes, stageWidth, 480, allowOverlap)!;
+      expect(layout).toEqual(packWordCloudPills(sizes, stageWidth, 480, allowOverlap));
+      expect(layout.positions).toHaveLength(sizes.length);
+      expect(layout.positions[0]?.left).toBe((stageWidth - sizes[0]!.width) / 2);
+      expect(new Set(layout.positions.map(({ top }) => Math.round(top))).size).toBeGreaterThan(
+        sizes.length / 2,
+      );
+
+      const boxes = layout.positions.map(({ left, top }, i) => ({
+        left,
+        top,
+        right: left + sizes[i]!.width,
+        bottom: top + sizes[i]!.height,
+      }));
+      const overlaps: number[] = [];
+      for (const [i, box] of boxes.entries()) {
+        expect(box.left).toBeGreaterThanOrEqual(7.99);
+        expect(box.right).toBeLessThanOrEqual(stageWidth - 7.99);
+        expect(box.top).toBeGreaterThanOrEqual(7.99);
+        expect(box.bottom).toBeLessThanOrEqual(layout.height - 7.99);
+
+        for (const neighbor of boxes.slice(0, i)) {
+          const horizontal =
+            Math.min(box.right, neighbor.right) - Math.max(box.left, neighbor.left);
+          const vertical = Math.min(box.bottom, neighbor.bottom) - Math.max(box.top, neighbor.top);
+          if (horizontal > 0 && vertical > 0) {
+            overlaps.push(Math.min(horizontal, vertical));
+          }
+        }
+      }
+      if (allowOverlap) {
+        expect(Math.max(...overlaps)).toBeGreaterThan(10);
+        expect(Math.min(...overlaps)).toBeLessThan(5);
+        expect(Math.max(...overlaps)).toBeLessThanOrEqual(12.001);
+      } else {
+        expect(overlaps).toHaveLength(0);
+      }
+    },
+  );
+
+  it('lässt Platz für eine scrollbare Wolke und meldet unpassende Maße', () => {
+    expect(packWordCloudPills([{ width: 590, height: 44 }], 600, 0, false)).toBeNull();
+    expect(packWordCloudPills([{ width: 0, height: 44 }], 600, 0, false)).toBeNull();
+    const sizes = Array.from({ length: 10 }, () => ({ width: 300, height: 70 }));
+    expect(packWordCloudPills(sizes, 600, 240, false)?.height).toBeGreaterThan(240);
+  });
+
   it('behält beim bloßen Labelwechsel die zuvor lesbaren Schriftgrößen', () => {
     const previous = [
       { groupKey: 'size', word: 'Stichprobenumfang', size: 58, count: 12, x: 0, y: 0, rotate: 0 },

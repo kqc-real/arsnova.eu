@@ -63,6 +63,11 @@ Alle Größen zum verfügbaren Platz, zur Antwortreserve und zur Sicherheitsmarg
 
 Die native, standardmäßig geschlossene **Diagnose** lädt nicht beim Öffnen oder Aufklappen. Erst **Informationen laden** ruft `qa.summaryContextPreview` auf. Pending-, Fehler- und Retryzustand werden zugänglich angekündigt, ohne den Fokus zu stehlen. Die Vorschau erklärt Versionen, Modus, vorbereitete Auswahl, Bereichszustände und -mengen, Quellarten, verfügbaren Platz sowie Gründe für ausgelassene Inhalte in verständlicher Sprache. Interne Kürzungs- und Grenzcodes, technische Systemtexte, vollständige Quellenlabels und kanonisches Modell-JSON werden nicht angezeigt. Ein nach Dialogschluss, Sessionwechsel oder Rechteentzug eintreffendes Ergebnis wird verworfen.
 
+Der Moderationskompass zeigt die belegte Herkunft der fertigen Kurzfassung und
+ihre Quellen. Während der Auftrag aussteht, meldet er neutral, dass die Fragen
+zusammengefasst werden. Bei einer extraktiven Kurzfassung erläutert er den
+vorhandenen Fallback-Grund.
+
 ## Adapter, Fallback und Lebenszyklus
 
 Die Adapterwahl ist ausdrücklich und nachvollziehbar:
@@ -80,7 +85,7 @@ verwendet die Restzeit des ursprünglichen Zeitbudgets. Bei geändertem
 Kontext kann der extraktive Fallback den aktuellen Stand liefern. Bei
 Rechteentzug enthält die Antwort keine Quellen.
 
-Vor dem Modelllauf baut die Queue den Kontext frisch auf; danach folgen derselbe erneute Kontextaufbau und ein Hashvergleich. Eine Quellenänderung verwirft die Modellantwort und bindet den Fallback an den neuen Stand. `summaryRuntime` prüft fertige Ergebnisse vor der nächsten Auslieferung erneut. Beim erneuten Abruf protokolliert `qa_summary:stale_on_read` den Wechsel zur extraktiven Fassung mit Grund, vorherigem Modus und Quellenanzahl. Erfolgreiche extraktive Fassungen zeigen häufige Gründe als Hinweis für die Lehrperson. Die Blitzlichtrunde ist über ihren Start und die Messdaten an den Snapshot gebunden. Die Uhrzeit eines unveränderten Abrufs verändert ihn nicht. Session-Purge löscht Ergebnis, Warteschlangeneintrag und flüchtiges Host-Credential und bricht einen laufenden Auftrag ab.
+Vor dem Modelllauf baut die Queue den Kontext frisch auf; danach folgen derselbe erneute Kontextaufbau und ein Hashvergleich. Eine Quellenänderung verwirft die Modellantwort und bindet den Fallback an den neuen Stand. `summaryRuntime` prüft fertige Ergebnisse vor der nächsten Auslieferung erneut. Beim erneuten Abruf protokolliert `qa_summary:stale_on_read` den Wechsel zur extraktiven Fassung mit Grund, vorherigem Modus und Quellenanzahl. Der Moderationskompass zeigt den lokalisierten Ersatzgrund aus `execution.fallback.reason` auch bei älteren Modellpfaden, regelbasierten Versuchen und ausbleibenden Ergebnissen. Identische Hinweise erscheinen einmal. Die Herkunft eines fertigen Überblicks erscheint, sobald Aussagen vorliegen. Die spezifische Erklärung für `no_packed_sources` ist in #691 erfasst. Die Blitzlichtrunde ist über ihren Start und die Messdaten an den Snapshot gebunden. Die Uhrzeit eines unveränderten Abrufs verändert ihn nicht. Session-Purge löscht Ergebnis, Warteschlangeneintrag und flüchtiges Host-Credential und bricht einen laufenden Auftrag ab.
 
 Das technische Profil für gemischte Kanäle verwendet 8.192 konservative Budgeteinheiten, 192 Antwortreserve (synchron mit dem V2-Ausgabelimit `max_tokens = 192`) und 128 Sicherheitsmarge (unter dem praxisnahen 8k-Arbeitsfenster von Qwen3-4B Q4; nie Modelldefault). Passen Basismetadaten trotzdem nicht, degradiert der Packer sichtbar auf eine Q&A-Textbaseline bzw. Force-Fit-Mindestbelege. Das ist ein sicherer Betriebszustand, aber **keine bestandene Full-context- oder CPU-Prefill-Abnahme**. Details und offene Nachweise stehen in [Issue #456 – Slice-8-Abnahme](../implementation/ISSUE-456-SLICE-8-ABNAHME.md).
 

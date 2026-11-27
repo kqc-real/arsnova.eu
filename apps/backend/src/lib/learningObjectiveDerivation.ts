@@ -538,7 +538,7 @@ export async function deriveLearningObjectiveDrafts(
   let completionTokens = 0;
   const snapshot = (
     completedGroups: number,
-    waitingForModel = false,
+    priorityRetryPhase?: LearningObjectiveDerivationProgress['priorityRetryPhase'],
   ): LearningObjectiveDerivationProgress => {
     const committed = commitLearningObjectiveDrafts({
       operation: input,
@@ -557,7 +557,8 @@ export async function deriveLearningObjectiveDrafts(
       queuedObjectives: committed.drafts.length,
       ...(retryAfterPreemption
         ? {
-            waitingForModel,
+            waitingForModel: priorityRetryPhase === 'waiting',
+            ...(priorityRetryPhase ? { priorityRetryPhase } : {}),
             remainingBudgetMs: Math.max(
               0,
               Math.ceil(budgetMs - (performance.now() - budgetStartedAt)),
@@ -671,13 +672,13 @@ export async function deriveLearningObjectiveDrafts(
     if (retryAfterPreemption && batchResult.status === 'preempted') {
       let preemptions = 1;
       let admissions = 0;
-      await publish(snapshot(completed.length, true));
       while (
         !runSignal.aborted &&
         (batchResult.status === 'preempted' || batchResult.status === 'busy') &&
         preemptions <= MAX_PRIORITY_RETRIES_PER_GROUP &&
         admissions < MAX_PRIORITY_ADMISSION_RETRIES
       ) {
+        await publish(snapshot(completed.length, 'waiting'));
         await wait(PRIORITY_RETRY_DELAY_MS, undefined, { signal: runSignal }).catch(
           () => undefined,
         );
@@ -688,6 +689,8 @@ export async function deriveLearningObjectiveDrafts(
         if (runSignal.aborted) break;
         admissions += 1;
         logger.info('llm:priority_retry', { taskType: 'learning_objectives', retry: admissions });
+        await publish(snapshot(completed.length, 'retrying'));
+        if (runSignal.aborted) break;
         batchResult = await run(request, { signal: runSignal });
         if (batchResult.status === 'preempted') preemptions += 1;
       }

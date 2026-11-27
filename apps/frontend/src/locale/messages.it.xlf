@@ -18651,25 +18651,9 @@
           <context context-type="linenumber">169,171</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionHost.moderationSummaryTitle" datatype="html">
-        <source> Wichtige offene Fragen</source>
-        <target>Domande importanti senza risposta</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
-          <context context-type="linenumber">184,186</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.moderationSummaryIntro" datatype="html">
-        <source>Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.</source>
-        <target>Qui puoi vedere a colpo d&apos;occhio le domande più importanti della sessione.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
-          <context context-type="linenumber">190,192</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryButton" datatype="html">
-        <source> Fragen zusammenfassen</source>
-        <target>Riassumi le domande</target>
+        <source>Fragen zusammenfassen</source>
+        <target>Riassumere le domande</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.html</context>
           <context context-type="linenumber">201,203</context>
@@ -18752,14 +18736,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
           <context context-type="linenumber">207</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionHost.moderationSummaryPending" datatype="html">
-        <source>Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.</source>
-        <target>Preparazione del riepilogo delle domande più importanti e raggruppamento di quelle simili…</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/moderation-compass-dialog.component.ts</context>
-          <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryProgressHint" datatype="html">
@@ -19745,6 +19721,34 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackAdapterIncompatible" datatype="html">
+        <source>Der verfügbare Dienst unterstützt die ausführliche Zusammenfassung nicht.</source>
+        <target>Il servizio disponibile non supporta il riepilogo dettagliato.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackDisabled" datatype="html">
+        <source>KI-Zusammenfassungen sind deaktiviert.</source>
+        <target>I riepiloghi con IA sono disattivati.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackMisconfigured" datatype="html">
+        <source>Der Dienst für KI-Zusammenfassungen ist nicht vollständig konfiguriert.</source>
+        <target>La configurazione del servizio di riepilogo con IA è incompleta.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackContextUnavailable" datatype="html">
+        <source>Die benötigten Beiträge und Ergebnisse waren nicht verfügbar.</source>
+        <target>I contributi e i risultati necessari non erano disponibili.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackAborted" datatype="html">
+        <source>Die Zusammenfassung wurde abgebrochen.</source>
+        <target>Il riepilogo è stato annullato.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackPermissionChanged" datatype="html">
+        <source>Die Berechtigung für die Zusammenfassung hat sich geändert.</source>
+        <target>L’autorizzazione a generare il riepilogo è cambiata.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackPurged" datatype="html">
+        <source>Die Sitzungsdaten wurden entfernt.</source>
+        <target>I dati della sessione sono stati eliminati.</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
         <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
         <target>Il servizio di sintesi è al momento occupato.</target>
@@ -19955,7 +19959,7 @@
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudAnalysisTheme" datatype="html">
         <source>Wortgruppen</source>
-        <target>Espressioni</target>
+        <target>Gruppi di parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.html</context>
           <context context-type="linenumber">28</context>
@@ -20039,18 +20043,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
           <context context-type="linenumber">658</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticPendingLabel" datatype="html">
-        <source>Themen werden vorbereitet.</source>
-        <target>I temi sono in preparazione.</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/qa-word-cloud-dialog.component.ts</context>
-          <context context-type="linenumber">129</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
-          <context context-type="linenumber">3821,3823</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingFallback" datatype="html">
@@ -21767,7 +21759,7 @@
       </trans-unit>
       <trans-unit id="sessionHost.wordCloudAnalysisPhrases" datatype="html">
         <source>Wortgruppen</source>
-        <target>Espressioni</target>
+        <target>Gruppi di parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.html</context>
           <context context-type="linenumber">3746</context>
@@ -23065,16 +23057,16 @@
           <context context-type="linenumber">890</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextEyebrow" datatype="html">
-        <source>Live-Freitext</source>
-        <target>Testo libero dal vivo</target>
+      <trans-unit id="sessionWordCloud.freetextAnalysis" datatype="html">
+        <source>Freitext-Analyse</source>
+        <target>Analisi del testo libero</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1083</context>
+          <context context-type="linenumber">1099</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">274</context>
+          <context context-type="linenumber">417</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.qaEyebrow" datatype="html">
@@ -23274,8 +23266,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSemanticPendingHint" datatype="html">
-        <source>Themen werden vorbereitet.</source>
-        <target>Preparazione dei temi in corso.</target>
+        <source>Verwandte Themen werden gesucht …</source>
+        <target>Ricerca di temi affini…</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1443</context>
@@ -23287,22 +23279,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2411</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="sessionQa.wordCloudSemanticStaleHint" datatype="html">
-        <source>Neue Fragen seit der letzten Themenanalyse</source>
-        <target>Nuove domande dopo l’ultima analisi dei temi</target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1447</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2375</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">2414</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.freetextSemanticUncertainHint" datatype="html">
@@ -23402,8 +23378,8 @@
         </context-group>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudSmooth" datatype="html">
-        <source>Nach Grundform bündeln</source>
-        <target>Raggruppa per forma base</target>
+        <source>Sprachformen glätten</source>
+        <target>Uniformare le forme delle parole</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">1540</context>
@@ -23600,6 +23576,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2027</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudNoResult" datatype="html">
+        <source>Für diese Ansicht liegt noch keine Wortwolke vor.</source>
+        <target>Non è ancora disponibile una nuvola di parole per questa vista.</target>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
         <source>Themen in den Fragen</source>
@@ -27877,14 +27857,6 @@
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
           <context context-type="linenumber">1988</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="wordCloud.modelVersionTooltip" datatype="html">
-        <source>Modell: <x id="version" equiv-text="version"/></source>
-        <target>Modello: <x id="version" equiv-text="version"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">1997</context>
         </context-group>
       </trans-unit>
       <trans-unit id="wordCloud.themeConfidenceHigh" datatype="html">
@@ -35784,17 +35756,13 @@
         <source>Die Lernziele werden nacheinander aus Fragegruppen formuliert. Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
         <target>Generazione degli obiettivi di apprendimento per gruppi. <x id="completed" equiv-text="completed"/> gruppi completati su <x id="total" equiv-text="total"/>.</target>
         </trans-unit>
-      <trans-unit id="learningObjectives.derivationLiveProgress" datatype="html">
-        <source>Die Abfrage läuft.</source>
-        <target>La richiesta è in corso.</target>
-        </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsProgress" datatype="html">
         <source>Fragegruppen</source>
         <target>Gruppi di domande</target>
         </trans-unit>
       <trans-unit id="learningObjectives.derivationGroupsScale" datatype="html">
         <source>Fertig sind <x id="completed" equiv-text="completed"/> von <x id="total" equiv-text="total"/> Fragegruppen.</source>
-        <target><x id="completed" equiv-text="completed"/> gruppi di domande completati su <x id="total" equiv-text="total"/>.</target>
+        <target>Gruppi di domande completati · <x id="completed" equiv-text="completed"/> su <x id="total" equiv-text="total"/>.</target>
         </trans-unit>
       <trans-unit id="learningObjectives.derivationRemainingUnderMinute" datatype="html">
         <source>Noch weniger als eine Minute.</source>
@@ -35808,6 +35776,14 @@
         <source>Noch etwa <x id="minutes" equiv-text="minutes"/> Minuten.</source>
         <target>Ancora circa <x id="minutes" equiv-text="minutes"/> minuti.</target>
         </trans-unit>
+      <trans-unit id="learningObjectives.derivationKeepEditorOpenShort" datatype="html">
+        <source>Lass den Editor offen, sonst stoppt die Ableitung.</source>
+        <target>Tieni aperto l’editor, altrimenti l’elaborazione si interrompe.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">205</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationKeepEditorOpen" datatype="html">
         <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der Liste.</source>
         <target>Tieni aperto l’editor durante la generazione dei suggerimenti. Chiuderlo interrompe la generazione per le domande rimanenti. Le bozze già aggiunte restano nell’elenco.</target>
@@ -35820,10 +35796,6 @@
         <source><x id="count" equiv-text="count"/> Lernziele stehen schon als Entwürfe in der Liste.</source>
         <target><x id="count" equiv-text="count"/> obiettivi di apprendimento sono stati aggiunti all’elenco come bozze.</target>
         </trans-unit>
-      <trans-unit id="learningObjectives.derivationWaitingForModel" datatype="html">
-        <source>Ein dringenderer Auftrag läuft. Die Erstellung setzt automatisch fort. Verbleibende Zeit in Minuten: <x id="minutes" equiv-text="minutes"/>.</source>
-        <target>È in corso una richiesta più urgente. La generazione riprenderà automaticamente. Tempo rimanente in minuti: <x id="minutes" equiv-text="minutes"/>.</target>
-      </trans-unit>
       <trans-unit id="learningObjectives.derivationPreemptedWhy" datatype="html">
         <source>Ein dringenderer Auftrag hat die Erstellung unterbrochen.</source>
         <target>Una richiesta più urgente ha interrotto la generazione.</target>
@@ -36606,10 +36578,6 @@
         <source>Sprache der Beiträge:</source>
         <target>Lingua dei contributi:</target>
         </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextTopicsStale" datatype="html">
-        <source>Neue Antworten seit der letzten Themenanalyse</source>
-        <target>Nuove risposte dopo l’ultima analisi dei temi</target>
-        </trans-unit>
       <trans-unit id="wordCloud.qaCoverage" datatype="html">
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
         <target><x id="analyzed"/> domande analizzate su <x id="eligible"/></target>
@@ -36784,10 +36752,6 @@
       <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
         <source>Auf der Präsentation ausblenden</source>
         <target>Nascondi dallo schermo</target>
-        </trans-unit>
-      <trans-unit id="wordCloud.moreOptions" datatype="html">
-        <source>Weitere Optionen</source>
-        <target>Altre opzioni</target>
         </trans-unit>
       <trans-unit id="wordCloud.viewHintWords" datatype="html">
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>
@@ -37388,6 +37352,410 @@
           <context context-type="sourcefile">src/app/features/quiz/quiz-new/quiz-new.component.ts</context>
           <context context-type="linenumber">112</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topics" datatype="html">
+        <source>Themen</source>
+        <target>Temi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordsInfo" datatype="html">
+        <source>Entdecke, welche Wörter in den Beiträgen besonders häufig vorkommen.</source>
+        <target>Scopri quali parole ricorrono più spesso nei contributi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.phrasesInfo" datatype="html">
+        <source>Erkenne wiederkehrende Wortverbindungen und typische Formulierungen.</source>
+        <target>Individua gruppi di parole ed espressioni ricorrenti.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicsInfo" datatype="html">
+        <source>Entdecke gemeinsame Themen – auch wenn deine Lernenden dasselbe ganz unterschiedlich ausdrücken.</source>
+        <target>Scopri i temi comuni, anche quando chi apprende esprime la stessa idea in modi molto diversi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.smoothInfo" datatype="html">
+        <source>Fasse unterschiedliche Formen desselben Wortes zusammen. So werden wiederkehrende Begriffe leichter sichtbar.</source>
+        <target>Raggruppa le diverse forme di una stessa parola per riconoscere più facilmente i concetti ricorrenti.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicNamingInfo" datatype="html">
+        <source>Die lokale KI bringt verwandte Beiträge mit kurzen Themennamen auf den Punkt.</source>
+        <target>L’IA locale sintetizza le idee comuni in brevi titoli tematici.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classification" datatype="html">
+        <source>Fragen einordnen</source>
+        <target>Classificare le domande</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationInfo" datatype="html">
+        <source>Erkenne auf einen Blick, ob Fragen den Inhalt, den Ablauf oder die Technik betreffen.</source>
+        <target>Distingui a colpo d’occhio le domande sui contenuti, sullo svolgimento della sessione o su aspetti tecnici.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryTitle" datatype="html">
+        <source>Das Wesentliche auf einen Blick</source>
+        <target>L’essenziale a colpo d’occhio</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryInfo" datatype="html">
+        <source>Verschaffe dir einen Überblick über wichtige offene Fragen, gestützt auf die tatsächlichen Beiträge.</source>
+        <target>Fatti un quadro delle principali domande ancora aperte, a partire dai contributi effettivi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesAction" datatype="html">
+        <source>Lernziele ableiten</source>
+        <target>Ricavare obiettivi di apprendimento</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesInfo" datatype="html">
+        <source>Entdecke, welche Lernziele in deinen Quizfragen stecken. Die KI schlägt Entwürfe vor, die du prüfen und anpassen kannst.</source>
+        <target>Scopri quali obiettivi di apprendimento emergono dalle domande del tuo quiz. L’IA ti propone delle bozze che puoi rivedere e adattare.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.helpTitle" datatype="html">
+        <source>So wertet arsnova deine Beiträge aus</source>
+        <target>Come arsnova analizza i tuoi contributi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.helpIntro" datatype="html">
+        <source>Je nach Auswertung kommen unterschiedliche Verfahren zum Einsatz. Hier erfährst du, was sie leisten und wie dein Ergebnis zustande kommt.</source>
+        <target>A seconda dell’analisi scelta, entrano in gioco metodi diversi. Scopri a cosa servono e come si ottiene il tuo risultato.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.normalizationDone" datatype="html">
+        <source>Sprachformen vereinheitlicht</source>
+        <target>Forme delle parole uniformate</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.normalizationShort" datatype="html">
+        <source>Sprachformen geglättet</source>
+        <target>Forme uniformate</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicPreview" datatype="html">
+        <source>Themen erkannt · Themennamen werden vorbereitet …</source>
+        <target>Temi individuati · preparazione dei titoli…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicPreviewShort" datatype="html">
+        <source>Themennamen werden vorbereitet …</source>
+        <target>Preparazione dei titoli…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allModel" datatype="html">
+        <source>Themennamen KI-generiert</source>
+        <target>Titoli generati dall’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.someModel" datatype="html">
+        <source>Einige Themennamen KI-generiert</source>
+        <target>Alcuni titoli generati dall’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allExtractive" datatype="html">
+        <source>Themen erkannt · Originalformulierungen verwendet</source>
+        <target>Temi individuati · formulazioni originali utilizzate</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allModelShort" datatype="html">
+        <source>KI-Themennamen</source>
+        <target>Titoli generati dall’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.allExtractiveShort" datatype="html">
+        <source>Themennamen aus Originalbeiträgen</source>
+        <target>Titoli tratti dai contributi originali</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.snapshotReused" datatype="html">
+        <source>Vorhandene Auswertung übernommen</source>
+        <target>Analisi precedente riutilizzata</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelReused" datatype="html">
+        <source>Vorhandenes Ergebnis wiederverwendet</source>
+        <target>Risultato precedente riutilizzato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.slotMissed" datatype="html">
+        <source>Die KI war belegt. Du siehst die verfügbaren Themennamen.</source>
+        <target>L’IA era occupata. Vedi i titoli disponibili.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelTimeout" datatype="html">
+        <source>Die Zeit für die KI-Benennung ist abgelaufen. Du siehst die verfügbaren Themennamen.</source>
+        <target>Il tempo a disposizione dell’IA è scaduto. Vedi i titoli disponibili.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelsDisabled" datatype="html">
+        <source>KI-generierte Themennamen sind deaktiviert.</source>
+        <target>I titoli generati dall’IA sono disattivati.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.invalidLabel" datatype="html">
+        <source>Die KI konnte keinen passenden Themennamen liefern.</source>
+        <target>L’IA non ha potuto proporre un titolo adatto.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.labelUnavailable" datatype="html">
+        <source>KI-Themenname nicht verfügbar</source>
+        <target>Titolo generato dall’IA non disponibile</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.unknownOrigin" datatype="html">
+        <source>Herkunft des Themennamens unbekannt</source>
+        <target>Origine del titolo sconosciuta</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicGrouping" datatype="html">
+        <source>Themenbildung</source>
+        <target>Raggruppamento tematico</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicName" datatype="html">
+        <source>Themenname</source>
+        <target>Titolo del tema</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.extractive" datatype="html">
+        <source>Aus einem Originalbeitrag</source>
+        <target>Tratto da un contributo originale</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.generative" datatype="html">
+        <source>Von der lokalen KI formuliert</source>
+        <target>Formulato dall’IA locale</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationUncertain" datatype="html">
+        <source>Keine eindeutige Einordnung</source>
+        <target>Classificazione incerta</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryPending" datatype="html">
+        <source>Die Fragen werden zusammengefasst …</source>
+        <target>Preparazione della sintesi delle domande…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryModel" datatype="html">
+        <source>KI-generierte Zusammenfassung</source>
+        <target>Sintesi generata dall’IA</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryExtractive" datatype="html">
+        <source>Zusammenfassung aus Originalbeiträgen</source>
+        <target>Sintesi tratta dai contributi originali</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesWaiting" datatype="html">
+        <source>Die laufende Lehre hat Vorrang. Deine Lernzielableitung wartet auf einen freien KI-Platz.</source>
+        <target>La lezione in corso ha la priorità. L’elaborazione dei tuoi obiettivi di apprendimento riprenderà quando l’IA sarà disponibile.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.spacy" datatype="html">
+        <source>Erkennt Grundformen von Wörtern, ohne ihre Bedeutung zu bewerten.</source>
+        <target>Individua le forme di base delle parole senza valutarne il significato.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.naiveBayes" datatype="html">
+        <source>Ordnet Fragen anhand typischer Wort- und Zeichenmuster ein.</source>
+        <target>Classifica le domande in base a schemi ricorrenti di parole e caratteri.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.neighbors" datatype="html">
+        <source>Vergleicht bei unsicherer Einordnung die Frage mit ähnlichen Beispielen.</source>
+        <target>Se la classificazione è incerta, confronta la domanda con esempi simili.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.e5" datatype="html">
+        <source>Erfasst die Ähnlichkeit der Bedeutung, damit verwandte Beiträge zu Themen gruppiert werden können.</source>
+        <target>Individua somiglianze di significato per consentire di raggruppare i contributi per tema.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.qwen" datatype="html">
+        <source>Formuliert kurze Themennamen und Zusammenfassungen aus Beiträgen oder Lernzielentwürfe aus deinen Quizfragen.</source>
+        <target>Formula brevi titoli tematici e sintesi a partire dai contributi, oppure proposte di obiettivi di apprendimento a partire dalle domande del tuo quiz.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.infoButton" datatype="html">
+        <source>Details zur Textauswertung</source>
+        <target>Dettagli dell’analisi dei testi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.close" datatype="html">
+        <source>Schließen</source>
+        <target>Chiudi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.corpusStale" datatype="html">
+        <source>Beiträge geändert · Themen aktualisieren</source>
+        <target>Contributi modificati · Aggiorna i temi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.corpusStaleShort" datatype="html">
+        <source>Beiträge geändert</source>
+        <target>Contributi modificati</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.lexicon" datatype="html">
+        <source>Wörter und Wortgruppen</source>
+        <target>Parole e gruppi di parole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.lexiconInfo" datatype="html">
+        <source>Wörter und Wortgruppen werden gezählt. Auf Wunsch fasst spaCy verschiedene Formen desselben Wortes zusammen.</source>
+        <target>Vengono contate le parole e i gruppi di parole. Se vuoi, spaCy raggruppa le diverse forme di una stessa parola.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.rules" datatype="html">
+        <source>Regeln</source>
+        <target>Regole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.rulesInfo" datatype="html">
+        <source>Der Moderationskompass nutzt Regeln für Hinweise, etwa wenn mehrere Fragen auf Freigabe warten. Je nach Karte kommen Einordnungen oder Themenbelege hinzu.</source>
+        <target>La bussola di moderazione usa regole, per esempio se più domande sono in attesa di approvazione. A seconda della scheda, usa anche classificazioni o riscontri dei temi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicPath" datatype="html">
+        <source>Ähnliche Beiträge werden zu Themen gruppiert. Zuerst steht ein Name aus einem Originalbeitrag bereit. Die lokale KI kann danach einen kürzeren Namen formulieren.</source>
+        <target>I contributi simili vengono raggruppati per tema. Il primo titolo proviene da un contributo originale. In seguito, l’IA locale può formulare un titolo più breve.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryPath" datatype="html">
+        <source>Die lokale KI kann Fragen auf Anfrage zusammenfassen. Wenn das nicht möglich ist, kann arsnova passende Originalfragen anzeigen.</source>
+        <target>L’IA locale può riassumere le domande su richiesta. Se non è possibile, arsnova può mostrare domande originali pertinenti.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationMethodUnknown" datatype="html">
+        <source>Verfahren unbekannt</source>
+        <target>Metodo sconosciuto</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationBasis" datatype="html">
+        <source>Grundlage: automatische Einordnung der Fragen</source>
+        <target>Basato sulla classificazione automatica delle domande</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicBasis" datatype="html">
+        <source>Grundlage: Beiträge aus der Themenwolke</source>
+        <target>Basato sui contributi della nuvola dei temi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.lexicalBasis" datatype="html">
+        <source>Grundlage: Wörter oder Wortgruppen aus den Beiträgen</source>
+        <target>Basato su parole o gruppi di parole dei contributi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.ruleBasis" datatype="html">
+        <source>Grundlage: Regeln und Rückmeldungen aus der Live-Runde</source>
+        <target>Basato su regole e riscontri della sessione in diretta</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryRules" datatype="html">
+        <source>Regelbasierter Überblick</source>
+        <target>Panoramica basata su regole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.promptVersion" datatype="html">
+        <source>Prompt-Version</source>
+        <target>Versione delle istruzioni</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.version" datatype="html">
+        <source>Version</source>
+        <target>Versione</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.summaryLegacy" datatype="html">
+        <source>Zusammenfassung über den älteren Modellpfad</source>
+        <target>Sintesi dal precedente processo del modello</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.remainingTime" datatype="html">
+        <source>Zuletzt gemeldetes Restbudget in Minuten</source>
+        <target>Tempo residuo in minuti all’ultimo aggiornamento</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.groupingReused" datatype="html">
+        <source>Vorhandene Themenbildung übernommen</source>
+        <target>Raggruppamento tematico precedente riutilizzato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.noSharedTopics" datatype="html">
+        <source>Noch keine ausreichend ähnlichen Beiträge für gemeinsame Themen.</source>
+        <target>Non ci sono ancora abbastanza contributi simili per individuare temi comuni.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.newResponses" datatype="html">
+        <source>Neue Beiträge sind hinzugekommen. Du kannst die Themen aktualisieren.</source>
+        <target>Sono arrivati nuovi contributi. Puoi aggiornare i temi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.newResponsesShort" datatype="html">
+        <source>Neue Beiträge</source>
+        <target>Nuovi contributi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicSearchShort" datatype="html">
+        <source>Themen werden gesucht …</source>
+        <target>Ricerca dei temi…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.neighborsInfo" datatype="html">
+        <source>Wenn die erste Einordnung unsicher ist, helfen ähnliche Beispiele bei der Zuordnung.</source>
+        <target>Se la prima classificazione è incerta, il confronto con esempi simili aiuta a precisarla.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusEnabled" datatype="html">
+        <source>Aktiviert</source>
+        <target>Attivato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusReachable" datatype="html">
+        <source>Erreichbar</source>
+        <target>Raggiungibile</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusBusy" datatype="html">
+        <source>Belegt</source>
+        <target>Occupato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUnknown" datatype="html">
+        <source>Status unbekannt</source>
+        <target>Stato sconosciuto</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUsed" datatype="html">
+        <source>Für dieses Ergebnis verwendet</source>
+        <target>Utilizzato per questo risultato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponseBasis" datatype="html">
+        <source>Grundlage: mehrfach genannte Rückmeldungen</source>
+        <target>Basato su contributi ripetuti</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicUpdateFailed" datatype="html">
+        <source>Themen nicht aktualisiert</source>
+        <target>Temi non aggiornati</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusHeading" datatype="html">
+        <source>Betriebsstatus und Herkunft</source>
+        <target>Stato del servizio e origine del risultato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusEnabledInfo" datatype="html">
+        <source>Die Konfiguration schaltet das Verfahren für die vorgesehenen Aufgaben frei.</source>
+        <target>La configurazione abilita il metodo per le attività previste.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusReachableInfo" datatype="html">
+        <source>Die letzte Slot-Sonde konnte den Dienst erreichen.</source>
+        <target>L’ultima verifica ha raggiunto il servizio.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusBusyInfo" datatype="html">
+        <source>Die letzte Slot-Sonde hat den Dienst erreicht. Alle Plätze waren zu diesem Zeitpunkt belegt.</source>
+        <target>L’ultima verifica ha raggiunto il servizio. In quel momento tutti i posti erano occupati.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUnknownInfo" datatype="html">
+        <source>Für diesen Zustand liegen keine verlässlichen Betriebsdaten vor.</source>
+        <target>Per questo stato mancano dati di funzionamento affidabili.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.statusUsedInfo" datatype="html">
+        <source>Die Herkunft am konkreten Ergebnis zeigt, welches Verfahren daran beteiligt war. Die Slot-Sonde prüft Erreichbarkeit und Belegung.</source>
+        <target>L’origine indicata con il risultato mostra quale metodo è stato usato. La verifica del servizio ne controlla la raggiungibilità e la disponibilità dei posti.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.topicProcess" datatype="html">
+        <source>arsnova gruppiert Beiträge mit ähnlicher Bedeutung. Die lokale KI kann die Themennamen kürzen oder neu formulieren. Die Gruppen bleiben dabei unverändert.</source>
+        <target>arsnova raggruppa i contributi dal significato simile. L’IA locale può accorciare o riformulare i titoli dei temi senza modificare i gruppi.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationContent" datatype="html">
+        <source>Inhaltliche Frage</source>
+        <target>Domanda sui contenuti</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationSession" datatype="html">
+        <source>Frage zum Ablauf</source>
+        <target>Domanda sullo svolgimento della sessione</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationTechnical" datatype="html">
+        <source>Technische Frage</source>
+        <target>Domanda tecnica</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.mixedBasis" datatype="html">
+        <source>So entstand dieser Hinweis</source>
+        <target>Come è emersa questa indicazione</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesWaitingShort" datatype="html">
+        <source>Live-Unterricht hat Vorrang. Deine Lernzielableitung wartet.</source>
+        <target>La lezione in corso ha la priorità. La tua richiesta è in attesa.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetryingShort" datatype="html">
+        <source>Neuer Versuch …</source>
+        <target>Nuovo tentativo…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.groupedByMeaning" datatype="html">
+        <source>Beiträge nach ähnlicher Bedeutung gruppiert</source>
+        <target>Contributi raggruppati per somiglianza di significato</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.classificationUncertainInfo" datatype="html">
+        <source>Die Hinweise in der Frage reichen für eine eindeutige Zuordnung nicht aus.</source>
+        <target>Gli indizi nella domanda non bastano per assegnarla a una categoria con certezza.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.repeatedResponsesInfo" datatype="html">
+        <source>Diese Freitextantwort wurde mehrfach gegeben.</source>
+        <target>Questa risposta a testo libero è stata data più volte.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudModes" datatype="html">
+        <source>Wörter, Wortgruppen und Themen</source>
+        <target>Parole, gruppi di parole e temi</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudWords" datatype="html">
+        <source>Wörter</source>
+        <target>Parole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.wordCloudPhrases" datatype="html">
+        <source>Wortgruppen</source>
+        <target>Gruppi di parole</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesPreparing" datatype="html">
+        <source>Lernziele werden vorbereitet …</source>
+        <target>Preparazione degli obiettivi di apprendimento…</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesProgressDetails" datatype="html">
+        <source>Ablauf und Hinweise</source>
+        <target>Procedura e indicazioni</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.remainingBudgetInfo" datatype="html">
+        <source>Das Restbudget ist die verbleibende Laufzeitgrenze zum zuletzt gemeldeten Stand.</source>
+        <target>Il budget residuo indica il tempo ancora disponibile entro il limite all’ultimo aggiornamento.</target>
+      </trans-unit>
+      <trans-unit id="textAnalysis.objectivesRetrying" datatype="html">
+        <source>Die Lernzielableitung wird erneut versucht.</source>
+        <target>È in corso un nuovo tentativo di elaborare gli obiettivi di apprendimento.</target>
       </trans-unit>
     </body>
   </file>

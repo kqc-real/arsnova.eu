@@ -232,6 +232,148 @@ export function estimateWordCloudPillExtent(
   return { halfWidth: boxWidth / 2, halfHeight: boxHeight / 2 };
 }
 
+interface WordCloudPillSize {
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface WordCloudPillPlacement extends WordCloudPillSize {
+  readonly left: number;
+  readonly top: number;
+}
+
+/** Pack measured pills while keeping usable positions from the same stage. */
+export function packWordCloudPills(
+  sizes: readonly WordCloudPillSize[],
+  stageWidth: number,
+  minimumHeight: number,
+  allowOverlap: boolean,
+  previous?: {
+    readonly height: number;
+    readonly positions: readonly (WordCloudPillPlacement | undefined)[];
+  },
+): {
+  readonly positions: readonly WordCloudPillPlacement[];
+  readonly height: number;
+} | null {
+  const margin = 8;
+  const halfStageWidth = stageWidth / 2 - margin;
+  if (
+    sizes.length === 0 ||
+    sizes.some(({ width, height }) => width <= 0 || height <= 0 || width / 2 > halfStageWidth)
+  ) {
+    return null;
+  }
+
+  const aspect = 1.65;
+  const stagger = [-0.68, -0.32, 0.18, 0.48, 0.72];
+  // The caller keeps the text at least 12 px inside the capsule.
+  const minimumGap = allowOverlap ? -12 : 3;
+  const edgeGaps = allowOverlap ? [minimumGap, 2, -6, -9, 4, -3] : [minimumGap];
+  const placed = new Map<number, WordCloudPillSize & { x: number; y: number }>();
+  let cloudTop = 0;
+  let cloudBottom = 0;
+  const previousCenter = (previous?.height ?? 0) / 2;
+
+  const fits = (size: WordCloudPillSize, x: number, y: number, top: number): boolean => {
+    if (Math.abs(x) + size.width / 2 > halfStageWidth || y - size.height / 2 < top) {
+      return false;
+    }
+    for (const pill of placed.values()) {
+      if (
+        Math.abs(x - pill.x) < (size.width + pill.width) / 2 + minimumGap - 1e-6 &&
+        Math.abs(y - pill.y) < (size.height + pill.height) / 2 + minimumGap - 1e-6
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+  const place = (index: number, size: WordCloudPillSize, x: number, y: number) => {
+    placed.set(index, { ...size, x, y });
+    cloudTop = Math.min(cloudTop, y - size.height / 2);
+    cloudBottom = Math.max(cloudBottom, y + size.height / 2);
+  };
+
+  if (previous) {
+    const anchors = sizes
+      .map((size, index) => {
+        const anchor = previous.positions[index];
+        return {
+          size,
+          index,
+          anchor,
+          unchanged: anchor?.width === size.width && anchor.height === size.height,
+        };
+      })
+      .sort((left, right) => Number(right.unchanged) - Number(left.unchanged));
+    for (const { index, size, anchor } of anchors) {
+      if (!anchor) continue;
+      const x = anchor.left + anchor.width / 2 - stageWidth / 2;
+      const y = anchor.top + anchor.height / 2 - previousCenter;
+      if (fits(size, x, y, margin - previousCenter)) place(index, size, x, y);
+    }
+  }
+
+  const retainOrigin = placed.size > 0;
+  const top = retainOrigin ? margin - previousCenter : Number.NEGATIVE_INFINITY;
+  for (const [index, size] of sizes.entries()) {
+    if (placed.has(index)) continue;
+    const halfWidth = size.width / 2;
+    const halfHeight = size.height / 2;
+    const gap = edgeGaps[index % edgeGaps.length]!;
+    const distance = (x: number, y: number) => (x / aspect) ** 2 + y ** 2;
+    // Beyond the lower edge there is always room, even when the stage has to scroll.
+    let x = 0;
+    let y = placed.size === 0 ? 0 : Math.max(top + halfHeight, cloudBottom + halfHeight + gap);
+    let nearest = distance(x, y);
+    const offer = (candidateX: number, candidateY: number) => {
+      const score = distance(candidateX, candidateY);
+      if (score >= nearest || !fits(size, candidateX, candidateY, top)) return;
+      x = candidateX;
+      y = candidateY;
+      nearest = score;
+    };
+
+    offer(0, cloudTop - halfHeight - gap);
+    for (const pill of placed.values()) {
+      const side = halfWidth + pill.width / 2 + gap;
+      const rise = halfHeight + pill.height / 2 + gap;
+      for (const offset of stagger) {
+        const alongX = pill.x + Math.min(size.width, pill.width) * offset;
+        const alongY = pill.y + Math.min(size.height, pill.height) * offset;
+        offer(pill.x - side, alongY);
+        offer(pill.x + side, alongY);
+        offer(alongX, pill.y - rise);
+        offer(alongX, pill.y + rise);
+      }
+    }
+
+    place(index, size, x, y);
+  }
+
+  const height = Math.max(
+    minimumHeight,
+    Math.ceil(
+      retainOrigin ? previousCenter + cloudBottom + margin : cloudBottom - cloudTop + margin * 2,
+    ),
+  );
+  const offsetTop = retainOrigin
+    ? previousCenter
+    : (height - (cloudBottom - cloudTop)) / 2 - cloudTop;
+  return {
+    height,
+    positions: sizes.map((size, index) => {
+      const { x, y } = placed.get(index)!;
+      return {
+        ...size,
+        left: stageWidth / 2 + x - size.width / 2,
+        top: offsetTop + y - size.height / 2,
+      };
+    }),
+  };
+}
+
 type PositionedPill = {
   readonly groupKey: string;
   readonly word: string;

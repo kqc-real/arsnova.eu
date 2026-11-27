@@ -226,6 +226,8 @@ app-session-projection-quiz,
   gap: 0;
   margin: 0;
   padding: clamp(0.9rem, 2vw, 1.55rem);
+  overflow-x: hidden;
+  overflow-y: auto;
   background: transparent;
 }
 
@@ -1208,7 +1210,7 @@ app-session-projection-quiz,
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: 'cloud';
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .session-present__qa-criteria {
@@ -1286,6 +1288,7 @@ app-session-projection-quiz,
 .session-present__qa-stage > .session-present__word-cloud-card {
   grid-area: cloud;
   display: flex;
+  flex-direction: column;
   min-height: 0;
   overflow: visible;
 }
@@ -3006,27 +3009,24 @@ app-session-projection-quiz,
   }
 }
 
-.session-present__word-cloud-options {
-  max-width: 100%;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
-  line-height: 1.5;
-
-  summary {
-    min-height: 44px;
-    align-content: center;
-    cursor: pointer;
-    color: var(--mat-sys-on-surface);
-  }
-
-  summary:focus-visible {
-    outline: 2px solid var(--mat-sys-primary);
-    outline-offset: 2px;
-  }
-}
-
+.session-present__word-cloud-analysis-options,
 .session-present__word-cloud-options-body {
   display: grid;
   gap: 0.65rem;
-  padding-block: 0.45rem;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .session-present--word-cloud {
+    padding-block-start: 3.75rem;
+  }
+
+  .session-present__word-cloud-toolbar {
+    padding-inline-end: 0;
+  }
+
+  .session-present__word-cloud-mode {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

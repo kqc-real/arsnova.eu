@@ -125,6 +125,7 @@ import {
   type ConfirmLeaveDialogData,
 } from '../../../shared/confirm-leave-dialog/confirm-leave-dialog.component';
 import { MarkdownImageLightboxDirective } from '../../../shared/markdown-image-lightbox/markdown-image-lightbox.directive';
+import { textAnalysisCopy } from '../../../shared/text-analysis/text-analysis-copy';
 import { ThemePresetService } from '../../../core/theme-preset.service';
 import {
   findKindergartenNicknameBadge,
@@ -414,11 +415,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
-  readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
+  readonly freetextWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.freetextAnalysis:Freitext-Analyse`;
   readonly freetextWordCloudStageTitle = computed(
     () => this.currentQuestionLabel() ?? $localize`:@@wordCloud.title:Wortwolke`,
   );
-  readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
+  readonly qaWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
   readonly qaWordCloudItemSingular = $localize`:@@sessionQa.wordCloudItemSingular:Frage`;
   readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
   readonly qaWordCloudEmptyMessage = $localize`:@@sessionQa.wordCloudEmpty:Noch keine sichtbaren Q&A-Fragen.`;
@@ -1673,7 +1674,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'stale':
         return $localize`:@@sessionQa.wordCloudSmoothRetry:Bündelung aktualisieren`;
       default:
-        return $localize`:@@sessionQa.wordCloudSmooth:Nach Grundform bündeln`;
+        return $localize`:@@sessionQa.wordCloudSmooth:Sprachformen glätten`;
     }
   });
   readonly presenterFreetextSmoothingIcon = computed(() => {
@@ -1749,7 +1750,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
         (this.presenterFreetextSemanticAnalyzedKey() !== null &&
           this.presenterFreetextSemanticAnalyzedKey() !== this.presenterFreetextResponseKey())
       ) {
-        return $localize`:@@sessionWordCloud.freetextTopicsStale:Neue Antworten seit der letzten Themenanalyse`;
+        return textAnalysisCopy.corpusStaleShort;
       }
     }
     if (this.presenterFreetextWordCloudFrozen()) {
@@ -1898,7 +1899,7 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       case 'pending':
         return wordCloudTopicProgressLabel(this.qaWordCloudDisplayMode() === 'SEMANTIC');
       case 'stale':
-        return $localize`:@@sessionQa.wordCloudSemanticStaleHint:Neue Fragen seit der letzten Themenanalyse`;
+        return textAnalysisCopy.corpusStaleShort;
       case 'failed':
         return $localize`:@@sessionQa.wordCloudSemanticFailedHint:Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.`;
       case 'disabled':
@@ -1943,6 +1944,12 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
       default:
         return $localize`:@@wordCloud.wordPlural:Wörter`;
     }
+  });
+  readonly qaWordCloudMetricLabel = computed(() => {
+    const metric = this.qaWordCloudProjection()?.metric ?? 'BEST';
+    return metric === 'TIME'
+      ? $localize`:@@sessionQa.wordCloudMetricTime:Vorkommen in Fragen`
+      : this.qaSortModeLabel(metric);
   });
   readonly qaWordCloudReadingHint = computed(() =>
     qaWordCloudReadingHint(this.qaWordCloudProjection()?.metric ?? 'BEST'),

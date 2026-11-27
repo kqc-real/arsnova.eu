@@ -140,6 +140,23 @@
               }
             </ul>
           }
+          @let bases = cardAnalysisBasis(card);
+          @if (bases.length) {
+            <details class="moderation-compass-card__more">
+              <summary class="moderation-compass-card__more-summary">
+                {{ bases.length === 1 ? bases[0].label : analysisCopy.mixedBasis }}
+              </summary>
+              @if (bases.length === 1) {
+                <p>{{ bases[0].description }}</p>
+              } @else {
+                <ul>
+                  @for (basis of bases; track basis.label) {
+                    <li>{{ basis.label }}</li>
+                  }
+                </ul>
+              }
+            </details>
+          }
           @if (extraSources(card).length > 0) {
             <details class="moderation-compass-card__more">
               <summary class="moderation-compass-card__more-summary">
@@ -193,23 +210,14 @@
       data-testid="moderation-summary"
       aria-live="polite"
     >
-      <h3
-        class="moderation-compass-dialog__summary-title"
-        i18n="@@sessionHost.moderationSummaryTitle"
-      >
-        Wichtige offene Fragen
-      </h3>
-      <p
-        class="moderation-compass-dialog__summary-intro"
-        i18n="@@sessionHost.moderationSummaryIntro"
-      >
-        Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.
-      </p>
+      <h3 class="moderation-compass-dialog__summary-title">{{ analysisCopy.summaryTitle }}</h3>
+      <p class="moderation-compass-dialog__summary-intro">{{ analysisCopy.summaryInfo }}</p>
       <button
         mat-stroked-button
         type="button"
         class="moderation-compass-dialog__summary-button"
         [disabled]="summaryPending()"
+        [disabledInteractive]="true"
         [attr.aria-busy]="summaryPending()"
         (click)="requestSummary()"
       >
@@ -242,6 +250,9 @@
       }
       @if (showSummaryBody()) {
         @if (summaryResult(); as result) {
+          @if (summaryOrigin(result); as origin) {
+            <p class="moderation-compass-dialog__summary-status">{{ origin }}</p>
+          }
           @if (result.statements.length > 0) {
             <ul class="moderation-compass-dialog__summary-statements">
               @for (statement of summaryStatements(result); track statement.text) {

@@ -22,31 +22,6 @@ export function derivationProgressPercent(
   return Math.min(100, Math.round((progress.completedGroups / progress.totalGroups) * 100));
 }
 
-const MAX_VISIBLE_GROUP_SCALE_TICKS = 8;
-
-export function derivationGroupScaleTicks(
-  progress: LearningObjectiveDerivationProgress | null,
-): readonly { value: number; percent: number; current: boolean }[] {
-  if (!progress || progress.totalGroups <= 0) return [];
-  const total = progress.totalGroups;
-  const completed = Math.min(Math.max(progress.completedGroups, 0), total);
-  const values = new Set<number>();
-  if (total <= MAX_VISIBLE_GROUP_SCALE_TICKS) {
-    for (let value = 0; value <= total; value += 1) values.add(value);
-  } else {
-    values.add(0);
-    values.add(completed);
-    values.add(total);
-  }
-  return [...values]
-    .sort((left, right) => left - right)
-    .map((value) => ({
-      value,
-      percent: (value / total) * 100,
-      current: value === completed,
-    }));
-}
-
 export function splitDerivationDuration(elapsedMs: number): {
   minutes: number;
   seconds: number;

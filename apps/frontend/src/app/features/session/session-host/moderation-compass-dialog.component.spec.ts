@@ -1,9 +1,11 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import {
   qaSummaryQuestionSourceId,
+  QaSummaryResultV2Schema,
   QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
   type QaSummaryContextPreviewDTO,
   type QaSummaryRuntimeCompatibleDTO,
@@ -119,6 +121,7 @@ describe('ModerationCompassDialogComponent', () => {
       enabled?: boolean;
       visibleQuestionCount?: number;
       runtime?: QaSummaryRuntimeCompatibleDTO | null;
+      currentRuntime?: () => QaSummaryRuntimeCompatibleDTO | null;
       onRequestSummary?: () => void;
       onSummarySourceActivate?: (source: {
         id: string;
@@ -154,7 +157,7 @@ describe('ModerationCompassDialogComponent', () => {
             onSourceActivate,
             summaryEnabled: () => summary?.enabled === true,
             summaryVisibleQuestionCount: () => summary?.visibleQuestionCount ?? 0,
-            summary: () => summary?.runtime ?? null,
+            summary: () => summary?.currentRuntime?.() ?? summary?.runtime ?? null,
             onRequestSummary: summary?.onRequestSummary,
             onSummarySourceActivate: summary?.onSummarySourceActivate,
             onRequestSummaryContextPreview: summary?.onRequestSummaryContextPreview,
@@ -171,6 +174,31 @@ describe('ModerationCompassDialogComponent', () => {
     fixture.detectChanges();
     return { fixture, dialogRef, onSourceActivate };
   }
+
+  it('zeigt die einzelne Grundlage direkt und erläutert gemischte Belegbasen im Detail', () => {
+    const { fixture } = setup([
+      { kind: 'topics', tone: 'neutral', sources: [], analysisBasis: ['classification', 'topics'] },
+      { kind: 'clarification', tone: 'neutral', sources: [], analysisBasis: ['rules'] },
+    ]);
+    const root = fixture.nativeElement as HTMLElement;
+    const details = [
+      ...root.querySelectorAll<HTMLDetailsElement>('.moderation-compass-card details'),
+    ];
+    expect(details.map((item) => item.querySelector('summary')?.textContent?.trim())).toEqual([
+      'So entstand dieser Hinweis',
+      'Grundlage: Regeln und Rückmeldungen aus der Live-Runde',
+    ]);
+    expect(details.every((item) => !item.open)).toBe(true);
+    expect(
+      [...details[0]!.querySelectorAll('li')].map((basis) => basis.textContent?.trim()),
+    ).toEqual([
+      'Grundlage: automatische Einordnung der Fragen',
+      'Grundlage: Beiträge aus der Themenwolke',
+    ]);
+    expect(details[1]!.querySelector('p')?.textContent).toContain(
+      'Der Moderationskompass nutzt Regeln',
+    );
+  });
 
   it('zeigt den Leerzustand ohne Signale', () => {
     const { fixture } = setup([]);
@@ -739,9 +767,9 @@ describe('ModerationCompassDialogComponent', () => {
 
     let text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Fragen zusammenfassen');
-    expect(text).toContain('Wichtige offene Fragen');
+    expect(text).toContain('Das Wesentliche auf einen Blick');
     expect(text).toContain(
-      'Hier siehst du die wichtigsten Fragen aus der Session auf einen Blick.',
+      'Verschaffe dir einen Überblick über wichtige offene Fragen, gestützt auf die tatsächlichen Beiträge.',
     );
     expect(text).not.toContain('Es gibt eine Frage zur Klausur.');
     expect(text).not.toContain('Mögliche nächste Schritte');
@@ -787,6 +815,147 @@ describe('ModerationCompassDialogComponent', () => {
     });
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    {
+      mode: 'rule-based',
+      reason: 'context_unavailable',
+      origin: 'Regelbasierter Überblick',
+      notice: 'Die benötigten Beiträge und Ergebnisse waren nicht verfügbar.',
+    },
+    {
+      mode: 'legacy-text',
+      reason: 'adapter_incompatible',
+      origin: 'Zusammenfassung über den älteren Modellpfad',
+      notice: 'Der verfügbare Dienst unterstützt die ausführliche Zusammenfassung nicht.',
+    },
+    {
+      mode: 'extractive',
+      reason: 'disabled',
+      origin: 'Zusammenfassung aus Originalbeiträgen',
+      notice: 'KI-Zusammenfassungen sind deaktiviert.',
+    },
+  ] as const)(
+    'zeigt Herkunft und Ersatzgrund für $mode und entfernt abgelöste Belege',
+    ({ mode, reason, origin, notice }) => {
+      const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
+      const oldQuestion = 'Kommt Kapitel 4 in der Klausur vor?';
+      const result = QaSummaryResultV2Schema.parse({
+        schemaVersion: 2,
+        contractVersion: 'qa-summary-result-v2',
+        status: 'ready',
+        statements: [{ text: 'Frage zum Prüfungsumfang.', sourceIds: [sourceId] }],
+        suggestedNextSteps: [],
+        limitations: [],
+        sources: [{ id: sourceId, kind: 'qa-question', label: oldQuestion }],
+        snapshotHash: 'a'.repeat(64),
+        locale: 'de',
+        execution: {
+          attemptedMode: mode === 'legacy-text' ? 'legacy-text' : null,
+          effectiveMode: mode,
+          fallback: {
+            contractVersion: 'qa-summary-fallback-v1',
+            requestedRequestContract: 'qa-summary-context-v2',
+            requestedOutputContract: 'qa-summary-model-output-v3',
+            mode,
+            reason,
+            retry: 'not-applicable',
+          },
+        },
+      });
+      const inferenceConfigured = mode === 'legacy-text';
+      const runtime = signal(v2Runtime({ inferenceConfigured, result }));
+      const { fixture } = setup([], vi.fn(), 'rule-based', {
+        enabled: true,
+        visibleQuestionCount: 3,
+        currentRuntime: runtime,
+      });
+      const root = fixture.nativeElement as HTMLElement;
+      root.querySelector<HTMLButtonElement>('.moderation-compass-dialog__summary-button')!.click();
+      fixture.detectChanges();
+      expect(root.textContent).toContain(origin);
+      expect(root.textContent).toContain(oldQuestion);
+      expect(root.textContent).toContain(notice);
+
+      runtime.set(
+        v2Runtime({
+          inferenceConfigured,
+          result: QaSummaryResultV2Schema.parse({
+            ...result,
+            status: 'uncertain',
+            statements: [],
+            limitations: ['Es liegen keine Q&A-Quellen vor.'],
+            sources: [],
+            snapshotHash: 'b'.repeat(64),
+          }),
+        }),
+      );
+      fixture.detectChanges();
+      expect(root.textContent).not.toContain(oldQuestion);
+      expect(root.textContent).not.toContain(origin);
+      expect(
+        root.querySelector('[data-testid="moderation-summary"] [role="status"]')?.textContent,
+      ).toContain(notice);
+      expect(root.textContent).toContain('Es liegen keine Q&A-Quellen vor.');
+    },
+  );
+
+  it.each([
+    {
+      reason: 'misconfigured',
+      notice: 'Der Dienst für KI-Zusammenfassungen ist nicht vollständig konfiguriert.',
+      limitations: [],
+    },
+    {
+      reason: 'timeout',
+      notice: 'Die Zusammenfassung hat zu lange gedauert.',
+      limitations: [
+        'Die Zusammenfassung hat zu lange gedauert.',
+        'Nur sichtbare Q&A-Fragen, keine Teilnehmendenbewertung.',
+      ],
+    },
+  ] as const)(
+    'meldet den belegten Fehler $reason einmal ohne fertigen Überblick',
+    ({ reason, notice, limitations }) => {
+      const { fixture } = setup([], vi.fn(), 'rule-based', {
+        enabled: true,
+        visibleQuestionCount: 3,
+        runtime: v2Runtime({
+          inferenceConfigured: true,
+          result: QaSummaryResultV2Schema.parse({
+            schemaVersion: 2,
+            contractVersion: 'qa-summary-result-v2',
+            status: 'failed',
+            statements: [],
+            suggestedNextSteps: [],
+            limitations,
+            sources: [],
+            snapshotHash: 'a'.repeat(64),
+            locale: 'de',
+            execution: {
+              attemptedMode: 'full-context',
+              effectiveMode: 'rule-based',
+              fallback: {
+                contractVersion: 'qa-summary-fallback-v1',
+                requestedRequestContract: 'qa-summary-context-v2',
+                requestedOutputContract: 'qa-summary-model-output-v3',
+                mode: 'rule-based',
+                reason,
+                retry: 'manual',
+              },
+            },
+          }),
+        }),
+      });
+      const card = fixture.nativeElement.querySelector(
+        '[data-testid="moderation-summary"]',
+      ) as HTMLElement;
+      expect(card.querySelector('[role="status"]')?.textContent).toContain(notice);
+      expect(card.textContent?.split(notice)).toHaveLength(2);
+      expect(card.textContent).not.toContain('Regelbasierter Überblick');
+      for (const limitation of limitations) expect(card.textContent).toContain(limitation);
+    },
+  );
 
   it('wartet beim Sprung aus den verwendeten Beiträgen und bleibt bei Fehler offen', async () => {
     const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
@@ -1022,6 +1191,7 @@ describe('ModerationCompassDialogComponent', () => {
     fixture.detectChanges();
     const panel = fixture.nativeElement.querySelector('[data-testid="moderation-summary"]');
     const statements = panel.querySelectorAll('.moderation-compass-dialog__summary-statements li');
+    expect(panel.textContent).toContain('KI-generierte Zusammenfassung');
     expect(statements).toHaveLength(1);
     expect(
       statements[0].querySelector('.moderation-compass-dialog__summary-lead').textContent,
@@ -1120,6 +1290,7 @@ describe('ModerationCompassDialogComponent', () => {
         ?.textContent,
     ).toContain('Die Daten haben sich seit der Anfrage geändert.');
     expect(fixture.nativeElement.textContent).toContain('Wie berechnet man den Median?');
+    expect(fixture.nativeElement.textContent).toContain('Zusammenfassung aus Originalbeiträgen');
   });
 
   it('zeigt failed ruhig und sperrt den Button während pending', () => {
@@ -1146,7 +1317,7 @@ describe('ModerationCompassDialogComponent', () => {
       }),
     });
     expect(pending.fixture.nativeElement.textContent).toContain(
-      'Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.',
+      'Die Fragen werden zusammengefasst …',
     );
     expect(pending.fixture.nativeElement.textContent).toContain(
       'Das kann bei vielen Fragen etwas dauern.',
@@ -1157,16 +1328,14 @@ describe('ModerationCompassDialogComponent', () => {
       'mat-progress-bar.moderation-compass-dialog__summary-progress-bar',
     ) as HTMLElement | null;
     expect(progress).not.toBeNull();
-    expect(progress?.getAttribute('aria-label')).toBe(
-      'Die wichtigsten Fragen werden zusammengestellt. Ähnliche Fragen werden gebündelt.',
-    );
+    expect(progress?.getAttribute('aria-label')).toBe('Die Fragen werden zusammengefasst …');
     expect(
       (
         pending.fixture.nativeElement.querySelector(
           '.moderation-compass-dialog__summary-button',
         ) as HTMLButtonElement | null
-      )?.disabled,
-    ).toBe(true);
+      )?.getAttribute('aria-disabled'),
+    ).toBe('true');
 
     TestBed.resetTestingModule();
     const failed = setup([], vi.fn(), 'rule-based', {

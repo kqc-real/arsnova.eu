@@ -8387,7 +8387,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(styles).toMatch(/\.session-host__extra-actions \{[^}]*align-items:\s*flex-start/);
   });
 
-  it('zeigt fuer Freitext-Fragen die Word-Cloud-Aktion mit Live-Hinweis', async () => {
+  it('zeigt Freitext-Wolke und Aktionsleiste mit standardmäßig geschlossener Analyse', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
@@ -8422,30 +8422,45 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent ?? '';
-    const wordCloudDetails = fixture.nativeElement.querySelector('.session-host__extra');
+    fixture.componentInstance.wordCloudExpanded.set(true);
+    fixture.detectChanges();
 
-    expect(wordCloudDetails?.className).toContain('session-host__extra--freetext');
-    expect(wordCloudDetails?.className).toContain('session-host__extra--no-divider');
-    expect(text).toContain('Wortwolke anzeigen');
-    expect(wordCloudDetails?.textContent).not.toContain('Weitere Aktionen');
-    expect(fixture.nativeElement.querySelector('[data-testid="host-more-actions"]')).not.toBeNull();
-    expect(text).toContain('2 Antworten');
-    expect(text).toContain('Live-Freitext wird aktualisiert.');
-    expect(text).toContain('Live-Freitext');
-    expect(wordCloudDetails?.querySelector('.word-cloud__description')).toBeNull();
-    expect(text).toContain('Anzeige anhalten');
-    expect(text).toContain('Nach Grundform bündeln');
-    const viewHint = wordCloudDetails?.querySelector(
-      '.session-host__word-cloud-view-hint',
-    ) as HTMLElement | null;
-    expect(viewHint?.textContent).toContain('Einzelne Wörter in der eingegebenen Form');
-    expect(viewHint?.closest('.session-host__word-cloud-options')).toBeNull();
-    const extraSmoothButton = wordCloudDetails?.querySelector(
-      '.session-host__extra-action--smooth',
-    ) as HTMLButtonElement | null;
-    expect(extraSmoothButton).not.toBeNull();
-    expect(extraSmoothButton?.getAttribute('aria-pressed')).toBe('false');
+    const host = fixture.nativeElement as HTMLElement;
+    const cloud = host.querySelector<HTMLDetailsElement>('#host-freetext-word-cloud')!;
+    const actions = cloud.querySelector('.session-host__extra-actions')!;
+    const analysis = cloud.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const summary = analysis.querySelector('summary')!;
+
+    expect(cloud.classList.contains('session-host__extra--no-divider')).toBe(true);
+    expect(cloud.querySelector(':scope > summary')?.textContent).not.toContain('2 Antworten');
+    expect(cloud.querySelector('.word-cloud__description')).toBeNull();
+    expect(actions.textContent).toContain('Anzeige anhalten');
+    expect(actions.querySelector('.word-cloud__action--maximize')).not.toBeNull();
+    expect(actions.textContent).not.toContain('Weitere Optionen');
+    expect(analysis.open).toBe(false);
+    expect(summary.textContent?.trim()).toContain('Freitext-Analyse');
+    expect(cloud.querySelector('.word-cloud__analysis-info')?.closest('details')).toBe(cloud);
+    expect(cloud.querySelector('.word-cloud__visual-frame')?.closest('details')).toBe(cloud);
+
+    summary.click();
+    fixture.detectChanges();
+
+    expect(analysis.open).toBe(true);
+    expect(analysis.textContent).toContain('2 Antworten');
+    expect(analysis.textContent).toContain('Live-Freitext wird aktualisiert.');
+    expect(analysis.querySelector('.session-host__word-cloud-view-hint')?.textContent).toContain(
+      'Einzelne Wörter in der eingegebenen Form',
+    );
+    expect(analysis.querySelector('.session-host__word-cloud-language select')).not.toBeNull();
+    expect(
+      analysis.querySelector('.session-host__extra-action--smooth')?.getAttribute('aria-pressed'),
+    ).toBe('false');
+    expect(analysis.querySelector('.word-cloud__actions')?.textContent).toContain('CSV speichern');
+    expect(analysis.querySelector('.word-cloud__actions')?.textContent).toContain('PNG speichern');
+    expect(analysis.querySelector('.word-cloud__responses-panel')).not.toBeNull();
+
+    summary.click();
+    expect(analysis.open).toBe(false);
     fixture.destroy();
   });
 
@@ -8570,6 +8585,89 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
+  it('meldet eine abgelehnte Wort-Ausblendung bei geschlossener Freitext-Analyse und erlaubt Retry', async () => {
+    const questionId = '11111111-1111-4111-8111-111111111111';
+    getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
+    getCurrentQuestionForHostQueryMock.mockResolvedValue({
+      questionId,
+      order: 5,
+      text: 'Warum bleibt ein Satellit im Orbit?',
+      type: 'FREETEXT',
+      answers: [],
+    });
+    getLiveFreetextQueryMock.mockResolvedValue({
+      ...defaultLiveFreetext,
+      questionId,
+      questionOrder: 5,
+      questionType: 'FREETEXT',
+      responses: ['Gravitation', 'Orbit'],
+      wordCloudVisibility: { questionId, hiddenLabels: [] },
+    });
+
+    let rejectHide!: (error: Error) => void;
+    setFreetextWordCloudEntryVisibilityMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectHide = reject;
+          }),
+      )
+      .mockResolvedValueOnce({ questionId, hiddenLabels: ['Gravitation'] });
+
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await vi.waitUntil(() => fixture.componentInstance.freetextVisibilitySnapshot() !== null);
+    fixture.componentInstance.wordCloudExpanded.set(true);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const cloud = host.querySelector('#host-freetext-word-cloud')!;
+    const analysis = cloud.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const summary = analysis.querySelector('summary')!;
+    const findWord = () =>
+      [...cloud.querySelectorAll<HTMLButtonElement>('.word-cloud__word')].find(
+        (word) => word.textContent?.trim().toLowerCase() === 'gravitation',
+      );
+    findWord()!.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(true);
+
+    const action = analysis.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+    action.focus();
+    action.click();
+    fixture.detectChanges();
+    expect(action.getAttribute('aria-busy')).toBe('true');
+    summary.focus();
+    summary.click();
+    expect(analysis.open).toBe(false);
+
+    rejectHide(new Error('offline'));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const alert = cloud.querySelector('[role="alert"]')!;
+    expect(alert.textContent).toContain('Das Wort konnte nicht ausgeblendet werden.');
+    expect(analysis.contains(alert)).toBe(false);
+    expect(findWord()).toBeTruthy();
+    expect(document.activeElement).toBe(summary);
+
+    summary.click();
+    action.focus();
+    action.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(setFreetextWordCloudEntryVisibilityMock).toHaveBeenCalledTimes(2);
+    expect(findWord()).toBeUndefined();
+    expect(cloud.querySelector('[role="alert"]')).toBeNull();
+    expect(cloud.querySelector('[role="status"].sr-only')?.textContent).toContain(
+      'Wort ausgeblendet.',
+    );
+    expect(document.activeElement).toBe(summary);
+    fixture.destroy();
+  });
+
   it('kann die Host-Anzeige anhalten und wieder live fortsetzen', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
@@ -8680,7 +8778,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('faellt Freitext-Semantik ohne Encoder auf 2.x und zeigt keinen leeren Dialog', async () => {
+  it('hält Freitext vor der ersten Themenvorschau an und zeigt erst nach belegtem Disabled den Ersatz', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -8698,7 +8796,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       questionText: 'Warum bleibt ein Satellit im Orbit?',
       responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
     });
-    wordCloudAnalyzeQueryMock.mockResolvedValue(
+    let releaseInitialAnalysis: (result: unknown) => void = () => undefined;
+    const initialAnalysis = new Promise((resolve) => {
+      releaseInitialAnalysis = resolve;
+    });
+    wordCloudAnalyzeQueryMock.mockReturnValueOnce(initialAnalysis).mockResolvedValue(
       wordCloudAnalyzeResult({
         mode: 'SEMANTIC',
         metric: 'TOP',
@@ -8742,13 +8844,25 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await component.setFreetextWordCloudMode('SEMANTIC');
     fixture.detectChanges();
 
-    await vi.waitUntil(
-      () =>
-        wordCloudAnalyzeQueryMock.mock.calls.some(
-          (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
-        ),
-      { timeout: 5000, interval: 25 },
-    );
+    await vi.waitFor(() => expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(1));
+    const visible = component.displayedFreetextVisibleTerms();
+    expect(visible?.length).toBeGreaterThan(0);
+    expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(true);
+
+    await component.toggleWordCloudFreeze();
+    releaseInitialAnalysis(wordCloudAnalyzeResult({ mode: 'SEMANTIC', metric: 'TOP' }));
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
+    expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(false);
+    expect(component.displayedFreetextVisibleTerms()).toEqual(visible);
+    expect(component.freetextWordCloudSemanticHint()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Anzeige fortsetzen');
+    expect(fixture.nativeElement.textContent).not.toContain('Themen sind hier nicht verfügbar.');
+
+    await component.toggleWordCloudFreeze();
+    expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(true);
+    await vi.waitFor(() => expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(2));
     await vi.waitUntil(() => component.displayedFreetextAnalysisEntries()?.length === 1, {
       timeout: 5000,
       interval: 25,
@@ -9113,6 +9227,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     const analyzeCallsAfterReady = wordCloudAnalyzeQueryMock.mock.calls.length;
     expect(component.freetextWordCloudSemanticStale()).toBe(false);
+    const evidence = component
+      .moderationCompassCards()
+      .find((card) => card.kind === 'topics')
+      ?.sources.find((source) => source.kind === 'freetext-term');
+    expect(evidence?.analysisBasis).toBe('topics');
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
 
     component.freetextResponses.set([
@@ -9127,7 +9246,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.freetextWordCloudSemanticStale()).toBe(true);
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
     expect(component.freetextWordCloudSemanticHint()).toContain(
-      'Neue Antworten seit der letzten Themenanalyse',
+      'Neue Beiträge sind hinzugekommen.',
     );
     expect(
       fixture.nativeElement.querySelector('[data-testid="freetext-word-cloud-refresh-themes"]'),
@@ -9305,11 +9424,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const stage = fixture.nativeElement.querySelector(
       '.session-host__word-cloud-stage',
     ) as HTMLElement | null;
-    const status = stage?.querySelector('.session-host__word-cloud-status') as HTMLElement | null;
-    expect(status).not.toBeNull();
-    expect(status?.classList.contains('session-host__word-cloud-status--cover')).toBe(true);
-    expect(stage?.querySelector('.session-host__word-cloud-progress')).not.toBeNull();
-    expect(stage?.querySelector('app-word-cloud')).not.toBeNull();
+    const frame = stage?.querySelector('.word-cloud__visual-frame');
+    const analysis = stage!.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    expect(
+      frame?.querySelector('.session-host__word-cloud-progress')?.getAttribute('aria-busy'),
+    ).toBe('true');
+    expect(frame?.querySelector('.word-cloud__word')).toBeNull();
+    expect(analysis.open).toBe(false);
+    analysis.querySelector('summary')!.click();
+    expect(analysis.open).toBe(true);
+    expect(analysis.querySelector('.session-host__word-cloud-language select')).not.toBeNull();
 
     component.freetextResponses.set([
       'Lineare Regression im Projekt',
@@ -9363,6 +9487,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('ready');
     expect(component.freetextWordCloudSemanticStale()).toBe(true);
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
+    expect(frame?.querySelector('.session-host__word-cloud-progress')).toBeNull();
+    expect(frame?.querySelector('.word-cloud__word')?.textContent).toContain('Lineare Regression');
+    expect(analysis.open).toBe(true);
     fixture.destroy();
   });
 
@@ -10237,13 +10364,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     fixture.detectChanges();
     const smoothingOptions = fixture.nativeElement.querySelector(
-      '.session-host__word-cloud-options',
+      '#host-freetext-word-cloud .word-cloud__analysis-disclosure',
     ) as HTMLElement | null;
     expect(smoothingOptions?.textContent).toContain(
       'Wörter konnten gerade nicht nach Grundform gebündelt werden.',
     );
     expect(
-      fixture.nativeElement.querySelector('.session-host__word-cloud-status')?.textContent ?? '',
+      fixture.nativeElement.querySelector(
+        '.session-host__word-cloud-stage .word-cloud__visual-frame',
+      )?.textContent ?? '',
     ).not.toContain('Wörter konnten gerade nicht nach Grundform gebündelt werden.');
     component.freetextWordCloudSmoothingFeedbackRequested.set(false);
     fixture.detectChanges();
@@ -14554,7 +14683,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('faellt Themen ohne Encoder auf 2.x und zeigt keinen leeren Dialog', async () => {
+  it('hält Q&A vor der ersten Themenvorschau an und zeigt erst nach belegtem Disabled den Ersatz', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -14588,8 +14717,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
     ]);
+    let releaseInitialAnalysis: (result: unknown) => void = () => undefined;
+    let semanticRequests = 0;
+    const initialAnalysis = new Promise((resolve) => {
+      releaseInitialAnalysis = resolve;
+    });
     wordCloudAnalyzeQueryMock.mockImplementation(async (input: { mode?: string }) => {
       if (input.mode === 'SEMANTIC') {
+        semanticRequests += 1;
+        if (semanticRequests === 1) return initialAnalysis;
         return wordCloudAnalyzeResult({
           mode: 'SEMANTIC',
           fallbackUsed: true,
@@ -14653,13 +14789,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     await fixture.componentInstance.openQaWordCloudDialog();
 
-    await vi.waitUntil(
-      () =>
-        wordCloudAnalyzeQueryMock.mock.calls.some(
-          (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
-        ),
-      { timeout: 5000, interval: 25 },
-    );
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(semanticRequests).toBe(1));
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    const fallbackTerms = component.qaWordCloudVisibleTerms();
+    expect(fallbackTerms?.length).toBeGreaterThan(0);
+    component.toggleQaWordCloudFreeze();
+    releaseInitialAnalysis(wordCloudAnalyzeResult({ mode: 'SEMANTIC' }));
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.qaWordCloudThemeAnalysisResult()).toBeNull();
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(false);
+    expect(component.qaWordCloudVisibleTerms()).toEqual(fallbackTerms);
+    expect(component.qaWordCloudThemeFallbackHint()).toBeNull();
+    component.toggleQaWordCloudFreeze();
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    await vi.waitFor(() => expect(semanticRequests).toBe(2));
     await vi.waitUntil(() => fixture.componentInstance.qaWordCloudAnalysisEntries()?.length === 1, {
       timeout: 5000,
       interval: 25,
@@ -14675,6 +14820,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Kapitel 4');
     expect(fixture.componentInstance.qaWordCloudVisibleTerms()).toBeNull();
+    const qaEvidence = fixture.componentInstance
+      .moderationCompassCards()
+      .find((card) => card.kind === 'topics')
+      ?.sources.find((source) => source.kind === 'qa-term');
+    expect(qaEvidence?.analysisBasis).toBe('lexical');
+    expect(fixture.componentInstance.qaWordCloudAnalysisInfo().result?.status).toBe('disabled');
 
     const lemmaCallsBeforeToggle = wordCloudAnalyzeQueryMock.mock.calls.filter(
       (call) => (call[0] as { normalization?: string }).normalization === 'LEMMA',
@@ -14782,7 +14933,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         text: 'Der Beamer-Haenger ist defekt.',
         upvoteCount: 2,
         status: 'ACTIVE',
-        createdAt: '2026-03-13T12:05:00.000Z',
+        createdAt: '2026-03-24T12:05:00.000Z',
         myVote: null,
         isOwn: false,
         hasUpvoted: false,
@@ -14795,7 +14946,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('stale');
     expect(fixture.componentInstance.qaWordCloudSmoothingLabel()).toBe('Bündelung aktualisieren');
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
-      'Neue Fragen seit der letzten Themenanalyse',
+      'Neue Beiträge sind hinzugekommen.',
     );
 
     const component = fixture.componentInstance;
@@ -14841,6 +14992,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(wordCloudAnalyzeQueryMock.mock.calls.length).toBeGreaterThan(calls),
     );
     const visible = component.qaWordCloudAnalysisEntries()?.map(({ label }) => label);
+    const shownAnalysis = component.qaWordCloudAnalysisInfo().result;
     component.toggleQaWordCloudFreeze();
     releaseAnalysis(
       wordCloudAnalyzeResult({
@@ -14851,6 +15003,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await Promise.resolve();
     fixture.detectChanges();
     expect(component.qaWordCloudAnalysisEntries()?.map(({ label }) => label)).toEqual(visible);
+    expect(component.qaWordCloudAnalysisInfo().result).toBe(shownAnalysis);
     component.toggleQaWordCloudFreeze();
     expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
     fixture.destroy();
@@ -15197,7 +15350,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.qaWordCloudSemanticStale()).toBe(true);
     expect(component.qaWordCloudAnalysisEntries()?.[0]?.label).toBe('Stichprobengröße');
     expect(component.qaWordCloudThemeFallbackHint()).toBe(
-      'Neue Fragen seit der letzten Themenanalyse',
+      'Beiträge geändert · Themen aktualisieren',
     );
     expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(analysisCalls);
     fixture.destroy();
@@ -15785,6 +15938,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudSmoothingStatus()).toBe('idle');
     expect(fixture.componentInstance.qaWordCloudSmoothingHint()).toBeNull();
     expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudAnalysisInfo().result?.normalizationApplied).toBe(
+      'LEMMA',
+    );
     expect(
       fixture.componentInstance.qaWordCloudAnalysisEntries()?.map((entry) => entry.label),
     ).toEqual(['Kapitel 4', 'Klausur']);
@@ -15924,9 +16080,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     });
 
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
-      'Themen werden vorbereitet',
+      'Verwandte Themen werden gesucht',
     );
     expect(fixture.componentInstance.qaWordCloudLemmaSnapshotVisible()).toBe(true);
+    expect(fixture.componentInstance.qaWordCloudAnalysisInfo().result?.normalizationApplied).toBe(
+      'LEMMA',
+    );
     expect(
       fixture.componentInstance.qaWordCloudAnalysisEntries()?.map((entry) => entry.label),
     ).toEqual(['Kapitel 4', 'Klausur']);
@@ -22028,6 +22187,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       host.querySelector('.session-host__exit-anchor button[aria-keyshortcuts="ArrowRight"]'),
     ).toBeNull();
+
+    expect(next?.closest('.session-host__extra-actions')).not.toBeNull();
+    const analysis = cloud?.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure');
+    expect(analysis?.open).toBe(false);
+    expect(analysis?.querySelector('summary')?.textContent).toContain('Freitext-Analyse');
 
     let completeAdvance!: (result: { status: 'ACTIVE'; currentQuestion: number }) => void;
     nextQuestionMutateMock.mockReturnValueOnce(
@@ -30733,7 +30897,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           isOwn: false,
           passagesRedacted: false,
           hasUpvoted: false,
-          nlp: { status: 'classified', category: 'content' },
+          nlp: { status: 'classified', category: 'content', modelVersion: 'gatekeeper-hash-nb-v3' },
         },
         {
           id: '22222222-2222-4222-8222-222222222222',
@@ -30745,7 +30909,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           isOwn: false,
           passagesRedacted: false,
           hasUpvoted: false,
-          nlp: { status: 'classified', category: 'content' },
+          nlp: { status: 'classified', category: 'content', modelVersion: 'fallback-knn-v3' },
         },
         {
           id: '33333333-3333-4333-8333-333333333333',
@@ -30758,6 +30922,18 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
           passagesRedacted: false,
           hasUpvoted: false,
           nlp: { status: 'classified', category: 'organization' },
+        },
+        {
+          id: '44444444-4444-4444-8444-444444444444',
+          text: 'Offene Rückmeldung',
+          upvoteCount: 0,
+          status: 'ACTIVE',
+          createdAt: '2026-03-13T12:03:00.000Z',
+          myVote: null,
+          isOwn: false,
+          passagesRedacted: false,
+          hasUpvoted: false,
+          nlp: { status: 'uncertain', modelVersion: 'fallback-knn-v3' },
         },
       ]);
 
@@ -30786,6 +30962,35 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(component.isQaCompassFocused('22222222-2222-4222-8222-222222222222')).toBe(true);
       expect(component.isQaCompassFocused('33333333-3333-4333-8333-333333333333')).toBe(false);
       expect(component.qaFocusBadge()).toBe('Aus dem Kompass · Inhaltliche Fragen');
+      expect(topics?.analysisBasis).toContain('classification');
+      const detail = (id: string) =>
+        fixture.nativeElement.querySelector(
+          '#host-qa-question-' + id + ' .session-qa-card__classification',
+        ) as HTMLDetailsElement | null;
+      const closedLabels = [
+        '11111111-1111-4111-8111-111111111111',
+        '22222222-2222-4222-8222-222222222222',
+        '33333333-3333-4333-8333-333333333333',
+        '44444444-4444-4444-8444-444444444444',
+      ].map((id) => {
+        const disclosure = detail(id)!;
+        expect(disclosure.open).toBe(false);
+        return disclosure.querySelector('summary')?.textContent;
+      });
+      expect(closedLabels).toEqual([
+        'Inhaltliche Frage',
+        'Inhaltliche Frage',
+        'Frage zum Ablauf',
+        'Keine eindeutige Einordnung',
+      ]);
+      expect(detail('11111111-1111-4111-8111-111111111111')?.textContent).toContain('Naive Bayes');
+      expect(detail('22222222-2222-4222-8222-222222222222')?.textContent).toContain('k-NN');
+      expect(detail('33333333-3333-4333-8333-333333333333')?.textContent).toContain(
+        'Verfahren unbekannt',
+      );
+      const uncertain = detail('44444444-4444-4444-8444-444444444444');
+      expect(uncertain?.textContent).toContain('Keine eindeutige Einordnung');
+      expect(uncertain?.textContent).toContain('k-NN');
       fixture.destroy();
     });
 
@@ -30872,6 +31077,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         .find((card) => card.kind === 'topics')
         ?.sources.find((source) => source.kind === 'qa-term');
       expect(generatedSource?.target?.analysisVariant).toBe('SEMANTIC');
+      expect(generatedSource?.analysisBasis).toBe('lexical');
 
       await component.followModerationCompassSource({
         kind: 'qa-term',

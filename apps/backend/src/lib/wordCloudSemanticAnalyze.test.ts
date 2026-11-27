@@ -412,6 +412,7 @@ describe('wordCloudSemanticAnalyze', () => {
       cache: createMemoryWordCloudAnalysisCache(),
     });
     expect(first.status).toBe('failed');
+    expect(first.semanticFallbackReason).toBeUndefined();
     expect(first.fallbackUsed).toBe(true);
     expect(first.entries.length).toBeGreaterThan(0);
 
@@ -451,6 +452,7 @@ describe('wordCloudSemanticAnalyze', () => {
     });
 
     expect(result.status).toBe('fallback');
+    expect(result.semanticFallbackReason).toBe('no_shared_topics');
     expect(result.fallbackUsed).toBe(true);
     expect(result.entries.length).toBeGreaterThan(0);
     expect(result.modelVersion).toBeNull();
@@ -483,6 +485,7 @@ describe('wordCloudSemanticAnalyze', () => {
     });
 
     expect(result.status).toBe('fallback');
+    expect(result.semanticFallbackReason).toBe('no_shared_topics');
     expect(result.fallbackUsed).toBe(true);
     expect(result.entries.length).toBeGreaterThan(0);
   });

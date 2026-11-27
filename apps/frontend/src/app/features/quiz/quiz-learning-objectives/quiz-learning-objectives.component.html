@@ -46,6 +46,15 @@
         {{ statusMessage() }}
       </div>
 
+      <div
+        class="learning-objectives__announcer"
+        data-testid="learning-objective-progress-announcer"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {{ derivationAnnouncement() }}
+      </div>
+
       @if (syncError()) {
         <p class="learning-objectives__sync-error" role="alert">{{ syncError() }}</p>
       }
@@ -112,13 +121,7 @@
           <h3 id="learning-objective-derivation-title" i18n="@@learningObjectives.derivationTitle">
             Lernziele vorschlagen lassen
           </h3>
-          <p
-            id="learning-objective-derivation-description"
-            i18n="@@learningObjectives.derivationHelp"
-          >
-            Auf Klick erstellt die lokale Text-KI passende Lernziel-Entwürfe aus deinen aktiven
-            Fragen und Lösungen. Deine bestehenden Lernziele bleiben unverändert.
-          </p>
+          <p id="learning-objective-derivation-description">{{ analysisCopy.objectivesInfo }}</p>
           <div class="learning-objectives__derivation-actions">
             <button
               mat-stroked-button
@@ -144,9 +147,7 @@
                   >Erneut automatisch formulieren</span
                 >
               } @else {
-                <span i18n="@@learningObjectives.derivationStart"
-                  >Automatisch aus Fragen formulieren</span
-                >
+                <span>{{ analysisCopy.objectivesAction }}</span>
               }
             </button>
             @if (derivationIsPending()) {
@@ -170,89 +171,65 @@
                 derivationStatus() !== 'completed' &&
                 derivationStatus() !== 'preempted'
               "
-              role="status"
+              [attr.role]="derivationIsPending() ? null : 'status'"
               tabindex="-1"
-              aria-live="polite"
-              aria-atomic="true"
+              [attr.aria-live]="derivationIsPending() ? null : 'polite'"
+              [attr.aria-atomic]="derivationIsPending() ? null : 'true'"
             >
-              <p>{{ derivationMessage() }}</p>
               @if (derivationIsPending()) {
-                <div class="learning-objectives__derivation-progress-stack">
-                  <div class="learning-objectives__derivation-live">
-                    <mat-progress-spinner
-                      class="learning-objectives__derivation-live-spinner"
-                      diameter="18"
-                      strokeWidth="2"
-                      mode="indeterminate"
-                      aria-labelledby="learning-objective-derivation-live-progress-label"
-                    />
-                    <p
-                      id="learning-objective-derivation-live-progress-label"
-                      class="learning-objectives__derivation-progress-label"
-                    >
-                      @if (derivationWaitingLabel(); as waitingLabel) {
-                        {{ waitingLabel }}
-                      } @else {
-                        <ng-container i18n="@@learningObjectives.derivationLiveProgress"
-                          >Die Abfrage läuft.</ng-container
-                        >
-                      }
-                    </p>
-                  </div>
-                  <div class="learning-objectives__derivation-progress">
-                    <mat-progress-bar
-                      class="learning-objectives__derivation-progress-bar"
-                      mode="determinate"
-                      [value]="derivationProgressPercent()"
-                      [attr.aria-labelledby]="
-                        derivationGroupScaleLabel()
-                          ? 'learning-objective-derivation-groups-progress-label'
-                          : 'learning-objective-derivation-live-progress-label'
-                      "
-                      [attr.aria-valuetext]="derivationGroupScaleLabel()"
-                    />
-                    @if (derivationGroupScaleTicks().length > 0) {
-                      <div
-                        class="learning-objectives__derivation-progress-scale"
-                        aria-hidden="true"
-                      >
-                        @for (tick of derivationGroupScaleTicks(); track tick.value) {
-                          <span
-                            class="learning-objectives__derivation-progress-tick"
-                            [class.learning-objectives__derivation-progress-tick--current]="
-                              tick.current
-                            "
-                            [style.--tick-percent]="tick.percent + '%'"
-                          >
-                            {{ tick.label }}
-                          </span>
-                        }
-                      </div>
-                    }
-                    @if (derivationGroupScaleLabel(); as scaleLabel) {
-                      <p
-                        id="learning-objective-derivation-groups-progress-label"
-                        class="learning-objectives__derivation-progress-label"
-                      >
-                        {{ scaleLabel }}
-                        @if (derivationRemainingEstimate(); as remaining) {
-                          {{ remaining }}
-                        }
-                      </p>
-                    }
-                    @if (derivationQueuedObjectivesLabel(); as queued) {
-                      <p class="learning-objectives__derivation-progress-label">{{ queued }}</p>
-                    }
-                  </div>
+                <div class="learning-objectives__derivation-progress">
                   <p
-                    class="learning-objectives__derivation-keep-open"
-                    i18n="@@learningObjectives.derivationKeepEditorOpen"
+                    id="learning-objective-derivation-live-progress-label"
+                    class="learning-objectives__derivation-current"
                   >
-                    Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die
-                    Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der
-                    Liste.
+                    {{ derivationCurrentLabel() }}
                   </p>
+                  <mat-progress-bar
+                    class="learning-objectives__derivation-progress-bar"
+                    [mode]="derivationGroupScaleLabel() ? 'determinate' : 'indeterminate'"
+                    [value]="derivationProgressPercent()"
+                    aria-labelledby="learning-objective-derivation-live-progress-label"
+                    [attr.aria-valuetext]="derivationGroupScaleLabel()"
+                  />
+                  @if (derivationGroupScaleLabel(); as groups) {
+                    <p class="learning-objectives__derivation-progress-label">{{ groups }}</p>
+                  }
+                  @if (derivationQueuedObjectivesLabel(); as queued) {
+                    <p class="learning-objectives__derivation-progress-label">{{ queued }}</p>
+                  }
+                  @if (!derivationPriorityPhase() && derivationRemainingEstimate(); as remaining) {
+                    <p class="learning-objectives__derivation-progress-label">{{ remaining }}</p>
+                  }
+                  <p
+                    class="learning-objectives__derivation-progress-label"
+                    i18n="@@learningObjectives.derivationKeepEditorOpenShort"
+                  >
+                    Lass den Editor offen, sonst stoppt die Ableitung.
+                  </p>
+                  <details class="learning-objectives__derivation-details">
+                    <summary>{{ analysisCopy.objectivesProgressDetails }}</summary>
+                    @if (derivationPriorityPhase(); as phase) {
+                      <p>
+                        {{
+                          phase === 'waiting'
+                            ? analysisCopy.objectivesWaiting
+                            : analysisCopy.objectivesRetrying
+                        }}
+                      </p>
+                      @if (derivationBudgetMinutes(); as budget) {
+                        <p>{{ analysisCopy.remainingTime }} {{ budget }}</p>
+                        <p>{{ analysisCopy.remainingBudgetInfo }}</p>
+                      }
+                    }
+                    <p i18n="@@learningObjectives.derivationKeepEditorOpen">
+                      Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die
+                      Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der
+                      Liste.
+                    </p>
+                  </details>
                 </div>
+              } @else {
+                <p>{{ derivationMessage() }}</p>
               }
               @if (derivationLimitations().length > 0) {
                 <p i18n="@@learningObjectives.derivationLimitations">Hinweise:</p>

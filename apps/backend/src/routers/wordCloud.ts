@@ -156,7 +156,7 @@ async function enrichWordCloudSnapshot(
     throw obsolete();
   }
   const cached = await cache.getSnapshot(input, scope);
-  if (cached) return cached;
+  if (cached) return { ...cached, reuse: { snapshot: true } };
 
   const preview = await cache.getSnapshot({ ...input, topicLabels: 'preview' }, scope);
   if (!preview?.topicLabelsPending || preview.snapshotHash !== snapshotHash) throw obsolete();
@@ -215,7 +215,7 @@ async function enrichWordCloudSnapshot(
   try {
     // A completed result may have appeared between our first read and lease acquisition.
     const settled = await cache.getSnapshot(input, scope);
-    if (settled) return settled;
+    if (settled) return { ...settled, reuse: { snapshot: true } };
     if (!(await isCurrent())) throw obsolete();
     const raw = await (options.labelTopics ?? applyWordCloudTopicLabels)(input, base, {
       sessionId: scope.sessionId,
@@ -231,14 +231,21 @@ async function enrichWordCloudSnapshot(
       });
     }
     if (!(await isCurrent())) throw obsolete();
-    const result = view(raw);
+    const result = view(
+      timeout.aborted && raw.labelSettlement === 'transient'
+        ? { ...raw, labelFallbackReason: 'timeout' }
+        : raw,
+    );
     if (!timeout.aborted) await cache.setSnapshot(input, result, scope);
     // Waiters joined this lease generation. Retain valid partial labels briefly
     // without letting a later, independent request reuse a transient result.
     if (timeout.aborted || result.labelSettlement === 'transient') {
       await cache.setSnapshot(input, result, scope, owner);
     }
-    return result;
+    const { reusedLabelKeys } = getWordCloudTopicLabelTelemetry(raw);
+    return reusedLabelKeys.length
+      ? { ...result, reuse: { topicLabelKeys: [...reusedLabelKeys] } }
+      : result;
   } finally {
     if (watcher) clearInterval(watcher);
     await lease.release().catch(() => undefined);
@@ -311,7 +318,11 @@ export async function analyzeWordCloudSnapshot(
       labelModelAccepted: Boolean(cached.labelModelId),
     });
     const output = options.compactOutput?.(cached) ?? cached;
-    return { ...output, effectiveMode: getWordCloudResultDisplayMode(output) };
+    return {
+      ...output,
+      effectiveMode: getWordCloudResultDisplayMode(output),
+      reuse: output.topicLabelsPending ? { preview: true } : { snapshot: true },
+    };
   }
 
   const normalized = await normalize(effectiveInput, {
@@ -386,7 +397,9 @@ export async function analyzeWordCloudSnapshot(
     labelCacheHits: topicLabelTelemetry.labelCacheHits,
     labelCacheMisses: topicLabelTelemetry.labelCacheMisses,
   });
-  return output;
+  return topicLabelTelemetry.reusedLabelKeys.length
+    ? { ...output, reuse: { topicLabelKeys: [...topicLabelTelemetry.reusedLabelKeys] } }
+    : output;
 }
 
 function isAnalyzableWordCloudItem(item: AnalyzeWordCloudInput['items'][number]): boolean {

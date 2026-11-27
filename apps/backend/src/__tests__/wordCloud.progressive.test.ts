@@ -92,6 +92,9 @@ describe('getrennte Cluster- und Labelphase', () => {
       const base = await analyzeWordCloudSnapshot(request, options);
       expect(base.topicLabelsPending).toBe(true);
       expect(base.entries[0]?.labelOrigin).toBe('extractive');
+      expect(base.reuse).toBeUndefined();
+      const preview = await analyzeWordCloudSnapshot(request, options);
+      expect(preview.reuse).toEqual({ preview: true });
       const requestLabels = { ...request, topicLabels: { snapshotHash: base.snapshotHash } };
       let complete = () => {};
       const finish = new Promise<void>((resolve) => {
@@ -121,7 +124,13 @@ describe('getrennte Cluster- und Labelphase', () => {
       ]);
       expect(labelTopics).toHaveBeenCalledOnce();
       expect(options.encode).toHaveBeenCalledOnce();
-      if (labelSettlement === 'transient') {
+      expect(results.every(({ reuse }) => reuse === undefined)).toBe(true);
+      if (labelSettlement === 'complete') {
+        const settled = await analyzeWordCloudSnapshot(requestLabels, { ...options, labelTopics });
+        expect(settled.reuse).toEqual({ snapshot: true });
+        expect(settled.entries[0]?.labelOrigin).toBe('model');
+        expect(labelTopics).toHaveBeenCalledOnce();
+      } else {
         const independent = await analyzeWordCloudSnapshot(requestLabels, {
           ...options,
           labelTopics,

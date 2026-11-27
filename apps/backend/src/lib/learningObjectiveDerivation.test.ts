@@ -395,7 +395,30 @@ describe('learningObjectiveDerivation', () => {
     expect(run.mock.calls[1]?.[0]).toEqual(run.mock.calls[2]?.[0]);
     expect(verifyRetry).toHaveBeenCalledOnce();
     const waiting = onProgress.mock.calls.find(([snapshot]) => snapshot.waitingForModel)?.[0];
-    expect(waiting).toMatchObject({ completedGroups: 1, drafts: [expect.any(Object)] });
+    expect(waiting).toMatchObject({
+      priorityRetryPhase: 'waiting',
+      completedGroups: 1,
+      drafts: [expect.any(Object)],
+    });
+    const retryProgress = onProgress.mock.calls
+      .map(([snapshot]) => snapshot)
+      .filter((snapshot) => snapshot.priorityRetryPhase);
+    expect(retryProgress.map((snapshot) => snapshot.priorityRetryPhase)).toEqual([
+      'waiting',
+      'retrying',
+    ]);
+    expect(retryProgress[1]).toMatchObject({ waitingForModel: false, completedGroups: 1 });
+    const retrySnapshot = onProgress.mock.calls.findIndex(
+      ([snapshot]) => snapshot === retryProgress[1],
+    );
+    expect(onProgress.mock.invocationCallOrder[retrySnapshot]).toBeLessThan(
+      run.mock.invocationCallOrder[2]!,
+    );
+    expect(onProgress.mock.lastCall?.[0]).toMatchObject({
+      waitingForModel: false,
+      completedGroups: 2,
+    });
+    expect(onProgress.mock.lastCall?.[0]).not.toHaveProperty('priorityRetryPhase');
     if (result.status === 'completed') {
       expect(result.drafts.map((draft) => draft.id)).toContain(waiting.drafts[0].id);
     }
@@ -409,10 +432,12 @@ describe('learningObjectiveDerivation', () => {
         if (reason === 'aborted') controller.abort();
         return { status: 'preempted' as const };
       });
+      const onProgress = vi.fn();
       const result = await deriveLearningObjectiveDrafts(
         input([choiceQuestion(QUESTION_IDS[0], 0)]),
         {
           run,
+          onProgress,
           signal: controller.signal,
           retryAfterPreemption: true,
           overallTimeoutMs: reason === 'expired' ? 25 : 5_000,
@@ -421,6 +446,8 @@ describe('learningObjectiveDerivation', () => {
       );
       expect(run).toHaveBeenCalledOnce();
       expect(result.status).toBe(reason === 'expired' ? 'timeout' : 'aborted');
+      expect(onProgress.mock.lastCall?.[0]).toMatchObject({ waitingForModel: false });
+      expect(onProgress.mock.lastCall?.[0]).not.toHaveProperty('priorityRetryPhase');
     },
   );
 

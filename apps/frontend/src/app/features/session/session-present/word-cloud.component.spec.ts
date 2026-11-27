@@ -1,7 +1,9 @@
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DOCUMENT } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { By } from '@angular/platform-browser';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WordCloudComponent } from './word-cloud.component';
 import { getWordCloudLayoutHeight } from './word-cloud-layout';
@@ -82,6 +84,31 @@ describe('WordCloudComponent', () => {
     },
   );
 
+  it('lässt auf der Freitext-Bühne bei Zeigerauswahl den Fokus und Tooltip am Begriff', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Freitext-Analyse');
+    fixture.componentRef.setInput('responses', ['Orbit']);
+    fixture.componentRef.setInput('hideEntry', vi.fn());
+    fixture.detectChanges();
+
+    const pill = host.querySelector<HTMLButtonElement>('button.word-cloud__word')!;
+    pill.focus();
+    pill.dispatchEvent(new Event('touchstart'));
+    pill.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(host.querySelector('.word-cloud__hide-action--stage')).not.toBeNull();
+    expect(document.activeElement).toBe(pill);
+    expect(document.getElementById(pill.getAttribute('aria-describedby')!)?.textContent).toContain(
+      'Nennungen: 1',
+    );
+  });
+
   it('behält nach einer abgelehnten Änderung Auswahl und Schaltfläche für den nächsten Versuch', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     const host = fixture.nativeElement as HTMLElement;
@@ -129,6 +156,95 @@ describe('WordCloudComponent', () => {
       expect(document.activeElement).toBe(host.querySelector('h2'));
     },
   );
+
+  it('öffnet beim Auswählen oder Kompass-Sprung direkt die Originalbelege', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'semantic-a',
+        label: 'Orbit',
+        count: 2,
+        basisLabel: 'Warum halten Satelliten ihre Umlaufbahn?',
+        members: [{ sourceId: 'a', text: 'Warum halten Satelliten ihre Umlaufbahn?', weight: 2 }],
+        variants: [],
+        confidence: 0.95,
+        labelOrigin: 'model',
+      },
+      {
+        key: 'semantic-b',
+        label: 'Rotation',
+        count: 1,
+        basisLabel: 'Wie dreht sich die Erde?',
+        members: [{ sourceId: 'b', text: 'Wie dreht sich die Erde?', weight: 1 }],
+        variants: [],
+        confidence: 0.92,
+        labelOrigin: 'extractive',
+      },
+    ]);
+    fixture.detectChanges();
+
+    const analysis = host.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const evidence = analysis.querySelector<HTMLDetailsElement>('.word-cloud__responses-panel')!;
+    const trigger = analysis.querySelector('summary')!;
+    const before = fixture.componentInstance;
+    const [orbit, rotation] = Array.from(
+      host.querySelectorAll<HTMLButtonElement>('.word-cloud__word'),
+    );
+    expect(analysis.open).toBe(false);
+    expect(before.wordTooltipBlocks(before.words()[0]!).at(0)).toMatchObject({
+      kind: 'text',
+      text: expect.stringContaining('Von der lokalen KI formuliert'),
+    });
+    orbit!.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(true);
+    expect(evidence.open).toBe(true);
+    expect(evidence.textContent).toContain('Warum halten Satelliten ihre Umlaufbahn?');
+    trigger.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(false);
+    orbit!.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(false);
+    expect(orbit!.getAttribute('aria-pressed')).toBe('false');
+
+    fixture.componentRef.setInput('focusedGroupKey', 'semantic-b');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(analysis.open).toBe(true);
+    expect(evidence.textContent).toContain('Wie dreht sich die Erde?');
+    expect(rotation!.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('führt den Fokus nach Ausblenden aus der Freitext-Analyse zum Akkordeon', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('responses', ['Orbit']);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Freitext-Analyse');
+    fixture.componentRef.setInput('hideEntry', async (label: string) => {
+      fixture.componentRef.setInput('hiddenLabels', [label]);
+    });
+    fixture.detectChanges();
+
+    const summary = host.querySelector<HTMLElement>('.word-cloud__analysis-disclosure summary')!;
+    summary.click();
+    host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+    fixture.detectChanges();
+
+    const hide = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+    hide.focus();
+    hide.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(host.querySelector('.word-cloud__word')).toBeNull();
+    expect(document.activeElement).toBe(summary);
+  });
 
   it('zeigt Kontext-Pills neben den Zaehlern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
@@ -681,6 +797,50 @@ describe('WordCloudComponent', () => {
     );
   });
 
+  it('rendert die Hilfe zur Textauswertung als Material-Icon-Button', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisInfo', { mode: 'SEMANTIC', result: null });
+    fixture.detectChanges();
+
+    const help = fixture.debugElement.query(By.directive(MatIconButton));
+    expect(help).not.toBeNull();
+    expect(help.nativeElement.getAttribute('aria-label')).toBe('Details zur Textauswertung');
+    expect(help.nativeElement.getAttribute('aria-haspopup')).toBe('dialog');
+  });
+
+  it('erklärt alle drei Modi vor der Moduswahl und den Themenprozess auf der ersten Detailebene', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisInfo', { mode: 'LEXICAL', result: null });
+    fixture.detectChanges();
+    const help = fixture.debugElement.query(By.directive(MatIconButton)).nativeElement;
+    help.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const dialog = document.querySelector('app-text-analysis-help-dialog')!;
+    const modeHelp = dialog.querySelector('details')!;
+    expect(modeHelp.querySelector('summary')?.textContent).toBe('Wörter, Wortgruppen und Themen');
+    expect([...modeHelp.querySelectorAll('dt')].map((term) => term.textContent)).toEqual([
+      'Wörter',
+      'Wortgruppen',
+      'Themen',
+    ]);
+    TestBed.inject(MatDialog).closeAll();
+    fixture.componentRef.setInput('analysisInfo', { mode: 'SEMANTIC', result: null });
+    fixture.detectChanges();
+    help.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const dialogs = document.querySelectorAll('app-text-analysis-help-dialog');
+    const topics = dialogs[dialogs.length - 1]!;
+    expect(topics.querySelector('mat-dialog-content > p')?.textContent).toContain(
+      'Entdecke gemeinsame Themen',
+    );
+    expect(topics.querySelector('mat-dialog-content > p:nth-child(2)')?.textContent).toContain(
+      'Die Gruppen bleiben dabei unverändert.',
+    );
+    TestBed.inject(MatDialog).closeAll();
+  });
+
   it('zeigt standardmäßig nur den Gewichtungshinweis für bessere Orientierung', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation', 'Teamarbeit']);
@@ -858,6 +1018,217 @@ describe('WordCloudComponent', () => {
     expect(words[0]?.rank).toBeGreaterThan(words[2]!.rank);
     expect(words[4]?.rank).toBeGreaterThan(words[3]!.rank);
   });
+
+  it('zeigt in der schmalen Analyseansicht die wichtigsten Begriffe zuerst', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('responses', ['Alpha Beta Gamma', 'Alpha Beta', 'Alpha']);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.displayWords().map(({ rank }) => rank)).toEqual([0, 1, 2]);
+  });
+
+  it('positioniert die gemessenen Material-Buttons und erhält den Fokus beim Layoutwechsel', async () => {
+    const stageWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(820);
+    const pillWidth = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(112);
+    const pillHeight = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(44);
+    try {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      fixture.componentRef.setInput('presentationMode', true);
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+      fixture.componentRef.setInput('responses', ['Alpha Beta Gamma', 'Alpha Beta', 'Alpha']);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const pill = fixture.nativeElement.querySelector(
+        'button.word-cloud__word',
+      ) as HTMLButtonElement;
+      expect(pill.classList.contains('word-cloud__word--packed-analysis')).toBe(true);
+      expect(Number.parseFloat(pill.style.left)).toBeGreaterThan(300);
+      pill.focus();
+
+      stageWidth.mockReturnValue(320);
+      Reflect.get(fixture.componentInstance, 'stageWidth').set(320);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(pill.classList.contains('word-cloud__word--packed-analysis')).toBe(false);
+      expect(pill.style.left).toBe('');
+      expect(document.activeElement).toBe(pill);
+    } finally {
+      stageWidth.mockRestore();
+      pillWidth.mockRestore();
+      pillHeight.mockRestore();
+    }
+  });
+
+  it('behält im gepackten Presenter passende Positionen bei Namens- und Rangwechseln', async () => {
+    let width = 1200;
+    vi.spyOn(Element.prototype, 'clientWidth', 'get').mockImplementation(() => width);
+    vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(600);
+    const widths = new Map([
+      ['Originaler Gruppenname', 299],
+      ['Kurz', 199],
+      ['Viel längerer Gruppenname', 499],
+      ['Varianz', 199],
+      ['Konfidenz', 174],
+      ['Auswertung', 139],
+      ['Median', 159],
+    ]);
+    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      return widths.get(this.textContent?.trim() ?? '') ?? 100;
+    });
+    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.textContent?.includes('Viel längerer Gruppenname')) return 179;
+      return this.textContent?.includes('Gruppenname') || this.textContent?.includes('Kurz')
+        ? 79
+        : 59;
+    });
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('presentationMode', true);
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('selectionScopeKey', 'quiz-question-1');
+
+    const labels = ['Originaler Gruppenname', 'Varianz', 'Konfidenz', 'Auswertung', 'Median'];
+    const entries = labels.map((label, index) => ({
+      key: `semantic-${index}`,
+      label,
+      count: 10 - index,
+      variants: [],
+      basisLabel: null,
+      confidence: 0.95,
+      members: [],
+    }));
+    const render = async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+    const position = (label: string) => {
+      const root = fixture.nativeElement as HTMLElement;
+      const pill = [
+        ...root.querySelectorAll<HTMLElement>('.word-cloud__word--packed-analysis'),
+      ].find((element) => element.textContent?.trim() === label)!;
+      return [pill.style.left, pill.style.top];
+    };
+
+    fixture.componentRef.setInput('analysisEntries', entries);
+    await render();
+    const unchanged = labels.slice(1).map(position);
+    const original = position(labels[0]!);
+    const shortened = { ...entries[0]!, label: 'Kurz', labelOrigin: 'model' as const };
+    fixture.componentRef.setInput('analysisEntries', [shortened, ...entries.slice(1)]);
+    await render();
+    expect(labels.slice(1).map(position)).toEqual(unchanged);
+    expect(parseFloat(position('Kurz')[0]!) - parseFloat(original[0]!)).toBe(50);
+
+    fixture.componentRef.setInput('analysisEntries', [
+      { ...shortened, label: 'Viel längerer Gruppenname' },
+      ...entries.slice(1),
+    ]);
+    await render();
+    expect(labels.slice(1).map(position)).toEqual(unchanged);
+    expect(parseFloat(position('Viel längerer Gruppenname')[1]!)).not.toBe(
+      parseFloat(original[1]!) - 50,
+    );
+
+    const reranked = [{ ...entries[4]!, count: 16 }, shortened, ...entries.slice(1, 4)];
+    fixture.componentRef.setInput('analysisEntries', reranked);
+    await render();
+    expect(labels.slice(1).map(position)).toEqual(unchanged);
+
+    fixture.componentRef.setInput('selectionScopeKey', 'quiz-question-2');
+    await render();
+    expect(parseFloat(position('Median')[0]!)).toBe((width - 160) / 2);
+
+    width = 1000;
+    Reflect.get(fixture.componentInstance, 'stageWidth').set(width);
+    await render();
+    expect(parseFloat(position('Median')[0]!)).toBe((width - 160) / 2);
+  });
+
+  it.each(['qa', 'default'] as const)(
+    'rendert Einzelwerte auf der %s-Projektion per Maus und Touch',
+    async (analysisMode) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      fixture.componentRef.setInput('presentationMode', true);
+      fixture.componentRef.setInput('outputOnly', true);
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('analysisDisclosureLabel', 'Analyse');
+      fixture.componentRef.setInput('analysisMode', analysisMode);
+      fixture.componentRef.setInput('itemCount', 5);
+      if (analysisMode === 'qa')
+        fixture.componentRef.setInput('tooltipMetricLabel', 'Stimmensaldo');
+      const cases = [
+        { label: 'Orbit', topic: false, origin: undefined, provenance: null },
+        { label: 'Lineare Regression', topic: false, origin: undefined, provenance: null },
+        {
+          label: 'Umlaufbahnen',
+          topic: true,
+          origin: 'model',
+          provenance: 'Von der lokalen KI formuliert',
+        },
+        {
+          label: 'Bedeutung der Umlaufbahn',
+          topic: true,
+          origin: 'extractive',
+          provenance: 'Aus einem Originalbeitrag',
+        },
+        {
+          label: 'Orbit im Altbestand',
+          topic: true,
+          origin: undefined,
+          provenance: 'Herkunft des Themennamens unbekannt',
+        },
+      ] as const;
+      const root = fixture.nativeElement as HTMLElement;
+      for (const { label, topic, origin, provenance } of cases) {
+        fixture.componentRef.setInput('semanticTopics', topic);
+        fixture.componentRef.setInput('labelModelId', 'internes Namensmodell');
+        fixture.componentRef.setInput('labelPromptVersion', 'interne Promptversion');
+        fixture.componentRef.setInput('analysisEntries', [
+          {
+            key: 'stable-topic-key',
+            label,
+            labelOrigin: origin,
+            count: 9,
+            variants: [],
+            basisLabel: 'Interner Originalbeleg',
+            members: [{ sourceId: 'response-1', text: 'Interner Originalbeleg', weight: 1 }],
+          },
+        ]);
+        fixture.detectChanges();
+        const pill = root.querySelector<HTMLElement>('span.word-cloud__word--output')!;
+        for (const event of ['mouseenter', 'touchstart']) {
+          pill.dispatchEvent(new Event(event));
+          const tooltip = document.getElementById(pill.getAttribute('aria-describedby')!)!;
+          const text = tooltip.textContent!;
+          expect(tooltip.getAttribute('role')).toBe('tooltip');
+          expect(text).toContain(analysisMode === 'qa' ? 'Größenwert: 9' : 'Nennungen: 9');
+          if (analysisMode === 'qa') {
+            expect(text).toContain('In 1 von 5 analysierten Fragen');
+            expect(text).toContain('Gewichtung: Stimmensaldo');
+          }
+          if (provenance) expect(text).toContain(provenance);
+          else expect(text).not.toContain('Themenname');
+          expect(text).not.toMatch(/interne[rs]? (Originalbeleg|Namensmodell|Promptversion)/i);
+          document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+        }
+        expect(root.textContent).not.toContain('Interner Originalbeleg');
+      }
+    },
+  );
 
   it('begrenzt die D3-Buehnenhoehe im mobilen Vollbild ohne gemessene Rahmenhoehe', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
@@ -1931,6 +2302,25 @@ describe('WordCloudComponent', () => {
     fixture.componentRef.setInput('labelPromptVersion', 'topic-label-system-v1');
     fixture.componentRef.setInput('analysisEntries', [
       {
+        key: 'semantic-1-extractive',
+        label: 'Originalfrage',
+        count: 2,
+        basisLabel: 'Originalfrage',
+        members: [{ sourceId: 'question-3', text: 'Originalfrage', weight: 2 }],
+        variants: [],
+        confidence: 0.81,
+        labelOrigin: 'extractive',
+      },
+      {
+        key: 'semantic-2-legacy',
+        label: 'Älteres Ergebnis',
+        count: 1,
+        basisLabel: null,
+        members: [{ sourceId: 'question-4', text: 'Älteres Ergebnis', weight: 1 }],
+        variants: [],
+        confidence: 0.72,
+      },
+      {
         key: 'semantic-0',
         label: 'Kommt Kapitel 4 in die Klausur?',
         count: 6,
@@ -1955,8 +2345,26 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
-    const tooltip = component.wordTooltipDisplay(component.words()[0]!);
-    expect(tooltip).toContain('Modell: intfloat/multilingual-e5-small@sha256:testdigest');
+    component.setConfidenceFilter('all');
+    fixture.detectChanges();
+    const generated = component.words().find(({ groupKey }) => groupKey === 'semantic-0')!;
+    const extractive = component
+      .words()
+      .find(({ groupKey }) => groupKey === 'semantic-1-extractive')!;
+    const tooltip = component.wordTooltipDisplay(generated);
+    const original = component
+      .wordTooltipBlocks(extractive)
+      .map((block) => (block.kind === 'text' ? block.text : ''))
+      .join(' ');
+    expect(original).toContain('Aus einem Originalbeitrag');
+    expect(original).not.toContain('test-label-model');
+    expect(tooltip).toContain('Themenbildung · intfloat/multilingual-e5-small@sha256:testdigest');
+    expect(tooltip).toContain('Beiträge nach ähnlicher Bedeutung gruppiert');
+    expect(tooltip).toContain('Themenname · Von der lokalen KI formuliert');
+    expect(tooltip.indexOf('Von der lokalen KI formuliert')).toBeLessThan(
+      tooltip.indexOf('intfloat/multilingual-e5-small'),
+    );
+    expect(tooltip).toContain('Themenname · test-label-model');
     expect(tooltip).toContain('Ist Kapitel 4 klausurrelevant?');
 
     const downloadSpy = vi
@@ -1975,6 +2383,14 @@ describe('WordCloudComponent', () => {
     expect(csv).toContain(
       '"model","test-label-model","test-label-model-version","topic-label-system-v1"',
     );
+    expect(csv).toContain('"extractive","","",""');
+    expect(csv).toContain('"unknown","","",""');
+
+    fixture.componentRef.setInput('outputOnly', true);
+    fixture.detectChanges();
+    const stage = component.wordTooltip(generated);
+    expect(stage).toContain('Von der lokalen KI formuliert');
+    expect(stage).not.toContain('test-label-model');
   });
 
   it('exportiert PNG mit erfolgreichem Status statt schwarzem Leerbild', async () => {
