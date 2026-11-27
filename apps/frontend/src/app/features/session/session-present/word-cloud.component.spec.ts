@@ -1,7 +1,9 @@
 import { LOCALE_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DOCUMENT } from '@angular/common';
+import { MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { By } from '@angular/platform-browser';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WordCloudComponent } from './word-cloud.component';
 import { getWordCloudLayoutHeight } from './word-cloud-layout';
@@ -679,6 +681,17 @@ describe('WordCloudComponent', () => {
     expect(fixture.nativeElement.classList.contains('word-cloud-host--responses-expanded')).toBe(
       false,
     );
+  });
+
+  it('rendert die Hilfe zur Textauswertung als Material-Icon-Button', () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    fixture.componentRef.setInput('analysisInfo', { mode: 'SEMANTIC', result: null });
+    fixture.detectChanges();
+
+    const help = fixture.debugElement.query(By.directive(MatIconButton));
+    expect(help).not.toBeNull();
+    expect(help.nativeElement.getAttribute('aria-label')).toBe('Details zur Textauswertung');
+    expect(help.nativeElement.getAttribute('aria-haspopup')).toBe('dialog');
   });
 
   it('zeigt standardmäßig nur den Gewichtungshinweis für bessere Orientierung', () => {

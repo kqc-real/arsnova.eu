@@ -15,7 +15,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import {
   MatCard,
   MatCardContent,
@@ -168,6 +168,7 @@ interface RoundedRectStyle {
     MatCardSubtitle,
     MatCardTitle,
     MatIcon,
+    MatIconButton,
     WordCloudMarkdownTooltipDirective,
   ],
   templateUrl: './word-cloud.component.html',
