@@ -200,6 +200,12 @@
                   @if (!derivationPriorityPhase() && derivationRemainingEstimate(); as remaining) {
                     <p class="learning-objectives__derivation-progress-label">{{ remaining }}</p>
                   }
+                  <p
+                    class="learning-objectives__derivation-progress-label"
+                    i18n="@@learningObjectives.derivationKeepEditorOpenShort"
+                  >
+                    Lass den Editor offen, sonst stoppt die Ableitung.
+                  </p>
                   <details class="learning-objectives__derivation-details">
                     <summary>{{ analysisCopy.objectivesProgressDetails }}</summary>
                     @if (derivationPriorityPhase(); as phase) {

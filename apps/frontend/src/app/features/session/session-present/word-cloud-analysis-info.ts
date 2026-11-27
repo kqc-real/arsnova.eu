@@ -171,7 +171,12 @@ export function wordCloudAnalysisInfo(
       ? (outcome ?? statusLines[0]?.short)
       : (statusLines[0]?.short ?? outcome ?? phraseFallbackHint);
   return {
-    status: topicState?.progress ? null : (compactStatus ?? null),
+    status:
+      topicState?.progress === 'refreshing'
+        ? wordCloudTopicProgressLabel(true)
+        : topicState?.progress === 'searching'
+          ? null
+          : (compactStatus ?? null),
     description,
     process: mode === 'SEMANTIC' ? copy.topicProcess : null,
     details,

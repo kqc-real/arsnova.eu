@@ -1156,7 +1156,7 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Live-Freitext');
+    expect(text).toContain('Freitext-Analyse');
     expect(text).toContain('Frage 2: Was war hilfreich?');
     expect(text).toContain('Wortgruppen');
     expect(text).toContain('Anzeige anhalten');
@@ -1167,7 +1167,12 @@ describe('SessionPresentComponent', () => {
       '.session-present__word-cloud-view-hint',
     ) as HTMLElement;
     expect(viewHint).toBeTruthy();
-    expect(viewHint.closest('details')).toBeNull();
+    const analysis = viewHint.closest('details');
+    expect(analysis?.open).toBe(false);
+    expect(analysis?.querySelector('summary')?.textContent).toContain('Freitext-Analyse');
+    expect(
+      fixture.nativeElement.querySelector('.word-cloud__visual--wrapped-presentation'),
+    ).not.toBeNull();
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-freetext-word-cloud-words"]'),
     ).toBeTruthy();
@@ -1420,7 +1425,7 @@ describe('SessionPresentComponent', () => {
       'Das Bündeln nach Grundform ist hier nicht verfügbar. Du kannst die Wortwolke weiterhin nutzen.',
     );
     const smoothingFeedback = fixture.nativeElement.querySelector(
-      '.session-present__word-cloud-options .session-present__word-cloud-toolbar-status',
+      '.word-cloud__analysis-disclosure .session-present__word-cloud-toolbar-status',
     ) as HTMLElement | null;
     expect(smoothingFeedback?.textContent).toContain(
       'Das Bündeln nach Grundform ist hier nicht verfügbar.',
@@ -1938,7 +1943,7 @@ describe('SessionPresentComponent', () => {
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Was war hilfreich?');
     expect(text).toContain('Freitextantwort');
-    expect(text).not.toContain('Live-Freitext');
+    expect(text).not.toContain('Freitext-Analyse');
     expect(
       fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]'),
     ).toBeTruthy();
@@ -1948,7 +1953,7 @@ describe('SessionPresentComponent', () => {
     );
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Live-Freitext');
+    expect(fixture.nativeElement.textContent).toContain('Freitext-Analyse');
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
 
     const questionId = '7ed3cc25-3179-4a91-9dc3-acc00971fb46';
@@ -2041,7 +2046,7 @@ describe('SessionPresentComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
-    expect(text).toContain('Live-Freitext');
+    expect(text).toContain('Freitext-Analyse');
     expect(text).toContain('Frage 2: Was war hilfreich?');
     expect(fixture.nativeElement.querySelector('[data-testid="presenter-quiz-stage"]')).toBeNull();
     fixture.destroy();
@@ -4534,7 +4539,7 @@ describe('SessionPresentComponent', () => {
     expect(fixture.componentInstance.showPresenterFreetextResultsStage()).toBe(false);
     expect(text).toContain('Q&A-Wortwolke');
     expect(text).not.toContain('Noch keine Freitext-Antworten vorhanden.');
-    expect(text).not.toContain('Live-Freitext');
+    expect(text).not.toContain('Freitext-Analyse');
     fixture.destroy();
   });
 
@@ -4697,6 +4702,15 @@ describe('SessionPresentComponent', () => {
     await new Promise((r) => setTimeout(r, 50));
     fixture.detectChanges();
 
+    const cloud = fixture.nativeElement.querySelector(
+      '.session-present__word-cloud-card',
+    ) as HTMLElement;
+    const analysis = cloud.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure');
+    expect(analysis?.querySelector('summary')?.textContent).toContain('Q&A-Analyse');
+    expect(analysis?.open).toBe(false);
+    expect(cloud.querySelector('.word-cloud__visual--wrapped-presentation')).not.toBeNull();
+    expect(cloud.querySelector('.word-cloud__responses-panel')).toBeNull();
+    expect(cloud.querySelector('.word-cloud__actions')).toBeNull();
     const pills = [...fixture.nativeElement.querySelectorAll('.word-cloud__meta-pill')].map((el) =>
       (el.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );

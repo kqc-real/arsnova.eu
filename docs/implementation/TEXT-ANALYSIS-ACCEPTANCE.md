@@ -71,3 +71,17 @@ Die Q&A-Wortwolke legt breite Ansichten vom stärksten Begriff nach außen. Sie 
 
 - [Wolkenform auf dem Desktop](../screenshots/text-analysis-acceptance/qa-cloud-organic-desktop.webp)
 - [Dichte Wolke mit 80 Begriffen](../screenshots/text-analysis-acceptance/qa-cloud-organic-dense.webp)
+
+## Freitext, Q&A und Presenter nach dem UX-Re-Review
+
+Die Freitext-Wortwolke im Host verwendet dieselbe organische Anordnung wie Q&A. **Freitext-Analyse** ist in der eingebetteten und maximierten Ansicht standardmäßig geschlossen. In beiden Host-Wolken bleiben der kompakte Status und die Hilfe sichtbar. Der Klick, die Tastaturauswahl und der Kompass-Einstieg öffnen die Belege des Begriffs. Die Presenter-Ansichten von Quiz und Q&A verwenden dieselbe Wolkenanordnung und bündeln ihre jeweils verfügbaren Angaben im Akkordeon.
+
+Die finale Browserprüfung verwendet lokale Sitzungen und kontrollierte Analyseantworten. 19 Chromium-Fälle für Q&A und 14 für Freitext prüfen den Reflow in fünf Sprachen, darunter Breiten ab 320 CSS-Pixeln sowie Stichproben mit 150 Prozent Schriftgröße. Geprüft wurden die Themenansicht bei geschlossenem Akkordeon, Herkunft, ausstehende Analyse, Bedienung per Touch und Tastatur, Originalbelege, Rückfokus, Hilfe und CSV-/PNG-Downloads. Der geöffnete Q&A-Bereich wurde im hellen Seriös-Design auch mit axe geprüft. Acht Presenter-Fälle prüfen die geschlossenen Akkordeons und den Zugriff auf die Projektionsangaben. Die Desktop-Prüfung für Q&A vergleicht überlappende Kapselränder mit den Textrechtecken.
+
+| Ansicht       | Geschlossen                                                                                                                                                            | Originalbelege                                                                                                |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Freitext-Host | [Themen mit kompaktem Status](../screenshots/text-analysis-acceptance/freitext-review-themen-geschlossen.webp)                                                         | [Analyse des ausgewählten Themas](../screenshots/text-analysis-acceptance/freitext-review-themen-belege.webp) |
+| Q&A-Host      | [Themen mit kompaktem Status](../screenshots/text-analysis-acceptance/qa-review-themen-geschlossen.webp)                                                               | [Analyse des ausgewählten Themas](../screenshots/text-analysis-acceptance/qa-review-themen-belege.webp)       |
+| Presenter     | [Quiz-Freitext](../screenshots/text-analysis-acceptance/presenter-freitext-organisch.webp), [Q&A](../screenshots/text-analysis-acceptance/presenter-qa-organisch.webp) |                                                                                                               |
+
+Im Quiz-Editor war die kurze Warnung vor dem Schließen in 15 weiteren Chromium-Fällen sichtbar. Die Prüfung erfasst die Warte- und Retryphase, das geschlossene Budgetdetail, erhaltene Entwürfe und den Fokus beim Abbrechen in allen fünf Sprachen.

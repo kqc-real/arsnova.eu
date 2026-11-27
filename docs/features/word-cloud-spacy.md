@@ -30,7 +30,7 @@ Nicht in der Host-UI: `spaCy`, `NLP`, `Lemma`, `Lemmatisierung`. Modell- und Ver
 
 ## Host-Verhalten
 
-Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung. **Beim Anzeigen** der Wolke startet die Glättung von selbst (**Nach Grundform gebündelt**), wenn eine Wolkensprache existiert; der Host kann sie wieder ausschalten. Schlägt dieser automatische Lauf fehl, bleibt die Wortwolke ohne technischen Hinweis nutzbar. Erst nach einer ausdrücklich ausgelösten Bündelung erscheint die Rückmeldung direkt unter der Aktion in **Weitere Optionen**, nicht über der Wortwolke.
+Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine automatische Runde bei jeder neuen Antwort, Frage oder Abstimmung. **Beim Anzeigen** der Wolke startet die Glättung von selbst (**Nach Grundform gebündelt**), wenn eine Wolkensprache existiert; der Host kann sie wieder ausschalten. Schlägt dieser automatische Lauf fehl, bleibt die Wortwolke ohne technischen Hinweis nutzbar. Erst nach einer ausdrücklich ausgelösten Bündelung erscheint die Rückmeldung im Host direkt unter der Aktion im jeweiligen Analyse-Akkordeon.
 
 | Kanal    | Vollansicht                                          | Ansichtsachsen                                                                             | Glättung                                                                                                                                                    |
 | -------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -39,7 +39,7 @@ Nur der Host löst die Analyse aus. Es gibt keinen Participant-Toggle und keine 
 
 Der Presenter übernimmt die Host-Projektion als Ausgangszustand. Seine Werkzeugleiste kann Ansicht, Sprache und Grundform-Bündelung für die Projektion lokal überschreiben; diese Auswahl bleibt bestehen, wenn der Host später erneut projiziert. Der Host behält davon unabhängig seine eigene Steueransicht.
 
-Die **Wolkensprache** steht in Q&A unter **Q&A-Analyse** und bei Freitext unter **Weitere Optionen**. Dort steht in den Ansichten **Wörter** und **Wortgruppen** auch **Nach Grundform bündeln**. Sie ist unabhängig von Quiz und Participant-Browser. Standard ist die Host-UI-Sprache (`de`, `en`, `fr`, `es`, `it`). Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
+Die **Wolkensprache** steht im Host unter **Q&A-Analyse** beziehungsweise **Freitext-Analyse**. Dort steht in den Ansichten **Wörter** und **Wortgruppen** auch **Nach Grundform bündeln**. Sie ist unabhängig von Quiz und Participant-Browser. Standard ist die Host-UI-Sprache (`de`, `en`, `fr`, `es`, `it`). Ein Wechsel bei aktiver Glättung analysiert denselben Snapshot mit dem neuen Modell neu. Die Wahl gilt für die Session (Freitext und Q&A) und bleibt im `sessionStorage` des Tabs.
 
 In der Q&A-Wolke steht **Größe nach:** (Geteilte Stimmen / Klare Zustimmung / Stimmensaldo / Vorkommen in Fragen) als kompaktes Menü neben der Ansicht; **Einfrieren** ist ein Icon. **Themen aktualisieren** erscheint nur, wenn die Themenanalyse veraltet ist.
 

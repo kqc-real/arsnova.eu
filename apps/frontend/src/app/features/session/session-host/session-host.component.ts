@@ -827,6 +827,12 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   @ViewChild('moderationCompassButton') moderationCompassButtonRef?: ElementRef<HTMLButtonElement>;
   @ViewChild('exitAnchor') private exitAnchorRef?: ElementRef<HTMLElement>;
   @ViewChild('freetextWordCloud') freetextWordCloud?: WordCloudComponent;
+  @ViewChild('freetextWordCloudSummary')
+  private freetextWordCloudSummaryRef?: ElementRef<HTMLElement>;
+  @ViewChild('freetextWordCloudMaximize', { read: ElementRef })
+  private freetextWordCloudMaximizeRef?: ElementRef<HTMLButtonElement>;
+  @ViewChild('freetextWordCloudClose', { read: ElementRef })
+  private freetextWordCloudCloseRef?: ElementRef<HTMLButtonElement>;
   @ViewChildren('lobbyTeamCard') lobbyTeamCardRefs?: QueryList<ElementRef<HTMLElement>>;
   readonly qaHighlightedQuestionIds = signal<Set<string>>(new Set());
   readonly qaCompassFocusQuestionId = signal<string | null>(null);
@@ -1090,7 +1096,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     return `${value}%`;
   }
 
-  readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
+  readonly freetextWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.freetextAnalysis:Freitext-Analyse`;
   readonly qaWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
   private readonly wordCloudSemanticWaitMomentHint = $localize`:@@sessionQa.wordCloudSemanticWaitMoment:Das kann einen Moment dauern.`;
   private readonly wordCloudSemanticWaitMinuteQuestionsHint = $localize`:@@sessionQa.wordCloudSemanticWaitMinute:Bei vielen Fragen kann das eine Minute dauern.`;
@@ -5385,19 +5391,43 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   }
 
   readonly maximizeFreetextWordCloud = (): void => {
+    const wasMaximized = this.freetextWordCloudMaximized();
     this.wordCloudExpanded.set(true);
     this.freetextWordCloudMaximized.set(true);
     this.document.documentElement.style.removeProperty('--session-host-word-cloud-overlay-top');
     void this.activatePresenterSurface('freetextWordCloud', 'quiz');
     this.ensureFreetextWordCloudSemanticAnalysis();
+    if (!wasMaximized) {
+      afterNextRender(
+        () => {
+          const close = this.freetextWordCloudCloseRef?.nativeElement;
+          if (this.freetextWordCloudMaximized() && close?.getClientRects().length) {
+            close.focus();
+          }
+        },
+        { injector: this.injector },
+      );
+    }
   };
 
-  closeFreetextWordCloudMaximize(): void {
+  closeFreetextWordCloudMaximize(restoreFocus = false): void {
     this.freetextWordCloudMaximized.set(false);
     void this.syncPresenterSurface('default');
     this.clearWordCloudOverlayTop();
     this.wordCloudExpanded.set(true);
     this.freetextWordCloud?.revealFocusedOrSelectedResponses();
+    if (restoreFocus) {
+      afterNextRender(
+        () => {
+          if (this.freetextWordCloudMaximized()) return;
+          const maximize = this.freetextWordCloudMaximizeRef?.nativeElement;
+          const summary = this.freetextWordCloudSummaryRef?.nativeElement;
+          const target = maximize?.getClientRects().length ? maximize : summary;
+          if (target?.getClientRects().length) target.focus();
+        },
+        { injector: this.injector },
+      );
+    }
   }
 
   private closeOpenWordCloudOverlays(keepProjection = false): void {
@@ -5829,7 +5859,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.freetextWordCloudMaximized()) {
-      this.closeFreetextWordCloudMaximize();
+      this.closeFreetextWordCloudMaximize(true);
       ev.preventDefault();
       return;
     }

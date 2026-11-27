@@ -200,6 +200,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     read: ElementRef,
   });
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
+  private readonly analysisSummary = viewChild<ElementRef<HTMLElement>>('analysisSummary');
+  private readonly analysisDisclosure =
+    viewChild<ElementRef<HTMLDetailsElement>>('analysisDisclosure');
+  private readonly responsesSummary = viewChild<ElementRef<HTMLElement>>('responsesSummary');
   private readonly hideWordButton = viewChild('hideWordButton', {
     read: ElementRef,
   });
@@ -976,7 +980,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     afterRenderEffect({
       read: (onCleanup) => {
         const width = this.stageWidth();
-        if (!this.analysisDisclosureLabel() || width < MOBILE_WORD_CLOUD_BREAKPOINT) {
+        if (
+          !this.analysisDisclosureLabel() ||
+          !this.disableCloudLayout() ||
+          width < MOBILE_WORD_CLOUD_BREAKPOINT
+        ) {
           this.analysisPacking.set(null);
           return;
         }
@@ -1126,17 +1134,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         return;
       }
 
-      if (selected === match.groupKey) {
-        this.appliedFocusIdentity = focusIdentity;
-        return;
-      }
-
-      if (this.appliedFocusIdentity === focusIdentity && selected) {
+      if (
+        this.appliedFocusIdentity === focusIdentity &&
+        (selected || this.analysisDisclosureLabel())
+      ) {
         return;
       }
 
       this.selectedGroupKey.set(match.groupKey);
       this.appliedFocusIdentity = focusIdentity;
+      if (this.analysisDisclosureLabel() && this.showResponsesPanel() && !this.outputOnly()) {
+        this.revealSelectedResponses(true);
+      }
     });
 
     effect(() => {
@@ -1235,8 +1244,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   toggleWord(groupKey: string, event?: Event): void {
     if (this.visibilityPending()) return;
-    this.selectedGroupKey.update((current) => (current === groupKey ? null : groupKey));
-    if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses();
+    if (this.selectedGroupKey() === groupKey) {
+      this.clearWordSelection();
+      return;
+    }
+    this.selectedGroupKey.set(groupKey);
+    if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses(true);
     if (this.outputOnly() && this.hideEntry() && this.selectedGroupKey() && event) {
       const trigger = event.currentTarget;
       const wasFocused = this.document.activeElement === trigger;
@@ -1257,7 +1270,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   private clearWordSelection(): void {
     if (this.document.activeElement === this.hideWordButton()?.nativeElement) {
-      this.heading()?.nativeElement.focus();
+      (this.analysisSummary() ?? this.heading())?.nativeElement.focus();
     }
     this.selectedGroupKey.set(null);
     this.showResponses.set(false);
@@ -1278,7 +1291,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         this.document.activeElement === button ||
         (wasFocused && this.document.activeElement === this.document.body)
       ) {
-        this.heading()?.nativeElement.focus();
+        (this.analysisSummary() ?? this.heading())?.nativeElement.focus();
       }
       this.clearWordSelection();
       this.visibilityFeedback.set('hidden');
@@ -1380,13 +1393,24 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.showResponses.update((value) => !value);
   }
 
-  revealSelectedResponses(): boolean {
-    if (!this.selectedGroupKey()) {
-      return false;
-    }
+  revealSelectedResponses(openAnalysis = false): boolean {
+    const selected = this.selectedGroupKey();
+    if (!selected) return false;
 
     this.showResponses.set(true);
     this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
+    if (openAnalysis && this.analysisDisclosureLabel()) {
+      afterNextRender(
+        () => {
+          const disclosure = this.analysisDisclosure()?.nativeElement;
+          if (!disclosure || this.selectedGroupKey() !== selected || !this.showResponses()) return;
+          disclosure.open = true;
+          const target = this.responsesSummary()?.nativeElement;
+          if (target?.getClientRects().length) target.focus();
+        },
+        { injector: this.injector },
+      );
+    }
     return true;
   }
 
@@ -1469,6 +1493,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   wordTooltipBlocks(entry: CloudWord): readonly WordCloudTooltipBlock[] {
+    if (this.analysisDisclosureLabel()) {
+      const provenance = this.topicProvenance(entry);
+      if (!provenance.length) return [];
+      const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
+      const lines = [...provenance, sourceCount ?? this.tooltipValueLine(entry.count)];
+      return [{ kind: 'text', text: lines.join('\n') }];
+    }
     const blocks: WordCloudTooltipBlock[] = [];
     const meta = [this.tooltipValueLine(entry.count)];
     const sourceCountLine = this.tooltipSourceCountLine(entry.sourceCount);
@@ -1917,7 +1948,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private resolveFontSizeRange(wordCount: number): { min: number; max: number } {
-    if (this.outputOnly()) return { min: 30, max: 80 };
+    if (this.outputOnly()) {
+      if (!this.disableCloudLayout()) return { min: 30, max: 80 };
+      const width = this.stageWidth();
+      return { min: 30, max: width > 0 && width < MOBILE_WORD_CLOUD_BREAKPOINT ? 42 : 56 };
+    }
     if (!this.presentationMode()) {
       return { min: 14, max: 48 };
     }

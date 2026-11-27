@@ -760,6 +760,10 @@ describe('QuizLearningObjectivesComponent', () => {
     const details = card.querySelector('details')!;
     const progressBar = card.querySelector('mat-progress-bar');
     expect(details.open).toBe(false);
+    const warning = [...card.querySelectorAll('p')].find((paragraph) =>
+      paragraph.textContent?.includes('Lass den Editor offen, sonst stoppt die Ableitung.'),
+    );
+    expect(warning?.closest('details')).toBeNull();
     expect(details.textContent).toContain('Das Restbudget ist die verbleibende Laufzeitgrenze');
     expect(details.textContent).toContain(
       'Schließe den Editor nicht, solange die Erstellung läuft.',

@@ -948,17 +948,26 @@
   padding: clamp(0.5rem, 1.5vh, 1rem) 0;
 }
 
-.word-cloud--with-analysis-disclosure .word-cloud__visual--wrapped-presentation {
-  box-sizing: border-box;
-  align-content: safe center;
-  align-items: center;
-  min-height: var(--word-cloud-stage-height, 100%);
+:host(.word-cloud-host--output) {
+  --word-cloud-pill-max-width: 36rem;
+}
 
-  .word-cloud__word {
-    inline-size: max-content;
-    max-inline-size: min(100%, 28rem);
-    padding-block: max(12px, clamp(0.5rem, 0.32em, 0.9rem));
-    padding-inline: max(12px, 1rem);
+.word-cloud--with-analysis-disclosure {
+  .word-cloud__visual {
+    box-sizing: border-box;
+    align-content: safe center;
+    align-items: center;
+
+    .word-cloud__word {
+      inline-size: max-content;
+      max-inline-size: min(100%, var(--word-cloud-pill-max-width, 28rem));
+      padding-block: max(12px, clamp(0.5rem, 0.32em, 0.9rem));
+      padding-inline: max(12px, 1rem);
+    }
+  }
+
+  .word-cloud__visual--wrapped-presentation {
+    min-height: var(--word-cloud-stage-height, 100%);
   }
 }
 
@@ -980,6 +989,16 @@
 .word-cloud--with-analysis-disclosure .word-cloud__empty {
   margin: auto;
   text-align: center;
+}
+
+.word-cloud__analysis-tools {
+  align-self: center;
+  max-inline-size: 100%;
+
+  .word-cloud__analysis-info {
+    justify-content: center;
+    text-align: center;
+  }
 }
 
 .word-cloud__analysis-disclosure {

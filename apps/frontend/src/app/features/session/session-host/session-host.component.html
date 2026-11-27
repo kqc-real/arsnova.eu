@@ -3896,43 +3896,41 @@
                   [attr.open]="wordCloudExpanded() || freetextWordCloudMaximized() ? true : null"
                   (toggle)="onFreetextWordCloudDetailsToggle($any($event.target))"
                 >
-                  <summary class="session-host__extra-summary">
+                  <summary #freetextWordCloudSummary class="session-host__extra-summary">
                     <span class="session-host__extra-summary-main">
                       <mat-icon aria-hidden="true">cloud</mat-icon>
                       <span>{{ wordCloudToggleLabel() }}</span>
                     </span>
-                    <span class="session-host__extra-summary-meta">
-                      {{ responseCountLabel(displayedFreetextResponses().length) }}
-                      <span aria-hidden="true">&#183;</span>
-                      {{ displayedWordCloudInfo() }}
-                    </span>
                   </summary>
                   <div class="session-host__extra-content">
                     @if (freetextWordCloudMaximized()) {
-                      @if (moderationCompassReturn()) {
-                        <button
-                          mat-button
-                          type="button"
-                          class="session-host__extra-return-to-compass"
-                          data-testid="freetext-word-cloud-return-to-compass"
-                          (click)="returnToModerationCompass()"
-                        >
-                          <mat-icon aria-hidden="true">arrow_back</mat-icon>
-                          <span i18n="@@sessionHost.moderationReturnToCompass"
-                            >Zurück zum Kompass</span
+                      <div class="session-host__word-cloud-navigation">
+                        @if (moderationCompassReturn()) {
+                          <button
+                            mat-button
+                            type="button"
+                            class="session-host__extra-return-to-compass"
+                            data-testid="freetext-word-cloud-return-to-compass"
+                            (click)="returnToModerationCompass()"
                           >
+                            <mat-icon aria-hidden="true">arrow_back</mat-icon>
+                            <span i18n="@@sessionHost.moderationReturnToCompass"
+                              >Zurück zum Kompass</span
+                            >
+                          </button>
+                        }
+                        <button
+                          #freetextWordCloudClose
+                          mat-icon-button
+                          type="button"
+                          class="session-host__extra-close-maximize"
+                          (click)="closeFreetextWordCloudMaximize(true)"
+                          i18n-aria-label="@@wordCloud.dialogCloseAria"
+                          aria-label="Wortwolke schließen"
+                        >
+                          <mat-icon aria-hidden="true">close</mat-icon>
                         </button>
-                      }
-                      <button
-                        mat-icon-button
-                        type="button"
-                        class="session-host__extra-close-maximize"
-                        (click)="closeFreetextWordCloudMaximize()"
-                        i18n-aria-label="@@wordCloud.dialogCloseAria"
-                        aria-label="Wortwolke schließen"
-                      >
-                        <mat-icon aria-hidden="true">close</mat-icon>
-                      </button>
+                      </div>
                     }
                     <div class="session-host__extra-actions">
                       <mat-button-toggle-group
@@ -3980,9 +3978,124 @@
                         }}</mat-icon>
                         <span>{{ wordCloudFreezeLabel() }}</span>
                       </button>
-                      <details class="session-host__word-cloud-options">
-                        <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
-                        <div class="session-host__word-cloud-options-body">
+                      @if (freetextWordCloudShowThemeRefresh()) {
+                        <button
+                          mat-button
+                          type="button"
+                          class="session-host__extra-action session-host__extra-action--refresh"
+                          data-testid="freetext-word-cloud-refresh-themes"
+                          [attr.aria-disabled]="
+                            freetextWordCloudThemeRefreshDisabled() ? true : null
+                          "
+                          [attr.aria-busy]="
+                            freetextWordCloudSemanticAnalysisPending() ? true : null
+                          "
+                          (click)="refreshFreetextWordCloudThemes()"
+                        >
+                          <mat-icon aria-hidden="true">refresh</mat-icon>
+                          <span>{{ freetextWordCloudThemeRefreshLabel }}</span>
+                        </button>
+                      }
+                      @if (!freetextWordCloudMaximized() && freetextWordCloud.words().length) {
+                        <button
+                          #freetextWordCloudMaximize
+                          mat-button
+                          type="button"
+                          class="session-host__extra-action word-cloud__action--maximize"
+                          [attr.aria-label]="freetextWordCloud.maximizeAriaLabel"
+                          (click)="freetextWordCloud.handleMaximize()"
+                        >
+                          <mat-icon aria-hidden="true">open_in_full</mat-icon>
+                          {{ freetextWordCloud.maximizeLabel }}
+                        </button>
+                      }
+                      @if (placeQuizProgressionInCloud && showQuizResultProgression) {
+                        <div
+                          class="session-host__word-cloud-progression session-host__exit-anchor--quiz"
+                        >
+                          <ng-container *ngTemplateOutlet="quizResultProgression" />
+                        </div>
+                      }
+                    </div>
+                    @let themesPending = freetextWordCloudSemanticAnalysisPending();
+                    @let hasThemes = freetextWordCloudDisplayMode() === 'SEMANTIC';
+                    <ng-template #freetextThemeProgress>
+                      <div
+                        class="session-host__word-cloud-progress"
+                        role="status"
+                        aria-live="polite"
+                        aria-busy="true"
+                        [attr.aria-label]="freetextWordCloudSemanticProgressAria()"
+                      >
+                        <p class="session-host__word-cloud-progress-label">
+                          {{ freetextWordCloudSemanticProgressLabel() }}
+                        </p>
+                        @if (freetextWordCloudSemanticWaitHint(); as waitHint) {
+                          <p class="session-host__word-cloud-progress-wait">{{ waitHint }}</p>
+                        }
+                        <mat-progress-bar
+                          class="session-host__word-cloud-progress-bar"
+                          mode="indeterminate"
+                        />
+                      </div>
+                    </ng-template>
+                    <div class="session-host__word-cloud-stage">
+                      <app-word-cloud
+                        #freetextWordCloud
+                        [responses]="displayedFreetextResponses()"
+                        [terms]="displayedFreetextVisibleTerms()"
+                        [analysisEntries]="displayedFreetextAnalysisEntries()"
+                        [analysisInfo]="freetextWordCloudAnalysisInfo()"
+                        [hiddenLabels]="freetextVisibilitySnapshot()?.hiddenLabels ?? []"
+                        [hideEntry]="freetextVisibilitySnapshot() ? hideFreetextWord : null"
+                        [visibilityPending]="freetextVisibilityPending()"
+                        [selectionScopeKey]="freetextWordCloudSelectionScope()"
+                        [analysisDisclosureLabel]="freetextWordCloudAnalysisLabel"
+                        [stagePlaceholder]="
+                          themesPending && !hasThemes ? freetextThemeProgress : null
+                        "
+                        [wordLabelSingular]="freetextWordCloudWordLabelSingular()"
+                        [wordLabelPlural]="freetextWordCloudWordLabelPlural()"
+                        [showConfidenceFilter]="freetextWordCloudDisplayMode() === 'SEMANTIC'"
+                        [exportViewLabel]="freetextExportViewLabel()"
+                        [weightingHint]="null"
+                        [presentationMode]="freetextWordCloudMaximized()"
+                        [disableCloudLayout]="true"
+                        [showMaximizeAction]="false"
+                        [showResponsesPanel]="true"
+                        [maximizeActionHandler]="maximizeFreetextWordCloud"
+                        [showReleaseNote]="false"
+                        [focusedTermLabel]="moderationCompassFocusedTerm()"
+                        [analysisModelVersion]="
+                          freetextWordCloudDisplayMode() === 'SEMANTIC'
+                            ? (freetextWordCloudAnalysisInfo().result?.modelVersion ?? null)
+                            : null
+                        "
+                        [labelModelId]="
+                          freetextWordCloudAnalysisInfo().result?.labelModelId ?? null
+                        "
+                        [labelModelVersion]="
+                          freetextWordCloudAnalysisInfo().result?.labelModelVersion ?? null
+                        "
+                        [labelPromptVersion]="
+                          freetextWordCloudAnalysisInfo().result?.labelPromptVersion ?? null
+                        "
+                      >
+                        <div wordCloudAnalysisOptions class="session-host__word-cloud-options-body">
+                          <p class="session-host__word-cloud-view-hint">
+                            {{ freetextWordCloudViewHint() }}
+                          </p>
+                          @if (wordCloudFrozen()) {
+                            <p role="status" i18n="@@sessionHost.wordCloudFrozenInfo">
+                              Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch
+                              nicht angehalten.
+                            </p>
+                          } @else {
+                            <p>{{ displayedWordCloudInfo() }}</p>
+                          }
+                          @if (exportStatus()) {
+                            <p role="status">{{ exportStatus() }}</p>
+                          }
                           <label
                             class="session-host__extra-action session-host__word-cloud-language"
                           >
@@ -4034,114 +4147,8 @@
                             </div>
                           }
                         </div>
-                      </details>
-                      @if (freetextWordCloudShowThemeRefresh()) {
-                        <button
-                          mat-button
-                          type="button"
-                          class="session-host__extra-action session-host__extra-action--refresh"
-                          data-testid="freetext-word-cloud-refresh-themes"
-                          [attr.aria-disabled]="
-                            freetextWordCloudThemeRefreshDisabled() ? true : null
-                          "
-                          [attr.aria-busy]="
-                            freetextWordCloudSemanticAnalysisPending() ? true : null
-                          "
-                          (click)="refreshFreetextWordCloudThemes()"
-                        >
-                          <mat-icon aria-hidden="true">refresh</mat-icon>
-                          <span>{{ freetextWordCloudThemeRefreshLabel }}</span>
-                        </button>
-                      }
+                      </app-word-cloud>
                     </div>
-                    <p class="session-host__word-cloud-view-hint">
-                      {{ freetextWordCloudViewHint() }}
-                    </p>
-                    @if (wordCloudFrozen()) {
-                      <p role="status" i18n="@@sessionHost.wordCloudFrozenInfo">
-                        Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht
-                        angehalten.
-                      </p>
-                    }
-                    @if (exportStatus()) {
-                      <p class="session-host__export-status" role="status">{{ exportStatus() }}</p>
-                    }
-                    <div class="session-host__word-cloud-stage">
-                      @if (freetextWordCloudSemanticAnalysisPending()) {
-                        <div
-                          class="session-host__word-cloud-status"
-                          [class.session-host__word-cloud-status--cover]="
-                            freetextWordCloudSemanticAnalysisPending() &&
-                            freetextWordCloudDisplayMode() !== 'SEMANTIC'
-                          "
-                        >
-                          @if (freetextWordCloudSemanticAnalysisPending()) {
-                            <div
-                              class="session-host__word-cloud-progress"
-                              role="status"
-                              aria-live="polite"
-                              aria-busy="true"
-                              [attr.aria-label]="freetextWordCloudSemanticProgressAria()"
-                            >
-                              <p class="session-host__word-cloud-progress-label">
-                                {{ freetextWordCloudSemanticProgressLabel() }}
-                              </p>
-                              @if (freetextWordCloudSemanticWaitHint(); as waitHint) {
-                                <p class="session-host__word-cloud-progress-wait">{{ waitHint }}</p>
-                              }
-                              <mat-progress-bar
-                                class="session-host__word-cloud-progress-bar"
-                                mode="indeterminate"
-                              />
-                            </div>
-                          }
-                        </div>
-                      }
-                      <app-word-cloud
-                        #freetextWordCloud
-                        [responses]="displayedFreetextResponses()"
-                        [terms]="displayedFreetextVisibleTerms()"
-                        [analysisEntries]="displayedFreetextAnalysisEntries()"
-                        [analysisInfo]="freetextWordCloudAnalysisInfo()"
-                        [hiddenLabels]="freetextVisibilitySnapshot()?.hiddenLabels ?? []"
-                        [hideEntry]="freetextVisibilitySnapshot() ? hideFreetextWord : null"
-                        [visibilityPending]="freetextVisibilityPending()"
-                        [selectionScopeKey]="freetextWordCloudSelectionScope()"
-                        [eyebrow]="freetextWordCloudEyebrow"
-                        [wordLabelSingular]="freetextWordCloudWordLabelSingular()"
-                        [wordLabelPlural]="freetextWordCloudWordLabelPlural()"
-                        [showConfidenceFilter]="freetextWordCloudDisplayMode() === 'SEMANTIC'"
-                        [exportViewLabel]="freetextExportViewLabel()"
-                        [weightingHint]="null"
-                        [presentationMode]="freetextWordCloudMaximized()"
-                        [showMaximizeAction]="!freetextWordCloudMaximized()"
-                        [showResponsesPanel]="true"
-                        [maximizeActionHandler]="maximizeFreetextWordCloud"
-                        [showReleaseNote]="false"
-                        [focusedTermLabel]="moderationCompassFocusedTerm()"
-                        [analysisModelVersion]="
-                          freetextWordCloudDisplayMode() === 'SEMANTIC'
-                            ? (freetextWordCloudAnalysisInfo().result?.modelVersion ?? null)
-                            : null
-                        "
-                        [labelModelId]="
-                          freetextWordCloudAnalysisInfo().result?.labelModelId ?? null
-                        "
-                        [labelModelVersion]="
-                          freetextWordCloudAnalysisInfo().result?.labelModelVersion ?? null
-                        "
-                        [labelPromptVersion]="
-                          freetextWordCloudAnalysisInfo().result?.labelPromptVersion ?? null
-                        "
-                      />
-                    </div>
-                    @if (placeQuizProgressionInCloud && showQuizResultProgression) {
-                      <div
-                        class="session-host__word-cloud-progression session-host__exit-anchor--quiz"
-                      >
-                        <ng-container *ngTemplateOutlet="quizResultProgression" />
-                      </div>
-                    }
                   </div>
                 </details>
               }

@@ -188,19 +188,12 @@ export class QaWordCloudDialogComponent {
       this.smoothingStatus() === 'pending' &&
       !this.hasPreparedThemes(),
   );
-  readonly themesRefreshing = computed(
-    () =>
-      this.analysisVariant() === 'SEMANTIC' &&
-      this.smoothingStatus() === 'pending' &&
-      this.hasPreparedThemes(),
-  );
   readonly emptyMessage = computed(() =>
     this.eligibleQuestionCount() === 0
       ? $localize`:@@sessionQa.wordCloudEmpty:Noch keine sichtbaren Q&A-Fragen.`
       : $localize`:@@sessionQa.wordCloudNoResult:Für diese Ansicht liegt noch keine Wortwolke vor.`,
   );
   readonly themeProgressLabel = wordCloudTopicProgressLabel(false, true);
-  readonly previousTopicsLabel = wordCloudTopicProgressLabel(true);
   readonly exportViewLabel = computed(() =>
     wordCloudExportViewLabel(this.analysisVariant(), this.displayMode()),
   );

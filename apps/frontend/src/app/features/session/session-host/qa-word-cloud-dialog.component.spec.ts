@@ -355,7 +355,7 @@ describe('QaWordCloudDialogComponent', () => {
     expect(await select.isDisabled()).toBe(true);
   });
 
-  it('bündelt Optionen, Herkunft, Kennzahlen, Belege und Exporte in einem geschlossenen Akkordeon', () => {
+  it('lässt die Hilfe sichtbar und bündelt Kennzahlen, Optionen, Belege und Exporte', () => {
     const setAnalysisLanguage = vi.fn();
     const { fixture } = setup('SEMANTIC', {
       analysisLanguage: () => 'de',
@@ -387,8 +387,11 @@ describe('QaWordCloudDialogComponent', () => {
       'Zugehörige Fragen',
     );
     expect(root.querySelector('.qa-word-cloud-dialog__freeze')?.closest('details')).toBeNull();
+    const info = root.querySelector('.word-cloud__analysis-info');
+    expect(info?.closest('details')).toBeNull();
+    expect(info?.querySelector('button[aria-haspopup="dialog"]')).not.toBeNull();
+    expect(root.querySelectorAll('.word-cloud__analysis-info')).toHaveLength(1);
     for (const selector of [
-      '.word-cloud__analysis-info',
       '.word-cloud__meta',
       '.word-cloud__reading-hint',
       '.word-cloud__grouping-details',
@@ -518,10 +521,21 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('.word-cloud__word')).toBeNull();
   });
 
-  it('behält die bisherige Wolke beim Refresh und erklärt ihren Stand in der Analyse', () => {
+  it('behält die bisherige Wolke beim Refresh und kündigt den Stand außerhalb der Analyse an', () => {
     const { fixture } = setup('SEMANTIC', {
       smoothingStatus: () => 'pending',
       hasPreparedThemes: () => true,
+      analysisInfo: () => ({
+        mode: 'SEMANTIC',
+        result: null,
+        topicState: {
+          channel: 'qa',
+          progress: 'refreshing',
+          freshness: null,
+          failed: false,
+          outcome: null,
+        },
+      }),
       themeFallbackHint: () => 'Themen werden vorbereitet.',
       analysisEntries: () => [
         {
@@ -537,16 +551,14 @@ describe('QaWordCloudDialogComponent', () => {
     });
 
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__progress')).toBeNull();
-    const status = fixture.nativeElement.querySelector(
-      '.word-cloud__analysis-disclosure .qa-word-cloud-dialog__refresh-note',
-    ) as HTMLElement | null;
-    expect(status?.closest('details')?.open).toBe(false);
-    expect(fixture.nativeElement.querySelector('.word-cloud__word')).not.toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.qa-word-cloud-dialog > .sr-only[role="status"]')
-        ?.textContent,
-    ).toContain('Der bisherige Stand bleibt sichtbar.');
+    const root = fixture.nativeElement as HTMLElement;
+    const status = root.querySelector('.word-cloud__analysis-tools [role="status"]');
+    expect(root.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')?.open).toBe(
+      false,
+    );
+    expect(status?.closest('details')).toBeNull();
     expect(status?.textContent).toContain('Der bisherige Stand bleibt sichtbar.');
+    expect(root.querySelector('.word-cloud__word')).not.toBeNull();
   });
 
   it('bietet Themen aktualisieren mit einem verständlichen Veraltet-Hinweis', () => {

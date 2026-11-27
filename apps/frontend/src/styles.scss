@@ -1168,7 +1168,11 @@ html {
 
 // Material has no public label-wrapping/padding token for button toggles.
 // Fullscreen cloud tools must keep all three analysis choices visible at 320 px.
-.word-cloud-dialog-panel .qa-word-cloud-dialog__analysis-toggle .mat-button-toggle-label-content {
+.word-cloud-dialog-panel .qa-word-cloud-dialog__analysis-toggle .mat-button-toggle-label-content,
+.session-host__extra--freetext
+  .session-host__extra-analysis-toggle
+  .mat-button-toggle-label-content,
+.session-present--freetext .session-present__word-cloud-mode .mat-button-toggle-label-content {
   padding-inline: 0.45rem;
   padding-block: 0.5rem;
   line-height: 1.4;

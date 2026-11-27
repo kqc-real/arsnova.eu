@@ -5922,7 +5922,9 @@ button.session-host__btn-discussion {
   min-height: 0;
   margin: 0;
   padding: clamp(0.9rem, 2vw, 1.55rem);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background:
     radial-gradient(
       circle at 50% 0%,
@@ -5946,12 +5948,11 @@ button.session-host__btn-discussion {
   z-index: 250;
   flex: 0 0 auto;
   justify-content: center;
-  padding-inline: 3rem 3.25rem;
 }
 
 .session-host__extra--maximized .session-host__word-cloud-stage {
   flex: 1 1 0%;
-  min-height: 0;
+  min-height: 17rem;
 }
 
 .session-host:has(.session-host__word-cloud-progression > button) .session-host__exit-anchor {
@@ -5962,25 +5963,21 @@ button.session-host__btn-discussion {
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
-  padding-block-end: env(safe-area-inset-bottom, 0px);
 }
 
-.session-host__extra--maximized
-  .session-host__word-cloud-status:not(.session-host__word-cloud-status--cover) {
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  text-align: center;
+.session-host__word-cloud-navigation {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .session-host__extra-close-maximize {
   --mat-icon-button-state-layer-size: 2.75rem;
   --mat-icon-button-icon-size: 1.5rem;
   --mdc-icon-button-state-layer-size: var(--mat-icon-button-state-layer-size);
-  position: absolute;
-  top: max(0.65rem, env(safe-area-inset-top, 0px));
-  right: max(0.65rem, env(safe-area-inset-right, 0px));
-  z-index: 251;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -6006,10 +6003,6 @@ button.session-host__btn-discussion {
 }
 
 .session-host__extra-return-to-compass {
-  position: absolute;
-  top: max(0.65rem, env(safe-area-inset-top, 0px));
-  left: max(0.65rem, env(safe-area-inset-left, 0px));
-  z-index: 251;
   min-height: 44px;
   height: auto;
   max-width: calc(100% - 5rem);
@@ -6035,7 +6028,6 @@ button.session-host__btn-discussion {
   min-height: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 
 .session-host__extra summary {
@@ -6107,14 +6099,6 @@ button.session-host__btn-discussion {
   justify-content: flex-end;
   gap: 0.5rem;
   margin: 0 0 0.5rem;
-}
-
-.session-host__word-cloud-view-hint {
-  margin: 0 0 0.75rem;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
-  line-height: 1.5;
-  text-align: start;
 }
 
 .session-host__extra-analysis-toggle {
@@ -6207,43 +6191,6 @@ button.session-host__btn-discussion {
   min-height: 0;
 }
 
-.session-host__word-cloud-status {
-  position: absolute;
-  z-index: 4;
-  top: 0.75rem;
-  right: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.4rem;
-  width: min(calc(100% - 1.5rem), 24rem);
-  padding: 0.55rem 0.75rem 0.65rem;
-  pointer-events: none;
-  text-align: right;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-  border-radius: var(--mat-sys-corner-small, 0.5rem);
-  background: color-mix(in srgb, var(--mat-sys-surface) 82%, transparent);
-  box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--mat-sys-shadow) 16%, transparent);
-  backdrop-filter: blur(14px) saturate(1.2);
-}
-
-.session-host__word-cloud-status--cover {
-  inset: 0;
-  top: 0;
-  right: 0;
-  left: 0;
-  width: auto;
-  justify-content: center;
-  padding: 1.25rem;
-  pointer-events: auto;
-  text-align: center;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  background: var(--app-bg-root);
-  backdrop-filter: none;
-}
-
 .session-host__extra-note {
   margin: 0;
   text-align: inherit;
@@ -6252,14 +6199,15 @@ button.session-host__btn-discussion {
 }
 
 .session-host__word-cloud-progress {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  display: grid;
+  align-content: center;
   gap: 0.4rem;
-  width: 100%;
-  max-width: 22rem;
-  margin: 0 auto;
-  text-align: inherit;
+  width: min(100%, 22rem);
+  min-height: 10rem;
+  box-sizing: border-box;
+  margin: auto;
+  padding: 0.75rem;
+  text-align: center;
 }
 
 .session-host__word-cloud-progress-label {
@@ -6272,12 +6220,6 @@ button.session-host__btn-discussion {
 .session-host__word-cloud-progress-wait {
   margin: 0;
   font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-.session-host__word-cloud-progress-fallback {
-  margin: 0;
-  font: var(--mat-sys-label-medium);
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -6309,18 +6251,11 @@ button.session-host__btn-discussion {
 
   .session-host__extra--maximized .session-host__extra-actions {
     justify-content: flex-start;
-    padding-inline: 0 3.25rem;
   }
 
-  .session-host__extra--maximized .session-host__extra-analysis-toggle {
-    width: fit-content;
-    max-width: 100%;
-  }
-
-  .session-host__word-cloud-status:not(.session-host__word-cloud-status--cover) {
-    right: auto;
-    left: 0.75rem;
-    text-align: left;
+  .session-host__extra--freetext .session-host__extra-analysis-toggle {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .session-host__extra-analysis-toggle {
@@ -8986,29 +8921,21 @@ $round2-color: var(--mat-sys-primary);
   }
 }
 
-.session-host__word-cloud-options {
-  max-width: 100%;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
-  line-height: 1.5;
-
-  summary {
-    min-height: 44px;
-    align-content: center;
-    cursor: pointer;
-    color: var(--mat-sys-on-surface);
-  }
-
-  summary:focus-visible {
-    outline: 2px solid var(--mat-sys-primary);
-    outline-offset: 2px;
-  }
-}
-
 .session-host__word-cloud-options-body {
   display: grid;
   gap: 0.65rem;
-  padding-block: 0.45rem;
+  min-width: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+
+  p {
+    margin: 0;
+  }
+
+  .session-host__smooth-cluster {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
 }
 
 .session-qa-card__classification {

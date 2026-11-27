@@ -974,6 +974,8 @@
           [title]="historyWordCloudTitle()"
           [selectionScopeKey]="history.question.questionId"
           [presentationMode]="true"
+          [disableCloudLayout]="true"
+          [analysisDisclosureLabel]="freetextWordCloudAnalysisLabel"
           [outputOnly]="true"
         />
       } @else {
@@ -1297,8 +1299,7 @@
               [analysisEntries]="presenterQaWordCloudAnalysisEntries()"
               [analysisMode]="'qa'"
               [analysisModelVersion]="qaWordCloudProjection()?.modelVersion ?? null"
-              [eyebrow]="qaWordCloudEyebrow"
-              [description]="qaWordCloudDescription()"
+              [analysisDisclosureLabel]="qaWordCloudAnalysisLabel"
               [title]="qaWordCloudTitle()"
               [itemLabelSingular]="qaWordCloudItemSingular"
               [itemLabelPlural]="qaWordCloudItemPlural"
@@ -1310,8 +1311,13 @@
               [weightingHint]="qaWordCloudReadingHint()"
               [emptyMessage]="qaWordCloudEmptyMessage"
               [presentationMode]="true"
+              [disableCloudLayout]="true"
               [outputOnly]="true"
-            />
+            >
+              <p wordCloudAnalysisOptions class="session-present__word-cloud-view-hint">
+                {{ qaWordCloudDescription() }}
+              </p>
+            </app-word-cloud>
           </section>
         </section>
       }
@@ -1482,9 +1488,54 @@
             }}</mat-icon>
             <span>{{ presenterFreetextWordCloudFreezeLabel() }}</span>
           </button>
-          @if (presenterFreetextShowSmoothing()) {
-            <details class="session-present__word-cloud-options">
-              <summary i18n="@@wordCloud.moreOptions">Weitere Optionen</summary>
+          @if (presenterFreetextShowThemeRefresh()) {
+            <button
+              mat-button
+              type="button"
+              class="session-present__word-cloud-action"
+              data-testid="presenter-freetext-word-cloud-refresh"
+              [attr.aria-disabled]="presenterFreetextSemanticPending() ? true : null"
+              [attr.aria-busy]="presenterFreetextSemanticPending() ? true : null"
+              (click)="refreshPresenterFreetextWordCloudThemes()"
+            >
+              <mat-icon aria-hidden="true">refresh</mat-icon>
+              <span>{{ presenterFreetextThemeRefreshLabel }}</span>
+            </button>
+          }
+        </div>
+        @if (presenterFreetextWordCloudHint(); as hint) {
+          <p class="session-present__word-cloud-toolbar-status" role="status">{{ hint }}</p>
+        }
+        <app-word-cloud
+          class="session-present__word-cloud-stage"
+          [responses]="presenterFreetextDisplayedResponses()"
+          [terms]="freetextWordCloudTerms()"
+          [analysisEntries]="freetextStageAnalysisEntries()"
+          [hiddenLabels]="freetextVisibilitySnapshot()?.hiddenLabels ?? []"
+          [hideEntry]="canHideFreetextWord() ? hideFreetextWord : null"
+          [visibilityPending]="freetextVisibilityPending()"
+          [title]="freetextWordCloudStageTitle()"
+          [analysisDisclosureLabel]="freetextWordCloudAnalysisLabel"
+          [wordLabelSingular]="presenterFreetextWordCloudWordLabelSingular()"
+          [wordLabelPlural]="presenterFreetextWordCloudWordLabelPlural()"
+          [weightingHint]="null"
+          [showConfidenceFilter]="presenterFreetextDisplayMode() === 'SEMANTIC'"
+          [selectionScopeKey]="
+            freetextQuestionId() +
+            ':' +
+            presenterFreetextWordCloudModeEffective() +
+            ':' +
+            presenterFreetextTermLocale()
+          "
+          [presentationMode]="true"
+          [disableCloudLayout]="true"
+          [outputOnly]="true"
+        >
+          <div wordCloudAnalysisOptions class="session-present__word-cloud-analysis-options">
+            <p class="session-present__word-cloud-view-hint">
+              {{ presenterFreetextWordCloudViewHint() }}
+            </p>
+            @if (presenterFreetextShowSmoothing()) {
               <div class="session-present__word-cloud-options-body">
                 <button
                   mat-button
@@ -1511,53 +1562,9 @@
                   </p>
                 }
               </div>
-            </details>
-          }
-          @if (presenterFreetextShowThemeRefresh()) {
-            <button
-              mat-button
-              type="button"
-              class="session-present__word-cloud-action"
-              data-testid="presenter-freetext-word-cloud-refresh"
-              [attr.aria-disabled]="presenterFreetextSemanticPending() ? true : null"
-              [attr.aria-busy]="presenterFreetextSemanticPending() ? true : null"
-              (click)="refreshPresenterFreetextWordCloudThemes()"
-            >
-              <mat-icon aria-hidden="true">refresh</mat-icon>
-              <span>{{ presenterFreetextThemeRefreshLabel }}</span>
-            </button>
-          }
-        </div>
-        <p class="session-present__word-cloud-view-hint">
-          {{ presenterFreetextWordCloudViewHint() }}
-        </p>
-        @if (presenterFreetextWordCloudHint(); as hint) {
-          <p class="session-present__word-cloud-toolbar-status" role="status">{{ hint }}</p>
-        }
-        <app-word-cloud
-          class="session-present__word-cloud-stage"
-          [responses]="presenterFreetextDisplayedResponses()"
-          [terms]="freetextWordCloudTerms()"
-          [analysisEntries]="freetextStageAnalysisEntries()"
-          [hiddenLabels]="freetextVisibilitySnapshot()?.hiddenLabels ?? []"
-          [hideEntry]="canHideFreetextWord() ? hideFreetextWord : null"
-          [visibilityPending]="freetextVisibilityPending()"
-          [title]="freetextWordCloudStageTitle()"
-          [eyebrow]="freetextWordCloudEyebrow"
-          [wordLabelSingular]="presenterFreetextWordCloudWordLabelSingular()"
-          [wordLabelPlural]="presenterFreetextWordCloudWordLabelPlural()"
-          [weightingHint]="null"
-          [showConfidenceFilter]="presenterFreetextDisplayMode() === 'SEMANTIC'"
-          [selectionScopeKey]="
-            freetextQuestionId() +
-            ':' +
-            presenterFreetextWordCloudModeEffective() +
-            ':' +
-            presenterFreetextTermLocale()
-          "
-          [presentationMode]="true"
-          [outputOnly]="true"
-        />
+            }
+          </div>
+        </app-word-cloud>
       </div>
     } @else if (quizQuestionAwaitingSnapshot()) {
       <section

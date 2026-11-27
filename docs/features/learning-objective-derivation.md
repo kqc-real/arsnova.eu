@@ -28,7 +28,7 @@ Nach einer Prioritätsunterbrechung kennzeichnet der Fortschritt die Pause vor
 einem erlaubten Wiederholungsversuch mit `priorityRetryPhase: waiting`. Vor dem
 erneuten Zulassungsversuch meldet der gleiche Auftrag `retrying`. Der Editor
 beschreibt diesen Versuch neutral, da eine Zulassung noch keine Inferenz
-belegt. Die aufklappbaren Hinweise erklären die Priorität und zeigen das Restbudget als verbleibende Laufzeitgrenze zum zuletzt gemeldeten Stand. Die Warte- und Retryphasen lassen die geschätzte Fertigstellungsdauer ausgeblendet.
+belegt. Solange die Ableitung läuft, erinnert die Fortschrittskarte daran, den Editor offen zu lassen. Die aufklappbaren Hinweise erklären die Priorität und zeigen das Restbudget als verbleibende Laufzeitgrenze zum zuletzt gemeldeten Stand. Die Warte- und Retryphasen lassen die geschätzte Fertigstellungsdauer ausgeblendet.
 Nach Abschluss, Timeout oder Abbruch endet die Phasenanzeige.
 
 ## Versionierte Verträge und Payload

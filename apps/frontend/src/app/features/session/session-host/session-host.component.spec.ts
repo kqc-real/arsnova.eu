@@ -8387,7 +8387,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(styles).toMatch(/\.session-host__extra-actions \{[^}]*align-items:\s*flex-start/);
   });
 
-  it('zeigt fuer Freitext-Fragen die Word-Cloud-Aktion mit Live-Hinweis', async () => {
+  it('zeigt Freitext-Wolke und Aktionsleiste mit standardmäßig geschlossener Analyse', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     onStatusChangedSubscribeMock.mockImplementation(
       (_input: unknown, opts: { onData: (d: unknown) => void }) => {
@@ -8422,30 +8422,45 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.textContent ?? '';
-    const wordCloudDetails = fixture.nativeElement.querySelector('.session-host__extra');
+    fixture.componentInstance.wordCloudExpanded.set(true);
+    fixture.detectChanges();
 
-    expect(wordCloudDetails?.className).toContain('session-host__extra--freetext');
-    expect(wordCloudDetails?.className).toContain('session-host__extra--no-divider');
-    expect(text).toContain('Wortwolke anzeigen');
-    expect(wordCloudDetails?.textContent).not.toContain('Weitere Aktionen');
-    expect(fixture.nativeElement.querySelector('[data-testid="host-more-actions"]')).not.toBeNull();
-    expect(text).toContain('2 Antworten');
-    expect(text).toContain('Live-Freitext wird aktualisiert.');
-    expect(text).toContain('Live-Freitext');
-    expect(wordCloudDetails?.querySelector('.word-cloud__description')).toBeNull();
-    expect(text).toContain('Anzeige anhalten');
-    expect(text).toContain('Sprachformen glätten');
-    const viewHint = wordCloudDetails?.querySelector(
-      '.session-host__word-cloud-view-hint',
-    ) as HTMLElement | null;
-    expect(viewHint?.textContent).toContain('Einzelne Wörter in der eingegebenen Form');
-    expect(viewHint?.closest('.session-host__word-cloud-options')).toBeNull();
-    const extraSmoothButton = wordCloudDetails?.querySelector(
-      '.session-host__extra-action--smooth',
-    ) as HTMLButtonElement | null;
-    expect(extraSmoothButton).not.toBeNull();
-    expect(extraSmoothButton?.getAttribute('aria-pressed')).toBe('false');
+    const host = fixture.nativeElement as HTMLElement;
+    const cloud = host.querySelector<HTMLDetailsElement>('#host-freetext-word-cloud')!;
+    const actions = cloud.querySelector('.session-host__extra-actions')!;
+    const analysis = cloud.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const summary = analysis.querySelector('summary')!;
+
+    expect(cloud.classList.contains('session-host__extra--no-divider')).toBe(true);
+    expect(cloud.querySelector(':scope > summary')?.textContent).not.toContain('2 Antworten');
+    expect(cloud.querySelector('.word-cloud__description')).toBeNull();
+    expect(actions.textContent).toContain('Anzeige anhalten');
+    expect(actions.querySelector('.word-cloud__action--maximize')).not.toBeNull();
+    expect(actions.textContent).not.toContain('Weitere Optionen');
+    expect(analysis.open).toBe(false);
+    expect(summary.textContent?.trim()).toContain('Freitext-Analyse');
+    expect(cloud.querySelector('.word-cloud__analysis-info')?.closest('details')).toBe(cloud);
+    expect(cloud.querySelector('.word-cloud__visual-frame')?.closest('details')).toBe(cloud);
+
+    summary.click();
+    fixture.detectChanges();
+
+    expect(analysis.open).toBe(true);
+    expect(analysis.textContent).toContain('2 Antworten');
+    expect(analysis.textContent).toContain('Live-Freitext wird aktualisiert.');
+    expect(analysis.querySelector('.session-host__word-cloud-view-hint')?.textContent).toContain(
+      'Einzelne Wörter in der eingegebenen Form',
+    );
+    expect(analysis.querySelector('.session-host__word-cloud-language select')).not.toBeNull();
+    expect(
+      analysis.querySelector('.session-host__extra-action--smooth')?.getAttribute('aria-pressed'),
+    ).toBe('false');
+    expect(analysis.querySelector('.word-cloud__actions')?.textContent).toContain('CSV speichern');
+    expect(analysis.querySelector('.word-cloud__actions')?.textContent).toContain('PNG speichern');
+    expect(analysis.querySelector('.word-cloud__responses-panel')).not.toBeNull();
+
+    summary.click();
+    expect(analysis.open).toBe(false);
     fixture.destroy();
   });
 
@@ -9326,11 +9341,16 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     const stage = fixture.nativeElement.querySelector(
       '.session-host__word-cloud-stage',
     ) as HTMLElement | null;
-    const status = stage?.querySelector('.session-host__word-cloud-status') as HTMLElement | null;
-    expect(status).not.toBeNull();
-    expect(status?.classList.contains('session-host__word-cloud-status--cover')).toBe(true);
-    expect(stage?.querySelector('.session-host__word-cloud-progress')).not.toBeNull();
-    expect(stage?.querySelector('app-word-cloud')).not.toBeNull();
+    const frame = stage?.querySelector('.word-cloud__visual-frame');
+    const analysis = stage!.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    expect(
+      frame?.querySelector('.session-host__word-cloud-progress')?.getAttribute('aria-busy'),
+    ).toBe('true');
+    expect(frame?.querySelector('.word-cloud__word')).toBeNull();
+    expect(analysis.open).toBe(false);
+    analysis.querySelector('summary')!.click();
+    expect(analysis.open).toBe(true);
+    expect(analysis.querySelector('.session-host__word-cloud-language select')).not.toBeNull();
 
     component.freetextResponses.set([
       'Lineare Regression im Projekt',
@@ -9384,6 +9404,9 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.freetextWordCloudSemanticAnalysisResult()?.status).toBe('ready');
     expect(component.freetextWordCloudSemanticStale()).toBe(true);
     expect(component.freetextWordCloudShowThemeRefresh()).toBe(true);
+    expect(frame?.querySelector('.session-host__word-cloud-progress')).toBeNull();
+    expect(frame?.querySelector('.word-cloud__word')?.textContent).toContain('Lineare Regression');
+    expect(analysis.open).toBe(true);
     fixture.destroy();
   });
 
@@ -10258,13 +10281,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     );
     fixture.detectChanges();
     const smoothingOptions = fixture.nativeElement.querySelector(
-      '.session-host__word-cloud-options',
+      '#host-freetext-word-cloud .word-cloud__analysis-disclosure',
     ) as HTMLElement | null;
     expect(smoothingOptions?.textContent).toContain(
       'Wörter konnten gerade nicht nach Grundform gebündelt werden.',
     );
     expect(
-      fixture.nativeElement.querySelector('.session-host__word-cloud-status')?.textContent ?? '',
+      fixture.nativeElement.querySelector(
+        '.session-host__word-cloud-stage .word-cloud__visual-frame',
+      )?.textContent ?? '',
     ).not.toContain('Wörter konnten gerade nicht nach Grundform gebündelt werden.');
     component.freetextWordCloudSmoothingFeedbackRequested.set(false);
     fixture.detectChanges();
@@ -22079,6 +22104,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(
       host.querySelector('.session-host__exit-anchor button[aria-keyshortcuts="ArrowRight"]'),
     ).toBeNull();
+
+    expect(next?.closest('.session-host__extra-actions')).not.toBeNull();
+    const analysis = cloud?.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure');
+    expect(analysis?.open).toBe(false);
+    expect(analysis?.querySelector('summary')?.textContent).toContain('Freitext-Analyse');
 
     let completeAdvance!: (result: { status: 'ACTIVE'; currentQuestion: number }) => void;
     nextQuestionMutateMock.mockReturnValueOnce(

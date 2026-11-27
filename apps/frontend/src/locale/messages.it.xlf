@@ -23057,16 +23057,16 @@
           <context context-type="linenumber">890</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="sessionWordCloud.freetextEyebrow" datatype="html">
-        <source>Live-Freitext</source>
-        <target>Testo libero dal vivo</target>
+      <trans-unit id="sessionWordCloud.freetextAnalysis" datatype="html">
+        <source>Freitext-Analyse</source>
+        <target>Analisi del testo libero</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
-          <context context-type="linenumber">1083</context>
+          <context context-type="linenumber">1099</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/features/session/session-present/session-present.component.ts</context>
-          <context context-type="linenumber">274</context>
+          <context context-type="linenumber">417</context>
         </context-group>
       </trans-unit>
       <trans-unit id="sessionWordCloud.qaEyebrow" datatype="html">
@@ -35792,6 +35792,14 @@
         <source>Noch etwa <x id="minutes" equiv-text="minutes"/> Minuten.</source>
         <target>Ancora circa <x id="minutes" equiv-text="minutes"/> minuti.</target>
         </trans-unit>
+      <trans-unit id="learningObjectives.derivationKeepEditorOpenShort" datatype="html">
+        <source>Lass den Editor offen, sonst stoppt die Ableitung.</source>
+        <target>Tieni aperto l’editor, altrimenti l’elaborazione si interrompe.</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/quiz/quiz-learning-objectives/quiz-learning-objectives.component.html</context>
+          <context context-type="linenumber">205</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="learningObjectives.derivationKeepEditorOpen" datatype="html">
         <source>Schließe den Editor nicht, solange die Erstellung läuft. Sonst stoppt die Erstellung bei den übrigen Fragen. Schon übernommene Entwürfe bleiben in der Liste.</source>
         <target>Tieni aperto l’editor durante la generazione dei suggerimenti. Chiuderlo interrompe la generazione per le domande rimanenti. Le bozze già aggiunte restano nell’elenco.</target>
@@ -36764,10 +36772,6 @@
       <trans-unit id="sessionQa.wordCloudHideProjection" datatype="html">
         <source>Auf der Präsentation ausblenden</source>
         <target>Nascondi dallo schermo</target>
-        </trans-unit>
-      <trans-unit id="wordCloud.moreOptions" datatype="html">
-        <source>Weitere Optionen</source>
-        <target>Altre opzioni</target>
         </trans-unit>
       <trans-unit id="wordCloud.viewHintWords" datatype="html">
         <source>Einzelne Wörter nach Grundform: »lernen« und »gelernt« zählen gemeinsam als »lernen«.</source>

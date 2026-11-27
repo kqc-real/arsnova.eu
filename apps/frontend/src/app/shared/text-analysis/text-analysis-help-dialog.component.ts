@@ -155,6 +155,7 @@ export class TextAnalysisHelpDialogComponent {
   ): void {
     dialog.open(TextAnalysisHelpDialogComponent, {
       data: context,
+      role: 'dialog',
       ariaLabel: context ? copy.infoButton : copy.helpTitle,
       width: '36rem',
       maxWidth: 'calc(100vw - 2rem)',

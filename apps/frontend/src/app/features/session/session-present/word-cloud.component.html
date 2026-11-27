@@ -22,8 +22,11 @@
     [class.word-cloud--with-analysis-disclosure]="analysisDisclosureLabel()"
   >
     @if (analysisDisclosureLabel(); as label) {
-      <details class="word-cloud__analysis-disclosure">
-        <summary>
+      <div class="word-cloud__analysis-tools">
+        <ng-container *ngTemplateOutlet="analysisStatus" />
+      </div>
+      <details #analysisDisclosure class="word-cloud__analysis-disclosure">
+        <summary #analysisSummary>
           <span>{{ label }}</span>
           <mat-icon aria-hidden="true">expand_more</mat-icon>
         </summary>
@@ -31,10 +34,14 @@
           <ng-content select="[wordCloudAnalysisOptions]" />
           <ng-container *ngTemplateOutlet="analysisMetadata" />
           <ng-container *ngTemplateOutlet="summaryContent" />
+          @if (!outputOnly()) {
+            <ng-container *ngTemplateOutlet="visibilityError" />
+          }
           <ng-container *ngTemplateOutlet="supportingContent" />
         </div>
       </details>
     } @else {
+      <ng-container *ngTemplateOutlet="analysisStatus" />
       <ng-container *ngTemplateOutlet="analysisMetadata" />
     }
     @if (outputOnly() && hideEntry() && selectedWordLabel()) {
@@ -89,9 +96,7 @@
                   [style.top.px]="cloudWordTop(entry)"
                   [style.transform]="cloudWordTransform(entry)"
                   [style.z-index]="wordZIndex(entry.rank)"
-                  [appWordCloudMarkdownTooltip]="
-                    analysisDisclosureLabel() ? [] : wordTooltipBlocks(entry)
-                  "
+                  [appWordCloudMarkdownTooltip]="wordTooltipBlocks(entry)"
                 >
                   {{ entry.word }}
                 </span>
@@ -108,9 +113,7 @@
                   [style.top.px]="cloudWordTop(entry)"
                   [style.transform]="cloudWordTransform(entry)"
                   [style.z-index]="wordZIndex(entry.rank)"
-                  [appWordCloudMarkdownTooltip]="
-                    analysisDisclosureLabel() ? [] : wordTooltipBlocks(entry)
-                  "
+                  [appWordCloudMarkdownTooltip]="wordTooltipBlocks(entry)"
                   [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
                   [attr.aria-disabled]="visibilityPending() || null"
                   (click)="toggleWord(entry.groupKey, $event)"
@@ -121,20 +124,22 @@
             }
           } @else {
             @for (entry of displayWords(); track entry.groupKey) {
+              @let placement = packedAnalysis()?.positions?.get(entry.groupKey);
               @if (outputOnly() && !hideEntry()) {
                 <span
+                  #analysisPill
                   class="word-cloud__word word-cloud__word--output"
+                  [class.word-cloud__word--packed-analysis]="placement"
+                  [style.left.px]="placement?.left"
+                  [style.top.px]="placement?.top"
                   [class.word-cloud__word--top]="entry.rank < 2"
                   [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
                   [style.font-size.px]="entry.size"
-                  [appWordCloudMarkdownTooltip]="
-                    analysisDisclosureLabel() ? [] : wordTooltipBlocks(entry)
-                  "
+                  [appWordCloudMarkdownTooltip]="wordTooltipBlocks(entry)"
                 >
                   {{ entry.word }}
                 </span>
               } @else {
-                @let placement = packedAnalysis()?.positions?.get(entry.groupKey);
                 <button
                   #analysisPill
                   type="button"
@@ -147,9 +152,7 @@
                   [class.word-cloud__word--top]="entry.rank < 2"
                   [class.word-cloud__word--featured]="entry.rank >= 2 && entry.rank < 6"
                   [style.font-size.px]="entry.size"
-                  [appWordCloudMarkdownTooltip]="
-                    analysisDisclosureLabel() ? [] : wordTooltipBlocks(entry)
-                  "
+                  [appWordCloudMarkdownTooltip]="wordTooltipBlocks(entry)"
                   [attr.aria-pressed]="selectedGroupKey() === entry.groupKey"
                   [attr.aria-disabled]="visibilityPending() || null"
                   (click)="toggleWord(entry.groupKey, $event)"
@@ -167,10 +170,8 @@
         <ng-container i18n="@@wordCloud.wordHidden">Wort ausgeblendet.</ng-container>
       }
     </span>
-    @if (visibilityFeedback() === 'failed') {
-      <p role="alert" i18n="@@wordCloud.hideWordFailed">
-        Das Wort konnte nicht ausgeblendet werden.
-      </p>
+    @if (outputOnly() || !analysisDisclosureLabel()) {
+      <ng-container *ngTemplateOutlet="visibilityError" />
     }
     @if (!analysisDisclosureLabel()) {
       <ng-container *ngTemplateOutlet="summaryContent" />
@@ -188,7 +189,7 @@
   </mat-card-content>
 </mat-card>
 
-<ng-template #analysisMetadata>
+<ng-template #analysisStatus>
   @if (currentAnalysisInfo(); as info) {
     <div class="word-cloud__analysis-info">
       <span role="status" aria-atomic="true">{{ info.status }}</span>
@@ -203,6 +204,9 @@
       </button>
     </div>
   }
+</ng-template>
+
+<ng-template #analysisMetadata>
   @if (words().length > 0 || responseSummary().total > 0 || (itemCount() ?? 0) > 0) {
     <div class="word-cloud__meta">
       @if (outputOnly() && isWordCountPartial()) {
@@ -348,6 +352,7 @@
       @if (showResponsesPanel()) {
         <details class="word-cloud__responses-panel" [attr.open]="showResponses() ? true : null">
           <summary
+            #responsesSummary
             class="word-cloud__responses-summary"
             (click)="$event.preventDefault(); toggleResponses()"
           >
@@ -417,5 +422,11 @@
         </p>
       }
     </div>
+  }
+</ng-template>
+
+<ng-template #visibilityError>
+  @if (visibilityFeedback() === 'failed') {
+    <p role="alert" i18n="@@wordCloud.hideWordFailed">Das Wort konnte nicht ausgeblendet werden.</p>
   }
 </ng-template>

@@ -132,6 +132,95 @@ describe('WordCloudComponent', () => {
     },
   );
 
+  it('öffnet beim Auswählen oder Kompass-Sprung direkt die Originalbelege', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisEntries', [
+      {
+        key: 'semantic-a',
+        label: 'Orbit',
+        count: 2,
+        basisLabel: 'Warum halten Satelliten ihre Umlaufbahn?',
+        members: [{ sourceId: 'a', text: 'Warum halten Satelliten ihre Umlaufbahn?', weight: 2 }],
+        variants: [],
+        confidence: 0.95,
+        labelOrigin: 'model',
+      },
+      {
+        key: 'semantic-b',
+        label: 'Rotation',
+        count: 1,
+        basisLabel: 'Wie dreht sich die Erde?',
+        members: [{ sourceId: 'b', text: 'Wie dreht sich die Erde?', weight: 1 }],
+        variants: [],
+        confidence: 0.92,
+        labelOrigin: 'extractive',
+      },
+    ]);
+    fixture.detectChanges();
+
+    const analysis = host.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const evidence = analysis.querySelector<HTMLDetailsElement>('.word-cloud__responses-panel')!;
+    const trigger = analysis.querySelector('summary')!;
+    const before = fixture.componentInstance;
+    const [orbit, rotation] = Array.from(
+      host.querySelectorAll<HTMLButtonElement>('.word-cloud__word'),
+    );
+    expect(analysis.open).toBe(false);
+    expect(before.wordTooltipBlocks(before.words()[0]!).at(0)).toMatchObject({
+      kind: 'text',
+      text: expect.stringContaining('Von der lokalen KI formuliert'),
+    });
+    orbit!.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(true);
+    expect(evidence.open).toBe(true);
+    expect(evidence.textContent).toContain('Warum halten Satelliten ihre Umlaufbahn?');
+    trigger.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(false);
+    orbit!.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(false);
+    expect(orbit!.getAttribute('aria-pressed')).toBe('false');
+
+    fixture.componentRef.setInput('focusedGroupKey', 'semantic-b');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(analysis.open).toBe(true);
+    expect(evidence.textContent).toContain('Wie dreht sich die Erde?');
+    expect(rotation!.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('führt den Fokus nach Ausblenden aus der Freitext-Analyse zum Akkordeon', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const host = fixture.nativeElement as HTMLElement;
+    fixture.componentRef.setInput('responses', ['Orbit']);
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Freitext-Analyse');
+    fixture.componentRef.setInput('hideEntry', async (label: string) => {
+      fixture.componentRef.setInput('hiddenLabels', [label]);
+    });
+    fixture.detectChanges();
+
+    const summary = host.querySelector<HTMLElement>('.word-cloud__analysis-disclosure summary')!;
+    summary.click();
+    host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+    fixture.detectChanges();
+
+    const hide = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
+    hide.focus();
+    hide.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(host.querySelector('.word-cloud__word')).toBeNull();
+    expect(document.activeElement).toBe(summary);
+  });
+
   it('zeigt Kontext-Pills neben den Zaehlern', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('responses', ['Motivation durch Teamarbeit']);

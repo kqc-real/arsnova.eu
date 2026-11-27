@@ -414,11 +414,11 @@ export class SessionPresentComponent implements OnInit, OnDestroy {
   );
   readonly presenterInfo = signal($localize`Warte auf Live-Freitextdaten …`);
   readonly presenterFreetextActive = signal(false);
-  readonly freetextWordCloudEyebrow = $localize`:@@sessionWordCloud.freetextEyebrow:Live-Freitext`;
+  readonly freetextWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.freetextAnalysis:Freitext-Analyse`;
   readonly freetextWordCloudStageTitle = computed(
     () => this.currentQuestionLabel() ?? $localize`:@@wordCloud.title:Wortwolke`,
   );
-  readonly qaWordCloudEyebrow = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
+  readonly qaWordCloudAnalysisLabel = $localize`:@@sessionWordCloud.qaEyebrow:Q&A-Analyse`;
   readonly qaWordCloudItemSingular = $localize`:@@sessionQa.wordCloudItemSingular:Frage`;
   readonly qaWordCloudItemPlural = $localize`:@@sessionQa.wordCloudItemPlural:Fragen`;
   readonly qaWordCloudEmptyMessage = $localize`:@@sessionQa.wordCloudEmpty:Noch keine sichtbaren Q&A-Fragen.`;

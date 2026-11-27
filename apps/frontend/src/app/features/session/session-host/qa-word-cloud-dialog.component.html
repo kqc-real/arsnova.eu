@@ -139,12 +139,6 @@
     }
   </div>
 
-  <p class="sr-only" role="status">
-    @if (themesRefreshing()) {
-      {{ previousTopicsLabel }}
-    }
-  </p>
-
   <ng-template #themeProgress>
     <div
       class="qa-word-cloud-dialog__progress"
@@ -215,11 +209,6 @@
         @if (frozen()) {
           <p class="qa-word-cloud-dialog__mode-note" i18n="@@sessionHost.wordCloudFrozenInfo">
             Die Wortwolke bleibt stehen. Das Sammeln neuer Beiträge wird dadurch nicht angehalten.
-          </p>
-        }
-        @if (themesRefreshing()) {
-          <p class="qa-word-cloud-dialog__mode-note qa-word-cloud-dialog__refresh-note">
-            {{ previousTopicsLabel }}
           </p>
         } @else if (!themesPending() && !analysisInfo() && themeFallbackHint()) {
           <p class="qa-word-cloud-dialog__mode-note">{{ themeFallbackHint() }}</p>
