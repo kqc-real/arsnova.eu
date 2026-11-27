@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
 import {
   qaSummaryQuestionSourceId,
+  QaSummaryResultV2Schema,
   QA_SUMMARY_TECHNICAL_INSTRUCTION_VERSION,
   type QaSummaryContextPreviewDTO,
   type QaSummaryRuntimeCompatibleDTO,
@@ -791,14 +792,30 @@ describe('ModerationCompassDialogComponent', () => {
   });
 
   it.each([
-    ['rule-based', 'Regelbasierter Überblick'],
-    ['legacy-text', 'Zusammenfassung über den älteren Modellpfad'],
+    {
+      mode: 'rule-based',
+      reason: 'context_unavailable',
+      origin: 'Regelbasierter Überblick',
+      notice: 'Die benötigten Beiträge und Ergebnisse waren nicht verfügbar.',
+    },
+    {
+      mode: 'legacy-text',
+      reason: 'adapter_incompatible',
+      origin: 'Zusammenfassung über den älteren Modellpfad',
+      notice: 'Der verfügbare Dienst unterstützt die ausführliche Zusammenfassung nicht.',
+    },
+    {
+      mode: 'extractive',
+      reason: 'disabled',
+      origin: 'Zusammenfassung aus Originalbeiträgen',
+      notice: 'KI-Zusammenfassungen sind deaktiviert.',
+    },
   ] as const)(
-    'zeigt die belegte Herkunft %s und entfernt abgelöste Belege',
-    (effectiveMode, origin) => {
+    'zeigt Herkunft und Ersatzgrund für $mode und entfernt abgelöste Belege',
+    ({ mode, reason, origin, notice }) => {
       const sourceId = qaSummaryQuestionSourceId('11111111-1111-4111-8111-111111111111');
       const oldQuestion = 'Kommt Kapitel 4 in der Klausur vor?';
-      const result: NonNullable<QaSummaryRuntimeV2DTO['result']> = {
+      const result = QaSummaryResultV2Schema.parse({
         schemaVersion: 2,
         contractVersion: 'qa-summary-result-v2',
         status: 'ready',
@@ -809,19 +826,20 @@ describe('ModerationCompassDialogComponent', () => {
         snapshotHash: 'a'.repeat(64),
         locale: 'de',
         execution: {
-          attemptedMode: effectiveMode === 'legacy-text' ? 'legacy-text' : null,
-          effectiveMode,
+          attemptedMode: mode === 'legacy-text' ? 'legacy-text' : null,
+          effectiveMode: mode,
           fallback: {
             contractVersion: 'qa-summary-fallback-v1',
             requestedRequestContract: 'qa-summary-context-v2',
             requestedOutputContract: 'qa-summary-model-output-v3',
-            mode: effectiveMode,
-            reason: 'adapter_incompatible',
+            mode,
+            reason,
             retry: 'not-applicable',
           },
         },
-      };
-      const runtime = signal(v2Runtime({ inferenceConfigured: true, result }));
+      });
+      const inferenceConfigured = mode === 'legacy-text';
+      const runtime = signal(v2Runtime({ inferenceConfigured, result }));
       const { fixture } = setup([], vi.fn(), 'rule-based', {
         enabled: true,
         visibleQuestionCount: 3,
@@ -832,21 +850,85 @@ describe('ModerationCompassDialogComponent', () => {
       fixture.detectChanges();
       expect(root.textContent).toContain(origin);
       expect(root.textContent).toContain(oldQuestion);
+      expect(root.textContent).toContain(notice);
 
       runtime.set(
         v2Runtime({
-          inferenceConfigured: true,
-          result: {
-            ...runtime().result!,
+          inferenceConfigured,
+          result: QaSummaryResultV2Schema.parse({
+            ...result,
+            status: 'uncertain',
             statements: [],
+            limitations: ['Es liegen keine Q&A-Quellen vor.'],
             sources: [],
             snapshotHash: 'b'.repeat(64),
-          },
+          }),
         }),
       );
       fixture.detectChanges();
       expect(root.textContent).not.toContain(oldQuestion);
-      expect(root.textContent).toContain(origin);
+      expect(root.textContent).not.toContain(origin);
+      expect(
+        root.querySelector('[data-testid="moderation-summary"] [role="status"]')?.textContent,
+      ).toContain(notice);
+      expect(root.textContent).toContain('Es liegen keine Q&A-Quellen vor.');
+    },
+  );
+
+  it.each([
+    {
+      reason: 'misconfigured',
+      notice: 'Der Dienst für KI-Zusammenfassungen ist nicht vollständig konfiguriert.',
+      limitations: [],
+    },
+    {
+      reason: 'timeout',
+      notice: 'Die Zusammenfassung hat zu lange gedauert.',
+      limitations: [
+        'Die Zusammenfassung hat zu lange gedauert.',
+        'Nur sichtbare Q&A-Fragen, keine Teilnehmendenbewertung.',
+      ],
+    },
+  ] as const)(
+    'meldet den belegten Fehler $reason einmal ohne fertigen Überblick',
+    ({ reason, notice, limitations }) => {
+      const { fixture } = setup([], vi.fn(), 'rule-based', {
+        enabled: true,
+        visibleQuestionCount: 3,
+        runtime: v2Runtime({
+          inferenceConfigured: true,
+          result: QaSummaryResultV2Schema.parse({
+            schemaVersion: 2,
+            contractVersion: 'qa-summary-result-v2',
+            status: 'failed',
+            statements: [],
+            suggestedNextSteps: [],
+            limitations,
+            sources: [],
+            snapshotHash: 'a'.repeat(64),
+            locale: 'de',
+            execution: {
+              attemptedMode: 'full-context',
+              effectiveMode: 'rule-based',
+              fallback: {
+                contractVersion: 'qa-summary-fallback-v1',
+                requestedRequestContract: 'qa-summary-context-v2',
+                requestedOutputContract: 'qa-summary-model-output-v3',
+                mode: 'rule-based',
+                reason,
+                retry: 'manual',
+              },
+            },
+          }),
+        }),
+      });
+      const card = fixture.nativeElement.querySelector(
+        '[data-testid="moderation-summary"]',
+      ) as HTMLElement;
+      expect(card.querySelector('[role="status"]')?.textContent).toContain(notice);
+      expect(card.textContent?.split(notice)).toHaveLength(2);
+      expect(card.textContent).not.toContain('Regelbasierter Überblick');
+      for (const limitation of limitations) expect(card.textContent).toContain(limitation);
     },
   );
 

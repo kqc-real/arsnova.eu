@@ -1634,8 +1634,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       previousTopics: this.freetextWordCloudDisplayMode() === 'SEMANTIC',
       failed: this.freetextWordCloudSemanticFailed(),
       freshness: stale ? (appended ? 'new' : 'changed') : null,
-      fallbackWithoutResult:
-        !this.qaWordCloudAnalysisLocale() && this.buildFreetextWordCloudLemmaItems().length > 0,
+      unsupportedLocale:
+        !this.wordCloudFrozen() &&
+        !this.qaWordCloudAnalysisLocale() &&
+        this.buildFreetextWordCloudLemmaItems().length > 0,
     });
   });
   readonly freetextWordCloudSemanticHint = computed(() =>

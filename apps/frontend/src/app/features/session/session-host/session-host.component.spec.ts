@@ -8680,7 +8680,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('faellt Freitext-Semantik ohne Encoder auf 2.x und zeigt keinen leeren Dialog', async () => {
+  it('hält Freitext vor der ersten Themenvorschau an und zeigt erst nach belegtem Disabled den Ersatz', async () => {
     getInfoQueryMock.mockResolvedValue({ ...defaultSession, status: 'ACTIVE' });
     getCurrentQuestionForHostQueryMock.mockResolvedValue({
       questionId: '11111111-1111-4111-8111-111111111111',
@@ -8698,7 +8698,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       questionText: 'Warum bleibt ein Satellit im Orbit?',
       responses: ['Lineare Regression im Projekt', 'Lineare Regression hilft'],
     });
-    wordCloudAnalyzeQueryMock.mockResolvedValue(
+    let releaseInitialAnalysis: (result: unknown) => void = () => undefined;
+    const initialAnalysis = new Promise((resolve) => {
+      releaseInitialAnalysis = resolve;
+    });
+    wordCloudAnalyzeQueryMock.mockReturnValueOnce(initialAnalysis).mockResolvedValue(
       wordCloudAnalyzeResult({
         mode: 'SEMANTIC',
         metric: 'TOP',
@@ -8742,13 +8746,25 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await component.setFreetextWordCloudMode('SEMANTIC');
     fixture.detectChanges();
 
-    await vi.waitUntil(
-      () =>
-        wordCloudAnalyzeQueryMock.mock.calls.some(
-          (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
-        ),
-      { timeout: 5000, interval: 25 },
-    );
+    await vi.waitFor(() => expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(1));
+    const visible = component.displayedFreetextVisibleTerms();
+    expect(visible?.length).toBeGreaterThan(0);
+    expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(true);
+
+    await component.toggleWordCloudFreeze();
+    releaseInitialAnalysis(wordCloudAnalyzeResult({ mode: 'SEMANTIC', metric: 'TOP' }));
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.freetextWordCloudSemanticAnalysisResult()).toBeNull();
+    expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(false);
+    expect(component.displayedFreetextVisibleTerms()).toEqual(visible);
+    expect(component.freetextWordCloudSemanticHint()).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Anzeige fortsetzen');
+    expect(fixture.nativeElement.textContent).not.toContain('Themen sind hier nicht verfügbar.');
+
+    await component.toggleWordCloudFreeze();
+    expect(component.freetextWordCloudSemanticAnalysisPending()).toBe(true);
+    await vi.waitFor(() => expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(2));
     await vi.waitUntil(() => component.displayedFreetextAnalysisEntries()?.length === 1, {
       timeout: 5000,
       interval: 25,
@@ -14559,7 +14575,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     fixture.destroy();
   });
 
-  it('faellt Themen ohne Encoder auf 2.x und zeigt keinen leeren Dialog', async () => {
+  it('hält Q&A vor der ersten Themenvorschau an und zeigt erst nach belegtem Disabled den Ersatz', async () => {
     getInfoQueryMock.mockResolvedValue({
       ...defaultSession,
       status: 'ACTIVE',
@@ -14593,8 +14609,15 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
         hasUpvoted: false,
       },
     ]);
+    let releaseInitialAnalysis: (result: unknown) => void = () => undefined;
+    let semanticRequests = 0;
+    const initialAnalysis = new Promise((resolve) => {
+      releaseInitialAnalysis = resolve;
+    });
     wordCloudAnalyzeQueryMock.mockImplementation(async (input: { mode?: string }) => {
       if (input.mode === 'SEMANTIC') {
+        semanticRequests += 1;
+        if (semanticRequests === 1) return initialAnalysis;
         return wordCloudAnalyzeResult({
           mode: 'SEMANTIC',
           fallbackUsed: true,
@@ -14658,13 +14681,22 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
     await fixture.componentInstance.openQaWordCloudDialog();
 
-    await vi.waitUntil(
-      () =>
-        wordCloudAnalyzeQueryMock.mock.calls.some(
-          (call) => (call[0] as { mode?: string }).mode === 'SEMANTIC',
-        ),
-      { timeout: 5000, interval: 25 },
-    );
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(semanticRequests).toBe(1));
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    const fallbackTerms = component.qaWordCloudVisibleTerms();
+    expect(fallbackTerms?.length).toBeGreaterThan(0);
+    component.toggleQaWordCloudFreeze();
+    releaseInitialAnalysis(wordCloudAnalyzeResult({ mode: 'SEMANTIC' }));
+    await Promise.resolve();
+    fixture.detectChanges();
+    expect(component.qaWordCloudThemeAnalysisResult()).toBeNull();
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(false);
+    expect(component.qaWordCloudVisibleTerms()).toEqual(fallbackTerms);
+    expect(component.qaWordCloudThemeFallbackHint()).toBeNull();
+    component.toggleQaWordCloudFreeze();
+    expect(component.qaWordCloudThemeAnalysisPending()).toBe(true);
+    await vi.waitFor(() => expect(semanticRequests).toBe(2));
     await vi.waitUntil(() => fixture.componentInstance.qaWordCloudAnalysisEntries()?.length === 1, {
       timeout: 5000,
       interval: 25,

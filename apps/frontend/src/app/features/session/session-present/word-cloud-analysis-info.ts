@@ -42,7 +42,7 @@ export function wordCloudTopicAnalysisState(input: {
   previousTopics: boolean;
   failed: boolean;
   freshness: WordCloudTopicFreshness | null;
-  fallbackWithoutResult?: boolean;
+  unsupportedLocale?: boolean;
 }): WordCloudTopicAnalysisState | null {
   if (!input.hasSources) return null;
   const { channel, result, freshness } = input;
@@ -57,8 +57,10 @@ export function wordCloudTopicAnalysisState(input: {
           : 'fallback';
     } else if (result?.status === 'uncertain') {
       outcome = 'uncertain';
-    } else if (result?.status === 'disabled' || !result) {
-      outcome = input.fallbackWithoutResult && !result ? 'fallback' : 'disabled';
+    } else if (result?.status === 'disabled') {
+      outcome = 'disabled';
+    } else if (!result && input.unsupportedLocale) {
+      outcome = 'fallback';
     }
   }
   return { channel, progress, freshness, failed, outcome };

@@ -2,6 +2,20 @@ import type { QaSummaryFallbackReason } from '@arsnova/shared-types';
 
 export function localizeQaSummaryFallbackReason(reason: QaSummaryFallbackReason): string | null {
   switch (reason) {
+    case 'adapter_incompatible':
+      return $localize`:@@sessionHost.moderationSummaryFallbackAdapterIncompatible:Der verfügbare Dienst unterstützt die ausführliche Zusammenfassung nicht.`;
+    case 'disabled':
+      return $localize`:@@sessionHost.moderationSummaryFallbackDisabled:KI-Zusammenfassungen sind deaktiviert.`;
+    case 'misconfigured':
+      return $localize`:@@sessionHost.moderationSummaryFallbackMisconfigured:Der Dienst für KI-Zusammenfassungen ist nicht vollständig konfiguriert.`;
+    case 'context_unavailable':
+      return $localize`:@@sessionHost.moderationSummaryFallbackContextUnavailable:Die benötigten Beiträge und Ergebnisse waren nicht verfügbar.`;
+    case 'aborted':
+      return $localize`:@@sessionHost.moderationSummaryFallbackAborted:Die Zusammenfassung wurde abgebrochen.`;
+    case 'permission_changed':
+      return $localize`:@@sessionHost.moderationSummaryFallbackPermissionChanged:Die Berechtigung für die Zusammenfassung hat sich geändert.`;
+    case 'purged':
+      return $localize`:@@sessionHost.moderationSummaryFallbackPurged:Die Sitzungsdaten wurden entfernt.`;
     case 'busy':
     case 'queue_full':
       return $localize`:@@sessionHost.moderationSummaryFallbackBusy:Der Zusammenfassungsdienst ist gerade ausgelastet.`;
@@ -14,7 +28,7 @@ export function localizeQaSummaryFallbackReason(reason: QaSummaryFallbackReason)
       return localizeQaSummaryChromeLimitation('Die Zusammenfassung hat zu lange gedauert.');
     case 'invalid_response':
       return localizeQaSummaryChromeLimitation('Die Modellantwort war ungültig.');
-    default:
+    case 'no_packed_sources':
       return null;
   }
 }

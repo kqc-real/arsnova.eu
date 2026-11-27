@@ -17519,6 +17519,27 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackAdapterIncompatible" datatype="html">
+        <source>Der verfügbare Dienst unterstützt die ausführliche Zusammenfassung nicht.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackDisabled" datatype="html">
+        <source>KI-Zusammenfassungen sind deaktiviert.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackMisconfigured" datatype="html">
+        <source>Der Dienst für KI-Zusammenfassungen ist nicht vollständig konfiguriert.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackContextUnavailable" datatype="html">
+        <source>Die benötigten Beiträge und Ergebnisse waren nicht verfügbar.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackAborted" datatype="html">
+        <source>Die Zusammenfassung wurde abgebrochen.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackPermissionChanged" datatype="html">
+        <source>Die Berechtigung für die Zusammenfassung hat sich geändert.</source>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackPurged" datatype="html">
+        <source>Die Sitzungsdaten wurden entfernt.</source>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
         <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
       </trans-unit>
@@ -20963,6 +20984,9 @@
           <context context-type="linenumber">2027</context>
         </context-group>
       </trans-unit>
+            <trans-unit id="sessionQa.wordCloudNoResult" datatype="html">
+              <source>Für diese Ansicht liegt noch keine Wortwolke vor.</source>
+            </trans-unit>
             <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
         <source>Themen in den Fragen</source>
         <context-group purpose="location">

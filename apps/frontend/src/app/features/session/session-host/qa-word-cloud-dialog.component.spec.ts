@@ -1,4 +1,4 @@
-import { Component, NO_ERRORS_SCHEMA, signal } from '@angular/core';
+import { Component, NO_ERRORS_SCHEMA, input, signal } from '@angular/core';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -15,9 +15,11 @@ import { WordCloudComponent } from '../session-present/word-cloud.component';
 @Component({
   selector: 'app-word-cloud',
   standalone: true,
-  template: '',
+  template: '{{ emptyMessage() }}',
 })
-class WordCloudStubComponent {}
+class WordCloudStubComponent {
+  readonly emptyMessage = input('');
+}
 
 describe('QaWordCloudDialogComponent', () => {
   function setup(
@@ -390,6 +392,18 @@ describe('QaWordCloudDialogComponent', () => {
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__cloud')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__smooth')).toBeNull();
     expect(fixture.nativeElement.querySelector('.qa-word-cloud-dialog__refresh')).toBeNull();
+  });
+
+  it('zeigt bei angehaltener Q&A-Ansicht ohne Ergebnis einen neutralen Leerzustand', () => {
+    const { fixture } = setup('SEMANTIC', {
+      frozen: () => true,
+      freezeLabel: () => 'Anzeige fortsetzen',
+      themeFallbackHint: () => null,
+    });
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Für diese Ansicht liegt noch keine Wortwolke vor.');
+    expect(root.textContent).toContain('Anzeige fortsetzen');
+    expect(root.querySelector('.qa-word-cloud-dialog__progress')).toBeNull();
   });
 
   it('zeigt einen Fortschritt, solange Themen vorbereitet werden', () => {

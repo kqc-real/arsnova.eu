@@ -19773,6 +19773,34 @@
           <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackAdapterIncompatible" datatype="html">
+        <source>Der verfügbare Dienst unterstützt die ausführliche Zusammenfassung nicht.</source>
+        <target>The available service does not support the full summary.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackDisabled" datatype="html">
+        <source>KI-Zusammenfassungen sind deaktiviert.</source>
+        <target>AI summaries are disabled.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackMisconfigured" datatype="html">
+        <source>Der Dienst für KI-Zusammenfassungen ist nicht vollständig konfiguriert.</source>
+        <target>The AI summary service is not fully configured.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackContextUnavailable" datatype="html">
+        <source>Die benötigten Beiträge und Ergebnisse waren nicht verfügbar.</source>
+        <target>The required contributions and results were unavailable.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackAborted" datatype="html">
+        <source>Die Zusammenfassung wurde abgebrochen.</source>
+        <target>The summary was cancelled.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackPermissionChanged" datatype="html">
+        <source>Die Berechtigung für die Zusammenfassung hat sich geändert.</source>
+        <target>The permission to summarise has changed.</target>
+      </trans-unit>
+      <trans-unit id="sessionHost.moderationSummaryFallbackPurged" datatype="html">
+        <source>Die Sitzungsdaten wurden entfernt.</source>
+        <target>The session data was removed.</target>
+      </trans-unit>
       <trans-unit id="sessionHost.moderationSummaryFallbackBusy" datatype="html">
         <source>Der Zusammenfassungsdienst ist gerade ausgelastet.</source>
         <target>The summary service is busy right now.</target>
@@ -23617,6 +23645,10 @@
           <context context-type="sourcefile">src/app/features/session/session-host/session-host.component.ts</context>
           <context context-type="linenumber">2027</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="sessionQa.wordCloudNoResult" datatype="html">
+        <source>Für diese Ansicht liegt noch keine Wortwolke vor.</source>
+        <target>There is no word cloud for this view yet.</target>
       </trans-unit>
       <trans-unit id="sessionQa.wordCloudTitleSemantic" datatype="html">
         <source>Themen in den Fragen</source>

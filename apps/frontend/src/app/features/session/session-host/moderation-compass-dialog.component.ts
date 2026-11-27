@@ -401,7 +401,9 @@ export class ModerationCompassDialogComponent {
   }
 
   protected summaryOrigin(result: CompatibleQaSummaryResult): string | null {
-    if (!('execution' in result) || result.status === 'pending') return null;
+    if (!('execution' in result) || result.status === 'pending' || !result.statements.length) {
+      return null;
+    }
     switch (result.execution.effectiveMode) {
       case 'full-context':
         return copy.summaryModel;
@@ -430,33 +432,29 @@ export class ModerationCompassDialogComponent {
     const specific = result.limitations
       .map((item) => localizeQaSummaryChromeLimitation(item))
       .find((item) => normalizeSummaryNotice(item) !== normalizeSummaryNotice(generic ?? ''));
-    return specific ?? generic;
+    return this.summaryFallbackReason(result) ?? specific ?? generic;
   }
 
   summaryLimitations(result: CompatibleQaSummaryResult): readonly string[] {
-    const skip = new Set(
+    const seen = new Set(
       [this.summaryStatusText(result), this.genericSummaryStatus(result.status)]
         .filter((item): item is string => Boolean(item))
         .map(normalizeSummaryNotice),
     );
-    const limitations = result.limitations
-      .map((item) => localizeQaSummaryChromeLimitation(item))
-      .filter((item) => !skip.has(normalizeSummaryNotice(item)));
-    if (
-      result.status === 'ready' &&
-      'execution' in result &&
-      result.execution.effectiveMode === 'extractive' &&
-      result.execution.fallback
-    ) {
-      const reason = localizeQaSummaryFallbackReason(result.execution.fallback.reason);
-      if (
-        reason &&
-        !limitations.some((item) => normalizeSummaryNotice(item) === normalizeSummaryNotice(reason))
-      ) {
-        return [reason, ...limitations];
-      }
-    }
-    return limitations;
+    const reason = this.summaryFallbackReason(result);
+    const limitations = result.limitations.map(localizeQaSummaryChromeLimitation);
+    return (reason ? [reason, ...limitations] : limitations).filter((item) => {
+      const normalized = normalizeSummaryNotice(item);
+      if (seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    });
+  }
+
+  private summaryFallbackReason(result: CompatibleQaSummaryResult): string | null {
+    const fallback =
+      result.status !== 'pending' && 'execution' in result ? result.execution.fallback : null;
+    return fallback ? localizeQaSummaryFallbackReason(fallback.reason) : null;
   }
 
   private genericSummaryStatus(status: CompatibleQaSummaryResult['status']): string | null {
