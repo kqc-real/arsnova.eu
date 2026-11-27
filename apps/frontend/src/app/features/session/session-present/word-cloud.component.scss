@@ -957,8 +957,8 @@
   .word-cloud__word {
     inline-size: max-content;
     max-inline-size: min(100%, 28rem);
-    padding-block: max(8px, clamp(0.5rem, 0.32em, 0.9rem));
-    padding-inline: max(8px, 1rem);
+    padding-block: max(12px, clamp(0.5rem, 0.32em, 0.9rem));
+    padding-inline: max(12px, 1rem);
   }
 }
 
@@ -972,7 +972,7 @@
     &:focus-visible {
       z-index: 1;
       outline: 2px solid var(--mat-sys-primary);
-      outline-offset: 2px;
+      outline-offset: -2px;
     }
   }
 }

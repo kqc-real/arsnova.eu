@@ -45,7 +45,7 @@ describe('word-cloud layout helpers', () => {
         right: left + sizes[i]!.width,
         bottom: top + sizes[i]!.height,
       }));
-      let overlaps = 0;
+      const overlaps: number[] = [];
       for (const [i, box] of boxes.entries()) {
         expect(box.left).toBeGreaterThanOrEqual(7.99);
         expect(box.right).toBeLessThanOrEqual(stageWidth - 7.99);
@@ -57,15 +57,16 @@ describe('word-cloud layout helpers', () => {
             Math.min(box.right, neighbor.right) - Math.max(box.left, neighbor.left);
           const vertical = Math.min(box.bottom, neighbor.bottom) - Math.max(box.top, neighbor.top);
           if (horizontal > 0 && vertical > 0) {
-            overlaps++;
-            expect(Math.min(horizontal, vertical)).toBeLessThanOrEqual(4.001);
+            overlaps.push(Math.min(horizontal, vertical));
           }
         }
       }
       if (allowOverlap) {
-        expect(overlaps).toBeGreaterThan(0);
+        expect(Math.max(...overlaps)).toBeGreaterThan(10);
+        expect(Math.min(...overlaps)).toBeLessThan(5);
+        expect(Math.max(...overlaps)).toBeLessThanOrEqual(12.001);
       } else {
-        expect(overlaps).toBe(0);
+        expect(overlaps).toHaveLength(0);
       }
     },
   );

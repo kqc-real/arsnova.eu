@@ -237,7 +237,7 @@ interface WordCloudPillSize {
   readonly height: number;
 }
 
-/** Pack measured pills from the strongest term outwards. The caller keeps text at least 8 px inside each pill. */
+/** Pack measured pills from the strongest term outwards. The caller keeps text at least 12 px inside each pill. */
 export function packWordCloudPills(
   sizes: readonly WordCloudPillSize[],
   stageWidth: number,
@@ -258,8 +258,8 @@ export function packWordCloudPills(
 
   const aspect = 1.65;
   const stagger = [-0.68, -0.32, 0.18, 0.48, 0.72];
-  const edgeGaps = allowOverlap ? [-4, 1, -2, 4] : [3];
-  const minimumGap = allowOverlap ? -4 : 3;
+  const minimumGap = allowOverlap ? -12 : 3;
+  const edgeGaps = allowOverlap ? [minimumGap, 2, -6, -9, 4, -3] : [minimumGap];
   const placed: Array<WordCloudPillSize & { x: number; y: number }> = [];
   let cloudTop = 0;
   let cloudBottom = 0;
