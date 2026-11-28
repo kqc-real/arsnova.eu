@@ -1528,7 +1528,6 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const meta = this.wordTooltipMetrics(entry);
     if (this.outputOnly() || this.analysisDisclosureLabel()) {
       const provenance = this.topicProvenance(entry);
-      if (!this.outputOnly() && !provenance.length) return [];
       return [{ kind: 'text', text: [...provenance, ...meta].join('\n') }];
     }
     const blocks: WordCloudTooltipBlock[] = [];

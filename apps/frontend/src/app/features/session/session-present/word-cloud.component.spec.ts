@@ -1158,12 +1158,17 @@ describe('WordCloudComponent', () => {
     expect(parseFloat(position('Median')[0]!)).toBe((width - 160) / 2);
   });
 
-  it.each(['qa', 'default'] as const)(
-    'rendert Einzelwerte auf der %s-Projektion per Maus und Touch',
-    async (analysisMode) => {
+  it.each([
+    { analysisMode: 'qa', outputOnly: false },
+    { analysisMode: 'default', outputOnly: false },
+    { analysisMode: 'qa', outputOnly: true },
+    { analysisMode: 'default', outputOnly: true },
+  ] as const)(
+    'rendert Einzelwerte in $analysisMode mit outputOnly=$outputOnly',
+    ({ analysisMode, outputOnly }) => {
       const fixture = TestBed.createComponent(WordCloudComponent);
       fixture.componentRef.setInput('presentationMode', true);
-      fixture.componentRef.setInput('outputOnly', true);
+      fixture.componentRef.setInput('outputOnly', outputOnly);
       fixture.componentRef.setInput('disableCloudLayout', true);
       fixture.componentRef.setInput('analysisDisclosureLabel', 'Analyse');
       fixture.componentRef.setInput('analysisMode', analysisMode);
@@ -1209,12 +1214,12 @@ describe('WordCloudComponent', () => {
           },
         ]);
         fixture.detectChanges();
-        const pill = root.querySelector<HTMLElement>('span.word-cloud__word--output')!;
-        for (const event of ['mouseenter', 'touchstart']) {
+        const pill = root.querySelector<HTMLElement>('.word-cloud__word')!;
+        for (const event of ['mouseenter', outputOnly ? 'touchstart' : 'focus']) {
           pill.dispatchEvent(new Event(event));
-          const tooltip = document.getElementById(pill.getAttribute('aria-describedby')!)!;
-          const text = tooltip.textContent!;
-          expect(tooltip.getAttribute('role')).toBe('tooltip');
+          const tooltip = document.getElementById(pill.getAttribute('aria-describedby') ?? '');
+          expect(tooltip?.getAttribute('role')).toBe('tooltip');
+          const text = tooltip?.textContent ?? '';
           expect(text).toContain(analysisMode === 'qa' ? 'Größenwert: 9' : 'Nennungen: 9');
           if (analysisMode === 'qa') {
             expect(text).toContain('In 1 von 5 analysierten Fragen');
@@ -1222,10 +1227,25 @@ describe('WordCloudComponent', () => {
           }
           if (provenance) expect(text).toContain(provenance);
           else expect(text).not.toContain('Themenname');
-          expect(text).not.toMatch(/interne[rs]? (Originalbeleg|Namensmodell|Promptversion)/i);
-          document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+          expect(text).not.toContain('Interner Originalbeleg');
+          if (outputOnly) {
+            expect(text).not.toMatch(/interne[rs]? (Namensmodell|Promptversion)/i);
+          }
+          expect(root.querySelector('details.word-cloud__analysis-disclosure[open]')).toBeNull();
+          if (event === 'focus') {
+            const escape = new KeyboardEvent('keydown', {
+              key: 'Escape',
+              bubbles: true,
+              cancelable: true,
+            });
+            pill.dispatchEvent(escape);
+            expect(escape.defaultPrevented).toBe(true);
+            expect(pill.hasAttribute('aria-describedby')).toBe(false);
+          } else {
+            document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+          }
         }
-        expect(root.textContent).not.toContain('Interner Originalbeleg');
+        if (outputOnly) expect(root.textContent).not.toContain('Interner Originalbeleg');
       }
     },
   );
