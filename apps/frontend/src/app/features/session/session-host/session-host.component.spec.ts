@@ -9634,10 +9634,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.detectChanges();
       expect(component.freetextWordCloudMaximized()).toBe(false);
       expect(fixture.nativeElement.textContent).toContain('Maximieren');
-      expect(maximizedCloud?.showResponses()).toBe(true);
+      expect(maximizedCloud?.showResponses()).toBe(false);
       expect(
         fixture.nativeElement.querySelector(
-          'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel[open]',
+          'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel:not([open])',
         ),
       ).not.toBeNull();
 
@@ -9966,10 +9966,10 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.moderationCompassReturn()).toBeNull();
     expect(dialogOpenMock).toHaveBeenCalledOnce();
     expect(cloud?.selectedGroupKey()).toBeTruthy();
-    expect(cloud?.showResponses()).toBe(true);
+    expect(cloud?.showResponses()).toBe(false);
     expect(
       fixture.nativeElement.querySelector(
-        'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel[open]',
+        'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel:not([open])',
       ),
     ).not.toBeNull();
     expect(cloud?.filteredResponses()).toEqual([

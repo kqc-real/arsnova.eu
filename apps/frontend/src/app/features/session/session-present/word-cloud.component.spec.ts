@@ -157,7 +157,7 @@ describe('WordCloudComponent', () => {
     },
   );
 
-  it('öffnet beim Auswählen oder Kompass-Sprung direkt die Originalbelege', async () => {
+  it('öffnet beim Auswählen oder Kompass-Sprung die Analyse mit geschlossener Belegliste', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     const host = fixture.nativeElement as HTMLElement;
     fixture.componentRef.setInput('analysisMode', 'qa');
@@ -189,7 +189,7 @@ describe('WordCloudComponent', () => {
 
     const analysis = host.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
     const evidence = () =>
-      analysis.querySelector<HTMLDetailsElement>('details.word-cloud__responses-panel[open]');
+      analysis.querySelector<HTMLDetailsElement>('details.word-cloud__responses-panel');
     const trigger = analysis.querySelector('summary')!;
     const before = fixture.componentInstance;
     const [orbit, rotation] = Array.from(
@@ -203,10 +203,25 @@ describe('WordCloudComponent', () => {
     orbit!.click();
     fixture.detectChanges();
     expect(analysis.open).toBe(true);
+    expect(evidence()?.open).toBe(false);
+    evidence()?.querySelector('summary')?.click();
+    fixture.detectChanges();
+    expect(evidence()?.open).toBe(true);
     expect(evidence()?.textContent).toContain('Warum halten Satelliten ihre Umlaufbahn?');
+
+    const technical = analysis.querySelector<HTMLDetailsElement>('.word-cloud__technical-details')!;
+    technical.querySelector('summary')?.click();
+    expect(technical.open).toBe(true);
     trigger.click();
     fixture.detectChanges();
     expect(analysis.open).toBe(false);
+    trigger.click();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(true);
+    expect(evidence()?.open).toBe(false);
+    expect(technical.open).toBe(false);
+    trigger.click();
+    fixture.detectChanges();
     orbit!.click();
     fixture.detectChanges();
     expect(analysis.open).toBe(false);
@@ -216,6 +231,10 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(analysis.open).toBe(true);
+    expect(evidence()?.open).toBe(false);
+    evidence()?.querySelector('summary')?.click();
+    fixture.detectChanges();
+    expect(evidence()?.open).toBe(true);
     expect(evidence()?.textContent).toContain('Wie dreht sich die Erde?');
     expect(rotation!.getAttribute('aria-pressed')).toBe('true');
   });
@@ -276,8 +295,11 @@ describe('WordCloudComponent', () => {
       const originals = host.querySelector<HTMLDetailsElement>(
         'details.word-cloud__responses-panel',
       )!;
-      expect(originals.open).toBe(true);
+      expect(originals.open).toBe(false);
       const responseSummary = originals.querySelector('summary')!;
+      responseSummary.click();
+      fixture.detectChanges();
+      expect(originals.open).toBe(true);
       expect(technical.open).toBe(false);
       expect(technical.textContent).toContain('internes-label-testmodell');
       expect(technical.textContent).toContain('encoder@sha256:testdigest');
@@ -314,6 +336,8 @@ describe('WordCloudComponent', () => {
     host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
     fixture.detectChanges();
 
+    host.querySelector<HTMLElement>('.word-cloud__responses-summary')!.click();
+    fixture.detectChanges();
     const hide = host.querySelector<HTMLButtonElement>('.word-cloud__hide-action')!;
     hide.focus();
     hide.click();
@@ -400,7 +424,7 @@ describe('WordCloudComponent', () => {
     expect(fixture.componentInstance.selectedGroupKey()).toBe('uebung chatgpt');
     expect(fixture.componentInstance.selectedWordLabel()).toBe('Übung ChatGPT');
     expect(fixture.componentInstance.selectedSourceIds()).toEqual(['q1']);
-    expect(fixture.componentInstance.revealFocusedOrSelectedResponses()).toBe(true);
+    expect(fixture.componentInstance.showFocusedOrSelectedResponsePanel()).toBe(true);
     expect(fixture.componentInstance.showResponses()).toBe(true);
   });
 
@@ -431,7 +455,7 @@ describe('WordCloudComponent', () => {
 
     expect(fixture.componentInstance.selectedGroupKey()).toBe('serverlose-verarbeitung');
     expect(fixture.componentInstance.selectedWordLabel()).toBe('Serverlose Verarbeitung');
-    expect(fixture.componentInstance.revealFocusedOrSelectedResponses()).toBe(true);
+    expect(fixture.componentInstance.showFocusedOrSelectedResponsePanel()).toBe(true);
     expect(fixture.componentInstance.filteredResponses()).toEqual([
       'Wie funktioniert serverlose Verarbeitung bei Ereignissen?',
     ]);

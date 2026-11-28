@@ -5424,7 +5424,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     void this.syncPresenterSurface('default');
     this.clearWordCloudOverlayTop();
     this.wordCloudExpanded.set(true);
-    this.freetextWordCloud?.revealFocusedOrSelectedResponses();
+    this.freetextWordCloud?.showFocusedOrSelectedResponsePanel();
     if (restoreFocus) {
       afterNextRender(
         () => {

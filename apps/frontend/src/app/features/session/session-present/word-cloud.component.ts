@@ -1181,7 +1181,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       this.selectedGroupKey.set(match.groupKey);
       this.appliedFocusIdentity = focusIdentity;
       if (this.analysisDisclosureLabel() && this.showResponsesPanel() && !this.outputOnly()) {
-        this.revealSelectedResponses(true);
+        this.showSelectedResponsePanel();
       }
     });
 
@@ -1286,7 +1286,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.selectedGroupKey.set(groupKey);
-    if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses(true);
+    if (this.showResponsesPanel() && !this.outputOnly()) this.showSelectedResponsePanel();
     // A pointer selection keeps its tooltip on the word. Keyboard activation leads to its action.
     if (
       this.outputOnly() &&
@@ -1440,17 +1440,24 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.showResponses.update((value) => !value);
   }
 
-  revealSelectedResponses(openAnalysis = false): boolean {
+  protected resetAnalysisPanels(): void {
+    this.showResponses.set(false);
+    const technical = this.technicalDisclosure()?.nativeElement;
+    if (technical) technical.open = false;
+  }
+
+  private showSelectedResponsePanel(): boolean {
     const selected = this.selectedGroupKey();
     if (!selected) return false;
 
-    this.showResponses.set(true);
+    const hasAnalysis = Boolean(this.analysisDisclosureLabel());
+    this.showResponses.set(!hasAnalysis);
     this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
-    if (openAnalysis && this.analysisDisclosureLabel()) {
+    if (hasAnalysis) {
       afterNextRender(
         () => {
           const disclosure = this.analysisDisclosure()?.nativeElement;
-          if (!disclosure || this.selectedGroupKey() !== selected || !this.showResponses()) return;
+          if (!disclosure || this.selectedGroupKey() !== selected) return;
           disclosure.open = true;
           const target = this.responsesSummary()?.nativeElement;
           if (target?.getClientRects().length) {
@@ -1465,7 +1472,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return true;
   }
 
-  revealFocusedOrSelectedResponses(): boolean {
+  showFocusedOrSelectedResponsePanel(): boolean {
     if (!this.selectedGroupKey()) {
       const words = this.words();
       const focusedGroupKey = this.focusedGroupKey()?.trim() ?? '';
@@ -1480,7 +1487,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    return this.revealSelectedResponses(true);
+    return this.showSelectedResponsePanel();
   }
 
   showMoreResponses(): void {

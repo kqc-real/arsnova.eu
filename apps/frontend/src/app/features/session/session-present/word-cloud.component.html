@@ -26,7 +26,7 @@
         <ng-container *ngTemplateOutlet="analysisStatus" />
       </div>
       <details #analysisDisclosure class="word-cloud__analysis-disclosure">
-        <summary #analysisSummary>
+        <summary #analysisSummary (click)="resetAnalysisPanels()">
           <span>{{ label }}</span>
           <mat-icon aria-hidden="true">expand_more</mat-icon>
         </summary>
