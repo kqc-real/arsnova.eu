@@ -9637,7 +9637,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(maximizedCloud?.showResponses()).toBe(true);
       expect(
         fixture.nativeElement.querySelector(
-          'details.word-cloud__analysis-disclosure[open] section.word-cloud__responses-panel',
+          'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel[open]',
         ),
       ).not.toBeNull();
 
@@ -9969,7 +9969,7 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(cloud?.showResponses()).toBe(true);
     expect(
       fixture.nativeElement.querySelector(
-        'details.word-cloud__analysis-disclosure[open] section.word-cloud__responses-panel',
+        'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel[open]',
       ),
     ).not.toBeNull();
     expect(cloud?.filteredResponses()).toEqual([

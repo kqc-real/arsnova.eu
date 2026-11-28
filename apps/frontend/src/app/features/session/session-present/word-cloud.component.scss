@@ -709,18 +709,10 @@
   padding: 0.4rem 0.95rem 1rem;
 }
 
-.word-cloud__evidence-heading {
-  margin-block: 0.55rem;
-  font: var(--mat-sys-title-small);
-}
-
-.word-cloud__evidence-heading:focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
-  outline-offset: 2px;
-}
-
 .word-cloud__responses-summary {
   display: flex;
+  box-sizing: border-box;
+  min-block-size: 44px;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;

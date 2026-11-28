@@ -188,7 +188,8 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     const analysis = host.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
-    const evidence = () => analysis.querySelector('section.word-cloud__responses-panel');
+    const evidence = () =>
+      analysis.querySelector<HTMLDetailsElement>('details.word-cloud__responses-panel[open]');
     const trigger = analysis.querySelector('summary')!;
     const before = fixture.componentInstance;
     const [orbit, rotation] = Array.from(
@@ -272,7 +273,11 @@ describe('WordCloudComponent', () => {
       host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
       fixture.detectChanges();
 
-      const originals = host.querySelector('section.word-cloud__responses-panel')!;
+      const originals = host.querySelector<HTMLDetailsElement>(
+        'details.word-cloud__responses-panel',
+      )!;
+      expect(originals.open).toBe(true);
+      const responseSummary = originals.querySelector('summary')!;
       expect(technical.open).toBe(false);
       expect(technical.textContent).toContain('internes-label-testmodell');
       expect(technical.textContent).toContain('encoder@sha256:testdigest');
@@ -283,6 +288,13 @@ describe('WordCloudComponent', () => {
       );
       expect(originals.textContent).not.toMatch(/von 65 Belegen sichtbar|sha256|test-prompt/);
       expect(host.querySelector('.word-cloud__responses-more')).toBeNull();
+      responseSummary.click();
+      fixture.detectChanges();
+      expect(originals.open).toBe(false);
+      responseSummary.click();
+      fixture.detectChanges();
+      expect(originals.open).toBe(true);
+      expect(originals.querySelectorAll('li')).toHaveLength(65);
     },
   );
 

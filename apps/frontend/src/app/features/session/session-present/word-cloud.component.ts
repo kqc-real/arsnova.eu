@@ -207,7 +207,6 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly analysisDisclosure =
     viewChild<ElementRef<HTMLDetailsElement>>('analysisDisclosure');
   private readonly responsesSummary = viewChild<ElementRef<HTMLElement>>('responsesSummary');
-  private readonly evidenceHeading = viewChild<ElementRef<HTMLElement>>('evidenceHeading');
   private readonly evidencePanel = viewChild<ElementRef<HTMLElement>>('evidencePanel');
   private readonly technicalDisclosure =
     viewChild<ElementRef<HTMLDetailsElement>>('technicalDisclosure');
@@ -1453,8 +1452,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           const disclosure = this.analysisDisclosure()?.nativeElement;
           if (!disclosure || this.selectedGroupKey() !== selected || !this.showResponses()) return;
           disclosure.open = true;
-          const target =
-            this.evidenceHeading()?.nativeElement ?? this.responsesSummary()?.nativeElement;
+          const target = this.responsesSummary()?.nativeElement;
           if (target?.getClientRects().length) {
             target.focus();
             const technical = this.technicalDisclosure()?.nativeElement;

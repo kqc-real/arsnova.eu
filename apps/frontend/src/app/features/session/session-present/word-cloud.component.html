@@ -32,14 +32,7 @@
         </summary>
         <div class="word-cloud__analysis-disclosure-body">
           @if (showCompleteEvidence()) {
-            <section #evidencePanel class="word-cloud__responses-panel">
-              <h3 #evidenceHeading tabindex="-1" class="word-cloud__evidence-heading">
-                {{ itemLabel(responseSummary().visible) }} ({{
-                  formatCount(responseSummary().visible)
-                }})
-              </h3>
-              <ng-container *ngTemplateOutlet="responseContent" />
-            </section>
+            <ng-container *ngTemplateOutlet="responsePanel" />
           }
           <ng-content select="[wordCloudAnalysisOptions]" />
           <ng-container *ngTemplateOutlet="analysisMetadata" />
@@ -350,23 +343,7 @@
         </div>
       }
       @if (showResponsesPanel() && !showCompleteEvidence()) {
-        <details class="word-cloud__responses-panel" [attr.open]="showResponses() ? true : null">
-          <summary
-            #responsesSummary
-            class="word-cloud__responses-summary"
-            (click)="$event.preventDefault(); toggleResponses()"
-          >
-            <span
-              >{{ showResponsesLabel(responseSummary().visible) }} ({{
-                formatCount(responseSummary().visible)
-              }})</span
-            >
-            <mat-icon aria-hidden="true">{{
-              showResponses() ? 'expand_less' : 'expand_more'
-            }}</mat-icon>
-          </summary>
-          <ng-container *ngTemplateOutlet="responseContent" />
-        </details>
+        <ng-container *ngTemplateOutlet="responsePanel" />
       }
       @if (showReleaseNote()) {
         <p class="word-cloud__release-note">
@@ -381,48 +358,69 @@
   }
 </ng-template>
 
-<ng-template #responseContent>
-  @if (hideEntry() && selectedWordLabel()) {
-    <button
-      #hideWordButton
-      mat-button
-      type="button"
-      class="word-cloud__hide-action"
-      [attr.aria-disabled]="visibilityPending() || null"
-      [attr.aria-busy]="visibilityPending() || null"
-      (click)="hideSelectedWord($event)"
-    >
-      <mat-icon aria-hidden="true">visibility_off</mat-icon>
-      {{ hideWordLabel }}
-    </button>
-  }
-  @if (!outputOnly() && !analysisDisclosureLabel()) {
-    <ng-container *ngTemplateOutlet="topicProvenance" />
-  }
-  @if (selectedEvidenceCoverage(); as evidenceCoverage) {
-    <p>{{ evidenceCoverage }}</p>
-  }
-  <ul
-    class="word-cloud__responses"
-    tabindex="0"
-    [attr.aria-label]="
-      formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
-    "
+<ng-template #responsePanel>
+  <details
+    #evidencePanel
+    class="word-cloud__responses-panel"
+    [attr.open]="showResponses() ? true : null"
   >
-    @for (response of visibleResponses(); track response + $index) {
-      <li>{{ response }}</li>
-    }
-  </ul>
-  @if (hasMoreResponses()) {
-    <button
-      mat-button
-      type="button"
-      class="word-cloud__responses-more"
-      (click)="showMoreResponses()"
+    <summary
+      #responsesSummary
+      class="word-cloud__responses-summary"
+      (click)="$event.preventDefault(); toggleResponses()"
     >
-      {{ loadMoreResponsesLabel() }}
-    </button>
-  }
+      <span>
+        {{
+          showCompleteEvidence()
+            ? itemLabel(responseSummary().visible)
+            : showResponsesLabel(responseSummary().visible)
+        }}
+        ({{ formatCount(responseSummary().visible) }})
+      </span>
+      <mat-icon aria-hidden="true">{{ showResponses() ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </summary>
+    @if (hideEntry() && selectedWordLabel()) {
+      <button
+        #hideWordButton
+        mat-button
+        type="button"
+        class="word-cloud__hide-action"
+        [attr.aria-disabled]="visibilityPending() || null"
+        [attr.aria-busy]="visibilityPending() || null"
+        (click)="hideSelectedWord($event)"
+      >
+        <mat-icon aria-hidden="true">visibility_off</mat-icon>
+        {{ hideWordLabel }}
+      </button>
+    }
+    @if (!outputOnly() && !analysisDisclosureLabel()) {
+      <ng-container *ngTemplateOutlet="topicProvenance" />
+    }
+    @if (selectedEvidenceCoverage(); as evidenceCoverage) {
+      <p>{{ evidenceCoverage }}</p>
+    }
+    <ul
+      class="word-cloud__responses"
+      tabindex="0"
+      [attr.aria-label]="
+        formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
+      "
+    >
+      @for (response of visibleResponses(); track response + $index) {
+        <li>{{ response }}</li>
+      }
+    </ul>
+    @if (hasMoreResponses()) {
+      <button
+        mat-button
+        type="button"
+        class="word-cloud__responses-more"
+        (click)="showMoreResponses()"
+      >
+        {{ loadMoreResponsesLabel() }}
+      </button>
+    }
+  </details>
 </ng-template>
 
 <ng-template #topicProvenance>
