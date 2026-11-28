@@ -36582,6 +36582,10 @@
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
         <target><x id="analyzed"/> de <x id="eligible"/> preguntas analizadas</target>
         </trans-unit>
+      <trans-unit id="wordCloud.technicalDetails" datatype="html">
+        <source>Technische Details</source>
+        <target>Detalles técnicos</target>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
         <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
         <target>Se muestran <x id="shown"/> de <x id="total"/> fuentes</target>

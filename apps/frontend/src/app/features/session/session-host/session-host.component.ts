@@ -168,6 +168,8 @@ import {
   CONFIDENCE_SCALE_MIN,
   WORD_CLOUD_DEFAULT_MAX_NGRAM_LENGTH,
   WORD_CLOUD_PHRASE_MAX_NGRAM_LENGTH,
+  QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE,
+  qaWordCloudEvidenceIncludes,
   QA_WORD_CLOUD_MAX_FOCUS_QUESTION_IDS,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
   SESSION_LOBBY_RECENT_ARRIVALS_MAX,
@@ -270,6 +272,7 @@ import {
   wordCloudExportViewLabel,
   wordCloudTopicProgressLabel,
   wordCloudViewHint,
+  type WordCloudEntryWithEvidence,
 } from '../session-present/word-cloud.util';
 import {
   buildModerationCompassView,
@@ -446,6 +449,8 @@ function readWordCloudLemmaLocaleOverride(sessionCode: string): SupportedLocale 
     return null;
   }
 }
+
+type QaWordCloudHostResult = AnalyzeQaWordCloudOutput & { entries: WordCloudEntryWithEvidence[] };
 
 type QaWordCloudAnalysisRequest = AnalyzeQaWordCloudInput & Pick<AnalyzeWordCloudInput, 'items'>;
 
@@ -1121,8 +1126,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudThemeAnalysisPending = signal(false);
   readonly qaWordCloudThemeFallbackActive = signal(false);
   private readonly qaWordCloudThemeAnalysisFailed = signal(false);
-  readonly qaWordCloudThemeAnalysisResult = signal<AnalyzeQaWordCloudOutput | null>(null);
-  private readonly qaWordCloudRetainedPhrases = signal<WordCloudAnalysisEntryDTO[]>([]);
+  readonly qaWordCloudThemeAnalysisResult = signal<QaWordCloudHostResult | null>(null);
+  private readonly qaWordCloudRetainedPhrases = signal<WordCloudEntryWithEvidence[]>([]);
   private readonly qaWordCloudFrozenProjection = signal<QaWordCloudPresenterProjectionDTO | null>(
     null,
   );
@@ -1132,7 +1137,9 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   } | null>(null);
   readonly qaWordCloudSemanticStale = signal(false);
   readonly qaWordCloudLemmaPending = signal(false);
-  readonly qaWordCloudLemmaResult = signal<AnalyzeWordCloudOutput | null>(null);
+  readonly qaWordCloudLemmaResult = signal<
+    (AnalyzeWordCloudOutput & { entries: WordCloudEntryWithEvidence[] }) | null
+  >(null);
   readonly qaWordCloudLemmaSnapshotKey = signal<string | null>(null);
   readonly qaWordCloudLemmaFallbackReason = signal<WordCloudNormalizationFallbackReason | null>(
     null,
@@ -1179,6 +1186,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   private readonly qaWordCloudFrozenAnalysis = signal<{
     displayed: AnalyzeWordCloudOutput | null;
     topics: AnalyzeWordCloudOutput | null;
+    entries: WordCloudEntryWithEvidence[] | null;
+    terms: WordCloudTerm[] | null;
   } | null>(null);
   private qaWordCloudThemeAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
   private freetextWordCloudSemanticAnalysisTimer: ReturnType<typeof setTimeout> | null = null;
@@ -2420,11 +2429,11 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     }
     return getWordCloudLexicalDisplayMode(entries ?? this.qaWordCloudLocalTerms() ?? []);
   });
-  readonly qaWordCloudLocalTerms = computed(() =>
-    this.qaWordCloudAnalysisLocale() || this.qaWordCloudFrozenProjection()
-      ? null
-      : this.qaWordCloudTerms(),
-  );
+  readonly qaWordCloudLocalTerms = computed(() => {
+    const frozen = this.qaWordCloudFrozenAnalysis();
+    if (frozen) return frozen.terms;
+    return this.qaWordCloudAnalysisLocale() ? null : this.qaWordCloudTerms();
+  });
   readonly qaWordCloudAnalyzedCount = computed(
     () =>
       this.qaWordCloudFrozenProjection()?.analyzedQuestionCount ??
@@ -2563,8 +2572,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.buildQaWordCloudAnalysisRequest(),
   );
   readonly qaWordCloudAnalysisEntries = computed(() => {
-    const frozen = this.qaWordCloudFrozenProjection();
-    if (frozen) return frozen.analysisEntries;
+    const frozen = this.qaWordCloudFrozenAnalysis();
+    if (frozen) return frozen.entries;
 
     if (this.qaWordCloudLemmaSnapshotVisible()) {
       const lemmaEntries = this.qaWordCloudLemmaResult()?.entries ?? null;
@@ -11973,6 +11982,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     this.qaWordCloudFrozenAnalysis.set({
       displayed: this.displayedQaWordCloudResult(),
       topics: this.qaWordCloudThemeAnalysisResult(),
+      entries: this.qaWordCloudAnalysisEntries(),
+      terms: this.qaWordCloudLocalTerms(),
     });
     this.qaWordCloudFrozenProjection.set({
       ...projection,
@@ -12944,7 +12955,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       if (!parsed.success) {
         continue;
       }
-      sanitized.push(parsed.data);
+      const { evidenceMask: _privateEvidence, ...entryForStage } = parsed.data;
+      sanitized.push(entryForStage);
       if (sanitized.length >= QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES) {
         break;
       }
@@ -15398,16 +15410,16 @@ export class SessionHostComponent implements OnInit, OnDestroy {
 
   private async mutateQaWordCloudAnalysis(
     input: Parameters<typeof trpc.wordCloud.analyzeQa.mutate>[0],
-  ) {
+  ): Promise<QaWordCloudHostResult> {
     let lastError: unknown;
     for (let attempt = 0; attempt <= QA_WORD_CLOUD_ANALYZE_CONFLICT_RETRIES; attempt += 1) {
       if (this.wordCloudHttpAbortController.signal.aborted) {
         throw new DOMException('Aborted', 'AbortError');
       }
       try {
-        return await trpc.wordCloud.analyzeQa.mutate(input, {
-          signal: this.wordCloudHttpAbortController.signal,
-        });
+        const signal = this.wordCloudHttpAbortController.signal;
+        const result = await trpc.wordCloud.analyzeQa.mutate(input, { signal });
+        return await this.loadQaWordCloudEvidence(result, input.sessionCode, signal);
       } catch (error) {
         lastError = error;
         if (
@@ -15423,6 +15435,54 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       }
     }
     throw lastError;
+  }
+
+  private async loadQaWordCloudEvidence(
+    result: AnalyzeQaWordCloudOutput,
+    sessionCode: string,
+    signal: AbortSignal,
+  ): Promise<QaWordCloudHostResult> {
+    const ids = result.evidenceQuestionIdPages?.flat();
+    if (!ids?.length) return result;
+
+    const sourcesByEntry = result.entries.map(({ evidenceMask }) =>
+      evidenceMask
+        ? ids.filter((_, index) => qaWordCloudEvidenceIncludes(evidenceMask, index))
+        : undefined,
+    );
+    const usedIds = [...new Set(sourcesByEntry.flatMap((sources) => sources ?? []))];
+    const requests = [];
+    for (let start = 0; start < usedIds.length; start += QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE) {
+      requests.push(
+        trpc.wordCloud.qaEvidence.query(
+          {
+            sessionCode,
+            metric: result.sortMode,
+            filter: result.filter,
+            corpusRevision: result.corpusRevision,
+            questionIds: usedIds.slice(start, start + QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE),
+          },
+          { signal },
+        ),
+      );
+    }
+    const texts = new Map((await Promise.all(requests)).flat().map(({ id, text }) => [id, text]));
+    return {
+      ...result,
+      entries: result.entries.map((entry, index) => {
+        const sources = sourcesByEntry[index];
+        if (!sources) return entry;
+        if (sources.length !== entry.memberCount) {
+          throw new Error('The Q&A evidence does not match the analysis.');
+        }
+        const evidence = sources.map((sourceId) => {
+          const text = texts.get(sourceId);
+          if (text === undefined) throw new Error('The Q&A evidence is incomplete.');
+          return { sourceId, text };
+        });
+        return { ...entry, evidence };
+      }),
+    };
   }
 
   private buildFreetextWordCloudLemmaItems(): Array<{

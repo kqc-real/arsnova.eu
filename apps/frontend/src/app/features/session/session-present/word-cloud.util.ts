@@ -5,7 +5,11 @@ import {
 } from '@arsnova/shared-types/word-cloud-analysis-text';
 import { textAnalysisCopy } from '../../../shared/text-analysis/text-analysis-copy';
 import type { SupportedLocale } from '../../../core/locale-from-path';
-import type { WordCloudAnalysisEntryDTO, WordCloudAnalysisVariant } from '@arsnova/shared-types';
+import type {
+  WordCloudAnalysisEntryDTO,
+  WordCloudAnalysisMemberDTO,
+  WordCloudAnalysisVariant,
+} from '@arsnova/shared-types';
 import {
   getQaWordCloudQuestionWeight,
   getWordCloudWeightFromNormalizedMetric,
@@ -1028,3 +1032,8 @@ function isAscii(value: string): boolean {
 function collapseNumericSeparatorSpacing(value: string): string {
   return value.trim().replace(DECIMAL_SEPARATOR_SPACING_PATTERN, '$1$2');
 }
+
+/** Original texts resolved privately by the host for a compact analysis entry. */
+export type WordCloudEntryWithEvidence = WordCloudAnalysisEntryDTO & {
+  evidence?: readonly Pick<WordCloudAnalysisMemberDTO, 'sourceId' | 'text'>[];
+};

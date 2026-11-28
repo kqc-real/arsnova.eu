@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AnalyzeWordCloudInput, AnalyzeWordCloudOutput } from '@arsnova/shared-types';
+import {
+  qaWordCloudEvidenceIncludes,
+  type AnalyzeWordCloudInput,
+  type AnalyzeWordCloudOutput,
+} from '@arsnova/shared-types';
 import type { QaSemanticTopicSnapshot } from '../lib/qaSemanticTopicSnapshot';
 import { trpcDodIt } from './test-utils/trpc-dod-evidence';
 
@@ -19,6 +23,7 @@ const {
     $queryRaw: vi.fn(),
     participant: { count: vi.fn() },
     session: { findUnique: vi.fn() },
+    qaQuestion: { findMany: vi.fn() },
   },
   wordCloudCacheMocks: {
     getSnapshot: vi.fn().mockResolvedValue(null),
@@ -143,10 +148,67 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       );
       if (returnedCount === 500) {
         expect(result.entries.some((entry) => entry.membersTruncated)).toBe(true);
-        expect(Math.max(...result.entries.map((entry) => entry.memberCount))).toBe(500);
+        const allQuestions = result.entries.find((entry) => entry.memberCount === 500)!;
+        const pages = result.evidenceQuestionIdPages!;
+        expect(pages.map((page) => page.length)).toEqual([100, 100, 100, 100, 100]);
+        expect(
+          pages
+            .flat()
+            .filter((_, index) => qaWordCloudEvidenceIncludes(allQuestions.evidenceMask!, index)),
+        ).toEqual(corpusRows(500, eligibleCount).map(({ id }) => id));
       }
     });
   }
+
+  describe('wordCloud.qaEvidence', () => {
+    const [a, b] = corpusRows(2, 2);
+    const request = {
+      sessionCode: 'ABC123',
+      metric: 'BEST' as const,
+      filter: 'PINNED_ONLY' as const,
+      corpusRevision: '17:',
+      questionIds: [a!.id, b!.id],
+    };
+
+    it('liefert alle gefragten Originale im Host-Scope einschließlich langer Texte', async () => {
+      const originals = [
+        { id: a!.id, text: 'Vollständiger Originaltext '.repeat(34).trimEnd() },
+        { id: b!.id, text: 'Zweiter Beitrag' },
+      ];
+      prismaMock.qaQuestion.findMany.mockResolvedValueOnce(originals);
+      await expect(caller.qaEvidence(request)).resolves.toEqual(originals);
+      expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
+        where: {
+          sessionId: '11111111-1111-4111-8111-111111111111',
+          id: { in: request.questionIds },
+          status: 'PINNED',
+        },
+        select: { id: true, text: true },
+      });
+    });
+
+    it('weist ungültige Host-Tokens vor dem Lesen der Texte ab', async () => {
+      isHostSessionTokenValidMock.mockResolvedValueOnce(false);
+      await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+      expect(prismaMock.qaQuestion.findMany).not.toHaveBeenCalled();
+    });
+
+    it('weist ein fehlendes Mitglied ab und gibt keine Teilliste zurück', async () => {
+      prismaMock.qaQuestion.findMany.mockResolvedValueOnce([{ id: a!.id, text: a!.text }]);
+      await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'CONFLICT' });
+    });
+
+    it('weist einen geänderten Korpus während des Ladens ab', async () => {
+      prismaMock.qaQuestion.findMany.mockResolvedValueOnce([a, b]);
+      prismaMock.session.findUnique
+        .mockResolvedValueOnce({
+          id: '11111111-1111-4111-8111-111111111111',
+          qaRankingRevision: 17,
+        })
+        .mockResolvedValueOnce({ qaRankingRevision: 18 });
+      await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'CONFLICT' });
+    });
+  });
 
   it('bindet Kontroverse an die Ranking-Version ohne die Zahl der Teilnahmen abzufragen', async () => {
     prismaMock.$queryRaw.mockResolvedValue(corpusRows(1, 1));
@@ -298,6 +360,7 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
 
     expect(result.entries[0]).toMatchObject({ memberCount: 2, membersTruncated: true });
     expect(result.entries[0]?.members).toHaveLength(1);
+    expect(result.entries[0]?.evidenceMask).toBe('03');
     expect(result.entries[0]?.basisLabel).toBe(fullBasisLabel);
     expect(Array.from(result.entries[0]?.label ?? '')).toHaveLength(128);
     expect(wordCloudCacheMocks.setLatestQaSemanticTopicSnapshot).toHaveBeenCalledOnce();

@@ -31,6 +31,7 @@ import {
   AnalyzeWordCloudInputSchema,
   AnalyzeQaWordCloudInputSchema,
   AnalyzeQaWordCloudOutputSchema,
+  QaWordCloudPresenterProjectionDTOSchema,
   QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS,
   WordCloudAnalysisResultDTOSchema,
   CreateSessionInputSchema,
@@ -1297,6 +1298,17 @@ describe('Word-Cloud-Normalisierungsvertrag (Story 1.14b)', () => {
     });
     expect(qaResult.entries[0]?.basisLabel).toBe(fullQuestion);
     expect(qaResult.focusedGroupKey).toBe('serverlose-verarbeitung');
+    const projection = QaWordCloudPresenterProjectionDTOSchema.parse({
+      mode: 'SEMANTIC',
+      metric: 'BEST',
+      locale: 'de',
+      analysisEntries: [{ ...qaResult.entries[0], evidenceMask: '01' }],
+      eligibleQuestionCount: 1,
+      analyzedQuestionCount: 1,
+      modelVersion: null,
+    });
+    expect(projection.analysisEntries[0]).not.toHaveProperty('evidenceMask');
+
     expect(
       AnalyzeQaWordCloudInputSchema.parse({
         sessionCode: 'ABC123',

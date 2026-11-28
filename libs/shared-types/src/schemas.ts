@@ -4577,6 +4577,12 @@ export const WordCloudAnalysisEntryDTOSchema = z.object({
   /** Gesamtzahl der Quellen vor einer transportbedingten Erklärbarkeitsbegrenzung. */
   memberCount: z.number().int().min(1).optional(),
   membersTruncated: z.boolean().optional(),
+  /** Host-Q&A membership, indexed by the same analysis' canonically ordered questions. */
+  evidenceMask: z
+    .string()
+    .regex(/^(?:[0-9a-f]{2})+$/u)
+    .max(2 * Math.ceil(WORD_CLOUD_MAX_ANALYZE_ITEMS / 8))
+    .optional(),
   labelOrigin: WordCloudLabelOriginSchema.optional(),
 });
 export type WordCloudAnalysisEntryDTO = z.infer<typeof WordCloudAnalysisEntryDTOSchema>;
@@ -4707,8 +4713,14 @@ const QaWordCloudAnalysisEntryDTOSchema = WordCloudAnalysisEntryDTOSchema.extend
   membersTruncated: z.boolean(),
 });
 
+export const QA_WORD_CLOUD_EVIDENCE_ID_PAGE_SIZE = 100;
+
 export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.extend({
   entries: z.array(QaWordCloudAnalysisEntryDTOSchema).max(QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES),
+  evidenceQuestionIdPages: z
+    .array(z.array(z.uuid()).min(1).max(QA_WORD_CLOUD_EVIDENCE_ID_PAGE_SIZE))
+    .max(Math.ceil(WORD_CLOUD_MAX_ANALYZE_ITEMS / QA_WORD_CLOUD_EVIDENCE_ID_PAGE_SIZE))
+    .optional(),
   eligibleQuestionCount: z.number().int().min(0).max(QA_MAX_QUESTIONS_PER_SESSION),
   analyzedQuestionCount: z.number().int().min(0).max(WORD_CLOUD_MAX_ANALYZE_ITEMS),
   corpusRevision: z.string().min(1).max(100),
@@ -4725,12 +4737,39 @@ export const AnalyzeQaWordCloudOutputSchema = AnalyzeWordCloudOutputSchema.exten
 });
 export type AnalyzeQaWordCloudOutput = z.infer<typeof AnalyzeQaWordCloudOutputSchema>;
 
+export function qaWordCloudEvidenceIncludes(mask: string, index: number): boolean {
+  const offset = 2 * Math.floor(index / 8);
+  const byte = Number.parseInt(mask.slice(offset, offset + 2), 16);
+  return (byte & (1 << (index % 8))) !== 0;
+}
+
+// Even JSON-escaped question text fits below the Q&A response budget in this batch.
+export const QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE = 40;
+export const QaWordCloudEvidenceInputSchema = AnalyzeQaWordCloudInputSchema.pick({
+  sessionCode: true,
+  metric: true,
+  filter: true,
+}).extend({
+  corpusRevision: z.string().min(1).max(100),
+  questionIds: z.array(z.uuid()).min(1).max(QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE),
+});
+export const QaWordCloudEvidenceOutputSchema = z
+  .array(
+    z.object({
+      id: z.uuid(),
+      text: z.string(),
+    }),
+  )
+  .max(QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE);
+
 /** Host-Q&A-Wortwolke, die der Presenter 1:1 projiziert (Variante, Metrik, Glättung, Analyse). */
 export const QaWordCloudPresenterProjectionDTOSchema = WordCloudProjectionDisplaySchema.extend({
   mode: WordCloudAnalysisVariantEnum,
   metric: WordCloudWeightMetricEnum,
   locale: WordCloudAnalysisLocaleEnum.nullable(),
-  analysisEntries: z.array(WordCloudAnalysisEntryDTOSchema).max(QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES),
+  analysisEntries: z
+    .array(WordCloudAnalysisEntryDTOSchema.omit({ evidenceMask: true }))
+    .max(QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES),
   analyzedQuestionCount: z.number().int().min(0),
   eligibleQuestionCount: z.number().int().min(0),
   modelVersion: z.string().min(1).max(128).nullable(),

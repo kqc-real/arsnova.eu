@@ -188,7 +188,7 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
 
     const analysis = host.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
-    const evidence = analysis.querySelector<HTMLDetailsElement>('.word-cloud__responses-panel')!;
+    const evidence = () => analysis.querySelector('section.word-cloud__responses-panel');
     const trigger = analysis.querySelector('summary')!;
     const before = fixture.componentInstance;
     const [orbit, rotation] = Array.from(
@@ -202,8 +202,7 @@ describe('WordCloudComponent', () => {
     orbit!.click();
     fixture.detectChanges();
     expect(analysis.open).toBe(true);
-    expect(evidence.open).toBe(true);
-    expect(evidence.textContent).toContain('Warum halten Satelliten ihre Umlaufbahn?');
+    expect(evidence()?.textContent).toContain('Warum halten Satelliten ihre Umlaufbahn?');
     trigger.click();
     fixture.detectChanges();
     expect(analysis.open).toBe(false);
@@ -216,9 +215,67 @@ describe('WordCloudComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(analysis.open).toBe(true);
-    expect(evidence.textContent).toContain('Wie dreht sich die Erde?');
+    expect(evidence()?.textContent).toContain('Wie dreht sich die Erde?');
     expect(rotation!.getAttribute('aria-pressed')).toBe('true');
   });
+
+  it.each(['qa', 'default'] as const)(
+    'zeigt in %s alle ausgewählten Originale und hält technische Angaben geschlossen',
+    (analysisMode) => {
+      const fixture = TestBed.createComponent(WordCloudComponent);
+      const host = fixture.nativeElement as HTMLElement;
+      const evidence = Array.from({ length: 65 }, (_, index) => ({
+        sourceId: `source-${index}`,
+        text:
+          index === 64
+            ? 'Letzter Beitrag\n' + 'UngekürztesOriginal '.repeat(37)
+            : 'Gleicher Beitrag',
+      }));
+      fixture.componentRef.setInput('analysisMode', analysisMode);
+      fixture.componentRef.setInput('analysisDisclosureLabel', 'Analyse');
+      fixture.componentRef.setInput('disableCloudLayout', true);
+      fixture.componentRef.setInput('semanticTopics', true);
+      fixture.componentRef.setInput('analysisModelVersion', 'encoder@sha256:testdigest');
+      fixture.componentRef.setInput('labelModelId', 'internes-label-testmodell');
+      fixture.componentRef.setInput('labelPromptVersion', 'test-prompt-v1');
+      fixture.componentRef.setInput('analysisEntries', [
+        {
+          key: 'topic',
+          label: 'Thema',
+          count: 65,
+          basisLabel: evidence[64]!.text,
+          variants: ['Thema'],
+          confidence: 0.9,
+          labelOrigin: 'model',
+          memberCount: 65,
+          membersTruncated: analysisMode === 'qa',
+          members: (analysisMode === 'qa' ? evidence.slice(0, 1) : evidence).map((source) => ({
+            ...source,
+            weight: 1,
+          })),
+          ...(analysisMode === 'qa' ? { evidence } : {}),
+        },
+      ]);
+      fixture.detectChanges();
+      host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+      fixture.detectChanges();
+
+      const technical = host.querySelector<HTMLDetailsElement>(
+        'details.word-cloud__technical-details',
+      )!;
+      const originals = host.querySelector('section.word-cloud__responses-panel')!;
+      expect(technical.open).toBe(false);
+      expect(technical.textContent).toContain('internes-label-testmodell');
+      expect(technical.textContent).toContain('encoder@sha256:testdigest');
+      expect(technical.textContent).toContain('test-prompt-v1');
+      expect(originals.querySelectorAll('li')).toHaveLength(65);
+      expect(originals.querySelector('li:last-child')?.textContent?.trim()).toBe(
+        evidence[64]!.text.trim(),
+      );
+      expect(originals.textContent).not.toMatch(/von 65 Belegen sichtbar|sha256|test-prompt/);
+      expect(host.querySelector('.word-cloud__responses-more')).toBeNull();
+    },
+  );
 
   it('führt den Fokus nach Ausblenden aus der Freitext-Analyse zum Akkordeon', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
@@ -1220,17 +1277,20 @@ describe('WordCloudComponent', () => {
           const tooltip = document.getElementById(pill.getAttribute('aria-describedby') ?? '');
           expect(tooltip?.getAttribute('role')).toBe('tooltip');
           const text = tooltip?.textContent ?? '';
-          expect(text).toContain(analysisMode === 'qa' ? 'Größenwert: 9' : 'Nennungen: 9');
+          if (analysisMode !== 'qa') expect(text).toContain('Nennungen: 9');
           if (analysisMode === 'qa') {
             expect(text).toContain('In 1 von 5 analysierten Fragen');
-            expect(text).toContain('Gewichtung: Stimmensaldo');
+            if (outputOnly) {
+              expect(text).toContain('Größenwert: 9');
+              expect(text).toContain('Gewichtung: Stimmensaldo');
+            } else {
+              expect(text).not.toMatch(/Größenwert|Gewichtung/);
+            }
           }
           if (provenance) expect(text).toContain(provenance);
           else expect(text).not.toContain('Themenname');
           expect(text).not.toContain('Interner Originalbeleg');
-          if (outputOnly) {
-            expect(text).not.toMatch(/interne[rs]? (Namensmodell|Promptversion)/i);
-          }
+          expect(text).not.toMatch(/interne[rs]? (Namensmodell|Promptversion)/i);
           expect(root.querySelector('details.word-cloud__analysis-disclosure[open]')).toBeNull();
           if (event === 'focus') {
             const escape = new KeyboardEvent('keydown', {

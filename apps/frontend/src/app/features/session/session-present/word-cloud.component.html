@@ -31,10 +31,30 @@
           <mat-icon aria-hidden="true">expand_more</mat-icon>
         </summary>
         <div class="word-cloud__analysis-disclosure-body">
+          @if (showCompleteEvidence()) {
+            <section #evidencePanel class="word-cloud__responses-panel">
+              <h3 #evidenceHeading tabindex="-1" class="word-cloud__evidence-heading">
+                {{ itemLabel(responseSummary().visible) }} ({{
+                  formatCount(responseSummary().visible)
+                }})
+              </h3>
+              <ng-container *ngTemplateOutlet="responseContent" />
+            </section>
+          }
           <ng-content select="[wordCloudAnalysisOptions]" />
           <ng-container *ngTemplateOutlet="analysisMetadata" />
           <ng-container *ngTemplateOutlet="summaryContent" />
           <ng-container *ngTemplateOutlet="supportingContent" />
+          @if (
+            !outputOnly() &&
+            (selectedTopicProvenance().length || selectedWordAnalysisDetails().length)
+          ) {
+            <details #technicalDisclosure class="word-cloud__technical-details">
+              <summary i18n="@@wordCloud.technicalDetails">Technische Details</summary>
+              <ng-container *ngTemplateOutlet="topicProvenance" />
+              <ng-container *ngTemplateOutlet="analysisDetails" />
+            </details>
+          }
         </div>
       </details>
     } @else {
@@ -246,27 +266,11 @@
           <span>{{ weightingHint() }}</span>
         </div>
       }
-      @if (!outputOnly() && !showResponsesPanel() && selectedTopicProvenance().length) {
-        <ul class="word-cloud__topic-provenance">
-          @for (line of selectedTopicProvenance(); track $index) {
-            <li>{{ line }}</li>
-          }
-        </ul>
-      }
-      @if (selectedWordAnalysisDetails().length > 0) {
-        <div class="word-cloud__filter-info">
-          <p class="word-cloud__analysis-meta">
-            @for (detail of selectedWordAnalysisDetails(); track detail.label) {
-              <span
-                class="word-cloud__meta-pill word-cloud__meta-pill--detail"
-                [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
-                [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
-                [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
-                >{{ detail.label }}</span
-              >
-            }
-          </p>
-        </div>
+      @if (!analysisDisclosureLabel() || outputOnly()) {
+        @if (!outputOnly() && !showResponsesPanel()) {
+          <ng-container *ngTemplateOutlet="topicProvenance" />
+        }
+        <ng-container *ngTemplateOutlet="analysisDetails" />
       }
     </div>
   }
@@ -301,7 +305,7 @@
 </ng-template>
 
 <ng-template #summaryContent>
-  @if (analysisSummaryHero(); as summary) {
+  @if (!showCompleteEvidence() && analysisSummaryHero(); as summary) {
     <section class="word-cloud__summary-hero">
       <h3 class="word-cloud__summary-hero-heading" i18n="@@wordCloud.summaryHeroHeading">
         Beispiel aus den Originalbeiträgen
@@ -348,7 +352,7 @@
           }
         </div>
       }
-      @if (showResponsesPanel()) {
+      @if (showResponsesPanel() && !showCompleteEvidence()) {
         <details class="word-cloud__responses-panel" [attr.open]="showResponses() ? true : null">
           <summary
             #responsesSummary
@@ -364,51 +368,7 @@
               showResponses() ? 'expand_less' : 'expand_more'
             }}</mat-icon>
           </summary>
-          @if (hideEntry() && selectedWordLabel()) {
-            <button
-              #hideWordButton
-              mat-button
-              type="button"
-              class="word-cloud__hide-action"
-              [attr.aria-disabled]="visibilityPending() || null"
-              [attr.aria-busy]="visibilityPending() || null"
-              (click)="hideSelectedWord($event)"
-            >
-              <mat-icon aria-hidden="true">visibility_off</mat-icon>
-              {{ hideWordLabel }}
-            </button>
-          }
-          @if (!outputOnly() && selectedTopicProvenance().length) {
-            <ul class="word-cloud__topic-provenance">
-              @for (line of selectedTopicProvenance(); track $index) {
-                <li>{{ line }}</li>
-              }
-            </ul>
-          }
-          @if (selectedEvidenceCoverage(); as evidenceCoverage) {
-            <p>{{ evidenceCoverage }}</p>
-          }
-          <ul
-            class="word-cloud__responses"
-            tabindex="0"
-            [attr.aria-label]="
-              formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
-            "
-          >
-            @for (response of visibleResponses(); track response + $index) {
-              <li>{{ response }}</li>
-            }
-          </ul>
-          @if (hasMoreResponses()) {
-            <button
-              mat-button
-              type="button"
-              class="word-cloud__responses-more"
-              (click)="showMoreResponses()"
-            >
-              {{ loadMoreResponsesLabel() }}
-            </button>
-          }
+          <ng-container *ngTemplateOutlet="responseContent" />
         </details>
       }
       @if (showReleaseNote()) {
@@ -420,6 +380,78 @@
           Themenclustern zusammenlaufen, statt nur auf Lemma-Ebene gruppiert zu werden.
         </p>
       }
+    </div>
+  }
+</ng-template>
+
+<ng-template #responseContent>
+  @if (hideEntry() && selectedWordLabel()) {
+    <button
+      #hideWordButton
+      mat-button
+      type="button"
+      class="word-cloud__hide-action"
+      [attr.aria-disabled]="visibilityPending() || null"
+      [attr.aria-busy]="visibilityPending() || null"
+      (click)="hideSelectedWord($event)"
+    >
+      <mat-icon aria-hidden="true">visibility_off</mat-icon>
+      {{ hideWordLabel }}
+    </button>
+  }
+  @if (!outputOnly() && !analysisDisclosureLabel()) {
+    <ng-container *ngTemplateOutlet="topicProvenance" />
+  }
+  @if (selectedEvidenceCoverage(); as evidenceCoverage) {
+    <p>{{ evidenceCoverage }}</p>
+  }
+  <ul
+    class="word-cloud__responses"
+    tabindex="0"
+    [attr.aria-label]="
+      formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
+    "
+  >
+    @for (response of visibleResponses(); track response + $index) {
+      <li>{{ response }}</li>
+    }
+  </ul>
+  @if (hasMoreResponses()) {
+    <button
+      mat-button
+      type="button"
+      class="word-cloud__responses-more"
+      (click)="showMoreResponses()"
+    >
+      {{ loadMoreResponsesLabel() }}
+    </button>
+  }
+</ng-template>
+
+<ng-template #topicProvenance>
+  @if (selectedTopicProvenance().length) {
+    <ul class="word-cloud__topic-provenance">
+      @for (line of selectedTopicProvenance(); track $index) {
+        <li>{{ line }}</li>
+      }
+    </ul>
+  }
+</ng-template>
+
+<ng-template #analysisDetails>
+  @if (selectedWordAnalysisDetails().length > 0) {
+    <div class="word-cloud__filter-info">
+      <p class="word-cloud__analysis-meta">
+        @for (detail of selectedWordAnalysisDetails(); track detail.label) {
+          <span
+            class="word-cloud__meta-pill word-cloud__meta-pill--detail"
+            [class.word-cloud__meta-pill--detail-high]="detail.tone === 'high'"
+            [class.word-cloud__meta-pill--detail-medium]="detail.tone === 'medium'"
+            [class.word-cloud__meta-pill--detail-cautious]="detail.tone === 'cautious'"
+            >{{ detail.label }}</span
+          >
+        }
+      </p>
     </div>
   }
 </ng-template>

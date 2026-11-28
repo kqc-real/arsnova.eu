@@ -36636,6 +36636,10 @@
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
         <target><x id="analyzed"/> of <x id="eligible"/> questions analyzed</target>
         </trans-unit>
+      <trans-unit id="wordCloud.technicalDetails" datatype="html">
+        <source>Technische Details</source>
+        <target>Technical details</target>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
         <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
         <target><x id="shown"/> of <x id="total"/> sources shown</target>

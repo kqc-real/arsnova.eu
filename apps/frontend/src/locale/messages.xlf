@@ -32286,6 +32286,9 @@
       <trans-unit id="wordCloud.qaCoverage" datatype="html">
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
       </trans-unit>
+      <trans-unit id="wordCloud.technicalDetails" datatype="html">
+        <source>Technische Details</source>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
         <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
       </trans-unit>

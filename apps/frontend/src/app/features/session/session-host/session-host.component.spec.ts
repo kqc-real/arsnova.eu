@@ -9635,10 +9635,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       expect(component.freetextWordCloudMaximized()).toBe(false);
       expect(fixture.nativeElement.textContent).toContain('Maximieren');
       expect(maximizedCloud?.showResponses()).toBe(true);
-      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).not.toBeNull();
       expect(
-        fixture.nativeElement.querySelector('.word-cloud__responses-panel')?.hasAttribute('open'),
-      ).toBe(true);
+        fixture.nativeElement.querySelector(
+          'details.word-cloud__analysis-disclosure[open] section.word-cloud__responses-panel',
+        ),
+      ).not.toBeNull();
 
       component.maximizeFreetextWordCloud();
       fixture.detectChanges();
@@ -9966,10 +9967,11 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(dialogOpenMock).toHaveBeenCalledOnce();
     expect(cloud?.selectedGroupKey()).toBeTruthy();
     expect(cloud?.showResponses()).toBe(true);
-    expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).not.toBeNull();
     expect(
-      fixture.nativeElement.querySelector('.word-cloud__responses-panel')?.hasAttribute('open'),
-    ).toBe(true);
+      fixture.nativeElement.querySelector(
+        'details.word-cloud__analysis-disclosure[open] section.word-cloud__responses-panel',
+      ),
+    ).not.toBeNull();
     expect(cloud?.filteredResponses()).toEqual([
       'Lineare Regression hilft',
       'Lineare Regression im Projekt',

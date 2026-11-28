@@ -3,10 +3,14 @@ import {
   AnalyzeQaWordCloudInputSchema,
   AnalyzeQaWordCloudOutputSchema,
   type AnalyzeQaWordCloudOutput,
+  QA_WORD_CLOUD_EVIDENCE_ID_PAGE_SIZE,
   QA_WORD_CLOUD_MAX_BASIS_LABEL_CHARS,
   QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS,
   QA_WORD_CLOUD_MAX_EXPLANATION_TEXT_CHARS,
   QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES,
+  QaWordCloudEvidenceInputSchema,
+  QaWordCloudEvidenceOutputSchema,
+  qaWordCloudEvidenceIncludes,
   type AnalyzeWordCloudInput,
   AnalyzeWordCloudInputSchema,
   AnalyzeWordCloudOutputSchema,
@@ -413,11 +417,26 @@ function truncateQaExplanation(
   return Array.from(value).slice(0, maxChars).join('');
 }
 
-function compactQaWordCloudOutput(output: AnalyzeWordCloudOutput): AnalyzeWordCloudOutput {
+function compactQaWordCloudOutput(
+  output: AnalyzeWordCloudOutput,
+  sourceIndices: ReadonlyMap<string, number>,
+): AnalyzeWordCloudOutput {
   return {
     ...output,
     entries: output.entries.slice(0, QA_WORD_CLOUD_MAX_OUTPUT_ENTRIES).map((entry) => {
       const memberCount = entry.memberCount ?? entry.members.length;
+      const evidenceMask =
+        entry.evidenceMask ??
+        (() => {
+          const bytes = Buffer.alloc(Math.ceil(sourceIndices.size / 8));
+          for (const { sourceId } of entry.members) {
+            const index = sourceIndices.get(sourceId);
+            if (index === undefined) continue;
+            const byte = Math.floor(index / 8);
+            bytes[byte] = bytes[byte]! | (1 << (index % 8));
+          }
+          return bytes.toString('hex');
+        })();
       return {
         ...entry,
         key: truncateQaExplanation(entry.key),
@@ -431,6 +450,7 @@ function compactQaWordCloudOutput(output: AnalyzeWordCloudOutput): AnalyzeWordCl
           .map((member) => ({ ...member, text: truncateQaExplanation(member.text) })),
         variants: entry.variants.slice(0, 1).map((variant) => truncateQaExplanation(variant)),
         memberCount,
+        evidenceMask,
         membersTruncated:
           entry.membersTruncated === true || memberCount > QA_WORD_CLOUD_MAX_EXPLANATION_MEMBERS,
       };
@@ -449,8 +469,14 @@ function resolveFocusedQaWordCloudGroupKey(input: {
     return null;
   }
   const focusIds = new Set(input.focusQuestionIds);
-  const direct = input.analysis.entries.find((entry) =>
-    entry.members.some((member) => focusIds.has(member.sourceId)),
+  const focusIndices = input.corpusItems.flatMap(({ id }, index) =>
+    focusIds.has(id) ? [index] : [],
+  );
+  const direct = input.analysis.entries.find(
+    ({ evidenceMask, members }) =>
+      (evidenceMask &&
+        focusIndices.some((index) => qaWordCloudEvidenceIncludes(evidenceMask, index))) ||
+      members.some((member) => focusIds.has(member.sourceId)),
   );
   if (direct) {
     return direct.key;
@@ -563,6 +589,50 @@ export const wordCloudRouter = router({
       } finally {
         disconnect.cleanup();
       }
+    }),
+
+  qaEvidence: hostProcedure
+    .input(QaWordCloudEvidenceInputSchema)
+    .output(QaWordCloudEvidenceOutputSchema)
+    .query(async ({ input, ctx }) => {
+      const where = { code: ctx.hostSessionCode ?? input.sessionCode.toUpperCase() };
+      const session = await prisma.session.findUnique({
+        where,
+        select: { id: true, qaRankingRevision: true },
+      });
+      if (!session) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Session nicht gefunden.' });
+      }
+      const changed = () =>
+        new TRPCError({
+          code: 'CONFLICT',
+          message: 'Der Q&A-Korpus hat sich geändert. Starte die Analyse bitte erneut.',
+        });
+      if (
+        qaRankingCorpusRevision(session.qaRankingRevision, input.metric) !== input.corpusRevision
+      ) {
+        throw changed();
+      }
+      const questionIds = [...new Set(input.questionIds)];
+      const questions = await prisma.qaQuestion.findMany({
+        where: {
+          sessionId: session.id,
+          id: { in: questionIds },
+          status: input.filter === 'PINNED_ONLY' ? 'PINNED' : { in: ['PINNED', 'ACTIVE'] },
+        },
+        select: { id: true, text: true },
+      });
+      const current = await prisma.session.findUnique({
+        where,
+        select: { qaRankingRevision: true },
+      });
+      if (
+        questions.length !== questionIds.length ||
+        current?.qaRankingRevision !== session.qaRankingRevision
+      ) {
+        throw changed();
+      }
+      return questions;
     }),
 
   analyzeQa: hostProcedure
@@ -684,6 +754,18 @@ export const wordCloudRouter = router({
                 : upvoteWeight(question.upvoteCount),
       }));
       const eligibleQuestionCount = Number(corpus[0]?.eligibleCount ?? 0);
+      const evidenceQuestionIds = items.map(({ id }) => id);
+      const sourceIndices = new Map(evidenceQuestionIds.map((id, index) => [id, index]));
+      const evidenceQuestionIdPages: string[][] = [];
+      for (
+        let start = 0;
+        start < evidenceQuestionIds.length;
+        start += QA_WORD_CLOUD_EVIDENCE_ID_PAGE_SIZE
+      ) {
+        evidenceQuestionIdPages.push(
+          evidenceQuestionIds.slice(start, start + QA_WORD_CLOUD_EVIDENCE_ID_PAGE_SIZE),
+        );
+      }
       const cache = getWordCloudAnalysisCache();
       const disconnect = createRequestDisconnectSignal(ctx.req);
       let resolvedAnalysisInput: AnalyzeWordCloudInput | null = null;
@@ -718,7 +800,7 @@ export const wordCloudRouter = router({
               });
               return latest?.qaRankingRevision === session.qaRankingRevision;
             },
-            compactOutput: compactQaWordCloudOutput,
+            compactOutput: (output) => compactQaWordCloudOutput(output, sourceIndices),
             cacheScope: { sessionId: session.id },
             onResolvedInput: (effectiveAnalysisInput) => {
               resolvedAnalysisInput = effectiveAnalysisInput;
@@ -761,6 +843,7 @@ export const wordCloudRouter = router({
       });
       return {
         ...analysis,
+        evidenceQuestionIdPages,
         eligibleQuestionCount,
         analyzedQuestionCount: items.filter(isAnalyzableWordCloudItem).length,
         corpusRevision,

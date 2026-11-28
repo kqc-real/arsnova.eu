@@ -45,7 +45,7 @@ Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 ### Verständliche Bedienung und Projektion
 
-Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Der kurze Hinweis zur Verarbeitung beschreibt die sichtbare Ansicht, auch wenn gerade eine Ersatzansicht angezeigt wird. Er nennt die Grundform-Bündelung, sobald ein entsprechender Lemma-Snapshot sichtbar ist. In Host und Präsentation stehen die Wolke und ihre direkten Aktionen im Vordergrund. **Q&A-Analyse** und **Freitext-Analyse** starten geschlossen. In der Hostansicht bleiben der kompakte Herkunfts- und Aktualisierungsstatus sowie die Hilfe sichtbar. Im Akkordeon stehen die Erläuterung der Ansicht, Kennzahlen und die jeweils verfügbaren Optionen und Exporte. Eine Begriffsauswahl oder ein Sprung aus dem Moderationskompass öffnet im Host direkt die zugehörigen Originalbelege. Auf breiten Bühnen ordnen alle Ansichten die Begriffe zu einer organischen Wolke an. Auf schmalen Bühnen erscheinen die größten Begriffe zuerst.
+Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Der kurze Hinweis zur Verarbeitung beschreibt die sichtbare Ansicht, auch wenn gerade eine Ersatzansicht angezeigt wird. Er nennt die Grundform-Bündelung, sobald ein entsprechender Lemma-Snapshot sichtbar ist. In Host und Präsentation stehen die Wolke und ihre direkten Aktionen im Vordergrund. **Q&A-Analyse** und **Freitext-Analyse** starten geschlossen. In der Hostansicht bleiben der kompakte Herkunfts- und Aktualisierungsstatus sowie die Hilfe sichtbar. Im Akkordeon stehen die Erläuterung der Ansicht, Kennzahlen und die jeweils verfügbaren Optionen und Exporte. Eine Begriffsauswahl oder ein Sprung aus dem Moderationskompass öffnet das Analyse-Akkordeon und zeigt dort sämtliche zugehörigen Originalbeiträge in voller Länge. Der Tooltip nennt die Zahl der Fragen oder Nennungen und gegebenenfalls die Herkunft des Themennamens. Größenwert, Modellkennung, Versions- und Prompt-Angaben stehen im anfangs geschlossenen Akkordeon **Technische Details**. Auf breiten Bühnen ordnen alle Ansichten die Begriffe zu einer organischen Wolke an. Auf schmalen Bühnen erscheinen die größten Begriffe zuerst.
 
 Im Host-Dialog nehmen die Wortwolke und die obere Aktionsleiste die erste Ansicht ein. **Q&A-Analyse** bündelt die Herkunft der sichtbaren Themennamen, die Erläuterung zur gewählten Ansicht und Gewichtung, Kennzahlen, Gruppierungsprüfung, zugehörige Fragen, Sprachwahl, Wortformenbündelung und Exporte. Das Akkordeon startet geschlossen. Ein Klick auf einen Begriff wählt ihn aus. Sein Wert, weitere gezählte Formen und zugehörige Fragen sind im Akkordeon einsehbar. Auf breiten Ansichten verteilen sich die Begriffe um den am stärksten gewichteten Begriff. Mit der Maus können sich die Kapselränder unterschiedlich stark bis zu zwölf CSS-Pixel überlappen. Die Schrift bleibt frei. Die Touch-Ziele halten Abstand. Auf schmalen Ansichten stehen die am stärksten gewichteten Begriffe zuerst und lange Themennamen können umbrechen. Eine erste laufende Themenanalyse zeigt den Fortschritt anstelle der Wolke. Beim Aktualisieren vorhandener Themen bleibt die Wolke sichtbar, der Detailbereich kennzeichnet ihren bisherigen Stand.
 
@@ -57,7 +57,7 @@ Q&A-Dialog und Bühne erklären die Größe mit demselben, zur angezeigten Snaps
 
 ## Host-Verhalten
 
-Die Endpunkte `wordCloud.analyzeQa` und `wordCloud.analyze` setzen eine geprüfte Host-Berechtigung voraus. Neue Beiträge und Abstimmungen kennzeichnen einen bestehenden Themenstand bei Bedarf als veraltet.
+Die Endpunkte `wordCloud.analyzeQa`, `wordCloud.qaEvidence` und `wordCloud.analyze` setzen eine geprüfte Host-Berechtigung voraus. Neue Beiträge und Abstimmungen kennzeichnen einen bestehenden Themenstand bei Bedarf als veraltet.
 
 | Kanal     | Encoder-Clustering                                                                                                            | Ohne Kill-Switch / tot / Timeout                 |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
@@ -227,6 +227,16 @@ Lokale Q&A-Paraphrasen (Klausur/Regression/Folien/Beamer plus längere Fragen f�
 ## Vertrag
 
 Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstanten in `libs/shared-types/src/word-cloud-semantic.ts`. `wordCloud.analyzeQa` nimmt optional eine begrenzte Liste `focusQuestionIds` entgegen und liefert den zugehörigen `focusedGroupKey`, sofern der aktuelle Themen-Snapshot eine Zuordnung erlaubt. Cluster-Status liegen auf diesem Vertrag, nicht auf `QaSummaryStatusEnum` / 8.9c.
+
+Die Q&A-Analyse liefert die Mitgliedschaft jeder Gruppe als kompakte Bitmaske
+bezogen auf die mitgelieferten, kanonisch geordneten Fragen-IDs. Der Host
+lädt die Originaltexte aus derselben Korpusrevision in Gruppen von höchstens
+40 über `wordCloud.qaEvidence`. Geänderte oder inzwischen unzulässige Quellen
+lösen einen Konflikt aus und werden beim erneuten Lauf neu ermittelt. Wo
+Anzeige und Namensgebung in zwei Phasen laufen, behält die aktualisierte
+Beschriftung die Originalbelege der Vorschau. Die Bühne erhält ihre kompakten
+Projektionsdaten. Freitext verwendet die Originalantworten des sichtbaren
+Analysestands.
 
 Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `fallback`.
 
