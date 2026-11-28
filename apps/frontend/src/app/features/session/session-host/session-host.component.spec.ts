@@ -46,6 +46,7 @@ import { SessionResultsExportService } from '../../../core/session-results-expor
 import { QuizStoreService, DEMO_QUIZ_ID } from '../../quiz/data/quiz-store.service';
 import { getSkewAdjustedNow, resetServerClockSkew } from '../session-server-clock';
 import type { SpecAccess } from '../../../testing/spec-access';
+import type { QaWordCloudDialogData } from './qa-word-cloud-dialog.component';
 
 function pendingCompassQuestion(): QaQuestionDTO {
   return {
@@ -205,6 +206,7 @@ const {
   getSessionConfidenceSummaryQueryMock,
   getSessionFeedbackSummaryQueryMock,
   wordCloudAnalyzeQueryMock,
+  qaEvidenceQueryMock,
   qaListQueryMock,
   qaPresentProjectionQueryMock,
   qaNlpRuntimeQueryMock,
@@ -278,6 +280,7 @@ const {
   getSessionConfidenceSummaryQueryMock: vi.fn(),
   getSessionFeedbackSummaryQueryMock: vi.fn(),
   wordCloudAnalyzeQueryMock: vi.fn(),
+  qaEvidenceQueryMock: vi.fn(),
   qaListQueryMock: vi.fn(),
   qaPresentProjectionQueryMock: vi.fn(),
   qaNlpRuntimeQueryMock: vi.fn(),
@@ -433,6 +436,7 @@ vi.mock('../../../core/trpc.client', () => ({
     wordCloud: {
       analyze: { mutate: wordCloudAnalyzeQueryMock },
       analyzeQa: { mutate: wordCloudAnalyzeQueryMock },
+      qaEvidence: { query: qaEvidenceQueryMock },
     },
   },
 }));
@@ -9634,11 +9638,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
       fixture.detectChanges();
       expect(component.freetextWordCloudMaximized()).toBe(false);
       expect(fixture.nativeElement.textContent).toContain('Maximieren');
-      expect(maximizedCloud?.showResponses()).toBe(true);
-      expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).not.toBeNull();
+      expect(maximizedCloud?.showResponses()).toBe(false);
       expect(
-        fixture.nativeElement.querySelector('.word-cloud__responses-panel')?.hasAttribute('open'),
-      ).toBe(true);
+        fixture.nativeElement.querySelector(
+          'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel:not([open])',
+        ),
+      ).not.toBeNull();
 
       component.maximizeFreetextWordCloud();
       fixture.detectChanges();
@@ -9965,11 +9970,12 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(component.moderationCompassReturn()).toBeNull();
     expect(dialogOpenMock).toHaveBeenCalledOnce();
     expect(cloud?.selectedGroupKey()).toBeTruthy();
-    expect(cloud?.showResponses()).toBe(true);
-    expect(fixture.nativeElement.querySelector('.word-cloud__responses-panel')).not.toBeNull();
+    expect(cloud?.showResponses()).toBe(false);
     expect(
-      fixture.nativeElement.querySelector('.word-cloud__responses-panel')?.hasAttribute('open'),
-    ).toBe(true);
+      fixture.nativeElement.querySelector(
+        'details.word-cloud__analysis-disclosure[open] details.word-cloud__responses-panel:not([open])',
+      ),
+    ).not.toBeNull();
     expect(cloud?.filteredResponses()).toEqual([
       'Lineare Regression hilft',
       'Lineare Regression im Projekt',
@@ -15546,6 +15552,154 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(fixture.componentInstance.qaWordCloudThemeFallbackHint()).toContain(
       'Themen konnten gerade nicht aktualisiert werden. Nutze die bisherige Ansicht oder versuche es erneut.',
     );
+    fixture.destroy();
+  });
+
+  it('lädt Q&A-Originale getrennt von Vorschau und KI-Namen in begrenzten Gruppen', async () => {
+    getInfoQueryMock.mockResolvedValue({
+      ...defaultSession,
+      status: 'ACTIVE',
+      channels: configuredQaChannelResult.channels,
+    });
+    const ids = Array.from(
+      { length: 42 },
+      (_, index) => `11111111-1111-4111-8111-${String(index + 1).padStart(12, '0')}`,
+    );
+    qaListQueryMock.mockResolvedValue([
+      {
+        id: ids[0],
+        text: 'Warum bleiben Satelliten auf einer Umlaufbahn?',
+        status: 'ACTIVE',
+        upvoteCount: 3,
+        createdAt: '2026-03-13T12:00:00.000Z',
+        myVote: null,
+        isOwn: false,
+        hasUpvoted: false,
+        passagesRedacted: false,
+      },
+    ]);
+    const entry = {
+      key: 'orbit',
+      label: 'Umlaufbahnen',
+      labelOrigin: 'extractive',
+      count: 41,
+      memberCount: 41,
+      membersTruncated: true,
+      evidenceMask: 'ffffffffff01',
+      confidence: 0.9,
+      basisLabel: null,
+      variants: [],
+      members: [{ sourceId: ids[0], text: 'Vorschau', weight: 1 }],
+    };
+    const preview = wordCloudAnalyzeResult({
+      mode: 'SEMANTIC',
+      analyzedQuestionCount: 42,
+      eligibleQuestionCount: 42,
+      sortMode: 'BEST',
+      filter: 'ALL_ELIGIBLE',
+      corpusRevision: 'canonical-revision',
+      evidenceQuestionIdPages: [ids],
+      topicLabelsPending: true,
+      entries: [entry],
+    });
+    const names = Promise.withResolvers<typeof preview>();
+    wordCloudAnalyzeQueryMock.mockImplementation((request: { topicLabels?: unknown }) => {
+      if (typeof request.topicLabels === 'object') return names.promise;
+      return Promise.resolve(
+        request.topicLabels === 'preview' ? preview : wordCloudAnalyzeResult(),
+      );
+    });
+    const firstBatch = Promise.withResolvers<{ id: string; text: string }[]>();
+    qaEvidenceQueryMock.mockReturnValueOnce(firstBatch.promise);
+    const fixture = setup();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(1));
+    const closed = new Subject<void>();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => closed });
+    await component.openQaWordCloudDialog();
+    component.setQaWordCloudAnalysisVariant('SEMANTIC');
+    fixture.detectChanges();
+    await vi.waitFor(() => {
+      expect(component.qaWordCloudAnalysisEntries()?.[0]?.label).toBe(entry.label);
+      expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledWith(
+        expect.objectContaining({ topicLabels: { snapshotHash: preview.snapshotHash } }),
+        expect.anything(),
+      );
+    });
+    const { data } = dialogOpenMock.mock.calls.at(-1)![1] as { data: QaWordCloudDialogData };
+    expect(qaEvidenceQueryMock).not.toHaveBeenCalled();
+    const source = data.analysisEntries()?.[0]?.evidenceSource;
+    expect(source?.sourceIds).toEqual(ids.slice(0, 41));
+    const signal = new AbortController().signal;
+    const pending = data.loadEvidence!([source!], signal);
+    expect(qaEvidenceQueryMock).toHaveBeenCalledExactlyOnceWith(
+      {
+        sessionCode: component.code.toUpperCase(),
+        metric: 'BEST',
+        filter: 'ALL_ELIGIBLE',
+        corpusRevision: 'canonical-revision',
+        questionIds: ids.slice(0, 40),
+      },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+
+    names.resolve(
+      wordCloudAnalyzeResult({
+        ...preview,
+        entries: [{ ...entry, label: 'Satelliten im Orbit', labelOrigin: 'model' }],
+        topicLabelsPending: false,
+      }),
+    );
+    await vi.waitFor(() => {
+      const renamed = data.analysisEntries()?.[0];
+      expect(renamed?.label).toBe('Satelliten im Orbit');
+      expect(renamed?.evidenceSource).toBe(source);
+    });
+    expect(qaEvidenceQueryMock).toHaveBeenCalledTimes(1);
+
+    const analyzeCalls = wordCloudAnalyzeQueryMock.mock.calls.length;
+    qaEvidenceQueryMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
+    firstBatch.resolve(ids.slice(0, 40).map((id) => ({ id, text: 'Erster Stapel' })));
+    await expect(pending).resolves.toEqual({ status: 'stale' });
+    expect(qaEvidenceQueryMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ questionIds: ids.slice(40, 41) }),
+      expect.anything(),
+    );
+    expect(data.analysisEntries()?.[0]?.label).toBe('Satelliten im Orbit');
+    expect(wordCloudAnalyzeQueryMock).toHaveBeenCalledTimes(analyzeCalls);
+
+    qaEvidenceQueryMock.mockResolvedValueOnce([]);
+    await expect(data.loadEvidence!([source!], signal)).resolves.toEqual({ status: 'failed' });
+    qaEvidenceQueryMock.mockImplementation(({ questionIds }: { questionIds: string[] }) =>
+      Promise.resolve(questionIds.map((id) => ({ id, text: `Vollständiger Originalbeleg ${id}` }))),
+    );
+    const complete = await data.loadEvidence!([source!], signal);
+    expect(complete.status === 'ready' ? [...complete.texts.keys()] : []).toEqual(ids.slice(0, 41));
+
+    component.toggleQaWordCloudFreeze();
+    expect(data.analysisEntries()?.[0]?.evidenceSource).toBe(source);
+    const evidenceCalls = qaEvidenceQueryMock.mock.calls.length;
+    await expect(data.loadEvidence!([source!], signal)).resolves.toEqual(complete);
+    expect(qaEvidenceQueryMock).toHaveBeenCalledTimes(evidenceCalls + 2);
+    await component.setQaWordCloudProjected(true);
+    const projected = JSON.stringify(setQaWordCloudProjectionMutateMock.mock.lastCall);
+    expect(projected).toContain('Satelliten im Orbit');
+    expect(projected).not.toMatch(/evidenceSource|evidenceMask|Vollständiger Originalbeleg/);
+
+    closed.next();
+    component.qaListRankingRevision.set('18:BEST:');
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    const { data: reopened } = dialogOpenMock.mock.calls.at(-1)![1] as {
+      data: QaWordCloudDialogData;
+    };
+    expect(reopened.analysisEntries()?.[0]?.evidenceSource).toBe(source);
+    expect(reopened.evidenceRankingRevision?.()).toBe('18:BEST:');
+    qaEvidenceQueryMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
+    await expect(reopened.loadEvidence!([source!], signal)).resolves.toEqual({ status: 'stale' });
+    expect(qaEvidenceQueryMock).toHaveBeenCalledTimes(evidenceCalls + 3);
     fixture.destroy();
   });
 

@@ -163,6 +163,8 @@
       [weightedResponses]="weightedResponses()"
       [terms]="terms()"
       [analysisEntries]="analysisEntries()"
+      [loadEvidence]="data.loadEvidence ?? null"
+      [evidenceRankingRevision]="data.evidenceRankingRevision?.() ?? null"
       [analysisMode]="'qa'"
       [analysisInfo]="analysisInfo()"
       [emptyMessage]="emptyMessage()"
@@ -174,7 +176,13 @@
       [itemLabelPlural]="data.itemLabelPlural"
       [itemCount]="analyzedQuestionCount()"
       [eligibleItemCount]="eligibleQuestionCount()"
-      [selectionScopeKey]="analysisVariant() + ':' + (data.analysisLanguage?.() ?? '')"
+      [selectionScopeKey]="
+        analysisVariant() +
+        ':' +
+        (data.analysisLanguage?.() ?? '') +
+        ':' +
+        (data.evidenceScope?.() ?? '')
+      "
       [wordLabelSingular]="wordLabelSingular()"
       [wordLabelPlural]="wordLabelPlural()"
       [showConfidenceFilter]="displayMode() === 'SEMANTIC'"
@@ -191,6 +199,7 @@
       [disableCloudLayout]="true"
       [focusedTermLabel]="focusedTermLabel()"
       [focusedGroupKey]="focusedGroupKey()"
+      [openAnalysisOnFocus]="openAnalysisOnFocus()"
     >
       <div wordCloudAnalysisOptions class="qa-word-cloud-dialog__analysis-options">
         <p class="qa-word-cloud-dialog__mode-note qa-word-cloud-dialog__view-hint">

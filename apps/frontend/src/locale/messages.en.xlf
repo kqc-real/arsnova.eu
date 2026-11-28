@@ -27855,14 +27855,6 @@
           <context context-type="linenumber">1408</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="wordCloud.weightedValueTooltip" datatype="html">
-        <source>Größenwert: <x id="count" equiv-text="count"/></source>
-        <target>Size value: <x id="count" equiv-text="count"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">1919</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="wordCloud.mentionsTooltip" datatype="html">
         <source>Nennungen: <x id="count" equiv-text="count"/></source>
         <target>Mentions: <x id="count" equiv-text="count"/></target>
@@ -36636,6 +36628,34 @@
         <source><x id="analyzed"/> von <x id="eligible"/> Fragen analysiert</source>
         <target><x id="analyzed"/> of <x id="eligible"/> questions analyzed</target>
         </trans-unit>
+      <trans-unit id="wordCloud.technicalDetails" datatype="html">
+        <source>Technische Details</source>
+        <target>Technical details</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.topicDiagnostics" datatype="html">
+        <source>Modell- und Versionsdaten</source>
+        <target>Model and version information</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceLoading" datatype="html">
+        <source>Originalbelege werden geladen.</source>
+        <target>Loading original responses.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceLoaded" datatype="html">
+        <source>Originalbelege geladen.</source>
+        <target>Original responses loaded.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceFailed" datatype="html">
+        <source>Die Originalbelege konnten nicht geladen werden.</source>
+        <target>Could not load the original responses.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceStale" datatype="html">
+        <source>Die Fragen haben sich geändert. Aktualisiere die Wortwolke, um die Belege zu laden.</source>
+        <target>The questions have changed. Refresh the word cloud to load the original responses.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceRetry" datatype="html">
+        <source>Belege erneut laden</source>
+        <target>Retry loading original responses</target>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
         <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
         <target><x id="shown"/> of <x id="total"/> sources shown</target>

@@ -132,7 +132,8 @@ export function shouldUseUnbatchedHttpTransport(path: string): boolean {
     path === 'quiz.deriveLearningObjectives' ||
     path === 'health.openWeightLlmProbe' ||
     path === 'wordCloud.analyze' ||
-    path === 'wordCloud.analyzeQa'
+    path === 'wordCloud.analyzeQa' ||
+    path === 'wordCloud.qaEvidence'
   );
 }
 

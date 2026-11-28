@@ -162,7 +162,7 @@ function snapshotCacheKeyParts(input: AnalyzeWordCloudInput): readonly string[] 
     input.metric,
     input.normalization,
     WORD_CLOUD_NORMALIZATION_ANALYSIS_VERSION,
-    SNAPSHOT_PAYLOAD_VERSION,
+    input.channel === 'QA' ? 'qa-evidence-membership-v1' : SNAPSHOT_PAYLOAD_VERSION,
     input.corpusRevision ?? 'client',
     String(input.maxEntries ?? 'default'),
     String(input.maxNgramLength ?? 1),

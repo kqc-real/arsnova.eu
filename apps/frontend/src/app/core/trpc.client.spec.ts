@@ -127,6 +127,7 @@ describe('trpc.client host transport', () => {
     expect(shouldUseUnbatchedHttpTransport('health.openWeightLlmProbe')).toBe(true);
     expect(shouldUseUnbatchedHttpTransport('wordCloud.analyze')).toBe(true);
     expect(shouldUseUnbatchedHttpTransport('wordCloud.analyzeQa')).toBe(true);
+    expect(shouldUseUnbatchedHttpTransport('wordCloud.qaEvidence')).toBe(true);
     expect(shouldUseUnbatchedHttpTransport('health.stats')).toBe(false);
     expect(shouldUseUnbatchedHttpTransport('quiz.prepareLearningObjectiveDerivation')).toBe(false);
     expect(shouldUseUnbatchedHttpTransport('quiz.upload')).toBe(false);

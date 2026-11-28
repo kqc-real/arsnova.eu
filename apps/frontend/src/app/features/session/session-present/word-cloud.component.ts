@@ -70,6 +70,10 @@ import {
   getStopwordsForLocale,
   normalizeFreeTextResponseForDisplay,
   type WordCloudAnalysisMode,
+  type WordCloudEntryWithEvidence,
+  type WordCloudEvidenceLoader,
+  type WordCloudEvidenceResult,
+  type WordCloudEvidenceSource,
   type WordCloudStopwordContext,
   type WeightedWordSource,
 } from './word-cloud.util';
@@ -206,6 +210,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly analysisDisclosure =
     viewChild<ElementRef<HTMLDetailsElement>>('analysisDisclosure');
   private readonly responsesSummary = viewChild<ElementRef<HTMLElement>>('responsesSummary');
+  private readonly evidencePanel = viewChild<ElementRef<HTMLElement>>('evidencePanel');
+  private readonly technicalDisclosure =
+    viewChild<ElementRef<HTMLDetailsElement>>('technicalDisclosure');
+  private readonly topicDiagnosticsDisclosure = viewChild<ElementRef<HTMLDetailsElement>>(
+    'topicDiagnosticsDisclosure',
+  );
   private readonly hideWordButton = viewChild('hideWordButton', {
     read: ElementRef,
   });
@@ -234,12 +244,15 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly responseTextsBySourceId = input<Readonly<Record<string, string>> | null>(null);
   readonly weightedResponses = input<WeightedWordSource[] | null>(null);
   readonly terms = input<WordCloudTerm[] | null>(null);
-  readonly analysisEntries = input<WordCloudAnalysisEntryDTO[] | null>(null);
+  readonly analysisEntries = input<WordCloudEntryWithEvidence[] | null>(null);
+  readonly loadEvidence = input<WordCloudEvidenceLoader | null>(null);
+  readonly evidenceRankingRevision = input<string | null>(null);
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly semanticTopics = input(false);
   readonly selectionScopeKey = input<string | null>(null);
   readonly focusedTermLabel = input<string | null>(null);
   readonly focusedGroupKey = input<string | null>(null);
+  readonly openAnalysisOnFocus = input(true);
   readonly title = input($localize`:@@wordCloud.title:Wortwolke`);
   readonly eyebrow = input<string | null>(null);
   readonly description = input<string | null>(null);
@@ -322,6 +335,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       this.showActionsPanel() ||
       (!this.outputOnly() && (this.showResponsesPanel() || this.showReleaseNote())),
   );
+  protected readonly showCompleteEvidence = computed(() =>
+    Boolean(this.analysisDisclosureLabel() && !this.outputOnly() && this.selectedWordEntry()),
+  );
   readonly selectedSourceIds = computed(() => {
     const selected = this.selectedGroupKey();
     if (!selected) {
@@ -352,9 +368,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       if (entry.key !== selected) {
         continue;
       }
-      for (const member of entry.members) {
-        collect(member.sourceId);
-      }
+      const ids = entry.evidenceSource?.sourceIds ?? entry.members.map(({ sourceId }) => sourceId);
+      ids.forEach(collect);
     }
 
     return ids;
@@ -438,6 +453,86 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
 
     return responses;
+  });
+
+  private readonly evidenceEntries = computed(() => {
+    if (!this.loadEvidence() || this.outputOnly() || this.terms() !== null) return [];
+    const selected = this.selectedGroupKey();
+    const entries = this.filteredAnalysisEntries() ?? [];
+    return selected ? entries.filter((entry) => entry.key === selected) : entries;
+  });
+  private readonly evidenceSources = computed(
+    () => this.evidenceEntries().flatMap((entry) => entry.evidenceSource ?? []),
+    {
+      // Relabeling copies the entry and retains its original membership.
+      equal: (a, b) => a.length === b.length && a.every((source, index) => source === b[index]),
+    },
+  );
+  private readonly evidenceSourceIds = computed(
+    () =>
+      new Set(
+        this.evidenceEntries().flatMap(
+          (entry) =>
+            entry.evidenceSource?.sourceIds ?? entry.members.map(({ sourceId }) => sourceId),
+        ),
+      ),
+  );
+  private readonly evidenceAttempt = signal(0);
+  private readonly evidenceRankingCounter = computed(() => {
+    const rankingRevision = this.evidenceRankingRevision();
+    return rankingRevision === null ? null : Number(rankingRevision.split(':', 1)[0]);
+  });
+  // The host list and the analysis share the monotonic Q&A ranking counter.
+  private readonly evidenceSnapshotCounters = computed(() =>
+    this.evidenceSources().map(({ snapshot }) => Number(snapshot.corpusRevision.split(':', 1)[0])),
+  );
+  private readonly evidenceSuperseded = computed(() => {
+    const current = this.evidenceRankingCounter();
+    return current !== null && this.evidenceSnapshotCounters().some((counter) => current > counter);
+  });
+  private readonly evidenceResult = signal<{
+    sources: readonly WordCloudEvidenceSource[];
+    scope: string | null;
+    result: WordCloudEvidenceResult;
+  } | null>(null);
+  private readonly currentEvidenceResult = computed(() => {
+    if (this.evidenceSuperseded()) return { status: 'stale' } as const;
+
+    const loaded = this.evidenceResult();
+    if (loaded?.sources !== this.evidenceSources() || loaded.scope !== this.selectionScopeKey()) {
+      return null;
+    }
+    if (loaded.result.status !== 'ready') return loaded.result;
+
+    const current = this.evidenceRankingCounter();
+    const liveTexts = this.responseTextsBySourceId();
+    if (
+      liveTexts &&
+      (current === null || this.evidenceSnapshotCounters().every((counter) => current >= counter))
+    ) {
+      for (const [id, text] of loaded.result.texts) {
+        if (liveTexts[id] !== undefined && liveTexts[id] !== text)
+          return { status: 'stale' } as const;
+      }
+    }
+    return loaded.result;
+  });
+  protected readonly evidenceStatus = computed(() =>
+    this.evidenceSources().length ? (this.currentEvidenceResult()?.status ?? 'pending') : null,
+  );
+  protected readonly evidenceStatusLabel = computed(() => {
+    switch (this.evidenceStatus()) {
+      case 'pending':
+        return $localize`:@@wordCloud.evidenceLoading:Originalbelege werden geladen.`;
+      case 'ready':
+        return $localize`:@@wordCloud.evidenceLoaded:Originalbelege geladen.`;
+      case 'failed':
+        return $localize`:@@wordCloud.evidenceFailed:Die Originalbelege konnten nicht geladen werden.`;
+      case 'stale':
+        return $localize`:@@wordCloud.evidenceStale:Die Fragen haben sich geändert. Aktualisiere die Wortwolke, um die Belege zu laden.`;
+      default:
+        return '';
+    }
   });
 
   private readonly termResponsesByGroupKey = computed(() => {
@@ -769,8 +864,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   protected readonly selectedTopicProvenance = computed(() => {
-    const entry = this.selectedWordEntry();
+    const entry = this.analysisDisclosureLabel()
+      ? this.analysisDetailEntry()
+      : this.selectedWordEntry();
     return entry ? this.topicProvenance(entry) : [];
+  });
+
+  protected readonly selectedTopicDiagnostics = computed(() => {
+    if (this.outputOnly()) return [];
+    const entry = this.analysisDetailEntry();
+    return entry && this.topicNameOrigin(entry) ? this.topicDiagnostics(entry) : [];
   });
 
   protected readonly currentAnalysisInfo = computed(() => {
@@ -797,7 +900,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return selected;
     }
 
-    if (this.terms() === null && (this.analysisEntries()?.length ?? 0) === 0) {
+    if (
+      !this.analysisDisclosureLabel() &&
+      this.terms() === null &&
+      (this.analysisEntries()?.length ?? 0) === 0
+    ) {
       return null;
     }
 
@@ -829,8 +936,10 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const details: AnalysisDetailChip[] = [];
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     const metric = this.tooltipMetricLine();
-    if (this.analysisDisclosureLabel() && this.showsSelectedFilterDetails()) {
-      details.push({ label: this.tooltipValueLine(entry.count), tone: 'neutral' });
+    if (this.analysisDisclosureLabel() && !this.outputOnly()) {
+      if (this.analysisMode() !== 'qa') {
+        details.push({ label: this.tooltipMentionsLine(entry), tone: 'neutral' });
+      }
       const forms = this.tooltipExtraVariants(entry);
       if (forms.length > 0) {
         const variants = this.wordVariantPreview(forms);
@@ -863,7 +972,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const entry = this.selectedWordEntry();
     if (!entry) return null;
     const analysisEntry = this.analysisEntries()?.find(({ key }) => key === entry.groupKey);
-    if (!analysisEntry?.membersTruncated) return null;
+    if (!analysisEntry?.membersTruncated || analysisEntry.evidenceSource) return null;
     const shown = this.formatCount(this.visibleResponses().length);
     const total = this.formatCount(entry.sourceCount);
     return $localize`:@@wordCloud.evidenceCoverage:${shown}:shown: von ${total}:total: Belegen sichtbar`;
@@ -899,6 +1008,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly filteredResponses = computed(() => {
+    if (this.evidenceSources().length) {
+      const evidence = this.currentEvidenceResult();
+      if (evidence?.status !== 'ready') return [];
+      const texts = new Map(evidence.texts);
+      for (const entry of this.evidenceEntries()) {
+        if (entry.evidenceSource) continue;
+        for (const { sourceId, text } of entry.members) {
+          if (!texts.has(sourceId)) texts.set(sourceId, this.displayResponseText(sourceId, text));
+        }
+      }
+      return [...texts.values()];
+    }
     const selected = this.selectedGroupKey();
     const termResponsesByGroupKey = this.termResponsesByGroupKey();
     if (this.terms() !== null) {
@@ -923,9 +1044,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       .map((entry) => entry.response);
   });
 
-  readonly visibleResponses = computed(() =>
-    this.filteredResponses().slice(0, this.responsesVisibleLimit()),
-  );
+  readonly visibleResponses = computed(() => {
+    const responses = this.filteredResponses();
+    return this.showCompleteEvidence() || this.evidenceSources().length
+      ? responses
+      : responses.slice(0, this.responsesVisibleLimit());
+  });
 
   readonly remainingResponsesCount = computed(() =>
     Math.max(0, this.filteredResponses().length - this.visibleResponses().length),
@@ -979,7 +1103,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     return {
       total,
-      visible: this.filteredResponses().length,
+      visible: this.evidenceSources().length
+        ? this.evidenceSourceIds().size
+        : this.filteredResponses().length,
     };
   });
 
@@ -1117,6 +1243,48 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       this.previousSelectionScopeKey = scopeKey;
     });
 
+    effect((onCleanup) => {
+      this.evidenceResult.set(null);
+      if (!this.showResponses() || !this.showResponsesPanel()) return;
+      const load = this.loadEvidence();
+      const sources = this.evidenceSources();
+      if (!load || !sources.length) return;
+
+      const scope = this.selectionScopeKey();
+      this.evidenceAttempt();
+      if (this.evidenceSuperseded()) return;
+
+      const abort = new AbortController();
+      onCleanup(() => abort.abort());
+      const apply = (result: WordCloudEvidenceResult) => {
+        if (
+          !abort.signal.aborted &&
+          !this.evidenceSuperseded() &&
+          this.showResponses() &&
+          this.evidenceSources() === sources &&
+          this.selectionScopeKey() === scope
+        ) {
+          this.evidenceResult.set({ result, sources, scope });
+        }
+      };
+      const incomplete = sources.some(
+        ({ sourceIds, memberCount }) => new Set(sourceIds).size !== memberCount,
+      );
+      if (incomplete) {
+        apply({ status: 'failed' });
+        return;
+      }
+      void load(sources, abort.signal).then(apply, () => apply({ status: 'failed' }));
+    });
+
+    effect(() => {
+      const loaded = this.evidenceResult();
+      if (loaded?.result.status === 'ready' && this.currentEvidenceResult()?.status === 'stale') {
+        // Discard sensitive texts even if a later page no longer includes the changed question.
+        this.evidenceResult.set({ ...loaded, result: { status: 'stale' } });
+      }
+    });
+
     effect(() => {
       const selected = this.selectedGroupKey();
       if (!selected) {
@@ -1160,8 +1328,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
       this.selectedGroupKey.set(match.groupKey);
       this.appliedFocusIdentity = focusIdentity;
-      if (this.analysisDisclosureLabel() && this.showResponsesPanel() && !this.outputOnly()) {
-        this.revealSelectedResponses(true);
+      if (
+        this.openAnalysisOnFocus() &&
+        this.analysisDisclosureLabel() &&
+        this.showResponsesPanel() &&
+        !this.outputOnly()
+      ) {
+        this.showSelectedResponsePanel();
       }
     });
 
@@ -1266,7 +1439,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return;
     }
     this.selectedGroupKey.set(groupKey);
-    if (this.showResponsesPanel() && !this.outputOnly()) this.revealSelectedResponses(true);
+    if (this.showResponsesPanel() && !this.outputOnly()) this.showSelectedResponsePanel();
     // A pointer selection keeps its tooltip on the word. Keyboard activation leads to its action.
     if (
       this.outputOnly() &&
@@ -1292,7 +1465,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private clearWordSelection(): void {
-    if (this.document.activeElement === this.hideWordButton()?.nativeElement) {
+    const active = this.document.activeElement;
+    if (
+      active === this.hideWordButton()?.nativeElement ||
+      this.evidencePanel()?.nativeElement.contains(active)
+    ) {
       (this.analysisSummary() ?? this.heading())?.nativeElement.focus();
     }
     this.selectedGroupKey.set(null);
@@ -1416,20 +1593,53 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.showResponses.update((value) => !value);
   }
 
-  revealSelectedResponses(openAnalysis = false): boolean {
+  protected retryEvidence(): void {
+    const summary = this.responsesSummary()?.nativeElement;
+    if (summary?.getClientRects().length) summary.focus();
+    this.evidenceAttempt.update((attempt) => attempt + 1);
+  }
+
+  protected resetAnalysisPanels(): void {
+    this.showResponses.set(false);
+    this.closeTechnicalDetails();
+  }
+
+  private closeTechnicalDetails(): void {
+    const technical = this.technicalDisclosure()?.nativeElement;
+    if (technical) technical.open = false;
+    this.closeTopicDiagnostics();
+  }
+
+  protected closeTopicDiagnostics(): void {
+    const diagnostics = this.topicDiagnosticsDisclosure()?.nativeElement;
+    if (diagnostics) diagnostics.open = false;
+  }
+
+  private showSelectedResponsePanel(): boolean {
     const selected = this.selectedGroupKey();
     if (!selected) return false;
 
-    this.showResponses.set(true);
+    const hasAnalysis = Boolean(this.analysisDisclosureLabel());
+    this.showResponses.set(!hasAnalysis);
     this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
-    if (openAnalysis && this.analysisDisclosureLabel()) {
+    if (hasAnalysis) {
+      const scopeKey = this.selectionScopeKey();
       afterNextRender(
         () => {
           const disclosure = this.analysisDisclosure()?.nativeElement;
-          if (!disclosure || this.selectedGroupKey() !== selected || !this.showResponses()) return;
+          if (
+            !disclosure ||
+            this.selectedGroupKey() !== selected ||
+            this.selectionScopeKey() !== scopeKey
+          ) {
+            return;
+          }
           disclosure.open = true;
           const target = this.responsesSummary()?.nativeElement;
-          if (target?.getClientRects().length) target.focus();
+          if (target?.getClientRects().length) {
+            target.focus();
+            this.closeTechnicalDetails();
+          }
         },
         { injector: this.injector },
       );
@@ -1437,7 +1647,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return true;
   }
 
-  revealFocusedOrSelectedResponses(): boolean {
+  showFocusedOrSelectedResponsePanel(): boolean {
     if (!this.selectedGroupKey()) {
       const words = this.words();
       const focusedGroupKey = this.focusedGroupKey()?.trim() ?? '';
@@ -1452,7 +1662,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    return this.revealSelectedResponses();
+    return this.showSelectedResponsePanel();
   }
 
   showMoreResponses(): void {
@@ -1516,7 +1726,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private wordTooltipMetrics(entry: CloudWord): string[] {
-    const lines = [this.tooltipValueLine(entry.count)];
+    const lines = this.analysisMode() === 'qa' ? [] : [this.tooltipMentionsLine(entry)];
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     if (sourceCount) lines.push(sourceCount);
     const metric = this.tooltipMetricLine();
@@ -1526,10 +1736,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   wordTooltipBlocks(entry: CloudWord): readonly WordCloudTooltipBlock[] {
     const meta = this.wordTooltipMetrics(entry);
-    if (this.outputOnly() || this.analysisDisclosureLabel()) {
-      const provenance = this.topicProvenance(entry);
-      if (!this.outputOnly() && !provenance.length) return [];
-      return [{ kind: 'text', text: [...provenance, ...meta].join('\n') }];
+    if (this.analysisDisclosureLabel() && !this.outputOnly()) {
+      return [{ kind: 'text', text: this.hostWordTooltip(entry) }];
+    }
+    if (this.outputOnly()) {
+      return [{ kind: 'text', text: [...this.topicProvenance(entry), ...meta].join('\n') }];
     }
     const blocks: WordCloudTooltipBlock[] = [];
     const basisLine = this.analysisBasisLine(entry);
@@ -1597,7 +1808,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return left.trim().toLocaleLowerCase('de') === right.trim().toLocaleLowerCase('de');
   }
 
+  private hostWordTooltip(entry: CloudWord): string {
+    const lines =
+      this.analysisMode() === 'qa'
+        ? [this.tooltipSourceCountLine(entry.sourceCount)].filter(Boolean)
+        : [this.tooltipMentionsLine(entry)];
+    const origin = this.topicNameOrigin(entry);
+    if (origin) lines.push(copy.groupedByMeaning, copy.topicName + ' · ' + origin);
+    return lines.join('\n');
+  }
+
   wordTooltip(entry: CloudWord): string {
+    if (this.analysisDisclosureLabel() && !this.outputOnly()) return this.hostWordTooltip(entry);
     const lines = this.wordTooltipMetrics(entry);
     if (this.outputOnly()) return [...lines, ...this.topicProvenance(entry)].join('\n');
 
@@ -1630,6 +1852,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   wordTooltipDisplay(entry: CloudWord): string {
+    if (this.analysisDisclosureLabel() && !this.outputOnly()) return this.hostWordTooltip(entry);
     const lines = this.wordTooltipMetrics(entry);
     if (this.outputOnly()) return [...lines, ...this.topicProvenance(entry)].join('\n');
 
@@ -2383,11 +2606,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return variants.length > 4 ? `${preview} | …` : preview;
   }
 
-  private tooltipValueLine(count: number): string {
-    if (this.analysisMode() === 'qa') {
-      return $localize`:@@wordCloud.weightedValueTooltip:Größenwert: ${count}:count:`;
-    }
-
+  private tooltipMentionsLine(entry: CloudWord): string {
+    // Compact presenter entries already carry the frequency in count.
+    const count = this.terms() ? entry.sourceCount : entry.count;
     return $localize`:@@wordCloud.mentionsTooltip:Nennungen: ${count}:count:`;
   }
 
@@ -2459,31 +2680,39 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  private topicNameOrigin(entry: CloudWord): string | null {
+    if (!this.isTopicEntry(entry.groupKey, entry.labelOrigin)) return null;
+    if (entry.labelOrigin === 'model') return copy.generative;
+    return entry.labelOrigin === 'extractive' ? copy.extractive : copy.unknownOrigin;
+  }
+
   private topicProvenance(entry: CloudWord): string[] {
-    if (!this.isTopicEntry(entry.groupKey, entry.labelOrigin)) return [];
-    const modelLabel = entry.labelOrigin === 'model';
-    const name = modelLabel
-      ? copy.generative
-      : entry.labelOrigin === 'extractive'
-        ? copy.extractive
-        : copy.unknownOrigin;
+    const name = this.topicNameOrigin(entry);
+    if (!name) return [];
     if (this.outputOnly()) return [name];
 
-    const result = this.analysisInfo()?.result;
-    const encoder = result?.modelId ?? this.analysisModelVersion();
-    const labelModel = modelLabel ? this.labelModelId() : null;
     const lines = [copy.groupedByMeaning, copy.topicName + ' · ' + name];
+    if (!this.analysisDisclosureLabel()) lines.push(...this.topicDiagnostics(entry));
+    const reuse = this.analysisInfo()?.result?.reuse;
+    if (reuse?.snapshot || reuse?.topicLabelKeys?.includes(entry.groupKey))
+      lines.push(copy.labelReused);
+    return lines;
+  }
+
+  private topicDiagnostics(entry: CloudWord): string[] {
+    const modelLabel = entry.labelOrigin === 'model';
+    const encoderVersion = this.analysisModelVersion();
+    const encoder = this.analysisInfo()?.result?.modelId ?? encoderVersion;
+    const labelModel = modelLabel ? this.labelModelId() : null;
+    const lines: string[] = [];
     if (encoder) lines.push(copy.topicGrouping + ' · ' + encoder);
     if (labelModel) lines.push(copy.topicName + ' · ' + labelModel);
-    const encoderVersion = this.analysisModelVersion();
     if (encoderVersion && encoderVersion !== encoder)
       lines.push(copy.topicGrouping + ' · ' + copy.version + ' · ' + encoderVersion);
     if (modelLabel && this.labelModelVersion())
       lines.push(copy.topicName + ' · ' + copy.version + ' · ' + this.labelModelVersion());
     if (modelLabel && this.labelPromptVersion())
       lines.push(copy.promptVersion + ' · ' + this.labelPromptVersion());
-    if (result?.reuse?.snapshot || result?.reuse?.topicLabelKeys?.includes(entry.groupKey))
-      lines.push(copy.labelReused);
     return lines;
   }
 

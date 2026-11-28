@@ -6,11 +6,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
-import type {
-  QaQuestionSortMode,
-  WordCloudAnalysisEntryDTO,
-  WordCloudAnalysisVariant,
-} from '@arsnova/shared-types';
+import type { QaQuestionSortMode, WordCloudAnalysisVariant } from '@arsnova/shared-types';
 import type { WordCloudAnalysisInfo } from '../session-present/word-cloud-analysis-info';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
@@ -19,6 +15,8 @@ import {
   wordCloudExportViewLabel,
   wordCloudTopicProgressLabel,
   wordCloudViewHint,
+  type WordCloudEntryWithEvidence,
+  type WordCloudEvidenceLoader,
   type WeightedWordSource,
 } from '../session-present/word-cloud.util';
 
@@ -36,7 +34,10 @@ export type QaWordCloudDialogData = {
   responseTextsBySourceId: () => Readonly<Record<string, string>>;
   weightedResponses: () => WeightedWordSource[];
   terms: () => WordCloudTerm[] | null;
-  analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
+  analysisEntries: () => WordCloudEntryWithEvidence[] | null;
+  loadEvidence?: WordCloudEvidenceLoader;
+  evidenceRankingRevision?: () => string | null;
+  evidenceScope?: () => string;
   title: () => string;
   analysisLabel: string;
   wordLabelSingular: () => string;
@@ -169,6 +170,7 @@ export class QaWordCloudDialogComponent {
   });
   readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
   readonly focusedGroupKey = computed(() => this.data.focusedGroupKey?.() ?? null);
+  protected readonly openAnalysisOnFocus = signal(true);
   readonly returnToCompassVisible = computed(() => this.data.returnToCompassVisible?.() ?? false);
   readonly showSmoothingControls = computed(
     () => this.analysisVariant() === 'LEXICAL' || this.analysisVariant() === 'THEME',
@@ -266,6 +268,7 @@ export class QaWordCloudDialogComponent {
       return;
     }
 
+    this.openAnalysisOnFocus.set(false);
     void this.data.setAnalysisVariant(variant);
   }
 

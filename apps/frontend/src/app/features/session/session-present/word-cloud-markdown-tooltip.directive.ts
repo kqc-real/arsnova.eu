@@ -91,7 +91,7 @@ export function renderWordCloudTooltipMarkdown(source: string): string {
     '(mouseleave)': 'closeFromPointer()',
     '(focus)': 'open()',
     '(blur)': 'close()',
-    '(keydown.escape)': 'close()',
+    '(keydown.escape)': 'closeOnEscape($event)',
     '(touchstart)': 'openFromTouch()',
   },
 })
@@ -169,6 +169,13 @@ export class WordCloudMarkdownTooltipDirective implements OnDestroy {
     ref.changeDetectorRef.detectChanges();
     this.host.nativeElement.setAttribute('aria-describedby', this.tooltipId);
     this.bindOutsidePointer();
+  }
+
+  closeOnEscape(event: Event): void {
+    if (!this.overlayRef) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.close();
   }
 
   close(): void {
