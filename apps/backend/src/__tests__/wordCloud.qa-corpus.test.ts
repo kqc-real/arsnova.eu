@@ -170,33 +170,59 @@ describe('wordCloud.analyzeQa – kanonisch begrenzter Korpus', () => {
       questionIds: [a!.id, b!.id],
     };
 
-    it('liefert alle gefragten Originale im Host-Scope einschließlich langer Texte', async () => {
-      const originals = [
-        { id: a!.id, text: 'Vollständiger Originaltext '.repeat(34).trimEnd() },
-        { id: b!.id, text: 'Zweiter Beitrag' },
-      ];
-      prismaMock.qaQuestion.findMany.mockResolvedValueOnce(originals);
-      await expect(caller.qaEvidence(request)).resolves.toEqual(originals);
-      expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
-        where: {
-          sessionId: '11111111-1111-4111-8111-111111111111',
-          id: { in: request.questionIds },
-          status: 'PINNED',
-        },
-        select: { id: true, text: true },
-      });
-    });
+    trpcDodIt(
+      {
+        procedure: 'wordCloud.qaEvidence',
+        case: 'happy',
+        mode: 'direct',
+        title: 'liefert alle gefragten Originale im Host-Scope einschließlich langer Texte',
+      },
+      async () => {
+        const originals = [
+          { id: a!.id, text: 'Vollständiger Originaltext '.repeat(34).trimEnd() },
+          { id: b!.id, text: 'Zweiter Beitrag' },
+        ];
+        prismaMock.qaQuestion.findMany.mockResolvedValueOnce(originals);
+        await expect(caller.qaEvidence(request)).resolves.toEqual(originals);
+        expect(prismaMock.qaQuestion.findMany).toHaveBeenCalledWith({
+          where: {
+            sessionId: '11111111-1111-4111-8111-111111111111',
+            id: { in: request.questionIds },
+            status: 'PINNED',
+          },
+          select: { id: true, text: true },
+        });
+      },
+    );
 
-    it('weist ungültige Host-Tokens vor dem Lesen der Texte ab', async () => {
-      isHostSessionTokenValidMock.mockResolvedValueOnce(false);
-      await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
-      expect(prismaMock.qaQuestion.findMany).not.toHaveBeenCalled();
-    });
+    trpcDodIt(
+      {
+        procedure: 'wordCloud.qaEvidence',
+        case: 'error',
+        mode: 'direct',
+        contract: 'UNAUTHORIZED',
+        title: 'weist ungültige Host-Tokens vor dem Lesen der Texte ab',
+      },
+      async () => {
+        isHostSessionTokenValidMock.mockResolvedValueOnce(false);
+        await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+        expect(prismaMock.qaQuestion.findMany).not.toHaveBeenCalled();
+      },
+    );
 
-    it('weist ein fehlendes Mitglied ab und gibt keine Teilliste zurück', async () => {
-      prismaMock.qaQuestion.findMany.mockResolvedValueOnce([{ id: a!.id, text: a!.text }]);
-      await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'CONFLICT' });
-    });
+    trpcDodIt(
+      {
+        procedure: 'wordCloud.qaEvidence',
+        case: 'error',
+        mode: 'direct',
+        contract: 'CONFLICT',
+        title: 'weist ein fehlendes Mitglied ab und gibt keine Teilliste zurück',
+      },
+      async () => {
+        prismaMock.qaQuestion.findMany.mockResolvedValueOnce([{ id: a!.id, text: a!.text }]);
+        await expect(caller.qaEvidence(request)).rejects.toMatchObject({ code: 'CONFLICT' });
+      },
+    );
 
     it('weist einen geänderten Korpus während des Ladens ab', async () => {
       prismaMock.qaQuestion.findMany.mockResolvedValueOnce([a, b]);
