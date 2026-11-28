@@ -781,7 +781,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   protected readonly selectedTopicProvenance = computed(() => {
-    const entry = this.selectedWordEntry();
+    const entry = this.analysisDisclosureLabel()
+      ? this.analysisDetailEntry()
+      : this.selectedWordEntry();
     return entry ? this.topicProvenance(entry) : [];
   });
 
@@ -809,7 +811,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       return selected;
     }
 
-    if (this.terms() === null && (this.analysisEntries()?.length ?? 0) === 0) {
+    if (
+      !this.analysisDisclosureLabel() &&
+      this.terms() === null &&
+      (this.analysisEntries()?.length ?? 0) === 0
+    ) {
       return null;
     }
 
@@ -841,7 +847,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const details: AnalysisDetailChip[] = [];
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     const metric = this.tooltipMetricLine();
-    if (this.analysisDisclosureLabel() && this.showsSelectedFilterDetails()) {
+    if (this.analysisDisclosureLabel() && !this.outputOnly()) {
       details.push({ label: this.tooltipValueLine(entry.count), tone: 'neutral' });
       const forms = this.tooltipExtraVariants(entry);
       if (forms.length > 0) {

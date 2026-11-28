@@ -31,6 +31,13 @@
           <mat-icon aria-hidden="true">expand_more</mat-icon>
         </summary>
         <div class="word-cloud__analysis-disclosure-body">
+          @if (!outputOnly() && words().length > 0) {
+            <details #technicalDisclosure class="word-cloud__technical-details">
+              <summary i18n="@@wordCloud.technicalDetails">Technische Details</summary>
+              <ng-container *ngTemplateOutlet="topicProvenance" />
+              <ng-container *ngTemplateOutlet="analysisDetails" />
+            </details>
+          }
           @if (showCompleteEvidence()) {
             <section #evidencePanel class="word-cloud__responses-panel">
               <h3 #evidenceHeading tabindex="-1" class="word-cloud__evidence-heading">
@@ -45,16 +52,6 @@
           <ng-container *ngTemplateOutlet="analysisMetadata" />
           <ng-container *ngTemplateOutlet="summaryContent" />
           <ng-container *ngTemplateOutlet="supportingContent" />
-          @if (
-            !outputOnly() &&
-            (selectedTopicProvenance().length || selectedWordAnalysisDetails().length)
-          ) {
-            <details #technicalDisclosure class="word-cloud__technical-details">
-              <summary i18n="@@wordCloud.technicalDetails">Technische Details</summary>
-              <ng-container *ngTemplateOutlet="topicProvenance" />
-              <ng-container *ngTemplateOutlet="analysisDetails" />
-            </details>
-          }
         </div>
       </details>
     } @else {

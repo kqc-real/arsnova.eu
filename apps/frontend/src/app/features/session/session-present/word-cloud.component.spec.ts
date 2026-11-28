@@ -257,12 +257,21 @@ describe('WordCloudComponent', () => {
         },
       ]);
       fixture.detectChanges();
+
+      const technical = host.querySelector<HTMLDetailsElement>(
+        '.word-cloud__analysis-disclosure-body > details.word-cloud__technical-details:first-child',
+      )!;
+      const summary = host.querySelector<HTMLElement>(
+        '.word-cloud__analysis-disclosure > summary',
+      )!;
+      summary.click();
+      fixture.detectChanges();
+      expect(technical.open).toBe(false);
+      expect(technical.textContent).toContain('Technische Details');
+
       host.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
       fixture.detectChanges();
 
-      const technical = host.querySelector<HTMLDetailsElement>(
-        'details.word-cloud__technical-details',
-      )!;
       const originals = host.querySelector('section.word-cloud__responses-panel')!;
       expect(technical.open).toBe(false);
       expect(technical.textContent).toContain('internes-label-testmodell');
