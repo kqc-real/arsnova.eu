@@ -697,6 +697,7 @@
 }
 
 .word-cloud__responses:focus-visible {
+  min-block-size: 1rem;
   outline: 0.18rem solid var(--mat-sys-primary);
   outline-offset: 0.18rem;
   border-radius: var(--mat-sys-corner-small);

@@ -420,19 +420,18 @@
         </button>
       }
     }
-    @if (!evidenceStatus() || evidenceStatus() === 'ready') {
-      <ul
-        class="word-cloud__responses"
-        tabindex="0"
-        [attr.aria-label]="
-          formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
-        "
-      >
-        @for (response of visibleResponses(); track response + $index) {
-          <li>{{ response }}</li>
-        }
-      </ul>
-    }
+    <ul
+      class="word-cloud__responses"
+      [attr.tabindex]="visibleResponses().length ? 0 : -1"
+      [attr.aria-busy]="evidenceStatus() === 'pending' ? true : null"
+      [attr.aria-label]="
+        formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
+      "
+    >
+      @for (response of visibleResponses(); track response + $index) {
+        <li>{{ response }}</li>
+      }
+    </ul>
     @if (hasMoreResponses()) {
       <button
         mat-button

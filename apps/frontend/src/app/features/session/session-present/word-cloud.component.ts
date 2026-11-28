@@ -246,6 +246,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly terms = input<WordCloudTerm[] | null>(null);
   readonly analysisEntries = input<WordCloudEntryWithEvidence[] | null>(null);
   readonly loadEvidence = input<WordCloudEvidenceLoader | null>(null);
+  readonly evidenceRankingRevision = input<string | null>(null);
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly semanticTopics = input(false);
   readonly selectionScopeKey = input<string | null>(null);
@@ -477,16 +478,44 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       ),
   );
   private readonly evidenceAttempt = signal(0);
+  private readonly evidenceRankingCounter = computed(() => {
+    const rankingRevision = this.evidenceRankingRevision();
+    return rankingRevision === null ? null : Number(rankingRevision.split(':', 1)[0]);
+  });
+  // The host list and the analysis share the monotonic Q&A ranking counter.
+  private readonly evidenceSnapshotCounters = computed(() =>
+    this.evidenceSources().map(({ snapshot }) => Number(snapshot.corpusRevision.split(':', 1)[0])),
+  );
+  private readonly evidenceSuperseded = computed(() => {
+    const current = this.evidenceRankingCounter();
+    return current !== null && this.evidenceSnapshotCounters().some((counter) => current > counter);
+  });
   private readonly evidenceResult = signal<{
     sources: readonly WordCloudEvidenceSource[];
     scope: string | null;
     result: WordCloudEvidenceResult;
   } | null>(null);
   private readonly currentEvidenceResult = computed(() => {
+    if (this.evidenceSuperseded()) return { status: 'stale' } as const;
+
     const loaded = this.evidenceResult();
-    return loaded?.sources === this.evidenceSources() && loaded.scope === this.selectionScopeKey()
-      ? loaded.result
-      : null;
+    if (loaded?.sources !== this.evidenceSources() || loaded.scope !== this.selectionScopeKey()) {
+      return null;
+    }
+    if (loaded.result.status !== 'ready') return loaded.result;
+
+    const current = this.evidenceRankingCounter();
+    const liveTexts = this.responseTextsBySourceId();
+    if (
+      liveTexts &&
+      (current === null || this.evidenceSnapshotCounters().every((counter) => current >= counter))
+    ) {
+      for (const [id, text] of loaded.result.texts) {
+        if (liveTexts[id] !== undefined && liveTexts[id] !== text)
+          return { status: 'stale' } as const;
+      }
+    }
+    return loaded.result;
   });
   protected readonly evidenceStatus = computed(() =>
     this.evidenceSources().length ? (this.currentEvidenceResult()?.status ?? 'pending') : null,
@@ -909,7 +938,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const metric = this.tooltipMetricLine();
     if (this.analysisDisclosureLabel() && !this.outputOnly()) {
       if (this.analysisMode() !== 'qa') {
-        details.push({ label: this.tooltipMentionsLine(entry.count), tone: 'neutral' });
+        details.push({ label: this.tooltipMentionsLine(entry), tone: 'neutral' });
       }
       const forms = this.tooltipExtraVariants(entry);
       if (forms.length > 0) {
@@ -1215,6 +1244,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     });
 
     effect((onCleanup) => {
+      this.evidenceResult.set(null);
       if (!this.showResponses() || !this.showResponsesPanel()) return;
       const load = this.loadEvidence();
       const sources = this.evidenceSources();
@@ -1222,12 +1252,14 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
       const scope = this.selectionScopeKey();
       this.evidenceAttempt();
-      this.evidenceResult.set(null);
+      if (this.evidenceSuperseded()) return;
+
       const abort = new AbortController();
       onCleanup(() => abort.abort());
       const apply = (result: WordCloudEvidenceResult) => {
         if (
           !abort.signal.aborted &&
+          !this.evidenceSuperseded() &&
           this.showResponses() &&
           this.evidenceSources() === sources &&
           this.selectionScopeKey() === scope
@@ -1243,6 +1275,14 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         return;
       }
       void load(sources, abort.signal).then(apply, () => apply({ status: 'failed' }));
+    });
+
+    effect(() => {
+      const loaded = this.evidenceResult();
+      if (loaded?.result.status === 'ready' && this.currentEvidenceResult()?.status === 'stale') {
+        // Discard sensitive texts even if a later page no longer includes the changed question.
+        this.evidenceResult.set({ ...loaded, result: { status: 'stale' } });
+      }
     });
 
     effect(() => {
@@ -1686,7 +1726,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private wordTooltipMetrics(entry: CloudWord): string[] {
-    const lines = this.analysisMode() === 'qa' ? [] : [this.tooltipMentionsLine(entry.count)];
+    const lines = this.analysisMode() === 'qa' ? [] : [this.tooltipMentionsLine(entry)];
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     if (sourceCount) lines.push(sourceCount);
     const metric = this.tooltipMetricLine();
@@ -1772,7 +1812,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const lines =
       this.analysisMode() === 'qa'
         ? [this.tooltipSourceCountLine(entry.sourceCount)].filter(Boolean)
-        : [this.tooltipMentionsLine(entry.count)];
+        : [this.tooltipMentionsLine(entry)];
     const origin = this.topicNameOrigin(entry);
     if (origin) lines.push(copy.groupedByMeaning, copy.topicName + ' · ' + origin);
     return lines.join('\n');
@@ -2566,7 +2606,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return variants.length > 4 ? `${preview} | …` : preview;
   }
 
-  private tooltipMentionsLine(count: number): string {
+  private tooltipMentionsLine(entry: CloudWord): string {
+    // Compact presenter entries already carry the frequency in count.
+    const count = this.terms() ? entry.sourceCount : entry.count;
     return $localize`:@@wordCloud.mentionsTooltip:Nennungen: ${count}:count:`;
   }
 

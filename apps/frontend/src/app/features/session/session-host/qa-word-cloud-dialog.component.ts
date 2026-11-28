@@ -36,6 +36,7 @@ export type QaWordCloudDialogData = {
   terms: () => WordCloudTerm[] | null;
   analysisEntries: () => WordCloudEntryWithEvidence[] | null;
   loadEvidence?: WordCloudEvidenceLoader;
+  evidenceRankingRevision?: () => string | null;
   evidenceScope?: () => string;
   title: () => string;
   analysisLabel: string;

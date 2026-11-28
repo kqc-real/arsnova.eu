@@ -1129,10 +1129,6 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudThemeFallbackActive = signal(false);
   private readonly qaWordCloudThemeAnalysisFailed = signal(false);
   readonly qaWordCloudThemeAnalysisResult = signal<QaWordCloudHostResult | null>(null);
-  private readonly qaWordCloudEvidenceCache = new WeakMap<
-    WordCloudEvidenceSnapshot,
-    Map<string, string>
-  >();
   private readonly qaWordCloudRetainedPhrases = signal<WordCloudEntryWithEvidence[]>([]);
   private readonly qaWordCloudFrozenProjection = signal<QaWordCloudPresenterProjectionDTO | null>(
     null,
@@ -2414,7 +2410,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   );
   readonly qaWordCloudResponseTextsBySourceId = computed<Readonly<Record<string, string>>>(() =>
     Object.fromEntries(
-      this.qaWordCloudQuestions().map((question) => [question.id, question.text] as const),
+      this.liveQaWordCloudQuestions().map((question) => [question.id, question.text] as const),
     ),
   );
   readonly wordCloudLemmaLocaleOverride = signal<SupportedLocale | null>(
@@ -2968,6 +2964,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           terms: () => this.qaWordCloudLocalTerms(),
           analysisEntries: () => this.qaWordCloudAnalysisEntries(),
           loadEvidence: this.loadQaWordCloudEvidence,
+          evidenceRankingRevision: () => this.qaListRankingRevision(),
           evidenceScope: () => [this.code, this.qaSortMode(), this.qaShowPinnedOnly()].join(':'),
           displayMode: () => this.qaWordCloudDisplayMode(),
           analysisLanguage: () => this.wordCloudTermLocale(),
@@ -15488,28 +15485,27 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     const texts = new Map<string, string>();
     try {
       for (const [snapshot, ids] of idsBySnapshot) {
-        const cached = this.qaWordCloudEvidenceCache.get(snapshot) ?? new Map<string, string>();
-        const missing = [...ids].filter((id) => !cached.has(id));
-        const fetched = new Map<string, string>();
-        for (let start = 0; start < missing.length; start += QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE) {
+        const questionIds = [...ids];
+        for (
+          let start = 0;
+          start < questionIds.length;
+          start += QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE
+        ) {
           requestSignal.throwIfAborted();
-          const questionIds = missing.slice(start, start + QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE);
+          const batchIds = questionIds.slice(start, start + QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE);
           const batch = await trpc.wordCloud.qaEvidence.query(
-            { ...snapshot, questionIds },
+            { ...snapshot, questionIds: batchIds },
             { signal: requestSignal },
           );
           const batchTexts = new Map(batch.map(({ id, text }) => [id, text]));
-          for (const id of questionIds) {
+          for (const id of batchIds) {
             const text = batchTexts.get(id);
             if (text === undefined) return { status: 'failed' };
-            fetched.set(id, text);
+            texts.set(id, text);
           }
         }
-        requestSignal.throwIfAborted();
-        for (const [id, text] of fetched) cached.set(id, text);
-        this.qaWordCloudEvidenceCache.set(snapshot, cached);
-        for (const id of ids) texts.set(id, cached.get(id)!);
       }
+      requestSignal.throwIfAborted();
       return { status: 'ready', texts };
     } catch (error) {
       return { status: this.isTrpcConflictError(error) ? 'stale' : 'failed' };

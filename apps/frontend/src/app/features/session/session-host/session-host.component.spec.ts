@@ -15616,7 +15616,8 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     await vi.waitFor(() => expect(component.qaWordCloudQuestions()).toHaveLength(1));
-    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    const closed = new Subject<void>();
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => closed });
     await component.openQaWordCloudDialog();
     component.setQaWordCloudAnalysisVariant('SEMANTIC');
     fixture.detectChanges();
@@ -15681,11 +15682,24 @@ describe('SessionHostComponent', { timeout: 60_000 }, () => {
     expect(data.analysisEntries()?.[0]?.evidenceSource).toBe(source);
     const evidenceCalls = qaEvidenceQueryMock.mock.calls.length;
     await expect(data.loadEvidence!([source!], signal)).resolves.toEqual(complete);
-    expect(qaEvidenceQueryMock).toHaveBeenCalledTimes(evidenceCalls);
+    expect(qaEvidenceQueryMock).toHaveBeenCalledTimes(evidenceCalls + 2);
     await component.setQaWordCloudProjected(true);
     const projected = JSON.stringify(setQaWordCloudProjectionMutateMock.mock.lastCall);
     expect(projected).toContain('Satelliten im Orbit');
     expect(projected).not.toMatch(/evidenceSource|evidenceMask|Vollständiger Originalbeleg/);
+
+    closed.next();
+    component.qaListRankingRevision.set('18:BEST:');
+    dialogOpenMock.mockReturnValueOnce({ afterClosed: () => NEVER });
+    await component.openQaWordCloudDialog();
+    const { data: reopened } = dialogOpenMock.mock.calls.at(-1)![1] as {
+      data: QaWordCloudDialogData;
+    };
+    expect(reopened.analysisEntries()?.[0]?.evidenceSource).toBe(source);
+    expect(reopened.evidenceRankingRevision?.()).toBe('18:BEST:');
+    qaEvidenceQueryMock.mockRejectedValueOnce({ data: { code: 'CONFLICT' } });
+    await expect(reopened.loadEvidence!([source!], signal)).resolves.toEqual({ status: 'stale' });
+    expect(qaEvidenceQueryMock).toHaveBeenCalledTimes(evidenceCalls + 3);
     fixture.destroy();
   });
 

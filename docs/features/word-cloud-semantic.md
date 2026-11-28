@@ -234,13 +234,15 @@ generative Namensgebung starten mit dem kompakten Ergebnis. Erst beim Öffnen
 der Fragenliste lädt der Host die benötigten Originaltexte über
 `wordCloud.qaEvidence` aus derselben Korpusrevision, jeweils bis zu 40 Fragen
 pro Anfrage und eine Anfrage zur Zeit. Die Liste erscheint nach dem vollständigen
-Abruf. Bei einem Ladefehler ist ein neuer Belegabruf möglich. Bei einem
-Revisionskonflikt fordert der Detailbereich zur Aktualisierung der Wolke auf.
-Die Vorschau bleibt in beiden Fällen bedienbar. Eine spätere Namensantwort
-behält die Belege derselben Gruppe. Bereits geladene Originale gehören zum
-angezeigten Analysestand und bleiben beim Anhalten der Anzeige verfügbar.
-Die Bühne erhält die kompakten Projektionsdaten. Freitext verwendet die
-Originalantworten des sichtbaren Analysestands.
+Abruf. Bei einem Ladefehler ist ein neuer Belegabruf möglich. Beim erneuten
+Öffnen der Fragenliste prüft der Server die Revision erneut. Sobald der Host
+einen neueren Q&A-Korpus oder einen geänderten Belegtext kennt, verwirft er
+die geladenen Originale auch bei angehaltener Wolke. Bei einem Revisionskonflikt
+fordert der Detailbereich zur Aktualisierung der Wolke auf. Die Vorschau bleibt
+bedienbar. Eine spätere Namensantwort behält gültige Belege derselben Gruppe.
+Der Tastaturfokus bleibt beim Nachladen in der Fragenliste. Die Bühne erhält
+kompakte Projektionsdaten. Freitext verwendet die Originalantworten des
+sichtbaren Analysestands und nennt die Anzahl der zugeordneten Antworten.
 
 Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `fallback`.
 
