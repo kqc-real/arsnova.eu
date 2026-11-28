@@ -337,6 +337,13 @@ describe('WordCloudComponent', () => {
       expect(provenance?.textContent).toContain('Beiträge nach ähnlicher Bedeutung gruppiert');
       expect(provenance?.textContent).toContain('Von der lokalen KI formuliert');
       expect(provenance?.textContent).not.toMatch(/sha256|test-prompt|internes-label/);
+      const analysisDetails = technical.querySelector(':scope > .word-cloud__filter-info');
+      if (analysisMode === 'qa') {
+        expect(analysisDetails?.textContent).toContain('In 65 Fragen gefunden');
+        expect(analysisDetails?.textContent).not.toMatch(/Größenwert|Nennungen/);
+      } else {
+        expect(analysisDetails?.textContent).toContain('Nennungen: 65');
+      }
       const diagnostics = technical.querySelector<HTMLDetailsElement>(
         ':scope > details.word-cloud__topic-diagnostics',
       )!;
@@ -1468,11 +1475,11 @@ describe('WordCloudComponent', () => {
           if (analysisMode !== 'qa') expect(text).toContain('Nennungen: 9');
           if (analysisMode === 'qa') {
             expect(text).toContain('In 1 von 5 analysierten Fragen');
+            expect(text).not.toMatch(/Größenwert|Nennungen/);
             if (outputOnly) {
-              expect(text).toContain('Größenwert: 9');
               expect(text).toContain('Gewichtung: Stimmensaldo');
             } else {
-              expect(text).not.toMatch(/Größenwert|Gewichtung/);
+              expect(text).not.toContain('Gewichtung');
             }
           }
           if (provenance) {
@@ -1942,7 +1949,7 @@ describe('WordCloudComponent', () => {
     );
   });
 
-  it('zeigt im Q&A-Tooltip den gewichteten Wert, die Metrikbasis und zugehörige Fragen', () => {
+  it('zeigt im Q&A-Tooltip die Metrikbasis und zugehörige Fragen ohne internen Rechenwert', () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
     fixture.componentRef.setInput('analysisMode', 'qa');
     fixture.componentRef.setInput('itemLabelSingular', 'Frage');
@@ -1965,7 +1972,8 @@ describe('WordCloudComponent', () => {
 
     expect(entry).toBeTruthy();
     const tooltip = component.wordTooltipDisplay(entry!);
-    expect(tooltip).toContain('Größenwert: 23');
+    expect(entry?.count).toBe(23);
+    expect(tooltip).not.toMatch(/Größenwert|Nennungen/);
     expect(tooltip).toContain('In 2 Fragen gefunden');
     expect(tooltip).toContain('Gewichtung: klare Zustimmung');
     expect(tooltip).toContain('Fragen:');

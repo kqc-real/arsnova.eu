@@ -27803,14 +27803,6 @@
           <context context-type="linenumber">1408</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="wordCloud.weightedValueTooltip" datatype="html">
-        <source>Größenwert: <x id="count" equiv-text="count"/></source>
-        <target>Valeur de taille : <x id="count" equiv-text="count"/></target>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/features/session/session-present/word-cloud.component.ts</context>
-          <context context-type="linenumber">1919</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="wordCloud.mentionsTooltip" datatype="html">
         <source>Nennungen: <x id="count" equiv-text="count"/></source>
         <target>Mentions : <x id="count" equiv-text="count"/></target>

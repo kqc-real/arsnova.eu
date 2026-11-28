@@ -908,7 +908,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     const metric = this.tooltipMetricLine();
     if (this.analysisDisclosureLabel() && !this.outputOnly()) {
-      details.push({ label: this.tooltipValueLine(entry.count), tone: 'neutral' });
+      if (this.analysisMode() !== 'qa') {
+        details.push({ label: this.tooltipMentionsLine(entry.count), tone: 'neutral' });
+      }
       const forms = this.tooltipExtraVariants(entry);
       if (forms.length > 0) {
         const variants = this.wordVariantPreview(forms);
@@ -1684,7 +1686,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private wordTooltipMetrics(entry: CloudWord): string[] {
-    const lines = [this.tooltipValueLine(entry.count)];
+    const lines = this.analysisMode() === 'qa' ? [] : [this.tooltipMentionsLine(entry.count)];
     const sourceCount = this.tooltipSourceCountLine(entry.sourceCount);
     if (sourceCount) lines.push(sourceCount);
     const metric = this.tooltipMetricLine();
@@ -1767,12 +1769,13 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   }
 
   private hostWordTooltip(entry: CloudWord): string {
-    const coverage = this.tooltipSourceCountLine(entry.sourceCount);
-    const count = coverage ?? this.tooltipValueLine(entry.count);
+    const lines =
+      this.analysisMode() === 'qa'
+        ? [this.tooltipSourceCountLine(entry.sourceCount)].filter(Boolean)
+        : [this.tooltipMentionsLine(entry.count)];
     const origin = this.topicNameOrigin(entry);
-    return origin
-      ? [count, copy.groupedByMeaning, copy.topicName + ' · ' + origin].join('\n')
-      : count;
+    if (origin) lines.push(copy.groupedByMeaning, copy.topicName + ' · ' + origin);
+    return lines.join('\n');
   }
 
   wordTooltip(entry: CloudWord): string {
@@ -2563,11 +2566,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return variants.length > 4 ? `${preview} | …` : preview;
   }
 
-  private tooltipValueLine(count: number): string {
-    if (this.analysisMode() === 'qa') {
-      return $localize`:@@wordCloud.weightedValueTooltip:Größenwert: ${count}:count:`;
-    }
-
+  private tooltipMentionsLine(count: number): string {
     return $localize`:@@wordCloud.mentionsTooltip:Nennungen: ${count}:count:`;
   }
 
