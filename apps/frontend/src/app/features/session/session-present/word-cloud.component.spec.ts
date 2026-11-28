@@ -322,15 +322,39 @@ describe('WordCloudComponent', () => {
       fixture.detectChanges();
       expect(originals.open).toBe(true);
       expect(technical.open).toBe(false);
-      expect(technical.textContent).toContain('internes-label-testmodell');
-      expect(technical.textContent).toContain('encoder@sha256:testdigest');
-      expect(technical.textContent).toContain('test-prompt-v1');
       expect(originals.querySelectorAll('li')).toHaveLength(65);
       expect(originals.querySelector('li:last-child')?.textContent?.trim()).toBe(
         evidence[64]!.text.trim(),
       );
       expect(originals.textContent).not.toMatch(/von 65 Belegen sichtbar|sha256|test-prompt/);
       expect(host.querySelector('.word-cloud__responses-more')).toBeNull();
+
+      const technicalSummary = technical.querySelector('summary')!;
+      technicalSummary.click();
+      fixture.detectChanges();
+      expect(technical.open).toBe(true);
+      const provenance = technical.querySelector(':scope > .word-cloud__topic-provenance');
+      expect(provenance?.textContent).toContain('Beiträge nach ähnlicher Bedeutung gruppiert');
+      expect(provenance?.textContent).toContain('Von der lokalen KI formuliert');
+      expect(provenance?.textContent).not.toMatch(/sha256|test-prompt|internes-label/);
+      const diagnostics = technical.querySelector<HTMLDetailsElement>(
+        ':scope > details.word-cloud__topic-diagnostics',
+      )!;
+      expect(diagnostics.open).toBe(false);
+      const diagnosticsSummary = diagnostics.querySelector('summary')!;
+      expect(diagnosticsSummary.textContent).toContain('Modell- und Versionsdaten');
+      diagnosticsSummary.click();
+      fixture.detectChanges();
+      expect(diagnostics.open).toBe(true);
+      expect(diagnostics.textContent).toContain('internes-label-testmodell');
+      expect(diagnostics.textContent).toContain('encoder@sha256:testdigest');
+      expect(diagnostics.textContent).toContain('test-prompt-v1');
+      technicalSummary.click();
+      technicalSummary.click();
+      fixture.detectChanges();
+      expect(technical.open).toBe(true);
+      expect(diagnostics.open).toBe(false);
+
       fixture.componentRef.setInput('analysisEntries', [{ ...entry, label: 'Neuer Themenname' }]);
       fixture.detectChanges();
       expect(loadEvidence).toHaveBeenCalledTimes(analysisMode === 'qa' ? 1 : 0);

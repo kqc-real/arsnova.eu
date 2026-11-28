@@ -36586,6 +36586,10 @@
         <source>Technische Details</source>
         <target>Détails techniques</target>
       </trans-unit>
+      <trans-unit id="wordCloud.topicDiagnostics" datatype="html">
+        <source>Modell- und Versionsdaten</source>
+        <target>Informations sur les modèles et leurs versions</target>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceLoading" datatype="html">
         <source>Originalbelege werden geladen.</source>
         <target>Chargement des contributions originales.</target>

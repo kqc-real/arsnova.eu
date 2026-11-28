@@ -36640,6 +36640,10 @@
         <source>Technische Details</source>
         <target>Technical details</target>
       </trans-unit>
+      <trans-unit id="wordCloud.topicDiagnostics" datatype="html">
+        <source>Modell- und Versionsdaten</source>
+        <target>Model and version information</target>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceLoading" datatype="html">
         <source>Originalbelege werden geladen.</source>
         <target>Loading original responses.</target>

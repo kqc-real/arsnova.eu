@@ -32289,6 +32289,9 @@
       <trans-unit id="wordCloud.technicalDetails" datatype="html">
         <source>Technische Details</source>
       </trans-unit>
+      <trans-unit id="wordCloud.topicDiagnostics" datatype="html">
+        <source>Modell- und Versionsdaten</source>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceLoading" datatype="html">
         <source>Originalbelege werden geladen.</source>
       </trans-unit>

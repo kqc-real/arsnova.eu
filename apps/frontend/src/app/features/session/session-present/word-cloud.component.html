@@ -40,9 +40,22 @@
           <ng-container *ngTemplateOutlet="supportingContent" />
           @if (!outputOnly() && words().length > 0) {
             <details #technicalDisclosure class="word-cloud__technical-details">
-              <summary i18n="@@wordCloud.technicalDetails">Technische Details</summary>
+              <summary (click)="closeTopicDiagnostics()" i18n="@@wordCloud.technicalDetails">
+                Technische Details
+              </summary>
               <ng-container *ngTemplateOutlet="topicProvenance" />
               <ng-container *ngTemplateOutlet="analysisDetails" />
+              @let diagnostics = selectedTopicDiagnostics();
+              @if (diagnostics.length > 0) {
+                <details #topicDiagnosticsDisclosure class="word-cloud__topic-diagnostics">
+                  <summary i18n="@@wordCloud.topicDiagnostics">Modell- und Versionsdaten</summary>
+                  <ul class="word-cloud__topic-provenance">
+                    @for (line of diagnostics; track $index) {
+                      <li>{{ line }}</li>
+                    }
+                  </ul>
+                </details>
+              }
             </details>
           }
         </div>

@@ -213,6 +213,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   private readonly evidencePanel = viewChild<ElementRef<HTMLElement>>('evidencePanel');
   private readonly technicalDisclosure =
     viewChild<ElementRef<HTMLDetailsElement>>('technicalDisclosure');
+  private readonly topicDiagnosticsDisclosure = viewChild<ElementRef<HTMLDetailsElement>>(
+    'topicDiagnosticsDisclosure',
+  );
   private readonly hideWordButton = viewChild('hideWordButton', {
     read: ElementRef,
   });
@@ -836,6 +839,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       ? this.analysisDetailEntry()
       : this.selectedWordEntry();
     return entry ? this.topicProvenance(entry) : [];
+  });
+
+  protected readonly selectedTopicDiagnostics = computed(() => {
+    if (this.outputOnly()) return [];
+    const entry = this.analysisDetailEntry();
+    return entry && this.topicNameOrigin(entry) ? this.topicDiagnostics(entry) : [];
   });
 
   protected readonly currentAnalysisInfo = computed(() => {
@@ -1550,8 +1559,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   protected resetAnalysisPanels(): void {
     this.showResponses.set(false);
+    this.closeTechnicalDetails();
+  }
+
+  private closeTechnicalDetails(): void {
     const technical = this.technicalDisclosure()?.nativeElement;
     if (technical) technical.open = false;
+    this.closeTopicDiagnostics();
+  }
+
+  protected closeTopicDiagnostics(): void {
+    const diagnostics = this.topicDiagnosticsDisclosure()?.nativeElement;
+    if (diagnostics) diagnostics.open = false;
   }
 
   private showSelectedResponsePanel(): boolean {
@@ -1577,8 +1596,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
           const target = this.responsesSummary()?.nativeElement;
           if (target?.getClientRects().length) {
             target.focus();
-            const technical = this.technicalDisclosure()?.nativeElement;
-            if (technical) technical.open = false;
+            this.closeTechnicalDetails();
           }
         },
         { injector: this.injector },
@@ -2631,23 +2649,29 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const name = this.topicNameOrigin(entry);
     if (!name) return [];
     if (this.outputOnly()) return [name];
-    const modelLabel = entry.labelOrigin === 'model';
 
-    const result = this.analysisInfo()?.result;
-    const encoder = result?.modelId ?? this.analysisModelVersion();
-    const labelModel = modelLabel ? this.labelModelId() : null;
     const lines = [copy.groupedByMeaning, copy.topicName + ' · ' + name];
+    if (!this.analysisDisclosureLabel()) lines.push(...this.topicDiagnostics(entry));
+    const reuse = this.analysisInfo()?.result?.reuse;
+    if (reuse?.snapshot || reuse?.topicLabelKeys?.includes(entry.groupKey))
+      lines.push(copy.labelReused);
+    return lines;
+  }
+
+  private topicDiagnostics(entry: CloudWord): string[] {
+    const modelLabel = entry.labelOrigin === 'model';
+    const encoderVersion = this.analysisModelVersion();
+    const encoder = this.analysisInfo()?.result?.modelId ?? encoderVersion;
+    const labelModel = modelLabel ? this.labelModelId() : null;
+    const lines: string[] = [];
     if (encoder) lines.push(copy.topicGrouping + ' · ' + encoder);
     if (labelModel) lines.push(copy.topicName + ' · ' + labelModel);
-    const encoderVersion = this.analysisModelVersion();
     if (encoderVersion && encoderVersion !== encoder)
       lines.push(copy.topicGrouping + ' · ' + copy.version + ' · ' + encoderVersion);
     if (modelLabel && this.labelModelVersion())
       lines.push(copy.topicName + ' · ' + copy.version + ' · ' + this.labelModelVersion());
     if (modelLabel && this.labelPromptVersion())
       lines.push(copy.promptVersion + ' · ' + this.labelPromptVersion());
-    if (result?.reuse?.snapshot || result?.reuse?.topicLabelKeys?.includes(entry.groupKey))
-      lines.push(copy.labelReused);
     return lines;
   }
 
