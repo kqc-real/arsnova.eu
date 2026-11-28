@@ -5,7 +5,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { describe, expect, it, vi } from 'vitest';
-import type { QaQuestionSortMode, WordCloudAnalysisVariant } from '@arsnova/shared-types';
+import type {
+  QaQuestionSortMode,
+  WordCloudAnalysisEntryDTO,
+  WordCloudAnalysisVariant,
+} from '@arsnova/shared-types';
 import {
   QaWordCloudDialogComponent,
   type QaWordCloudDialogData,
@@ -142,6 +146,71 @@ describe('QaWordCloudDialogComponent', () => {
 
     expect(hint.textContent).toContain(expected);
     expect(hint.closest('details')?.open).toBe(false);
+  });
+
+  it('behält den Analysezustand bei Anzeigewahl mit verspätetem Gruppenfokus bei', async () => {
+    const variant = signal<WordCloudAnalysisVariant>('THEME');
+    const focusedGroupKey = signal<string | null>(null);
+    const analysisEntries = signal<WordCloudAnalysisEntryDTO[]>([]);
+    const setAnalysisVariant = (mode: WordCloudAnalysisVariant) => {
+      variant.set(mode);
+      focusedGroupKey.set(null);
+      analysisEntries.set([]);
+    };
+    const resolveGroup = (key: string) => {
+      analysisEntries.set([
+        {
+          key,
+          label: 'Orbit',
+          count: 2,
+          basisLabel: null,
+          members: [{ sourceId: 'question-1', text: 'Wie entsteht ein Orbit?', weight: 2 }],
+          variants: ['Orbit'],
+          confidence: null,
+        },
+      ]);
+      focusedGroupKey.set(key);
+    };
+    const { fixture } = setup('THEME', {
+      analysisVariant: variant,
+      displayMode: variant,
+      analysisEntries,
+      focusedGroupKey,
+      setAnalysisVariant,
+    });
+    const root = fixture.nativeElement as HTMLElement;
+    const analysis = root.querySelector<HTMLDetailsElement>('.word-cloud__analysis-disclosure')!;
+    const summary = analysis.querySelector('summary')!;
+    expect(analysis.open).toBe(false);
+    summary.click();
+    expect(analysis.open).toBe(true);
+    summary.click();
+
+    for (const mode of ['LEXICAL', 'SEMANTIC', 'THEME'] as const) {
+      const button = root.querySelector<HTMLButtonElement>(
+        `mat-button-toggle[value="${mode}"] button`,
+      )!;
+      button.focus();
+      button.click();
+      fixture.detectChanges();
+      expect(variant()).toBe(mode);
+      expect(analysis.open).toBe(false);
+
+      resolveGroup(mode.toLowerCase());
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(analysis.open).toBe(false);
+      expect(document.activeElement).toBe(button);
+      expect(root.querySelector('.word-cloud__word[aria-pressed="true"]')).not.toBeNull();
+    }
+
+    summary.click();
+    root.querySelector<HTMLButtonElement>('mat-button-toggle[value="SEMANTIC"] button')!.click();
+    fixture.detectChanges();
+    resolveGroup('semantic');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(analysis.open).toBe(true);
   });
 
   it('nennt die Grundform nur bei einer tatsächlich sichtbaren Bündelung', () => {

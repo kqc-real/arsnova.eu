@@ -169,6 +169,7 @@ export class QaWordCloudDialogComponent {
   });
   readonly focusedTermLabel = computed(() => this.data.focusedTermLabel?.() ?? null);
   readonly focusedGroupKey = computed(() => this.data.focusedGroupKey?.() ?? null);
+  protected readonly openAnalysisOnFocus = signal(true);
   readonly returnToCompassVisible = computed(() => this.data.returnToCompassVisible?.() ?? false);
   readonly showSmoothingControls = computed(
     () => this.analysisVariant() === 'LEXICAL' || this.analysisVariant() === 'THEME',
@@ -266,6 +267,7 @@ export class QaWordCloudDialogComponent {
       return;
     }
 
+    this.openAnalysisOnFocus.set(false);
     void this.data.setAnalysisVariant(variant);
   }
 

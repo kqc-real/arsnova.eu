@@ -244,6 +244,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly selectionScopeKey = input<string | null>(null);
   readonly focusedTermLabel = input<string | null>(null);
   readonly focusedGroupKey = input<string | null>(null);
+  readonly openAnalysisOnFocus = input(true);
   readonly title = input($localize`:@@wordCloud.title:Wortwolke`);
   readonly eyebrow = input<string | null>(null);
   readonly description = input<string | null>(null);
@@ -1180,7 +1181,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
       this.selectedGroupKey.set(match.groupKey);
       this.appliedFocusIdentity = focusIdentity;
-      if (this.analysisDisclosureLabel() && this.showResponsesPanel() && !this.outputOnly()) {
+      if (
+        this.openAnalysisOnFocus() &&
+        this.analysisDisclosureLabel() &&
+        this.showResponsesPanel() &&
+        !this.outputOnly()
+      ) {
         this.showSelectedResponsePanel();
       }
     });
@@ -1454,10 +1460,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.showResponses.set(!hasAnalysis);
     this.responsesVisibleLimit.set(WordCloudComponent.RESPONSES_PAGE_SIZE);
     if (hasAnalysis) {
+      const scopeKey = this.selectionScopeKey();
       afterNextRender(
         () => {
           const disclosure = this.analysisDisclosure()?.nativeElement;
-          if (!disclosure || this.selectedGroupKey() !== selected) return;
+          if (
+            !disclosure ||
+            this.selectedGroupKey() !== selected ||
+            this.selectionScopeKey() !== scopeKey
+          ) {
+            return;
+          }
           disclosure.open = true;
           const target = this.responsesSummary()?.nativeElement;
           if (target?.getClientRects().length) {
