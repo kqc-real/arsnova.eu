@@ -259,7 +259,7 @@ describe('WordCloudComponent', () => {
       fixture.detectChanges();
 
       const technical = host.querySelector<HTMLDetailsElement>(
-        '.word-cloud__analysis-disclosure-body > details.word-cloud__technical-details:first-child',
+        '.word-cloud__analysis-disclosure-body > details.word-cloud__technical-details:last-child',
       )!;
       const summary = host.querySelector<HTMLElement>(
         '.word-cloud__analysis-disclosure > summary',
