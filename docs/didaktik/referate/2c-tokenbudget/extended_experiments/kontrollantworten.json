@@ -1,0 +1,1131 @@
+[
+  {
+    "label": "korrekt",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+            "sourceIds": [
+              "qa-question:11111111-1111-4111-8111-111111111111"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "full-context",
+      "fallback": null
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": []
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        }
+      ],
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "full-context",
+        "fallback": null
+      }
+    }
+  },
+  {
+    "label": "unbekannte-id",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+            "sourceIds": [
+              "qa-question:unknown"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "extractive",
+      "fallback": {
+        "contractVersion": "qa-summary-fallback-v1",
+        "requestedRequestContract": "qa-summary-context-v2",
+        "requestedOutputContract": "qa-summary-model-output-v3",
+        "mode": "extractive",
+        "reason": "invalid_response",
+        "retry": "manual"
+      }
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "modelVersion": "extractive-v2"
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:22222222-2222-4222-8222-222222222222",
+          "kind": "qa-question",
+          "label": "Gibt es ein weiteres Beispiel zur linearen Regression?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:44444444-4444-4444-8444-444444444444",
+          "kind": "qa-question",
+          "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+        }
+      ],
+      "modelVersion": "extractive-v2",
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallback": {
+          "contractVersion": "qa-summary-fallback-v1",
+          "requestedRequestContract": "qa-summary-context-v2",
+          "requestedOutputContract": "qa-summary-model-output-v3",
+          "mode": "extractive",
+          "reason": "invalid_response",
+          "retry": "manual"
+        }
+      }
+    }
+  },
+  {
+    "label": "gemischte-ids",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+            "sourceIds": [
+              "qa-question:11111111-1111-4111-8111-111111111111",
+              "qa-question:unknown"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "extractive",
+      "fallback": {
+        "contractVersion": "qa-summary-fallback-v1",
+        "requestedRequestContract": "qa-summary-context-v2",
+        "requestedOutputContract": "qa-summary-model-output-v3",
+        "mode": "extractive",
+        "reason": "invalid_response",
+        "retry": "manual"
+      }
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "modelVersion": "extractive-v2"
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:22222222-2222-4222-8222-222222222222",
+          "kind": "qa-question",
+          "label": "Gibt es ein weiteres Beispiel zur linearen Regression?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:44444444-4444-4444-8444-444444444444",
+          "kind": "qa-question",
+          "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+        }
+      ],
+      "modelVersion": "extractive-v2",
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallback": {
+          "contractVersion": "qa-summary-fallback-v1",
+          "requestedRequestContract": "qa-summary-context-v2",
+          "requestedOutputContract": "qa-summary-model-output-v3",
+          "mode": "extractive",
+          "reason": "invalid_response",
+          "retry": "manual"
+        }
+      }
+    }
+  },
+  {
+    "label": "fehlende-id",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+            "sourceIds": []
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "extractive",
+      "fallback": {
+        "contractVersion": "qa-summary-fallback-v1",
+        "requestedRequestContract": "qa-summary-context-v2",
+        "requestedOutputContract": "qa-summary-model-output-v3",
+        "mode": "extractive",
+        "reason": "invalid_response",
+        "retry": "manual"
+      }
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "modelVersion": "extractive-v2"
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:22222222-2222-4222-8222-222222222222",
+          "kind": "qa-question",
+          "label": "Gibt es ein weiteres Beispiel zur linearen Regression?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:44444444-4444-4444-8444-444444444444",
+          "kind": "qa-question",
+          "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+        }
+      ],
+      "modelVersion": "extractive-v2",
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallback": {
+          "contractVersion": "qa-summary-fallback-v1",
+          "requestedRequestContract": "qa-summary-context-v2",
+          "requestedOutputContract": "qa-summary-model-output-v3",
+          "mode": "extractive",
+          "reason": "invalid_response",
+          "retry": "manual"
+        }
+      }
+    }
+  },
+  {
+    "label": "falscher-beleg",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+            "sourceIds": [
+              "qa-question:55555555-5555-4555-8555-555555555555"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "full-context",
+      "fallback": null
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+          "sourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": []
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+          "sourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [],
+      "sources": [
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:55555555-5555-4555-8555-555555555555",
+          "kind": "qa-question",
+          "label": "Soll die Anwesenheit verpflichtend sein?"
+        }
+      ],
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "full-context",
+        "fallback": null
+      }
+    }
+  },
+  {
+    "label": "erfundene-statistik",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Beteiligung: Genau 73 Personen lehnen die Pflicht ab.",
+            "sourceIds": [
+              "qa-question:55555555-5555-4555-8555-555555555555"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "full-context",
+      "fallback": null
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Beteiligung: Genau 73 Personen lehnen die Pflicht ab.",
+          "sourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": []
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Beteiligung: Genau 73 Personen lehnen die Pflicht ab.",
+          "sourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [],
+      "sources": [
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:55555555-5555-4555-8555-555555555555",
+          "kind": "qa-question",
+          "label": "Soll die Anwesenheit verpflichtend sein?"
+        }
+      ],
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "full-context",
+        "fallback": null
+      }
+    }
+  },
+  {
+    "label": "lernstandsdiagnose",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Verständnis: Alle Studierenden beherrschen die lineare Regression.",
+            "sourceIds": [
+              "qa-question:11111111-1111-4111-8111-111111111111"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "full-context",
+      "fallback": null
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Verständnis: Alle Studierenden beherrschen die lineare Regression.",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": []
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Verständnis: Alle Studierenden beherrschen die lineare Regression.",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        }
+      ],
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "full-context",
+        "fallback": null
+      }
+    }
+  },
+  {
+    "label": "pending-fehldeutung",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Freigabe: Der Übungswunsch wurde von der Lehrperson abgelehnt.",
+            "sourceIds": [
+              "qa-question:11111111-1111-4111-8111-111111111111"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "full-context",
+      "fallback": null
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Freigabe: Der Übungswunsch wurde von der Lehrperson abgelehnt.",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": []
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Freigabe: Der Übungswunsch wurde von der Lehrperson abgelehnt.",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        }
+      ],
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "full-context",
+        "fallback": null
+      }
+    }
+  },
+  {
+    "label": "stimmen-fehldeutung",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Anwesenheit: Die ausgewogene Bewertung belegt Gleichgültigkeit.",
+            "sourceIds": [
+              "qa-question:55555555-5555-4555-8555-555555555555"
+            ]
+          },
+          {
+            "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+            "sourceIds": [
+              "qa-question:33333333-3333-4333-8333-333333333333"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "full-context",
+      "fallback": null
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Anwesenheit: Die ausgewogene Bewertung belegt Gleichgültigkeit.",
+          "sourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555"
+          ]
+        },
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": []
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Klausur: Der Umfang von Kapitel vier soll geklärt werden.",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Anwesenheit: Die ausgewogene Bewertung belegt Gleichgültigkeit.",
+          "sourceIds": [
+            "qa-question:55555555-5555-4555-8555-555555555555"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [],
+      "sources": [
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:55555555-5555-4555-8555-555555555555",
+          "kind": "qa-question",
+          "label": "Soll die Anwesenheit verpflichtend sein?"
+        }
+      ],
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "full-context",
+        "fallback": null
+      }
+    }
+  },
+  {
+    "label": "nur-ein-anliegen",
+    "raw": {
+      "schemaVersion": 2,
+      "taskType": "qa_summary",
+      "outputContract": "qa-summary-model-output-v3",
+      "output": {
+        "status": "ready",
+        "statements": [
+          {
+            "text": "Regression: Es gibt einen Wunsch nach weiteren Übungsbeispielen.",
+            "sourceIds": [
+              "qa-question:11111111-1111-4111-8111-111111111111"
+            ]
+          }
+        ],
+        "limitations": [],
+        "suggestedNextSteps": []
+      }
+    },
+    "execution": {
+      "attemptedMode": "full-context",
+      "effectiveMode": "extractive",
+      "fallback": {
+        "contractVersion": "qa-summary-fallback-v1",
+        "requestedRequestContract": "qa-summary-context-v2",
+        "requestedOutputContract": "qa-summary-model-output-v3",
+        "mode": "extractive",
+        "reason": "invalid_response",
+        "retry": "manual"
+      }
+    },
+    "adapter": {
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "modelVersion": "extractive-v2"
+    },
+    "bound": {
+      "schemaVersion": 2,
+      "contractVersion": "qa-summary-result-v2",
+      "status": "ready",
+      "statements": [
+        {
+          "text": "Können wir mehr Beispiele zur linearen Regression bearbeiten?",
+          "sourceIds": [
+            "qa-question:11111111-1111-4111-8111-111111111111"
+          ]
+        },
+        {
+          "text": "Gibt es ein weiteres Beispiel zur linearen Regression?",
+          "sourceIds": [
+            "qa-question:22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        {
+          "text": "Ist Kapitel 4 klausurrelevant?",
+          "sourceIds": [
+            "qa-question:33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        {
+          "text": "Müssen wir den vierten Abschnitt für die Prüfung lernen?",
+          "sourceIds": [
+            "qa-question:44444444-4444-4444-8444-444444444444"
+          ]
+        }
+      ],
+      "suggestedNextSteps": [],
+      "limitations": [
+        "Eine ausführliche Zusammenfassung war diesmal nicht möglich. Deshalb werden die wichtigsten Fragen im Wortlaut angezeigt."
+      ],
+      "sources": [
+        {
+          "id": "qa-question:11111111-1111-4111-8111-111111111111",
+          "kind": "qa-question",
+          "label": "Können wir mehr Beispiele zur linearen Regression bearbeiten?"
+        },
+        {
+          "id": "qa-question:22222222-2222-4222-8222-222222222222",
+          "kind": "qa-question",
+          "label": "Gibt es ein weiteres Beispiel zur linearen Regression?"
+        },
+        {
+          "id": "qa-question:33333333-3333-4333-8333-333333333333",
+          "kind": "qa-question",
+          "label": "Ist Kapitel 4 klausurrelevant?"
+        },
+        {
+          "id": "qa-question:44444444-4444-4444-8444-444444444444",
+          "kind": "qa-question",
+          "label": "Müssen wir den vierten Abschnitt für die Prüfung lernen?"
+        }
+      ],
+      "modelVersion": "extractive-v2",
+      "analyzedAt": "2026-01-15T10:05:00.000Z",
+      "snapshotHash": "665ea35642ef8982a40ab13af19d11aabdbd2b08cf8a8c3d8190e73c60f19223",
+      "locale": "de",
+      "execution": {
+        "attemptedMode": "full-context",
+        "effectiveMode": "extractive",
+        "fallback": {
+          "contractVersion": "qa-summary-fallback-v1",
+          "requestedRequestContract": "qa-summary-context-v2",
+          "requestedOutputContract": "qa-summary-model-output-v3",
+          "mode": "extractive",
+          "reason": "invalid_response",
+          "retry": "manual"
+        }
+      }
+    }
+  }
+]

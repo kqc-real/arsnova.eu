@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "moderation-analysis-context-v1",
+  "assembledAt": "2026-01-15T10:05:00.000Z",
+  "context": {
+    "contractVersion": "moderation-domain-context-v1",
+    "representation": "analysis-candidates",
+    "definitionsVersion": "moderation-prompt-definitions-v1",
+    "locale": "de",
+    "meta": {
+      "sourceRevision": "direkt-12-v1",
+      "analysisVersion": "fixture-analysis-v1",
+      "selectionVersion": "fixture-selection-v1",
+      "revisions": {
+        "questionText": {
+          "state": "available",
+          "value": "question-text-r1"
+        },
+        "questionVotes": {
+          "state": "available",
+          "value": "question-votes-r1"
+        },
+        "questionStatus": {
+          "state": "available",
+          "value": "question-status-r1"
+        },
+        "questionAnswerState": {
+          "state": "available",
+          "value": "question-answer-state-r1"
+        },
+        "questionNlp": {
+          "state": "available",
+          "value": "question-nlp-r1"
+        },
+        "topics": {
+          "state": "not-applicable",
+          "reason": "Themen sind in dieser Ablation ausgenommen."
+        },
+        "learningObjectives": {
+          "state": "not-applicable",
+          "reason": "Lernziele sind in dieser Ablation ausgenommen."
+        },
+        "releasedResults": {
+          "state": "not-applicable",
+          "reason": "Quizaggregate sind in dieser Ablation ausgenommen."
+        },
+        "feedback": {
+          "state": "not-applicable",
+          "reason": "Feedback ist in dieser Ablation ausgenommen."
+        }
+      }
+    },
+    "scope": {
+      "channels": [
+        "qa"
+      ],
+      "sessionPhase": "ACTIVE",
+      "questionFilter": {
+        "state": "available",
+        "statuses": [
+          "PENDING",
+          "ACTIVE",
+          "PINNED"
+        ],
+        "timeWindow": {
+          "kind": "entire-session"
+        }
+      },
+      "activeWeighting": {
+        "kind": "qa-ranking",
+        "version": "qa-ranking-v1",
+        "sortMode": "TOP"
+      },
+      "selectionLimits": {
+        "questions": 40,
+        "topics": 0,
+        "compassSignals": 0,
+        "learningObjectives": 0,
+        "resultAggregates": 0,
+        "feedbackAggregates": 0
+      }
+    },
+    "questions": {
+      "state": "available",
+      "participantBasis": {
+        "state": "available",
+        "kind": "session-participant-record-count",
+        "value": 200,
+        "calculationVersion": "qa-ranking-v1"
+      },
+      "corpus": {
+        "total": 12,
+        "eligible": 12,
+        "analyzed": 12,
+        "deduplicated": 12,
+        "represented": 12
+      },
+      "items": [
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "addressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000004",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000005",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000006",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000007",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000008",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000009",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000010",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000011",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        },
+        {
+          "sourceId": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000012",
+          "status": "ACTIVE",
+          "answerState": {
+            "state": "unaddressed"
+          },
+          "votes": {
+            "state": "unavailable",
+            "reason": "not-collected"
+          },
+          "nlp": {
+            "state": "disabled",
+            "reason": "nicht erhoben"
+          },
+          "topicSourceIds": []
+        }
+      ]
+    },
+    "topics": {
+      "state": "not-applicable",
+      "reason": "Themen sind in dieser Ablation ausgenommen."
+    },
+    "compass": {
+      "state": "not-applicable",
+      "reason": "Kompasssignale sind in dieser Ablation ausgenommen."
+    },
+    "learningContext": {
+      "state": "not-applicable",
+      "reason": "Lernziele sind in dieser Ablation ausgenommen."
+    },
+    "releasedResults": {
+      "state": "not-applicable",
+      "reason": "Quizaggregate sind in dieser Ablation ausgenommen."
+    },
+    "feedback": {
+      "state": "not-applicable",
+      "reason": "Feedback ist in dieser Ablation ausgenommen."
+    },
+    "sources": [
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000001",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Könnten wir im Tutorium ein Konfidenzintervall einmal gemeinsam von Anfang bis Ende berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000002",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Bis wann muss das Übungsblatt abgegeben werden?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000003",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Wann endet die Abgabe des Übungsblatts? Nachtrag der Lehrperson: Die Frist ist verbindlich Freitag um 18 Uhr.",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000004",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Ich wünsche mir eine Musterrechnung für ein Konfidenzintervall. Können wir ein Beispiel durchgehen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000005",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können Sie an einem kleinen Datensatz vorrechnen, wie man ein Konfidenzintervall bestimmt?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000006",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Wie komme ich beim Konfidenzintervall von den Messwerten zu den beiden Grenzen? Ein Rechenbeispiel würde helfen.",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000007",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir ein vollständiges Zahlenbeispiel für das Konfidenzintervall besprechen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000008",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Gibt es eine Schritt-für-Schritt-Rechnung zu den Grenzen eines Konfidenzintervalls?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000009",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Mir fehlt der Rechenweg beim Konfidenzintervall. Können wir das an Beispieldaten üben?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000010",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Lässt sich im Tutorium ein Konfidenzintervall mit konkreten Zahlen berechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000011",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Können wir für ein Konfidenzintervall gemeinsam den unteren und den oberen Grenzwert ausrechnen?",
+          "truncated": false
+        }
+      },
+      {
+        "id": "qa-question:dddddddd-dddd-4ddd-8ddd-000000000012",
+        "kind": "qa-question",
+        "content": {
+          "state": "included",
+          "text": "Wird es für die Vorlesungsaufzeichnungen Untertitel geben? Ohne sie kann ich den Aufzeichnungen nicht folgen.",
+          "truncated": false
+        }
+      }
+    ],
+    "limitations": [
+      {
+        "code": "module-unavailable",
+        "section": "topics",
+        "detail": "Ablation enthält bewusst keine Themenmetadaten."
+      },
+      {
+        "code": "module-unavailable",
+        "section": "compass",
+        "detail": "Ablation enthält bewusst keine Kompasssignale."
+      },
+      {
+        "code": "module-unavailable",
+        "section": "learning-context",
+        "detail": "Ablation enthält bewusst keine Lernziele."
+      }
+    ]
+  }
+}
