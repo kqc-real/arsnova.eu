@@ -273,6 +273,8 @@ import {
   wordCloudTopicProgressLabel,
   wordCloudViewHint,
   type WordCloudEntryWithEvidence,
+  type WordCloudEvidenceLoader,
+  type WordCloudEvidenceSnapshot,
 } from '../session-present/word-cloud.util';
 import {
   buildModerationCompassView,
@@ -1127,6 +1129,10 @@ export class SessionHostComponent implements OnInit, OnDestroy {
   readonly qaWordCloudThemeFallbackActive = signal(false);
   private readonly qaWordCloudThemeAnalysisFailed = signal(false);
   readonly qaWordCloudThemeAnalysisResult = signal<QaWordCloudHostResult | null>(null);
+  private readonly qaWordCloudEvidenceCache = new WeakMap<
+    WordCloudEvidenceSnapshot,
+    Map<string, string>
+  >();
   private readonly qaWordCloudRetainedPhrases = signal<WordCloudEntryWithEvidence[]>([]);
   private readonly qaWordCloudFrozenProjection = signal<QaWordCloudPresenterProjectionDTO | null>(
     null,
@@ -2961,6 +2967,8 @@ export class SessionHostComponent implements OnInit, OnDestroy {
           weightedResponses: () => [],
           terms: () => this.qaWordCloudLocalTerms(),
           analysisEntries: () => this.qaWordCloudAnalysisEntries(),
+          loadEvidence: this.loadQaWordCloudEvidence,
+          evidenceScope: () => [this.code, this.qaSortMode(), this.qaShowPinnedOnly()].join(':'),
           displayMode: () => this.qaWordCloudDisplayMode(),
           analysisLanguage: () => this.wordCloudTermLocale(),
           languageLocked: () => this.wordCloudLocaleLocked(),
@@ -15419,7 +15427,7 @@ export class SessionHostComponent implements OnInit, OnDestroy {
       try {
         const signal = this.wordCloudHttpAbortController.signal;
         const result = await trpc.wordCloud.analyzeQa.mutate(input, { signal });
-        return await this.loadQaWordCloudEvidence(result, input.sessionCode, signal);
+        return this.bindQaWordCloudEvidence(result, input.sessionCode);
       } catch (error) {
         lastError = error;
         if (
@@ -15437,53 +15445,76 @@ export class SessionHostComponent implements OnInit, OnDestroy {
     throw lastError;
   }
 
-  private async loadQaWordCloudEvidence(
+  private bindQaWordCloudEvidence(
     result: AnalyzeQaWordCloudOutput,
     sessionCode: string,
-    signal: AbortSignal,
-  ): Promise<QaWordCloudHostResult> {
+  ): QaWordCloudHostResult {
     const ids = result.evidenceQuestionIdPages?.flat();
     if (!ids?.length) return result;
 
-    const sourcesByEntry = result.entries.map(({ evidenceMask }) =>
-      evidenceMask
-        ? ids.filter((_, index) => qaWordCloudEvidenceIncludes(evidenceMask, index))
-        : undefined,
-    );
-    const usedIds = [...new Set(sourcesByEntry.flatMap((sources) => sources ?? []))];
-    const requests = [];
-    for (let start = 0; start < usedIds.length; start += QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE) {
-      requests.push(
-        trpc.wordCloud.qaEvidence.query(
-          {
-            sessionCode,
-            metric: result.sortMode,
-            filter: result.filter,
-            corpusRevision: result.corpusRevision,
-            questionIds: usedIds.slice(start, start + QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE),
-          },
-          { signal },
-        ),
-      );
-    }
-    const texts = new Map((await Promise.all(requests)).flat().map(({ id, text }) => [id, text]));
+    const snapshot: WordCloudEvidenceSnapshot = {
+      sessionCode,
+      metric: result.sortMode,
+      filter: result.filter,
+      corpusRevision: result.corpusRevision,
+    };
     return {
       ...result,
-      entries: result.entries.map((entry, index) => {
-        const sources = sourcesByEntry[index];
-        if (!sources) return entry;
-        if (sources.length !== entry.memberCount) {
-          throw new Error('The Q&A evidence does not match the analysis.');
-        }
-        const evidence = sources.map((sourceId) => {
-          const text = texts.get(sourceId);
-          if (text === undefined) throw new Error('The Q&A evidence is incomplete.');
-          return { sourceId, text };
-        });
-        return { ...entry, evidence };
+      entries: result.entries.map((entry) => {
+        const mask = entry.evidenceMask;
+        return {
+          ...entry,
+          evidenceSource: {
+            snapshot,
+            sourceIds: mask
+              ? ids.filter((_, index) => qaWordCloudEvidenceIncludes(mask, index))
+              : [],
+            memberCount: entry.memberCount,
+          },
+        };
       }),
     };
   }
+
+  private readonly loadQaWordCloudEvidence: WordCloudEvidenceLoader = async (sources, signal) => {
+    const requestSignal = AbortSignal.any([signal, this.wordCloudHttpAbortController.signal]);
+    const idsBySnapshot = new Map<WordCloudEvidenceSnapshot, Set<string>>();
+    for (const { snapshot, sourceIds } of sources) {
+      const ids = idsBySnapshot.get(snapshot) ?? new Set<string>();
+      sourceIds.forEach((id) => ids.add(id));
+      idsBySnapshot.set(snapshot, ids);
+    }
+
+    const texts = new Map<string, string>();
+    try {
+      for (const [snapshot, ids] of idsBySnapshot) {
+        const cached = this.qaWordCloudEvidenceCache.get(snapshot) ?? new Map<string, string>();
+        const missing = [...ids].filter((id) => !cached.has(id));
+        const fetched = new Map<string, string>();
+        for (let start = 0; start < missing.length; start += QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE) {
+          requestSignal.throwIfAborted();
+          const questionIds = missing.slice(start, start + QA_WORD_CLOUD_EVIDENCE_BATCH_SIZE);
+          const batch = await trpc.wordCloud.qaEvidence.query(
+            { ...snapshot, questionIds },
+            { signal: requestSignal },
+          );
+          const batchTexts = new Map(batch.map(({ id, text }) => [id, text]));
+          for (const id of questionIds) {
+            const text = batchTexts.get(id);
+            if (text === undefined) return { status: 'failed' };
+            fetched.set(id, text);
+          }
+        }
+        requestSignal.throwIfAborted();
+        for (const [id, text] of fetched) cached.set(id, text);
+        this.qaWordCloudEvidenceCache.set(snapshot, cached);
+        for (const id of ids) texts.set(id, cached.get(id)!);
+      }
+      return { status: 'ready', texts };
+    } catch (error) {
+      return { status: this.isTrpcConflictError(error) ? 'stale' : 'failed' };
+    }
+  };
 
   private buildFreetextWordCloudLemmaItems(): Array<{
     id: string;

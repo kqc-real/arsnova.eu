@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WordCloudComponent } from './word-cloud.component';
 import { getWordCloudLayoutHeight } from './word-cloud-layout';
 import type { SpecAccess } from '../../../testing/spec-access';
+import type { WordCloudEntryWithEvidence, WordCloudEvidenceResult } from './word-cloud.util';
 
 describe('WordCloudComponent', () => {
   beforeEach(() => {
@@ -241,7 +242,7 @@ describe('WordCloudComponent', () => {
 
   it.each(['qa', 'default'] as const)(
     'zeigt in %s alle ausgewählten Originale und hält technische Angaben geschlossen',
-    (analysisMode) => {
+    async (analysisMode) => {
       const fixture = TestBed.createComponent(WordCloudComponent);
       const host = fixture.nativeElement as HTMLElement;
       const evidence = Array.from({ length: 65 }, (_, index) => ({
@@ -258,24 +259,41 @@ describe('WordCloudComponent', () => {
       fixture.componentRef.setInput('analysisModelVersion', 'encoder@sha256:testdigest');
       fixture.componentRef.setInput('labelModelId', 'internes-label-testmodell');
       fixture.componentRef.setInput('labelPromptVersion', 'test-prompt-v1');
-      fixture.componentRef.setInput('analysisEntries', [
-        {
-          key: 'topic',
-          label: 'Thema',
-          count: 65,
-          basisLabel: evidence[64]!.text,
-          variants: ['Thema'],
-          confidence: 0.9,
-          labelOrigin: 'model',
-          memberCount: 65,
-          membersTruncated: analysisMode === 'qa',
-          members: (analysisMode === 'qa' ? evidence.slice(0, 1) : evidence).map((source) => ({
-            ...source,
-            weight: 1,
-          })),
-          ...(analysisMode === 'qa' ? { evidence } : {}),
-        },
-      ]);
+      const loadEvidence = vi.fn(async () => ({
+        status: 'ready',
+        texts: new Map(evidence.map(({ sourceId, text }) => [sourceId, text])),
+      }));
+      if (analysisMode === 'qa') fixture.componentRef.setInput('loadEvidence', loadEvidence);
+      const entry: WordCloudEntryWithEvidence = {
+        key: 'topic',
+        label: 'Thema',
+        count: 65,
+        basisLabel: evidence[64]!.text,
+        variants: ['Thema'],
+        confidence: 0.9,
+        labelOrigin: 'model',
+        memberCount: 65,
+        membersTruncated: analysisMode === 'qa',
+        members: (analysisMode === 'qa' ? evidence.slice(0, 1) : evidence).map((source) => ({
+          ...source,
+          weight: 1,
+        })),
+        ...(analysisMode === 'qa'
+          ? {
+              evidenceSource: {
+                snapshot: {
+                  sessionCode: 'ABC123',
+                  corpusRevision: 'r1',
+                  metric: 'TOP',
+                  filter: 'ALL_ELIGIBLE',
+                },
+                sourceIds: evidence.map(({ sourceId }) => sourceId),
+                memberCount: 65,
+              },
+            }
+          : {}),
+      };
+      fixture.componentRef.setInput('analysisEntries', [entry]);
       fixture.detectChanges();
 
       const technical = host.querySelector<HTMLDetailsElement>(
@@ -296,8 +314,11 @@ describe('WordCloudComponent', () => {
         'details.word-cloud__responses-panel',
       )!;
       expect(originals.open).toBe(false);
+      expect(loadEvidence).not.toHaveBeenCalled();
       const responseSummary = originals.querySelector('summary')!;
       responseSummary.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
       fixture.detectChanges();
       expect(originals.open).toBe(true);
       expect(technical.open).toBe(false);
@@ -310,15 +331,113 @@ describe('WordCloudComponent', () => {
       );
       expect(originals.textContent).not.toMatch(/von 65 Belegen sichtbar|sha256|test-prompt/);
       expect(host.querySelector('.word-cloud__responses-more')).toBeNull();
+      fixture.componentRef.setInput('analysisEntries', [{ ...entry, label: 'Neuer Themenname' }]);
+      fixture.detectChanges();
+      expect(loadEvidence).toHaveBeenCalledTimes(analysisMode === 'qa' ? 1 : 0);
+      expect(originals.querySelectorAll('li')).toHaveLength(65);
       responseSummary.click();
       fixture.detectChanges();
       expect(originals.open).toBe(false);
       responseSummary.click();
       fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
       expect(originals.open).toBe(true);
       expect(originals.querySelectorAll('li')).toHaveLength(65);
     },
   );
+
+  it('hält die Q&A-Vorschau bei Belegfehlern nutzbar und verwirft einen alten Retry', async () => {
+    const fixture = TestBed.createComponent(WordCloudComponent);
+    const root = fixture.nativeElement as HTMLElement;
+    const first = Promise.withResolvers<WordCloudEvidenceResult>();
+    const retry = Promise.withResolvers<WordCloudEvidenceResult>();
+    const load = vi
+      .fn()
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(retry.promise)
+      .mockResolvedValue({ status: 'stale' });
+    const entry: WordCloudEntryWithEvidence = {
+      key: 'orbit',
+      label: 'Umlaufbahnen',
+      labelOrigin: 'extractive',
+      count: 2,
+      memberCount: 2,
+      membersTruncated: true,
+      confidence: 0.9,
+      basisLabel: null,
+      variants: [],
+      members: [{ sourceId: 'question-1', text: 'Gekürzte Vorschau', weight: 1 }],
+      evidenceSource: {
+        snapshot: {
+          sessionCode: 'ABC123',
+          corpusRevision: 'r1',
+          metric: 'TOP',
+          filter: 'ALL_ELIGIBLE',
+        },
+        sourceIds: ['question-1', 'question-2'],
+        memberCount: 2,
+      },
+    };
+    fixture.componentRef.setInput('analysisMode', 'qa');
+    fixture.componentRef.setInput('analysisDisclosureLabel', 'Q&A-Analyse');
+    fixture.componentRef.setInput('disableCloudLayout', true);
+    fixture.componentRef.setInput('semanticTopics', true);
+    fixture.componentRef.setInput('selectionScopeKey', 'scope-a');
+    fixture.componentRef.setInput('analysisEntries', [entry]);
+    fixture.componentRef.setInput('loadEvidence', load);
+    fixture.detectChanges();
+    const openQuestions = () => {
+      root.querySelector<HTMLButtonElement>('.word-cloud__word')!.click();
+      fixture.detectChanges();
+      root.querySelector<HTMLElement>('.word-cloud__responses-summary')!.click();
+      fixture.detectChanges();
+    };
+    const panel = () => root.querySelector<HTMLDetailsElement>('.word-cloud__responses-panel')!;
+    openQuestions();
+    expect(panel().open).toBe(true);
+    expect(panel().querySelector('[role="status"]')?.textContent).toContain('werden geladen');
+    expect(panel().querySelector('ul')).toBeNull();
+    expect(fixture.componentInstance.selectedSourceIds()).toEqual(['question-1', 'question-2']);
+
+    const name = { ...entry, label: 'Bahnen von Satelliten', labelOrigin: 'model' as const };
+    fixture.componentRef.setInput('analysisEntries', [name]);
+    fixture.detectChanges();
+    const inFlight = load.mock.calls[0]?.[1] as AbortSignal;
+    expect(inFlight.aborted).toBe(false);
+    expect(load).toHaveBeenCalledTimes(1);
+    first.resolve({ status: 'failed' });
+    await first.promise;
+    fixture.detectChanges();
+    expect(panel().querySelector('[role="status"]')?.textContent).toContain('nicht geladen');
+    expect(panel().querySelector('ul')).toBeNull();
+    expect(root.querySelector('.word-cloud__word')?.textContent).toContain(name.label);
+
+    const summary = panel().querySelector('summary')!;
+    vi.spyOn(summary, 'getClientRects').mockReturnValue({ length: 1 } as DOMRectList);
+    panel().querySelector('button')!.click();
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(summary);
+    expect(panel().querySelector('[role="status"]')?.textContent).toContain('werden geladen');
+    const retrySignal = load.mock.calls[1]?.[1] as AbortSignal;
+    fixture.componentRef.setInput('selectionScopeKey', 'scope-b');
+    fixture.detectChanges();
+    expect(retrySignal.aborted).toBe(true);
+    retry.resolve({ status: 'ready', texts: new Map([['question-1', 'Alter Beleg']]) });
+    await retry.promise;
+    fixture.detectChanges();
+    expect(panel().open).toBe(false);
+    openQuestions();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(panel().querySelector('[role="status"]')?.textContent).toContain(
+      'Die Fragen haben sich geändert.',
+    );
+    expect(panel().querySelector('ul')).toBeNull();
+    expect(panel().textContent).not.toContain('Alter Beleg');
+    expect(root.querySelector('.word-cloud__word')?.textContent).toContain(name.label);
+    expect(load).toHaveBeenCalledTimes(3);
+  });
 
   it('führt den Fokus nach Ausblenden aus der Freitext-Analyse zum Akkordeon', async () => {
     const fixture = TestBed.createComponent(WordCloudComponent);
@@ -1332,8 +1451,16 @@ describe('WordCloudComponent', () => {
               expect(text).not.toMatch(/Größenwert|Gewichtung/);
             }
           }
-          if (provenance) expect(text).toContain(provenance);
-          else expect(text).not.toContain('Themenname');
+          if (provenance) {
+            expect(text).toContain(provenance);
+            if (!outputOnly) {
+              expect(text).toContain('Beiträge nach ähnlicher Bedeutung gruppiert');
+              expect(text).toContain('Themenname · ' + provenance);
+            }
+          } else {
+            expect(text).not.toContain('Themenname');
+            expect(text).not.toContain('Beiträge nach ähnlicher Bedeutung gruppiert');
+          }
           expect(text).not.toContain('Interner Originalbeleg');
           expect(text).not.toMatch(/interne[rs]? (Namensmodell|Promptversion)/i);
           expect(root.querySelector('details.word-cloud__analysis-disclosure[open]')).toBeNull();

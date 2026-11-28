@@ -6,8 +6,8 @@ import {
 import { textAnalysisCopy } from '../../../shared/text-analysis/text-analysis-copy';
 import type { SupportedLocale } from '../../../core/locale-from-path';
 import type {
+  AnalyzeQaWordCloudInput,
   WordCloudAnalysisEntryDTO,
-  WordCloudAnalysisMemberDTO,
   WordCloudAnalysisVariant,
 } from '@arsnova/shared-types';
 import {
@@ -1033,7 +1033,28 @@ function collapseNumericSeparatorSpacing(value: string): string {
   return value.trim().replace(DECIMAL_SEPARATOR_SPACING_PATTERN, '$1$2');
 }
 
-/** Original texts resolved privately by the host for a compact analysis entry. */
 export type WordCloudEntryWithEvidence = WordCloudAnalysisEntryDTO & {
-  evidence?: readonly Pick<WordCloudAnalysisMemberDTO, 'sourceId' | 'text'>[];
+  evidenceSource?: WordCloudEvidenceSource;
 };
+
+export type WordCloudEvidenceSnapshot = {
+  readonly sessionCode: string;
+  readonly metric: AnalyzeQaWordCloudInput['metric'];
+  readonly filter: AnalyzeQaWordCloudInput['filter'];
+  readonly corpusRevision: string;
+};
+
+export type WordCloudEvidenceSource = {
+  readonly snapshot: WordCloudEvidenceSnapshot;
+  readonly sourceIds: readonly string[];
+  readonly memberCount: number;
+};
+
+export type WordCloudEvidenceResult =
+  | { readonly status: 'ready'; readonly texts: ReadonlyMap<string, string> }
+  | { readonly status: 'failed' | 'stale' };
+
+export type WordCloudEvidenceLoader = (
+  sources: readonly WordCloudEvidenceSource[],
+  signal: AbortSignal,
+) => Promise<WordCloudEvidenceResult>;

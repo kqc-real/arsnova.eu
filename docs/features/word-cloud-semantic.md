@@ -45,7 +45,7 @@ Texte sind in `de`, `en`, `fr`, `es` und `it` gepflegt.
 
 ### Verständliche Bedienung und Projektion
 
-Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Der kurze Hinweis zur Verarbeitung beschreibt die sichtbare Ansicht, auch wenn gerade eine Ersatzansicht angezeigt wird. Er nennt die Grundform-Bündelung, sobald ein entsprechender Lemma-Snapshot sichtbar ist. In Host und Präsentation stehen die Wolke und ihre direkten Aktionen im Vordergrund. **Q&A-Analyse** und **Freitext-Analyse** starten geschlossen. Der Wechsel zwischen Wörtern, Wortgruppen und Themen behält den Öffnungszustand der Analyse bei. In der Hostansicht bleiben der kompakte Herkunfts- und Aktualisierungsstatus sowie die Hilfe sichtbar. Im Akkordeon stehen die Erläuterung der Ansicht, Kennzahlen und die jeweils verfügbaren Optionen und Exporte. Eine Begriffsauswahl oder ein Sprung aus dem Moderationskompass öffnet das Analyse-Akkordeon mit einer zunächst geschlossenen Belegliste. Beim Aufklappen erscheinen sämtliche zugehörigen Originalbeiträge in voller Länge. Der Tooltip nennt die Zahl der Fragen oder Nennungen und gegebenenfalls die Herkunft des Themennamens. Größenwert, Modellkennung, Versions- und Prompt-Angaben stehen im anfangs geschlossenen Akkordeon **Technische Details** am Ende des Analysebereichs. Sein Schalter ist auch ohne Begriffsauswahl erreichbar. Auf breiten Bühnen ordnen alle Ansichten die Begriffe zu einer organischen Wolke an. Auf schmalen Bühnen erscheinen die größten Begriffe zuerst.
+Die Ansichten heißen **Wörter**, **Wortgruppen** und **Themen**. Der kurze Hinweis zur Verarbeitung beschreibt die sichtbare Ansicht, auch wenn gerade eine Ersatzansicht angezeigt wird. Er nennt die Grundform-Bündelung, sobald ein entsprechender Lemma-Snapshot sichtbar ist. In Host und Präsentation stehen die Wolke und ihre direkten Aktionen im Vordergrund. **Q&A-Analyse** und **Freitext-Analyse** starten geschlossen. Der Wechsel zwischen Wörtern, Wortgruppen und Themen behält den Öffnungszustand der Analyse bei. In der Hostansicht bleiben der kompakte Herkunfts- und Aktualisierungsstatus sowie die Hilfe sichtbar. Im Akkordeon stehen die Erläuterung der Ansicht, Kennzahlen und die jeweils verfügbaren Optionen und Exporte. Eine Begriffsauswahl oder ein Sprung aus dem Moderationskompass öffnet das Analyse-Akkordeon mit einer zunächst geschlossenen Belegliste. Beim Aufklappen erscheinen sämtliche zugehörigen Originalbeiträge in voller Länge. Der Host-Tooltip nennt die Zahl der Fragen oder Nennungen. In der Themenansicht erläutert er die Gruppierung nach ähnlicher Bedeutung und die Herkunft des Themennamens in zwei eigenen Zeilen. Größenwert, Modellkennung, Versions- und Prompt-Angaben stehen im anfangs geschlossenen Akkordeon **Technische Details** am Ende des Analysebereichs. Sein Schalter ist auch ohne Begriffsauswahl erreichbar. Auf breiten Bühnen ordnen alle Ansichten die Begriffe zu einer organischen Wolke an. Auf schmalen Bühnen erscheinen die größten Begriffe zuerst.
 
 Im Host-Dialog nehmen die Wortwolke und die obere Aktionsleiste die erste Ansicht ein. **Q&A-Analyse** bündelt die Herkunft der sichtbaren Themennamen, die Erläuterung zur gewählten Ansicht und Gewichtung, Kennzahlen, Gruppierungsprüfung, zugehörige Fragen, Sprachwahl, Wortformenbündelung und Exporte. Das Akkordeon startet geschlossen. Ein Klick auf einen Begriff wählt ihn aus. Sein Wert, weitere gezählte Formen und zugehörige Fragen sind im Akkordeon einsehbar. Auf breiten Ansichten verteilen sich die Begriffe um den am stärksten gewichteten Begriff. Mit der Maus können sich die Kapselränder unterschiedlich stark bis zu zwölf CSS-Pixel überlappen. Die Schrift bleibt frei. Die Touch-Ziele halten Abstand. Auf schmalen Ansichten stehen die am stärksten gewichteten Begriffe zuerst und lange Themennamen können umbrechen. Eine erste laufende Themenanalyse zeigt den Fortschritt anstelle der Wolke. Beim Aktualisieren vorhandener Themen bleibt die Wolke sichtbar, der Detailbereich kennzeichnet ihren bisherigen Stand.
 
@@ -229,14 +229,18 @@ Lokale Q&A-Paraphrasen (Klausur/Regression/Folien/Beamer plus längere Fragen f�
 Shared-Zod: `AnalyzeWordCloud*` in `libs/shared-types/src/schemas.ts`, Konstanten in `libs/shared-types/src/word-cloud-semantic.ts`. `wordCloud.analyzeQa` nimmt optional eine begrenzte Liste `focusQuestionIds` entgegen und liefert den zugehörigen `focusedGroupKey`, sofern der aktuelle Themen-Snapshot eine Zuordnung erlaubt. Cluster-Status liegen auf diesem Vertrag, nicht auf `QaSummaryStatusEnum` / 8.9c.
 
 Die Q&A-Analyse liefert die Mitgliedschaft jeder Gruppe als kompakte Bitmaske
-bezogen auf die mitgelieferten, kanonisch geordneten Fragen-IDs. Der Host
-lädt die Originaltexte aus derselben Korpusrevision in Gruppen von höchstens
-40 über `wordCloud.qaEvidence`. Geänderte oder inzwischen unzulässige Quellen
-lösen einen Konflikt aus und werden beim erneuten Lauf neu ermittelt. Wo
-Anzeige und Namensgebung in zwei Phasen laufen, behält die aktualisierte
-Beschriftung die Originalbelege der Vorschau. Die Bühne erhält ihre kompakten
-Projektionsdaten. Freitext verwendet die Originalantworten des sichtbaren
-Analysestands.
+bezogen auf die mitgelieferten, kanonisch geordneten Fragen-IDs. Vorschau und
+generative Namensgebung starten mit dem kompakten Ergebnis. Erst beim Öffnen
+der Fragenliste lädt der Host die benötigten Originaltexte über
+`wordCloud.qaEvidence` aus derselben Korpusrevision, jeweils bis zu 40 Fragen
+pro Anfrage und eine Anfrage zur Zeit. Die Liste erscheint nach dem vollständigen
+Abruf. Bei einem Ladefehler ist ein neuer Belegabruf möglich. Bei einem
+Revisionskonflikt fordert der Detailbereich zur Aktualisierung der Wolke auf.
+Die Vorschau bleibt in beiden Fällen bedienbar. Eine spätere Namensantwort
+behält die Belege derselben Gruppe. Bereits geladene Originale gehören zum
+angezeigten Analysestand und bleiben beim Anhalten der Anzeige verfügbar.
+Die Bühne erhält die kompakten Projektionsdaten. Freitext verwendet die
+Originalantworten des sichtbaren Analysestands.
 
 Status: `pending` | `ready` | `uncertain` | `stale` | `disabled` | `failed` | `fallback`.
 

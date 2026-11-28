@@ -399,17 +399,27 @@
     @if (selectedEvidenceCoverage(); as evidenceCoverage) {
       <p>{{ evidenceCoverage }}</p>
     }
-    <ul
-      class="word-cloud__responses"
-      tabindex="0"
-      [attr.aria-label]="
-        formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
-      "
-    >
-      @for (response of visibleResponses(); track response + $index) {
-        <li>{{ response }}</li>
+    @if (evidenceStatus(); as status) {
+      <p role="status" [class.sr-only]="status === 'ready'">{{ evidenceStatusLabel() }}</p>
+      @if (status === 'failed') {
+        <button mat-button type="button" (click)="retryEvidence()" i18n="@@wordCloud.evidenceRetry">
+          Belege erneut laden
+        </button>
       }
-    </ul>
+    }
+    @if (!evidenceStatus() || evidenceStatus() === 'ready') {
+      <ul
+        class="word-cloud__responses"
+        tabindex="0"
+        [attr.aria-label]="
+          formatCount(responseSummary().visible) + ' ' + itemLabel(responseSummary().visible)
+        "
+      >
+        @for (response of visibleResponses(); track response + $index) {
+          <li>{{ response }}</li>
+        }
+      </ul>
+    }
     @if (hasMoreResponses()) {
       <button
         mat-button

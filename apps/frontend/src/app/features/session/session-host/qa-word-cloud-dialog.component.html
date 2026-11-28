@@ -163,6 +163,7 @@
       [weightedResponses]="weightedResponses()"
       [terms]="terms()"
       [analysisEntries]="analysisEntries()"
+      [loadEvidence]="data.loadEvidence ?? null"
       [analysisMode]="'qa'"
       [analysisInfo]="analysisInfo()"
       [emptyMessage]="emptyMessage()"
@@ -174,7 +175,13 @@
       [itemLabelPlural]="data.itemLabelPlural"
       [itemCount]="analyzedQuestionCount()"
       [eligibleItemCount]="eligibleQuestionCount()"
-      [selectionScopeKey]="analysisVariant() + ':' + (data.analysisLanguage?.() ?? '')"
+      [selectionScopeKey]="
+        analysisVariant() +
+        ':' +
+        (data.analysisLanguage?.() ?? '') +
+        ':' +
+        (data.evidenceScope?.() ?? '')
+      "
       [wordLabelSingular]="wordLabelSingular()"
       [wordLabelPlural]="wordLabelPlural()"
       [showConfidenceFilter]="displayMode() === 'SEMANTIC'"

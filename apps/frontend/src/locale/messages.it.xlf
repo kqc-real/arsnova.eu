@@ -36586,6 +36586,26 @@
         <source>Technische Details</source>
         <target>Dettagli tecnici</target>
       </trans-unit>
+      <trans-unit id="wordCloud.evidenceLoading" datatype="html">
+        <source>Originalbelege werden geladen.</source>
+        <target>Caricamento dei contributi originali.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceLoaded" datatype="html">
+        <source>Originalbelege geladen.</source>
+        <target>Contributi originali caricati.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceFailed" datatype="html">
+        <source>Die Originalbelege konnten nicht geladen werden.</source>
+        <target>Impossibile caricare i contributi originali.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceStale" datatype="html">
+        <source>Die Fragen haben sich geändert. Aktualisiere die Wortwolke, um die Belege zu laden.</source>
+        <target>Le domande sono cambiate. Aggiorna la nuvola di parole per caricare i contributi originali.</target>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceRetry" datatype="html">
+        <source>Belege erneut laden</source>
+        <target>Ricarica i contributi originali</target>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
         <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
         <target><x id="shown"/> fonti visibili su <x id="total"/></target>

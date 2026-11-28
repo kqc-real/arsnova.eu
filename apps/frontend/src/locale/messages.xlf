@@ -32289,6 +32289,21 @@
       <trans-unit id="wordCloud.technicalDetails" datatype="html">
         <source>Technische Details</source>
       </trans-unit>
+      <trans-unit id="wordCloud.evidenceLoading" datatype="html">
+        <source>Originalbelege werden geladen.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceLoaded" datatype="html">
+        <source>Originalbelege geladen.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceFailed" datatype="html">
+        <source>Die Originalbelege konnten nicht geladen werden.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceStale" datatype="html">
+        <source>Die Fragen haben sich geändert. Aktualisiere die Wortwolke, um die Belege zu laden.</source>
+      </trans-unit>
+      <trans-unit id="wordCloud.evidenceRetry" datatype="html">
+        <source>Belege erneut laden</source>
+      </trans-unit>
       <trans-unit id="wordCloud.evidenceCoverage" datatype="html">
         <source><x id="shown"/> von <x id="total"/> Belegen sichtbar</source>
       </trans-unit>

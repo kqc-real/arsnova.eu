@@ -71,6 +71,9 @@ import {
   normalizeFreeTextResponseForDisplay,
   type WordCloudAnalysisMode,
   type WordCloudEntryWithEvidence,
+  type WordCloudEvidenceLoader,
+  type WordCloudEvidenceResult,
+  type WordCloudEvidenceSource,
   type WordCloudStopwordContext,
   type WeightedWordSource,
 } from './word-cloud.util';
@@ -239,6 +242,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   readonly weightedResponses = input<WeightedWordSource[] | null>(null);
   readonly terms = input<WordCloudTerm[] | null>(null);
   readonly analysisEntries = input<WordCloudEntryWithEvidence[] | null>(null);
+  readonly loadEvidence = input<WordCloudEvidenceLoader | null>(null);
   readonly analysisMode = input<WordCloudAnalysisMode>('default');
   readonly semanticTopics = input(false);
   readonly selectionScopeKey = input<string | null>(null);
@@ -360,9 +364,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       if (entry.key !== selected) {
         continue;
       }
-      for (const member of entry.evidence ?? entry.members) {
-        collect(member.sourceId);
-      }
+      const ids = entry.evidenceSource?.sourceIds ?? entry.members.map(({ sourceId }) => sourceId);
+      ids.forEach(collect);
     }
 
     return ids;
@@ -418,14 +421,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     for (const entry of this.filteredAnalysisEntries() ?? []) {
       const responses: string[] = [];
       const seenSourceIds = new Set<string>();
-      for (const member of entry.evidence ?? entry.members) {
+      for (const member of entry.members) {
         if (seenSourceIds.has(member.sourceId)) {
           continue;
         }
         seenSourceIds.add(member.sourceId);
-        responses.push(
-          entry.evidence ? member.text : this.displayResponseText(member.sourceId, member.text),
-        );
+        responses.push(this.displayResponseText(member.sourceId, member.text));
       }
       grouped.set(entry.key, responses);
     }
@@ -438,18 +439,68 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const seenSourceIds = new Set<string>();
 
     for (const entry of this.filteredAnalysisEntries() ?? []) {
-      for (const member of entry.evidence ?? entry.members) {
+      for (const member of entry.members) {
         if (seenSourceIds.has(member.sourceId)) {
           continue;
         }
         seenSourceIds.add(member.sourceId);
-        responses.push(
-          entry.evidence ? member.text : this.displayResponseText(member.sourceId, member.text),
-        );
+        responses.push(this.displayResponseText(member.sourceId, member.text));
       }
     }
 
     return responses;
+  });
+
+  private readonly evidenceEntries = computed(() => {
+    if (!this.loadEvidence() || this.outputOnly() || this.terms() !== null) return [];
+    const selected = this.selectedGroupKey();
+    const entries = this.filteredAnalysisEntries() ?? [];
+    return selected ? entries.filter((entry) => entry.key === selected) : entries;
+  });
+  private readonly evidenceSources = computed(
+    () => this.evidenceEntries().flatMap((entry) => entry.evidenceSource ?? []),
+    {
+      // Relabeling copies the entry and retains its original membership.
+      equal: (a, b) => a.length === b.length && a.every((source, index) => source === b[index]),
+    },
+  );
+  private readonly evidenceSourceIds = computed(
+    () =>
+      new Set(
+        this.evidenceEntries().flatMap(
+          (entry) =>
+            entry.evidenceSource?.sourceIds ?? entry.members.map(({ sourceId }) => sourceId),
+        ),
+      ),
+  );
+  private readonly evidenceAttempt = signal(0);
+  private readonly evidenceResult = signal<{
+    sources: readonly WordCloudEvidenceSource[];
+    scope: string | null;
+    result: WordCloudEvidenceResult;
+  } | null>(null);
+  private readonly currentEvidenceResult = computed(() => {
+    const loaded = this.evidenceResult();
+    return loaded?.sources === this.evidenceSources() && loaded.scope === this.selectionScopeKey()
+      ? loaded.result
+      : null;
+  });
+  protected readonly evidenceStatus = computed(() =>
+    this.evidenceSources().length ? (this.currentEvidenceResult()?.status ?? 'pending') : null,
+  );
+  protected readonly evidenceStatusLabel = computed(() => {
+    switch (this.evidenceStatus()) {
+      case 'pending':
+        return $localize`:@@wordCloud.evidenceLoading:Originalbelege werden geladen.`;
+      case 'ready':
+        return $localize`:@@wordCloud.evidenceLoaded:Originalbelege geladen.`;
+      case 'failed':
+        return $localize`:@@wordCloud.evidenceFailed:Die Originalbelege konnten nicht geladen werden.`;
+      case 'stale':
+        return $localize`:@@wordCloud.evidenceStale:Die Fragen haben sich geändert. Aktualisiere die Wortwolke, um die Belege zu laden.`;
+      default:
+        return '';
+    }
   });
 
   private readonly termResponsesByGroupKey = computed(() => {
@@ -881,7 +932,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const entry = this.selectedWordEntry();
     if (!entry) return null;
     const analysisEntry = this.analysisEntries()?.find(({ key }) => key === entry.groupKey);
-    if (!analysisEntry?.membersTruncated || analysisEntry.evidence) return null;
+    if (!analysisEntry?.membersTruncated || analysisEntry.evidenceSource) return null;
     const shown = this.formatCount(this.visibleResponses().length);
     const total = this.formatCount(entry.sourceCount);
     return $localize`:@@wordCloud.evidenceCoverage:${shown}:shown: von ${total}:total: Belegen sichtbar`;
@@ -917,6 +968,18 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   });
 
   readonly filteredResponses = computed(() => {
+    if (this.evidenceSources().length) {
+      const evidence = this.currentEvidenceResult();
+      if (evidence?.status !== 'ready') return [];
+      const texts = new Map(evidence.texts);
+      for (const entry of this.evidenceEntries()) {
+        if (entry.evidenceSource) continue;
+        for (const { sourceId, text } of entry.members) {
+          if (!texts.has(sourceId)) texts.set(sourceId, this.displayResponseText(sourceId, text));
+        }
+      }
+      return [...texts.values()];
+    }
     const selected = this.selectedGroupKey();
     const termResponsesByGroupKey = this.termResponsesByGroupKey();
     if (this.terms() !== null) {
@@ -943,7 +1006,7 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   readonly visibleResponses = computed(() => {
     const responses = this.filteredResponses();
-    return this.showCompleteEvidence()
+    return this.showCompleteEvidence() || this.evidenceSources().length
       ? responses
       : responses.slice(0, this.responsesVisibleLimit());
   });
@@ -1000,7 +1063,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
     return {
       total,
-      visible: this.filteredResponses().length,
+      visible: this.evidenceSources().length
+        ? this.evidenceSourceIds().size
+        : this.filteredResponses().length,
     };
   });
 
@@ -1136,6 +1201,37 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
         this.clearWordSelection();
       }
       this.previousSelectionScopeKey = scopeKey;
+    });
+
+    effect((onCleanup) => {
+      if (!this.showResponses() || !this.showResponsesPanel()) return;
+      const load = this.loadEvidence();
+      const sources = this.evidenceSources();
+      if (!load || !sources.length) return;
+
+      const scope = this.selectionScopeKey();
+      this.evidenceAttempt();
+      this.evidenceResult.set(null);
+      const abort = new AbortController();
+      onCleanup(() => abort.abort());
+      const apply = (result: WordCloudEvidenceResult) => {
+        if (
+          !abort.signal.aborted &&
+          this.showResponses() &&
+          this.evidenceSources() === sources &&
+          this.selectionScopeKey() === scope
+        ) {
+          this.evidenceResult.set({ result, sources, scope });
+        }
+      };
+      const incomplete = sources.some(
+        ({ sourceIds, memberCount }) => new Set(sourceIds).size !== memberCount,
+      );
+      if (incomplete) {
+        apply({ status: 'failed' });
+        return;
+      }
+      void load(sources, abort.signal).then(apply, () => apply({ status: 'failed' }));
     });
 
     effect(() => {
@@ -1446,6 +1542,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     this.showResponses.update((value) => !value);
   }
 
+  protected retryEvidence(): void {
+    const summary = this.responsesSummary()?.nativeElement;
+    if (summary?.getClientRects().length) summary.focus();
+    this.evidenceAttempt.update((attempt) => attempt + 1);
+  }
+
   protected resetAnalysisPanels(): void {
     this.showResponses.set(false);
     const technical = this.technicalDisclosure()?.nativeElement;
@@ -1650,7 +1752,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const coverage = this.tooltipSourceCountLine(entry.sourceCount);
     const count = coverage ?? this.tooltipValueLine(entry.count);
     const origin = this.topicNameOrigin(entry);
-    return origin ? `${count}\n${origin}` : count;
+    return origin
+      ? [count, copy.groupedByMeaning, copy.topicName + ' · ' + origin].join('\n')
+      : count;
   }
 
   wordTooltip(entry: CloudWord): string {

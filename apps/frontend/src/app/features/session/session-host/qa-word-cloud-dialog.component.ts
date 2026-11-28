@@ -6,11 +6,7 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatOption, MatSelect } from '@angular/material/select';
-import type {
-  QaQuestionSortMode,
-  WordCloudAnalysisEntryDTO,
-  WordCloudAnalysisVariant,
-} from '@arsnova/shared-types';
+import type { QaQuestionSortMode, WordCloudAnalysisVariant } from '@arsnova/shared-types';
 import type { WordCloudAnalysisInfo } from '../session-present/word-cloud-analysis-info';
 import { WordCloudComponent } from '../session-present/word-cloud.component';
 import type { WordCloudTerm } from '../session-present/word-cloud-term.service';
@@ -19,6 +15,8 @@ import {
   wordCloudExportViewLabel,
   wordCloudTopicProgressLabel,
   wordCloudViewHint,
+  type WordCloudEntryWithEvidence,
+  type WordCloudEvidenceLoader,
   type WeightedWordSource,
 } from '../session-present/word-cloud.util';
 
@@ -36,7 +34,9 @@ export type QaWordCloudDialogData = {
   responseTextsBySourceId: () => Readonly<Record<string, string>>;
   weightedResponses: () => WeightedWordSource[];
   terms: () => WordCloudTerm[] | null;
-  analysisEntries: () => WordCloudAnalysisEntryDTO[] | null;
+  analysisEntries: () => WordCloudEntryWithEvidence[] | null;
+  loadEvidence?: WordCloudEvidenceLoader;
+  evidenceScope?: () => string;
   title: () => string;
   analysisLabel: string;
   wordLabelSingular: () => string;
